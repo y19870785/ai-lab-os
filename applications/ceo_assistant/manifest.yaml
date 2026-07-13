@@ -1,0 +1,31 @@
+﻿name: ceo-assistant
+version: 0.32.0
+description: CEO个人工作总控助手
+entrypoint: applications.ceo_assistant.application:CEOAssistant
+
+required_agents:
+  - default-agent
+
+required_tools:
+  - echo
+
+required_providers:
+  - openai
+  - chroma
+
+required_permissions:
+  - memory:read
+  - memory:write
+  - knowledge:read
+  - knowledge:write
+
+workflows: []
+
+configuration:
+  default_model: deepseek-chat
+  max_history: 50
+  workspace: ceo
+
+health_checks:
+  - memory_available
+  - llm_available

@@ -1,0 +1,19 @@
+"""Tool Protocol — every tool must implement this."""
+from __future__ import annotations
+from abc import ABC, abstractmethod
+from core.tools.models import ToolInfo, ToolRequest, ToolResult
+
+class ToolProtocol(ABC):
+    @abstractmethod
+    async def initialize(self) -> None: ...
+    @abstractmethod
+    async def execute(self, request: ToolRequest) -> ToolResult: ...
+    @abstractmethod
+    async def validate(self, request: ToolRequest) -> bool: ...
+    @abstractmethod
+    async def health_check(self) -> bool: ...
+    @abstractmethod
+    async def shutdown(self) -> None: ...
+    @property
+    @abstractmethod
+    def info(self) -> ToolInfo: ...

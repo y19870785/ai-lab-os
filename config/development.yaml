@@ -1,0 +1,27 @@
+﻿# AI-Lab 开发环境配置
+app:
+  name: "AI-Lab"
+  version: "0.31.0"
+  debug: true
+
+providers:
+  llm:
+    default: mock  # 开发环境使用 mock
+  embedding:
+    default: mock
+  vector:
+    default: mock
+
+memory:
+  enabled: true
+  default_session_ttl: 3600
+
+knowledge:
+  enabled: true
+  enable_hybrid_search: true
+
+agent:
+  max_concurrent: 2
+
+workflow:
+  max_retries: 2

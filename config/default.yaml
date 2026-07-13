@@ -1,0 +1,84 @@
+﻿# AI-Lab 默认配置
+
+app:
+  name: "AI-Lab"
+  version: "0.22.1"
+  debug: false
+
+logging:
+  level: "INFO"
+  format: "json"
+  output: "logs/ai-lab.log"
+
+database:
+  host: "localhost"
+  port: 5432
+  name: "ai_lab"
+  user: "postgres"
+
+memory:
+  enabled: true
+  default_session_ttl: 3600
+  consolidation:
+    schedule: "daily"
+    similarity_threshold: 0.85
+    importance_decay: 0.95
+    max_episodic_count: 10000
+    min_importance: 0.1
+
+knowledge:
+  enabled: true
+  default_chunk_size: 512
+  default_chunk_overlap: 64
+  default_top_k: 10
+  enable_hybrid_search: true
+
+agent:
+  max_concurrent: 5
+  default_timeout: 60
+
+agent_layer:
+  enabled: true
+  default_timeout: 120
+  max_concurrent_runs: 10
+  max_tokens_per_run: 32000
+
+workflow:
+  max_retries: 3
+  retry_delay: 5
+
+# Provider 配置 (v0.22.1 Alpha)
+providers:
+  llm:
+    default: openai
+    openai:
+      api_key: "${OPENAI_API_KEY}"
+      base_url: "${OPENAI_BASE_URL:-https://api.openai.com/v1}"
+      model: "${OPENAI_MODEL:-gpt-4o-mini}"
+      timeout: 60
+      max_retries: 3
+  embedding:
+    default: openai
+    openai:
+      api_key: "${OPENAI_API_KEY}"
+      base_url: "${OPENAI_BASE_URL:-https://api.openai.com/v1}"
+      model: "${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}"
+    local:
+      model: "${LOCAL_EMBEDDING_MODEL:-all-MiniLM-L6-v2}"
+      device: "${LOCAL_EMBEDDING_DEVICE:-cpu}"
+  vector:
+    default: chroma
+    chroma:
+      persist_dir: "${CHROMA_PERSIST_DIR:-data/chroma}"
+      collection: "${CHROMA_COLLECTION:-ai_lab_knowledge}"
+  storage:
+    default: local
+
+scheduler:
+  tick_interval_ms: 100
+  max_concurrent_jobs: 10
+
+task:
+  default_timeout: 600
+  max_retries: 3
+  max_workflows_per_task: 50

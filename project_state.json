@@ -1,0 +1,74 @@
+{
+  "project": "AI-Lab",
+  "version": "v0.32.4",
+  "git_commit": "N/A (no git history)",
+  "git_branch": "master",
+  "development_status": "paused_for_review",
+  "current_product": "CEO Assistant",
+  "python_version": "3.10.9",
+  "code_stats": {
+    "python_files": 393,
+    "total_lines": 26874,
+    "test_files": 104
+  },
+  "test_summary": {
+    "passed": 712,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 26,
+    "real_provider_errors": 5
+  },
+  "real_provider": {
+    "provider": "DeepSeek",
+    "model": "deepseek-v4-flash",
+    "status": "Implemented. Historical Validation Passed. Current Freeze Validation BLOCKED BY ENVIRONMENT (SOCKS Proxy).",
+    "api_base": "https://api.deepseek.com/v1"
+  },
+  "architecture_layers": [
+    "Governance",
+    "Application",
+    "Coordination",
+    "Task",
+    "Scheduler",
+    "Workflow",
+    "Agent",
+    "Knowledge",
+    "Provider",
+    "Memory",
+    "Core"
+  ],
+  "key_modules": {
+    "Memory": "core/memory/manager.py",
+    "Knowledge": "core/knowledge/manager.py",
+    "Provider_LLM": "core/providers/llm/openai.py",
+    "Agent": "core/agents/runtime.py",
+    "Tool": "core/tools/executor.py",
+    "Workflow": "core/workflow/runtime.py",
+    "Scheduler": "core/scheduler/runtime.py",
+    "Task": "core/task/runtime.py",
+    "Coordination": "core/coordination/orchestrator.py",
+    "Application": "applications/runtime.py",
+    "CEO_Assistant": "applications/ceo_assistant/application.py"
+  },
+  "open_technical_debt": [
+    "TD-001: 部分测试辅助函数错误传入 id=None",
+    "P1-1: API 无鉴权、CORS *",
+    "P1-2: Real Provider 测试不可靠 (SOCKS proxy)",
+    "P1-3: Docker 未经真实验证",
+    "P1-4: Chroma 生命周期管理脆弱",
+    "P1-5: start.bat 依赖清除代理",
+    "P1-6: Prompt 注入无防护"
+  ],
+  "known_limitations": [
+    "无多用户/多租户",
+    "无 API 鉴权",
+    "仅本地 SQLite + Chroma",
+    "无分布式存储",
+    "Real Provider 测试依赖本地环境",
+    "Long-running 稳定性未验证",
+    "Windows 编码工具链不稳定",
+    "Docker 未实际部署测试"
+  ],
+  "next_action": "independent_gpt56_architecture_review",
+  "freeze_date": "2026-07-14"
+}

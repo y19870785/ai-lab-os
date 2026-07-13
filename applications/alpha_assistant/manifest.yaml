@@ -1,0 +1,23 @@
+﻿name: alpha_assistant
+version: "1.0.0"
+description: "AI-Lab Alpha Assistant —— 首个可运行业务应用"
+entrypoint: "applications.alpha_assistant.application:AlphaAssistant"
+required_agents:
+  - default-agent
+required_tools:
+  - echo
+  - calculator
+required_providers:
+  - llm
+required_permissions:
+  - read
+  - write
+  - execute
+workflows:
+  - default_workflow
+configuration:
+  model: "gpt-4o-mini"
+  temperature: 0.7
+  max_tokens: 2048
+health_checks:
+  - ping

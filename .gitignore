@@ -1,0 +1,66 @@
+﻿
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+
+# Data
+data/
+
+*.db
+*.sqlite
+
+# Docker
+.container/
+
+# Temp
+tmp/
+temp/
+
+# Chroma
+chroma/
+chroma_data/
+.chromadb/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime
+runtime/
+
+# Keep env example
+!.env.example
+!config/.env.example
+# Dev temp files
+_fix_test.py
+_p27_*.b64
+_phase23_writer.py

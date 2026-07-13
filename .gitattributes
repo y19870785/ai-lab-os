@@ -1,0 +1,16 @@
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python source
+*.py text diff=python
+
+# Markdown
+*.md text
+
+# YAML
+*.yaml text
+*.yml text
+
+# Batch
+*.bat text eol=crlf
