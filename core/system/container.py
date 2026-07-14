@@ -204,6 +204,7 @@ class SystemContainer:
             if self.scheduler_runtime is not None
             else {"status": RuntimeStatus.DISABLED.value}
         )
+        database_health = self.database_manager.health()
         memory_health = self.memory_manager.health()
         application_health = await self.application_runtime.health_check()
         tool_count = len(self.tool_registry.list_names())
@@ -218,6 +219,7 @@ class SystemContainer:
                 "mode": self.settings.provider_mode,
                 "readiness": provider_state.value,
             },
+            "database": database_health,
             "memory": memory_health,
             "knowledge": {
                 "status": (
@@ -270,7 +272,7 @@ class SystemContainer:
         }
 
         critical = {
-            "event_bus", "provider", "memory", "tools", "applications",
+            "event_bus", "provider", "database", "memory", "tools", "applications",
             "agent", "workflow", "task",
         }
         if self.settings.enable_scheduler:

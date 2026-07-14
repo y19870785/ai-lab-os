@@ -13,11 +13,11 @@ Usage:
 from __future__ import annotations
 
 import json
-import sqlite3
-import threading
 from datetime import datetime
 from typing import Any
 
+from core.database.connection import ConnectionLease, transaction
+from core.database.manager import DatabaseManager
 from core.memory.models import MemoryFilter, MemoryItem, MemoryQuery, MemoryType
 from core.memory.protocol import MemoryStore
 
@@ -31,44 +31,55 @@ class SQLiteDecisionStore(MemoryStore):
     - Reasoning chains stored as structured JSON
     """
 
-    def __init__(self, db_path: str = "decision.db", db_manager=None) -> None:
+    def __init__(
+        self,
+        db_path: str = "decision.db",
+        db_manager: DatabaseManager | None = None,
+    ) -> None:
         self._db_path = db_path
         self._db_manager = db_manager
-        self._lock = threading.Lock()
 
     async def initialize(self) -> None:
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
-                conn.executescript("""
-                    CREATE TABLE IF NOT EXISTS decision_memories (
-                        id TEXT PRIMARY KEY,
-                        memory_type TEXT NOT NULL DEFAULT 'decision',
-                        content TEXT NOT NULL DEFAULT '{}',
-                        importance REAL NOT NULL DEFAULT 0.5,
-                        embedding TEXT,
-                        timestamp TEXT NOT NULL,
-                        ttl INTEGER,
-                        metadata TEXT NOT NULL DEFAULT '{}',
-                        created_at TEXT NOT NULL DEFAULT (datetime('now')),
-                        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-                    );
-                    CREATE INDEX IF NOT EXISTS idx_decision_importance
-                        ON decision_memories(importance);
-                    CREATE INDEX IF NOT EXISTS idx_decision_timestamp
-                        ON decision_memories(timestamp);
-                """)
-                conn.commit()
-            finally:
-                conn.close()
+        with self._lease() as conn, transaction(conn):
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS decision_memories (
+                    id TEXT PRIMARY KEY,
+                    memory_type TEXT NOT NULL DEFAULT 'decision',
+                    content TEXT NOT NULL DEFAULT '{}',
+                    importance REAL NOT NULL DEFAULT 0.5,
+                    embedding TEXT,
+                    timestamp TEXT NOT NULL,
+                    ttl INTEGER,
+                    metadata TEXT NOT NULL DEFAULT '{}',
+                    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_decision_importance
+                    ON decision_memories(importance);
+                CREATE INDEX IF NOT EXISTS idx_decision_timestamp
+                    ON decision_memories(timestamp);
+            """)
 
     async def save(self, item: MemoryItem) -> str:
         self._validate_type(item)
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
+        with self._lease() as conn, transaction(conn):
+            conn.execute(
+                """INSERT OR REPLACE INTO decision_memories
+                (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))""",
+                (item.id, item.memory_type.value, json.dumps(item.content, ensure_ascii=False),
+                 item.importance,
+                 json.dumps(item.embedding) if item.embedding else None,
+                 item.timestamp.isoformat(), item.ttl,
+                 json.dumps(item.metadata, ensure_ascii=False)),
+            )
+        return item.id
+
+    async def batch_save(self, items: list[MemoryItem]) -> list[str]:
+        ids = []
+        with self._lease() as conn, transaction(conn):
+            for item in items:
+                self._validate_type(item)
                 conn.execute(
                     """INSERT OR REPLACE INTO decision_memories
                     (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
@@ -79,43 +90,12 @@ class SQLiteDecisionStore(MemoryStore):
                      item.timestamp.isoformat(), item.ttl,
                      json.dumps(item.metadata, ensure_ascii=False)),
                 )
-                conn.commit()
-            finally:
-                conn.close()
-        return item.id
-
-    async def batch_save(self, items: list[MemoryItem]) -> list[str]:
-        ids = []
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
-                for item in items:
-                    self._validate_type(item)
-                    conn.execute(
-                        """INSERT OR REPLACE INTO decision_memories
-                        (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))""",
-                        (item.id, item.memory_type.value, json.dumps(item.content, ensure_ascii=False),
-                         item.importance,
-                         json.dumps(item.embedding) if item.embedding else None,
-                         item.timestamp.isoformat(), item.ttl,
-                         json.dumps(item.metadata, ensure_ascii=False)),
-                    )
-                    ids.append(item.id)
-                conn.commit()
-            finally:
-                conn.close()
+                ids.append(item.id)
         return ids
 
     async def get(self, id: str) -> MemoryItem | None:
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
-                row = conn.execute("SELECT * FROM decision_memories WHERE id = ?", (id,)).fetchone()
-            finally:
-                conn.close()
+        with self._lease() as conn:
+            row = conn.execute("SELECT * FROM decision_memories WHERE id = ?", (id,)).fetchone()
         return self._row_to_item(row) if row else None
 
     async def query(self, spec: MemoryQuery) -> list[MemoryItem]:
@@ -131,35 +111,20 @@ class SQLiteDecisionStore(MemoryStore):
             if key in ("outcome", "agent_id", "session_id", "decision_type"):
                 conditions.append(f"json_extract(content, '$.{key}') = ?"); params.append(str(value))
         where = " AND ".join(conditions)
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
-                rows = conn.execute(f"SELECT * FROM decision_memories WHERE {where} ORDER BY importance DESC LIMIT ?",
-                                    params + [spec.top_k]).fetchall()
-            finally:
-                conn.close()
+        with self._lease() as conn:
+            rows = conn.execute(f"SELECT * FROM decision_memories WHERE {where} ORDER BY importance DESC LIMIT ?",
+                                params + [spec.top_k]).fetchall()
         return [self._row_to_item(r) for r in rows]
 
     async def delete(self, id: str) -> bool:
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
-                c = conn.execute("DELETE FROM decision_memories WHERE id = ?", (id,))
-                conn.commit(); return c.rowcount > 0
-            finally:
-                conn.close()
+        with self._lease() as conn, transaction(conn):
+            c = conn.execute("DELETE FROM decision_memories WHERE id = ?", (id,))
+            return c.rowcount > 0
 
     async def count(self, filter: MemoryFilter | None = None) -> int:
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
-                row = conn.execute("SELECT COUNT(*) FROM decision_memories WHERE memory_type='decision'").fetchone()
-                return row[0] if row else 0
-            finally:
-                conn.close()
+        with self._lease() as conn:
+            row = conn.execute("SELECT COUNT(*) FROM decision_memories WHERE memory_type='decision'").fetchone()
+            return row[0] if row else 0
 
     async def update_outcome(self, decision_id: str, outcome: str, note: str = "") -> bool:
         """Update decision outcome (PENDING -> SUCCESS/FAILURE)."""
@@ -179,28 +144,23 @@ class SQLiteDecisionStore(MemoryStore):
         ))
 
     async def vacuum(self) -> None:
-        lock = self._db_manager.get_lock("decision") if self._db_manager else self._lock
-        with lock:
-            conn = self._get_conn()
-            try:
-                conn.execute("VACUUM")
-            finally:
-                conn.close()
+        with self._lease() as conn:
+            conn.execute("VACUUM")
 
     async def close(self) -> None:
         pass
 
-    def _get_conn(self) -> sqlite3.Connection:
+    def _lease(self) -> ConnectionLease:
         if self._db_manager:
-            return self._db_manager.get_connection("decision")
-        conn = sqlite3.connect(self._db_path); conn.row_factory = sqlite3.Row; return conn
+            return self._db_manager.lease("decision", self._db_path)
+        return ConnectionLease.standalone(self._db_path)
 
     def _validate_type(self, item: MemoryItem) -> None:
         if item.memory_type != MemoryType.DECISION:
             raise ValueError(f"SQLiteDecisionStore only accepts DECISION type, got {item.memory_type}")
 
     @staticmethod
-    def _row_to_item(row: sqlite3.Row) -> MemoryItem:
+    def _row_to_item(row: Any) -> MemoryItem:
         return MemoryItem(id=row["id"], memory_type=MemoryType(row["memory_type"]),
                           content=json.loads(row["content"]) if row["content"] else {},
                           importance=row["importance"],

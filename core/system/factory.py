@@ -132,14 +132,23 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
     settings.sqlite_dir.mkdir(parents=True, exist_ok=True)
 
     event_bus = MemoryBus()
-    database_manager = DatabaseManager(base_path=settings.data_dir / "database")
+    database_manager = DatabaseManager(base_path=settings.sqlite_dir)
     provider_registry, provider_factory, llm, extras, embedding, vector = _configure_providers(settings)
 
     memory_manager = MemoryManager(bus=event_bus)
     session_store = SessionMemory(default_ttl=3600, bus=event_bus)
-    episodic_store = SQLiteEpisodicStore(db_path=str(settings.sqlite_dir / "episodic.db"))
-    semantic_store = SQLiteSemanticStore(db_path=str(settings.sqlite_dir / "semantic.db"))
-    decision_store = SQLiteDecisionStore(db_path=str(settings.sqlite_dir / "decision.db"))
+    episodic_store = SQLiteEpisodicStore(
+        db_path=str(settings.sqlite_dir / "episodic.db"),
+        db_manager=database_manager,
+    )
+    semantic_store = SQLiteSemanticStore(
+        db_path=str(settings.sqlite_dir / "semantic.db"),
+        db_manager=database_manager,
+    )
+    decision_store = SQLiteDecisionStore(
+        db_path=str(settings.sqlite_dir / "decision.db"),
+        db_manager=database_manager,
+    )
     memory_stores = (session_store, episodic_store, semantic_store, decision_store)
     for memory_type, store in zip(MemoryType, memory_stores):
         memory_manager.register_store(memory_type, store)

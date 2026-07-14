@@ -1,4 +1,22 @@
 ﻿
+## SP-003 - Implemented on branch / Awaiting re-review（2026-07-15）
+
+### DatabaseManager Connection Ownership
+
+- Composition Root 将同一个 `DatabaseManager` 注入 Episodic、Semantic、Decision 三个 SQLite Memory Store。
+- 新增显式 `ConnectionLease`：Managed Mode 在完整借用周期持有 per-database lock，退出时不关闭共享连接；Standalone Mode 关闭自身创建的 operation-scoped connection。
+- `DatabaseManager` 支持显式路径绑定、路径冲突拒绝、失效缓存识别、单连接关闭与关闭后显式重开。
+- 保持 `settings.sqlite_dir/episodic.db`、`semantic.db`、`decision.db` 原路径，不创建 `data/database/` 下的第二套数据库，不修改 Schema。
+- 三类 Store 的写操作统一显式 commit/rollback，`batch_save` 保持单事务原子性。
+- Database Health 接入 `RuntimeStatus` 与 `FailureInfo`，探针只检查已打开连接，不自动创建数据库。
+- 新增真实连接、事务回滚、并发、路径兼容、Composition Root 与 shutdown 验证。
+- 修复审查发现的租约竞态：`close()`/`close_all()` 等待活跃 managed lease；关闭失败的连接保留在 Manager 中并可重试，`close_all()` 尝试全部连接后统一报告失败。
+- Knowledge SQLite Store 与 SchedulerPersistence 所有权迁移不在本轮范围内。
+- SP-003 审查修复专项测试：`32 passed in 1.75s`；受影响模块：`141 passed in 7.97s`。
+- 全量本地测试：`800 passed, 26 warnings in 41.93s`。首次运行记录为 `795 passed, 26 warnings, 5 errors in 33.58s`，错误均来自继承 SOCKS 代理的既有 DeepSeek real 测试；仅在测试子进程清空代理变量后重跑通过，未修改用户全局环境。
+
+---
+
 ## SP-002 - Completed（2026-07-14）
 
 **Merge PR**：[#3](https://github.com/y19870785/ai-lab-os/pull/3)
