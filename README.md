@@ -13,7 +13,7 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 **SP-001：Single Composition Root 已完成并合并。** CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该实现已通过架构审查与合并后复核，现为 `main` 的稳定化基线。
 
-**SP-002：Failure Semantics & Observability 已在独立分支实现并完成首轮审查修复，等待复审。** Agent 请求启用但未配置的 Memory、Knowledge、Tool 会显式失败；Application 失败统一进入非 2xx API 错误契约；Memory 支持临时故障后的健康恢复；System Health 会聚合关键组件的停止、未初始化、禁用、降级和失败状态。当前仍为 `Implemented on branch / Awaiting review`，尚未合并到 `main`。
+**SP-002：Failure Semantics & Observability 已完成并通过 PR #3 以 Squash Merge 合并到 `main`。** `FailureInfo` 已成为 Agent、Task、Scheduler、API、失败事件与 System Health 的统一失败契约。首轮审查发现的 Agent 缺失依赖静默跳过、HTTP 200 携带错误状态、Memory 健康无法恢复和 Health 聚合错误均已修复。合并基线为 `a39dc6a2434b409d311709b08b2c0df9a555a610`，审查结论为 `APPROVED`。
 
 采用十层架构（v0.22.0）：
 

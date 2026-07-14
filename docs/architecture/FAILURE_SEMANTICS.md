@@ -1,6 +1,8 @@
 # AI-Lab 失败语义与可观测性
 
-> SP-002 状态：Implemented on branch / Awaiting review
+> SP-002 状态：Completed
+> Merge PR：#3 · Squash Merge · APPROVED
+> Merge Commit：`a39dc6a2434b409d311709b08b2c0df9a555a610` · `2026-07-14T18:22:14Z`
 
 本文定义 AI-Lab 运行时表达失败的唯一公共契约。实现位于 `core/errors/`，Agent、Task、Scheduler、System Health 和 API 不得再各自维护同义错误模型。
 
@@ -104,4 +106,6 @@ trace id 同时进入事件 payload 和 metadata。不得只发布自由文本 `
 
 ## 当前边界
 
-SP-002 不处理 Knowledge Reindex、Chunk 持久化、DatabaseManager 连接所有权、Reminder 闭环、自动 Tool Calling 或 Coordination 扩展。Memory 最近失败状态当前由统一入口和主运行链路记录，更完整的 Store 级健康探针留待后续独立任务。
+SP-002 不处理 Knowledge Reindex、Chunk 持久化、DatabaseManager 连接所有权、Reminder/UserTask-Scheduler 闭环、自动 Tool Calling 或 Coordination 扩展。这些能力仍属于后续独立任务，不得因 SP-002 完成而视为已实现。
+
+SP-002 最终本地验证记录为 `768 passed, 26 warnings in 34.43s`。合并时 GitHub 没有远端 CI checks，该结果不是 GitHub Actions 记录。
