@@ -27,15 +27,21 @@ class OpenAILLMProvider(LLMProvider):
 
     def __init__(
         self,
-        api_key: str = "",
-        base_url: str = "",
-        model: str = "gpt-4o-mini",
+        api_key: str | None = None,
+        base_url: str | None = None,
+        model: str | None = None,
         timeout: float = 60.0,
         max_retries: int = 3,
     ) -> None:
-        self._api_key = api_key or os.getenv("OPENAI_API_KEY", "")
-        self._base_url = base_url or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        self._model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self._api_key = api_key or os.getenv("AI_LAB_LLM_API_KEY") or os.getenv("OPENAI_API_KEY", "")
+        self._base_url = (
+            base_url or os.getenv("AI_LAB_LLM_BASE_URL")
+            or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+        )
+        self._model = (
+            model or os.getenv("AI_LAB_LLM_MODEL")
+            or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        )
         self._timeout = timeout
         self._max_retries = max_retries
         self._client = None
@@ -64,14 +70,14 @@ class OpenAILLMProvider(LLMProvider):
     async def _do_initialize(self) -> None:
         try:
             from openai import AsyncOpenAI
-            self._client = AsyncOpenAI(
-                api_key=self._api_key,
-                base_url=self._base_url,
-                timeout=self._timeout,
-                max_retries=self._max_retries,
-            )
         except ImportError:
             raise RuntimeError("openai package not installed. Run: pip install openai")
+        self._client = AsyncOpenAI(
+            api_key=self._api_key,
+            base_url=self._base_url,
+            timeout=self._timeout,
+            max_retries=self._max_retries,
+        )
 
     async def _do_shutdown(self) -> None:
         if self._client:

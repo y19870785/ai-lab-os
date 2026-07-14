@@ -22,12 +22,13 @@ class TestAgentProviderFlow:
         assert "Echo: Hello" in answer
 
     async def test_agent_without_llm(self):
+        from core.agents.exceptions import AgentExecutionError
         info = AgentInfo(name="no-llm-agent", description="No LLM")
         executor = AgentExecutor(info=info, llm_provider=None)
         ctx = AgentContext(session_id="s2", agent_id=info.id)
         ctx.messages = [{"role": "user", "content": "Hi"}]
-        answer = await executor._invoke_llm(ctx)
-        assert "[no llm]" in answer or "Hi" in answer
+        with pytest.raises(AgentExecutionError, match="not configured"):
+            await executor._invoke_llm(ctx)
 
     async def test_full_execute_with_mock_llm(self):
         class MockLLM:

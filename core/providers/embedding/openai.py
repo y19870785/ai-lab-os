@@ -19,14 +19,20 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
 
     def __init__(
         self,
-        api_key: str = "",
-        base_url: str = "",
-        model: str = "text-embedding-3-small",
+        api_key: str | None = None,
+        base_url: str | None = None,
+        model: str | None = None,
         timeout: float = 30.0,
     ) -> None:
-        self._api_key = api_key or os.getenv("OPENAI_API_KEY", "")
-        self._base_url = base_url or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        self._model = model or os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+        self._api_key = api_key or os.getenv("AI_LAB_LLM_API_KEY") or os.getenv("OPENAI_API_KEY", "")
+        self._base_url = (
+            base_url or os.getenv("AI_LAB_LLM_BASE_URL")
+            or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+        )
+        self._model = (
+            model or os.getenv("AI_LAB_EMBEDDING_MODEL")
+            or os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+        )
         self._timeout = timeout
         self._client = None
         self._dim = 1536  # default for text-embedding-3-small
@@ -49,14 +55,14 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
     async def _do_initialize(self) -> None:
         try:
             from openai import AsyncOpenAI
-            self._client = AsyncOpenAI(
-                api_key=self._api_key,
-                base_url=self._base_url,
-                timeout=self._timeout,
-                max_retries=2,
-            )
         except ImportError:
             raise RuntimeError("openai package not installed")
+        self._client = AsyncOpenAI(
+            api_key=self._api_key,
+            base_url=self._base_url,
+            timeout=self._timeout,
+            max_retries=2,
+        )
 
         # Determine dimension
         dim_map = {

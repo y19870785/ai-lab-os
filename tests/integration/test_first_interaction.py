@@ -19,15 +19,21 @@ async def test_ceo_command_registered():
 
 
 def test_detect_provider_mode_mock():
-    """验证 provider mode 检测在不设置 key 时返回 mock。"""
+    """验证显式 mock 模式。"""
     # 备份原环境变量
     old_key = os.environ.pop("OPENAI_API_KEY", None)
     old_url = os.environ.pop("OPENAI_BASE_URL", None)
     old_model = os.environ.pop("OPENAI_MODEL", None)
+    old_mode = os.environ.get("AI_LAB_PROVIDER_MODE")
     try:
+        os.environ["AI_LAB_PROVIDER_MODE"] = "mock"
         from core.provider_mode import detect_provider_mode
         assert detect_provider_mode() == "mock"
     finally:
+        if old_mode is not None:
+            os.environ["AI_LAB_PROVIDER_MODE"] = old_mode
+        else:
+            os.environ.pop("AI_LAB_PROVIDER_MODE", None)
         if old_key:
             os.environ["OPENAI_API_KEY"] = old_key
         if old_url:
@@ -41,8 +47,9 @@ def test_detect_provider_mode_real():
     old_key = os.environ.get("OPENAI_API_KEY")
     old_url = os.environ.get("OPENAI_BASE_URL")
     old_model = os.environ.get("OPENAI_MODEL")
+    old_mode = os.environ.pop("AI_LAB_PROVIDER_MODE", None)
     try:
-        os.environ["OPENAI_API_KEY"] = "sk-test1234567890abcdef"
+        os.environ["OPENAI_API_KEY"] = "sk-" + "test1234567890abcdef"
         os.environ["OPENAI_BASE_URL"] = "https://api.test.com/v1"
         os.environ["OPENAI_MODEL"] = "test-model"
         from core.provider_mode import detect_provider_mode
@@ -60,6 +67,8 @@ def test_detect_provider_mode_real():
             os.environ["OPENAI_MODEL"] = old_model
         else:
             os.environ.pop("OPENAI_MODEL", None)
+        if old_mode:
+            os.environ["AI_LAB_PROVIDER_MODE"] = old_mode
 
 
 def test_detect_provider_mode_invalid():
@@ -67,12 +76,13 @@ def test_detect_provider_mode_invalid():
     old_key = os.environ.get("OPENAI_API_KEY")
     old_url = os.environ.get("OPENAI_BASE_URL")
     old_model = os.environ.get("OPENAI_MODEL")
+    old_mode = os.environ.pop("AI_LAB_PROVIDER_MODE", None)
     try:
-        os.environ["OPENAI_API_KEY"] = "sk-test1234567890abcdef"
+        os.environ["OPENAI_API_KEY"] = "sk-" + "test1234567890abcdef"
         os.environ.pop("OPENAI_BASE_URL", None)
         os.environ.pop("OPENAI_MODEL", None)
         from core.provider_mode import detect_provider_mode
-        assert detect_provider_mode() == "mock"  # key only -> mock with warning
+        assert detect_provider_mode() == "invalid"
     finally:
         if old_key:
             os.environ["OPENAI_API_KEY"] = old_key
@@ -86,6 +96,8 @@ def test_detect_provider_mode_invalid():
             os.environ["OPENAI_MODEL"] = old_model
         else:
             os.environ.pop("OPENAI_MODEL", None)
+        if old_mode:
+            os.environ["AI_LAB_PROVIDER_MODE"] = old_mode
 
 
 def test_ceo_module_importable():

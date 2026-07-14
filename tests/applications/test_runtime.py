@@ -5,8 +5,14 @@ pytestmark = pytest.mark.asyncio(loop_scope="function")
 from applications.runtime import ApplicationRuntime
 from applications.registry import ApplicationRegistry
 from applications.models import (
-    ApplicationInfo, ApplicationManifest, ApplicationRequest,
+    ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse,
 )
+from applications.exceptions import ApplicationAlreadyRegisteredError, ApplicationNotRegisteredError
+
+
+class _TestApplication:
+    async def run(self, request):
+        return ApplicationResponse(answer=request.user_input, mode="mock")
 
 
 class TestApplicationRuntime:
@@ -28,10 +34,13 @@ class TestApplicationRuntime:
         assert len(apps) == 1
         await rt.shutdown()
 
-    async def test_execute_no_deps(self):
-        """执行请求——无 Orchestrator/Agent 时使用 echo fallback。"""
+    async def test_execute_registered_instance(self):
         rt = ApplicationRuntime()
         await rt.initialize()
+        info = ApplicationInfo(name="test")
+        await rt.register_application(
+            info, ApplicationManifest(name="test", entrypoint="test"), _TestApplication()
+        )
         req = ApplicationRequest(application_name="test", user_input="Hello world")
         resp = await rt.execute(req)
         assert resp.status == "ok"
@@ -40,16 +49,13 @@ class TestApplicationRuntime:
         assert resp.trace_id != ""
         await rt.shutdown()
 
-    async def test_execute_auto_creates_app(self):
-        """未注册应用时自动创建。"""
+    async def test_execute_rejects_unregistered_app(self):
         rt = ApplicationRuntime()
         await rt.initialize()
         req = ApplicationRequest(application_name="unknown-app", user_input="Test")
-        resp = await rt.execute(req)
-        assert resp.status == "ok"
-        apps = await rt.list_applications()
-        assert len(apps) == 1
-        assert apps[0].name == "unknown-app"
+        with pytest.raises(ApplicationNotRegisteredError):
+            await rt.execute(req)
+        assert await rt.list_applications() == []
         await rt.shutdown()
 
     async def test_list_applications(self):
@@ -58,6 +64,16 @@ class TestApplicationRuntime:
         apps = await rt.list_applications()
         assert isinstance(apps, list)
         await rt.shutdown()
+
+    async def test_duplicate_name_is_rejected(self):
+        rt = ApplicationRuntime()
+        info = ApplicationInfo(name="same-name")
+        manifest = ApplicationManifest(name="same-name", entrypoint="test")
+        await rt.register_application(info, manifest, _TestApplication())
+        with pytest.raises(ApplicationAlreadyRegisteredError):
+            await rt.register_application(
+                ApplicationInfo(name="same-name"), manifest, _TestApplication()
+            )
 
     async def test_app_count(self):
         rt = ApplicationRuntime()
@@ -71,4 +87,4 @@ class TestApplicationRuntime:
     async def test_provider_mode_detection(self):
         rt = ApplicationRuntime()
         mode = rt._detect_provider_mode()
-        assert mode in ("mock", "real")
+        assert mode == "invalid"

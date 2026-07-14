@@ -107,6 +107,16 @@ class TaskRuntime(TaskProtocol):
         workflow_names = self._context_mgr.get(task_id)
         wf_list = workflow_names.variables.get("workflow_names", []) if workflow_names else []
 
+        if wf_list and self._workflow_runtime is None:
+            error = "WorkflowRuntime is not configured"
+            sm.transition(TaskStatus.FAILED)
+            self._manager.set_status(task_id, TaskStatus.FAILED)
+            await publish_task_event(
+                self._bus, TaskEventTypes.FAILED, info.id, info.name,
+                {"errors": [error]},
+            )
+            return TaskResult(task_id=task_id, status=TaskStatus.FAILED, errors=[error])
+
         t0 = time.time()
         errors = []
         outputs = {}
@@ -130,8 +140,7 @@ class TaskRuntime(TaskProtocol):
                     )
                     outputs[wf_name] = wf_result.outputs if hasattr(wf_result, 'outputs') else str(wf_result)
                 else:
-                    await asyncio.sleep(0.01)
-                    outputs[wf_name] = {"status": "ok", "note": "no workflow runtime"}
+                    raise TaskExecutionError("WorkflowRuntime is not configured")
 
                 self._context_mgr.add_workflow(task_id, wf_name)
 

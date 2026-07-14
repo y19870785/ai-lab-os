@@ -9,17 +9,19 @@ from core.agents.context import ContextBuilder
 from core.agents.lifecycle import AgentLifecycleManager
 from core.agents.config import AgentConfig
 from core.agents.events import publish_agent_event, AgentEventTypes
+from core.agents.exceptions import AgentExecutionError, ToolExecutionError
 
 
 class AgentExecutor:
     def __init__(self, info: AgentInfo, llm_provider=None, memory_manager=None,
-                 knowledge_manager=None, tool_registry=None,
+                 knowledge_manager=None, tool_registry=None, tool_executor=None,
                  config: AgentConfig | None = None, bus=None):
         self._info = info
         self._llm = llm_provider
         self._memory = memory_manager
         self._knowledge = knowledge_manager
         self._tools = tool_registry
+        self._tool_executor = tool_executor
         self._config = config or AgentConfig()
         self._bus = bus
         self._lifecycle = AgentLifecycleManager(info)
@@ -71,25 +73,20 @@ class AgentExecutor:
             session.end()
 
     async def _fetch_memory(self, request: AgentRequest) -> list[dict[str, Any]]:
-        try:
-            from core.memory.models import MemoryQuery
-            results = await self._memory.retrieve(MemoryQuery(top_k=5))
-            return [{"content": r.content.get("summary", str(r.content))} for r in results]
-        except Exception:
-            return []
+        if self._memory is None:
+            raise AgentExecutionError("MemoryManager is not configured")
+        from core.memory.models import MemoryQuery
+        results = await self._memory.retrieve(MemoryQuery(top_k=5))
+        return [{"content": r.content.get("summary", str(r.content))} for r in results]
 
     async def _fetch_knowledge(self, request: AgentRequest) -> list[dict[str, Any]]:
-        try:
-            from core.knowledge.models import KnowledgeQuery
-            results = await self._knowledge.search(KnowledgeQuery(text=request.user_input, top_k=3))
-            return [{"content": r.item.content, "score": r.score} for r in results]
-        except Exception:
-            return []
+        from core.knowledge.models import KnowledgeQuery
+        results = await self._knowledge.search(KnowledgeQuery(text=request.user_input, top_k=3))
+        return [{"content": r.item.content, "score": r.score} for r in results]
 
     async def _invoke_llm(self, context: AgentContext) -> str:
         if self._llm is None:
-            last = context.messages[-1]["content"] if context.messages else ""
-            return "[no llm] Echo: " + last
+            raise AgentExecutionError("LLM provider is not configured")
         from core.providers.llm.protocol import LLMRequest, Message
         msgs = [Message(role=m["role"], content=m["content"]) for m in context.messages]
         resp = await self._llm.generate(LLMRequest(
@@ -100,12 +97,8 @@ class AgentExecutor:
 
     async def _invoke_tools(self, request: AgentRequest, context: AgentContext) -> list[ToolCallRecord]:
         # Route tool calls through ToolExecutor -- Agent never knows about MCP.
-        if not hasattr(self, '_tool_executor') or self._tool_executor is None:
-            from core.tools.executor import ToolExecutor
-            self._tool_executor = ToolExecutor(
-                registry=self._tools,
-                bus=self._bus,
-            )
+        if self._tool_executor is None:
+            raise ToolExecutionError("ToolExecutor is not configured")
 
         records = []
         tool_calls = context.variables.get('tool_calls', [])
@@ -131,17 +124,16 @@ class AgentExecutor:
         return records
 
     async def _save_memory(self, request: AgentRequest, response: AgentResponse) -> None:
-        try:
-            from core.memory.models import MemoryItem, MemoryType
-            item = MemoryItem(
-                memory_type=MemoryType.EPISODIC,
-                content={
-                    "request": request.user_input,
-                    "response": response.answer[:500],
-                    "session_id": request.session_id,
-                },
-                importance=0.5,
-            )
-            await self._memory.save(item)
-        except Exception:
-            pass
+        if self._memory is None:
+            raise AgentExecutionError("MemoryManager is not configured")
+        from core.memory.models import MemoryItem, MemoryType
+        item = MemoryItem(
+            memory_type=MemoryType.EPISODIC,
+            content={
+                "request": request.user_input,
+                "response": response.answer[:500],
+                "session_id": request.session_id,
+            },
+            importance=0.5,
+        )
+        await self._memory.save(item)

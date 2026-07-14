@@ -1,44 +1,61 @@
-﻿"""AI-Lab REST API —— FastAPI 应用。"""
+"""AI-Lab REST API，由 FastAPI lifespan 持有唯一 SystemContainer。"""
+
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import health, chat, applications, tasks, workflows
-from api.routes import work_logs, decisions, brief, knowledge
-from api.middleware import tracing, error_handler, context as ctx_mw
 
-app = FastAPI(
-    title="AI-Lab API",
-    version="0.32.4",
-    description="AI-Lab Application Platform REST API - CEO Assistant",
-)
+from api.middleware import context as ctx_mw
+from api.middleware import error_handler, tracing
+from api.routes import applications, brief, chat, decisions, health, knowledge
+from api.routes import tasks, work_logs, workflows
+from core.system import SystemSettings, create_system, load_system_settings
 
-# CORS
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# Custom middleware
-app.add_middleware(tracing.TracingMiddleware)
-app.add_middleware(ctx_mw.ContextMiddleware)
-app.add_middleware(error_handler.ErrorHandlerMiddleware)
+def create_app(settings: SystemSettings | None = None) -> FastAPI:
+    """Create an API app; tests may inject isolated settings."""
 
-# Routes
-app.include_router(health.router)
-app.include_router(applications.router)
-app.include_router(chat.router)
-app.include_router(tasks.router)
-app.include_router(workflows.router)
-app.include_router(work_logs.router)
-app.include_router(decisions.router)
-app.include_router(brief.router)
-app.include_router(knowledge.router)
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        effective_settings = settings or load_system_settings()
+        system = await create_system(effective_settings)
+        await system.start()
+        app.state.system = system
+        try:
+            yield
+        finally:
+            await system.shutdown()
+            app.state.system = None
 
-# Startup / Shutdown
-@app.on_event("startup")
-async def startup():
-    from api.dependencies import get_runtime
-    runtime = get_runtime()
-    await runtime.initialize()
+    api = FastAPI(
+        title="AI-Lab API",
+        version="0.32.4",
+        description="AI-Lab Application Platform REST API - CEO Assistant",
+        lifespan=lifespan,
+    )
+    api.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    api.add_middleware(tracing.TracingMiddleware)
+    api.add_middleware(ctx_mw.ContextMiddleware)
+    api.add_middleware(error_handler.ErrorHandlerMiddleware)
 
-@app.on_event("shutdown")
-async def shutdown():
-    from api.dependencies import get_runtime
-    runtime = get_runtime()
-    await runtime.shutdown()
+    for router in (
+        health.router,
+        applications.router,
+        chat.router,
+        tasks.router,
+        workflows.router,
+        work_logs.router,
+        decisions.router,
+        brief.router,
+        knowledge.router,
+    ):
+        api.include_router(router)
+    return api
+
+
+app = create_app()

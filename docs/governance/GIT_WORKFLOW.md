@@ -8,7 +8,7 @@
 
 ```text
 main
-  |-- fix/composition-root
+  |-- fix/sp-001-single-composition-root
   |-- fix/bootstrap
   |-- fix/database-lifecycle
   `-- review/gpt56-findings
@@ -40,12 +40,28 @@ main
 5. 全量测试存在新增失败时不得合并。
 6. 架构边界或公共协议变更必须先提交 RFC/ADR 并通过审查。
 7. 禁止在 `main` 上直接进行功能开发、重构或技术债清理。
+8. Pull Request 只能由产品负责人在架构审查明确通过后合并。
+9. Codex 负责创建和更新 PR，但不得自行合并或移动冻结标签。
+
+## SP-001 审查流程
+
+```text
+main@a6f2b62
+→ fix/sp-001-single-composition-root
+→ 分层提交
+→ 推送远程分支
+→ 创建 PR（目标 main）
+→ ChatGPT 审查真实 Diff
+→ APPROVED 后由产品负责人决定合并
+```
+
+审查要求覆盖：唯一 Composition Root、CLI/API 共用容器、真实 Application Instance 派发、No Fake Success、持久化测试、全量测试和敏感信息检查。
 
 ## 首批建议分支
 
 以下分支仅表示建议顺序，本次发布任务不创建：
 
-1. `fix/composition-root`
+1. `fix/sp-001-single-composition-root`
 2. `fix/bootstrap`
 3. `fix/database-lifecycle`
 4. `review/gpt56-findings`

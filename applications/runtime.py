@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 import time
-import os
 from typing import Any
 
 from applications.models import (
@@ -17,8 +16,7 @@ from applications.models import (
 )
 from applications.registry import ApplicationRegistry
 from applications.config import ApplicationConfig
-from core.provider_mode import detect_provider_mode as _detect_mode
-from applications.exceptions import ApplicationInitError, ApplicationExecutionError
+from applications.exceptions import ApplicationNotRegisteredError
 from core.workspace.models import WorkspaceKey
 
 
@@ -79,129 +77,39 @@ class ApplicationRuntime:
     # ---- 执行 ----
 
     async def execute(self, request: ApplicationRequest) -> ApplicationResponse:
-        """执行业务应用请求。
-
-        这是 Application Layer 的唯一入口。
-        """
+        """Dispatch only to a registered application instance."""
         if not self._initialized:
-            await self.initialize()
-
-        # 确保 .env 已加载（API 模式下不会自动加载；已设环境变量时不覆盖，保持测试隔离）
-        if not os.getenv("AI_LAB_DOTENV_LOADED") and not os.getenv("OPENAI_API_KEY"):
-            try:
-                from dotenv import load_dotenv
-                load_dotenv()
-                os.environ["AI_LAB_DOTENV_LOADED"] = "1"
-            except Exception:
-                pass
+            raise RuntimeError("ApplicationRuntime is not initialized")
 
         t0 = time.time()
-        app_info = self._resolve_application(request.application_name)
+        app_info = self._registry.get_info_by_name(request.application_name)
+        app = self._registry.get_instance_by_name(request.application_name)
+        if app_info is None or app is None:
+            raise ApplicationNotRegisteredError(request.application_name)
 
-        # 构建上下文
         ctx = ApplicationContext(
             application_id=app_info.application_id,
             workspace_key=request.workspace_key,
-            environment=os.getenv("AI_LAB_ENV", "dev"),
+            environment=request.metadata.get("environment", "development"),
             metadata={"provider_mode": self._detect_provider_mode()},
         )
         self._contexts[ctx.trace_id] = ctx
-
-        try:
-            # 如果有 Orchestrator，走多 Agent 协调
-            if self._orchestrator:
-                from core.coordination.models import TeamConfig, AgentRole, AgentRoleType
-                # 创建临时 Team
-                team = TeamConfig(
-                    name=f"app-{app_info.name}",
-                    agents=["default-agent"],
-                    roles={"default-agent": AgentRole(role_type=AgentRoleType.EXECUTOR, name="executor")},
-                )
-                await self._orchestrator.create_team(team)
-                coord_result = await self._orchestrator.coordinate(
-                    goal=request.user_input,
-                    context={"session_id": ctx.session_id, "team_id": team.team_id},
-                )
-                answer = coord_result.merged_result
-            elif self._agent_runtime:
-                # 单 Agent 模式
-                from core.agents.models import AgentRequest
-                agent_req = AgentRequest(
-                    user_input=request.user_input,
-                    session_id=ctx.session_id,
-                    agent_id="default-agent",
-                    memory_enabled=True,
-                    knowledge_enabled=True,
-                    tools_enabled=True,
-                    trace_id=ctx.trace_id,
-                )
-                resp = await self._agent_runtime.run(agent_req)
-                answer = resp.answer
-            else:
-                # 无 Agent Runtime 时，尝试直接用 LLM Provider
-                llm = None
-                try:
-                    from core.providers.llm.openai import OpenAILLMProvider
-                    from core.providers.llm.protocol import LLMRequest, Message
-                    llm = OpenAILLMProvider()
-                    await llm.initialize()
-                    resp = await llm.generate(LLMRequest(
-                        messages=[Message(role="user", content=request.user_input)],
-                        model=os.getenv("OPENAI_MODEL", "deepseek-chat"),
-                        max_tokens=4096,
-                    ))
-                    answer = resp.content or "[empty response]"
-                except Exception:
-                    answer = f"[mock] Echo: {request.user_input}"
-                finally:
-                    if llm:
-                        try:
-                            await llm.shutdown()
-                        except Exception:
-                            pass
-
-            mode = self._detect_provider_mode()
-            if mode == "mock":
-                answer = f"[MOCK MODE] {answer}\n\n(Set OPENAI_API_KEY to use real LLM)"
-
-            return ApplicationResponse(
-                application_id=app_info.application_id,
-                answer=answer,
-                status="ok",
-                latency_ms=(time.time() - t0) * 1000,
-                trace_id=ctx.trace_id,
-                mode=mode,
-            )
-
-        except Exception as e:
-            return ApplicationResponse(
-                application_id=app_info.application_id,
-                answer="",
-                status="error",
-                error=str(e),
-                latency_ms=(time.time() - t0) * 1000,
-                trace_id=ctx.trace_id,
-                mode=self._detect_provider_mode(),
-            )
+        metadata = dict(request.metadata)
+        metadata.update({
+            "provider_mode": self._detect_provider_mode(),
+            "environment": ctx.environment,
+        })
+        app_request = request.model_copy(update={"metadata": metadata})
+        response = await app.run(app_request)
+        response.latency_ms = response.latency_ms or (time.time() - t0) * 1000
+        response.trace_id = response.trace_id or ctx.trace_id
+        return response
 
     # ---- Helpers ----
 
-    def _resolve_application(self, name: str) -> ApplicationInfo:
-        apps = self._registry.find_by_name(name)
-        if apps:
-            return apps[0]
-        # 如果没有注册应用，创建默认
-        info = ApplicationInfo(name=name or "default", description="Auto-created application")
-        manifest = ApplicationManifest(name=info.name, entrypoint="default")
-        self._registry.register(info, manifest)
-        return info
-
     def _detect_provider_mode(self) -> str:
-        """检测当前 Provider 模式。"""
-        if self._config.provider_mode != "auto":
-            return self._config.provider_mode
-        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("AI_LAB_LLM_API_KEY", "")
-        return "real" if api_key and len(api_key) > 10 else "mock"
+        """Return the mode injected by the Composition Root."""
+        return self._config.provider_mode
 
     def get_context(self, trace_id: str) -> ApplicationContext | None:
         return self._contexts.get(trace_id)

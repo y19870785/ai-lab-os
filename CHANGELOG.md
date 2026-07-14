@@ -1,4 +1,32 @@
 ﻿
+## [未发布] - SP-001 Single Composition Root
+
+### 架构稳定化
+
+- 新增 `core/system/`，提供不可变 `SystemSettings`、唯一 `create_system()` 和显式 `SystemContainer`。
+- CLI、CLI 单次命令、FastAPI lifespan、兼容 Bootstrap 与集成测试统一使用同一套系统 Factory。
+- FastAPI dependency 改为读取 `app.state.system`，不再创建空 `ApplicationRuntime`。
+- ApplicationRegistry 保存真实应用实例；ApplicationRuntime 只派发已注册实例。
+- CEO Assistant 通过统一 MemoryManager 写入 Episodic Memory，API 工作记录与跨重启持久化已验收。
+- Workflow、Scheduler、Task、Agent、Tool 与 Provider 由 Composition Root 注入并统一管理生命周期。
+
+### 行为修正
+
+- 删除 ApplicationRuntime 自动创建应用、直接创建 OpenAI Provider 和异常后 Mock Echo。
+- Agent 缺少 LLM、Memory 或 ToolExecutor 时显式失败，不再返回成功 Echo。
+- Scheduler Job 和 Task 缺少 WorkflowRuntime 时不再标记成功。
+- Mock Provider 仅允许在显式 `mock/test` 模式启用；配置不完整时系统状态为 `invalid` 并拒绝启动。
+- 修复 OpenAI Compatible LLM/Embedding 的模型配置优先级：显式参数 > `AI_LAB_*` > `OPENAI_*` > 默认值。
+
+### 验证
+
+- Composition Root、真实实例注册、API Memory 写入、跨重启持久化、Scheduler 生命周期和 No Fake Success 测试已新增。
+- DeepSeek 真实测试：`5 passed in 9.20s`。
+- 全量测试：`735 passed, 26 warnings in 34.06s`。
+- 当前变更尚未合并，等待 SP-001 Pull Request 架构审查。
+
+---
+
 ## [0.32.4] - 2026-07-13
 
 ### Interactive First Experience Fix —— 交互式首次体验修复

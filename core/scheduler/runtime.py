@@ -70,6 +70,11 @@ class SchedulerRuntime(SchedulerProtocol):
         self._running = False
         if self._tick_task:
             self._tick_task.cancel()
+            try:
+                await self._tick_task
+            except asyncio.CancelledError:
+                pass
+            self._tick_task = None
         await publish_scheduler_event(self._bus, SchedulerEventTypes.SHUTDOWN)
         if self._persistence:
             await self._persistence.close()

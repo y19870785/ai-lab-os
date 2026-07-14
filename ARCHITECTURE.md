@@ -1,5 +1,30 @@
 ﻿# AI-Lab 架构文档
 
+## SP-001 系统组合收敛
+
+AI-Lab 的模块层次保持不变，但所有进程级依赖现在由唯一 Composition Root 组装：
+
+```mermaid
+flowchart TD
+    Entry["CLI / FastAPI lifespan / Integration Tests"] --> Factory["core.system.create_system"]
+    Factory --> Container["SystemContainer"]
+    Container --> Bus["EventBus"]
+    Container --> Provider["Provider Registry + Selected Providers"]
+    Container --> Memory["MemoryManager + Four Stores"]
+    Container --> Knowledge["KnowledgeManager or Disabled"]
+    Container --> Tools["ToolRegistry + ToolExecutor"]
+    Container --> Agent["AgentRuntime"]
+    Container --> Workflow["WorkflowRuntime"]
+    Container --> Scheduler["SchedulerRuntime or Disabled"]
+    Container --> Task["TaskRuntime"]
+    Container --> Coordination["Coordination or Disabled"]
+    Container --> Apps["ApplicationRegistry + CEOAssistant Instance + ApplicationRuntime"]
+```
+
+启动由 `SystemContainer.start()` 统一完成，关闭由 `SystemContainer.shutdown()` 反序执行。CLI 不再创建 Store 或 Provider，API dependency 不再创建空 Runtime，ApplicationRuntime 不再直接依赖具体 Provider。
+
+当前默认状态：Knowledge、Scheduler、Coordination 为 `disabled`；仅在明确配置后启用。Mock Provider 只能在显式 `mock/test` 模式创建。完整说明见 `docs/architecture/SYSTEM_COMPOSITION.md`。
+
 ## 架构总览
 
 AI-Lab 采用十层架构（v0.22.0）：

@@ -10,9 +10,15 @@ def detect_provider_mode() -> str:
     """Detect current provider mode.
 
     real: API key + base URL + model all present.
-    mock: No API key configured (safe fallback).
+    mock/test: Explicit offline mode only.
     invalid: Partial configuration (e.g. key but no model).
     """
+    explicit_mode = os.getenv("AI_LAB_PROVIDER_MODE", "").strip().lower()
+    if explicit_mode in {"mock", "test"}:
+        return explicit_mode
+    if explicit_mode not in {"", "real"}:
+        return "invalid"
+
     # Support both old and new env var names
     api_key = os.getenv("AI_LAB_LLM_API_KEY") or os.getenv("OPENAI_API_KEY", "")
     base_url = os.getenv("AI_LAB_LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL", "")
@@ -23,11 +29,7 @@ def detect_provider_mode() -> str:
     has_model = bool(model)
 
     if not has_key:
-        return "mock"
-
-    if not has_url and not has_model:
-        # Key only, no URL/model — treat as mock with warning
-        return "mock"
+        return "invalid"
 
     if not has_url:
         return "invalid"  # key but no URL

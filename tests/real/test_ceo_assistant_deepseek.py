@@ -26,45 +26,24 @@ pytestmark = [
 
 @pytest_asyncio.fixture
 async def real_app(tmp_path):
-    """Create CEOAssistant with real DeepSeek LLM."""
-    from applications.ceo_assistant.application import CEOAssistant
-    from core.bus.bus import get_bus
-    from core.memory.manager import MemoryManager
-    from core.memory.models import MemoryType
-    from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
-    from core.memory.storage.sqlite_decision import SQLiteDecisionStore
-    from core.memory.session import SessionMemory
-    from core.providers.llm.openai import OpenAILLMProvider
+    """Create CEOAssistant through the real Composition Root."""
+    from core.system import SystemSettings, create_system
 
-    db_dir = str(tmp_path / "sqlite")
-    os.makedirs(db_dir, exist_ok=True)
-
-    bus = get_bus()
-    await bus.start()
-
-    memory = MemoryManager(bus=bus)
-    memory.register_store(MemoryType.SESSION, SessionMemory(3600, bus=bus))
-    es = SQLiteEpisodicStore(db_path=os.path.join(db_dir, "episodic.db"))
-    await es.initialize()
-    memory.register_store(MemoryType.EPISODIC, es)
-    ds = SQLiteDecisionStore(db_path=os.path.join(db_dir, "decision.db"))
-    await ds.initialize()
-    memory.register_store(MemoryType.DECISION, ds)
-
-    llm = OpenAILLMProvider(
-        api_key=os.getenv("OPENAI_API_KEY", ""),
-        base_url=os.getenv("OPENAI_BASE_URL", ""),
-        model=os.getenv("OPENAI_MODEL", "deepseek-chat"),
+    settings = SystemSettings(
+        environment="test-real",
+        provider_mode="real",
+        data_dir=tmp_path,
+        sqlite_dir=tmp_path / "sqlite",
+        api_key=os.getenv("AI_LAB_LLM_API_KEY") or os.getenv("OPENAI_API_KEY", ""),
+        base_url=os.getenv("AI_LAB_LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL", ""),
+        model=os.getenv("AI_LAB_LLM_MODEL") or os.getenv("OPENAI_MODEL", ""),
     )
-    await llm.initialize()
-
-    app = CEOAssistant(memory_manager=memory, llm_provider=llm)
-    yield app
-
-    await llm.shutdown()
-    await bus.stop()
-    await es.close()
-    await ds.close()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        yield system.ceo_assistant
+    finally:
+        await system.shutdown()
 
 
 class TestDeepSeekReal:
