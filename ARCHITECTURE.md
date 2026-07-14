@@ -4,6 +4,8 @@
 
 AI-Lab 的模块层次保持不变，但所有进程级依赖现在由唯一 Composition Root 组装：
 
+SP-001 已通过 PR #1 合并到 `main`（Merge Commit：`0a36e250ab8382af6cf3ab3068e432aa69ba3399`）。`core.system.create_system()` 是当前 `main` 的权威系统组合入口。
+
 ```mermaid
 flowchart TD
     Entry["CLI / FastAPI lifespan / Integration Tests"] --> Factory["core.system.create_system"]

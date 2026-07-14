@@ -65,3 +65,14 @@ main@a6f2b62
 2. `fix/bootstrap`
 3. `fix/database-lifecycle`
 4. `review/gpt56-findings`
+
+## 已完成示例
+
+```text
+SP-001
+PR #1
+Reviewed: APPROVED
+Merged: Yes
+Merge commit: 0a36e250ab8382af6cf3ab3068e432aa69ba3399
+Post-merge verification: Passed
+```

@@ -1,8 +1,9 @@
 # AI-Lab Project Brain —— 项目大脑
 
 > 版本基线：v0.32.4
-> 当前工作：SP-001 Single Composition Root
-> 状态：独立分支验证通过，等待 Pull Request 审查，尚未合并
+> SP-001 Status：Completed
+> Integrated：Yes | Verified：Yes | Merged：Yes
+> PR：#1 | Merge Commit：`0a36e250ab8382af6cf3ab3068e432aa69ba3399`
 
 ## 项目使命
 
@@ -13,12 +14,12 @@ AI-Lab 是面向个人 CEO / 经营者的 AI Operating System 基础设施。目
 ```text
 Repository: https://github.com/y19870785/ai-lab-os
 Baseline branch: main
-Base commit: a6f2b62b867a4ed1a244db7d74f2dbb25195f395
+Base commit: 0a36e250ab8382af6cf3ab3068e432aa69ba3399
 Freeze tag: v0.32.4-review-baseline
-Working branch: fix/sp-001-single-composition-root
+SP-001 pull request: https://github.com/y19870785/ai-lab-os/pull/1
 ```
 
-冻结标签保持不变。SP-001 必须通过 PR 审查后才能合并到 `main`。
+冻结标签保持不变。SP-001 已通过代码审查、合并到 `main`，并完成合并后复核。
 
 ## 状态词典
 
@@ -72,11 +73,11 @@ Mock Provider: 仅显式 mock/test 模式
 全量测试：735 passed, 26 warnings
 ```
 
-该统计来自 SP-001 分支实际 pytest 输出。PR 尚未经过 ChatGPT 代码审查，因此不得写成“SP-001 完成”。
+该统计来自 SP-001 的实际 pytest 输出。PR #1 已通过 ChatGPT 代码审查、合并并完成 `main` 复核。
 
 ## 当前优先级
 
-1. 创建 SP-001 Pull Request 并审查真实 Diff。
-2. 审查通过后合并并复核 `main`。
-3. 后续 SP-003 处理 DatabaseManager Connection Ownership。
+1. SP-001 已关闭：代码审查、合并与 `main` 复核均已完成。
+2. 后续稳定化工作必须从当前 `main` 基线创建独立分支。
+3. SP-003 继续处理 DatabaseManager Connection Ownership。
 4. 在主链路稳定前不推进新的产品 Phase。
