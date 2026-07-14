@@ -1,11 +1,18 @@
-﻿"""API Dependencies —— 单例管理。"""
+"""FastAPI dependencies backed by the lifespan-owned SystemContainer."""
+
+from fastapi import Depends, Request
+
 from applications.runtime import ApplicationRuntime
-from applications.registry import ApplicationRegistry
+from core.system.container import SystemContainer
+from core.system.exceptions import ServiceUnavailableError
 
-_runtime: ApplicationRuntime | None = None
 
-def get_runtime() -> ApplicationRuntime:
-    global _runtime
-    if _runtime is None:
-        _runtime = ApplicationRuntime(registry=ApplicationRegistry())
-    return _runtime
+def get_system(request: Request) -> SystemContainer:
+    system = getattr(request.app.state, "system", None)
+    if system is None or not system.started:
+        raise ServiceUnavailableError("AI-Lab system is not initialized")
+    return system
+
+
+def get_runtime(system: SystemContainer = Depends(get_system)) -> ApplicationRuntime:
+    return system.application_runtime

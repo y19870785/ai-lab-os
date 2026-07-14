@@ -2,6 +2,10 @@
 class ApplicationError(Exception): pass
 class ApplicationNotFoundError(ApplicationError):
     def __init__(self, aid): super().__init__(f"Application '{aid}' not found")
+class ApplicationNotRegisteredError(ApplicationNotFoundError):
+    pass
+class ApplicationAlreadyRegisteredError(ApplicationError):
+    def __init__(self, name): super().__init__(f"Application '{name}' is already registered")
 class ApplicationInitError(ApplicationError):
     def __init__(self, name, reason): super().__init__(f"Failed to init '{name}': {reason}")
 class ApplicationExecutionError(ApplicationError):

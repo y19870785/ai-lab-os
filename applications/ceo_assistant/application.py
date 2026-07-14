@@ -165,6 +165,8 @@ class CEOAssistant:
 
     async def _handle_work_log(self, request: ApplicationRequest) -> dict[str, Any]:
         """处理工作记录输入。"""
+        if self._memory is None:
+            raise RuntimeError("Memory service is not configured")
         user_input = request.user_input
         # Strip common prefixes
         for prefix in ["记录:", "记录：", "记录 ", "log:", "log "]:
@@ -185,24 +187,23 @@ class CEOAssistant:
             "tags": extracted.get("tags", []),
         }
 
-        if self._memory:
-            from core.memory.models import MemoryItem, MemoryType
-            item = MemoryItem(
-                memory_type=MemoryType.EPISODIC,
-                content=episode_content,
-                importance=extracted.get("importance", 0.6),
-                metadata={
-                    "session_id": request.workspace_key.session_id,
-                    "agent_id": "ceo-assistant",
-                    "source": "user_input",
-                },
-            )
-            await self._memory.save_memory(
-                memory_type=item.memory_type,
-                content=item.content,
-                importance=item.importance,
-                metadata=item.metadata,
-            )
+        from core.memory.models import MemoryItem, MemoryType
+        item = MemoryItem(
+            memory_type=MemoryType.EPISODIC,
+            content=episode_content,
+            importance=extracted.get("importance", 0.6),
+            metadata={
+                "session_id": request.workspace_key.session_id,
+                "agent_id": "ceo-assistant",
+                "source": "user_input",
+            },
+        )
+        await self._memory.save_memory(
+            memory_type=item.memory_type,
+            content=item.content,
+            importance=item.importance,
+            metadata=item.metadata,
+        )
 
         # 构建回复
         tags_str = ", ".join(extracted.get("tags", [])) if extracted.get("tags") else "无"
@@ -274,6 +275,8 @@ class CEOAssistant:
 
     async def _handle_task(self, request: ApplicationRequest) -> dict[str, Any]:
         """处理任务创建/查询。"""
+        if self._memory is None:
+            raise RuntimeError("Memory service is not configured")
         user_input = request.user_input
 
         # 查询已有任务
@@ -364,6 +367,8 @@ class CEOAssistant:
 
     async def _handle_decision(self, request: ApplicationRequest) -> dict[str, Any]:
         """处理决策记录。"""
+        if self._memory is None:
+            raise RuntimeError("Memory service is not configured")
         user_input = request.user_input
 
         decision_info = {
@@ -458,7 +463,7 @@ class CEOAssistant:
             except Exception as e:
                 return {"answer": f"[KB] 知识检索异常: {e}", "status": "error"}
 
-        return {"answer": "[KB] 知识库暂不可用。请先导入文档。", "status": "ok"}
+        return {"answer": "[KB] 知识服务已禁用。", "status": "disabled"}
 
     # ---- 5. 每日简报 ----
 
@@ -563,20 +568,18 @@ class CEOAssistant:
                 ]
                 resp = await self._llm.generate(LLMRequest(
                     messages=messages,
-                    model=os.getenv("OPENAI_MODEL", "deepseek-chat"),
+                    model=self._config.default_model,
                     max_tokens=512,
                     temperature=0.7,
                 ))
                 answer = resp.content or "抱歉，我暂时无法回答。"
                 return {"answer": answer, "status": "ok", "usage": resp.usage or {}}
-            except Exception:
-                pass
+            except Exception as exc:
+                return {"answer": "", "status": "error", "metadata": {"error": str(exc)}}
 
-        # Fallback
-        return {"answer": f"收到。关于「{user_input[:50]}...」，请尝试以下命令：\n- `python -m cli log ...` 记录工作\n- `python -m cli task ...` 创建任务\n- `python -m cli brief` 查看简报", "status": "ok"}
+        return {"answer": "", "status": "not_configured", "metadata": {"error": "LLM provider is not configured"}}
 
     # ---- 辅助方法 ----
 
     def _detect_mode(self) -> str:
-        api_key = os.getenv("OPENAI_API_KEY", "")
-        return "real" if api_key and len(api_key) > 10 else "mock"
+        return self._config.provider_mode

@@ -1,15 +1,18 @@
 ﻿"""Knowledge API —— 知识问答路由。"""
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from api.models import ChatRequest, ChatResponse
 from api.dependencies import get_runtime
 from applications.models import ApplicationRequest
+from applications.runtime import ApplicationRuntime
 
 router = APIRouter(prefix="/knowledge", tags=["knowledge"])
 
 @router.post("/ask", response_model=ChatResponse)
-async def ask(req: ChatRequest):
+async def ask(
+    req: ChatRequest,
+    runtime: ApplicationRuntime = Depends(get_runtime),
+):
     """知识问答。"""
-    runtime = get_runtime()
     app_req = ApplicationRequest(
         application_name="ceo-assistant",
         user_input=req.user_input,

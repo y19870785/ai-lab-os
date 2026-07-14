@@ -18,8 +18,4 @@ class AlphaAssistant:
     async def run(self, request: ApplicationRequest) -> ApplicationResponse:
         if self._runtime:
             return await self._runtime.execute(request)
-        return ApplicationResponse(
-            answer=f"[standalone] Echo: {request.user_input}",
-            status="ok",
-            mode="mock",
-        )
+        raise RuntimeError("AlphaAssistant runtime is not configured")

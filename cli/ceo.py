@@ -9,11 +9,8 @@
 """
 
 import asyncio
-import io
 import os
 import sys
-from dotenv import load_dotenv
-load_dotenv()
 
 # 强制 stdin/stdout 为 UTF-8，解决 Windows 管道中文乱码（pytest 下 stdin 可能不可 reconfigure）
 try:
@@ -23,7 +20,8 @@ try:
 except Exception:
     pass
 
-from core.provider_mode import detect_provider_mode, get_provider_info
+from core.provider_mode import get_provider_info
+from core.system import create_system, load_system_settings
 
 
 HELP_TEXT = """
@@ -73,59 +71,7 @@ def _detect_intent(text: str) -> str:
     return "chat"
 
 
-async def _init_app():
-    """初始化 CEOAssistant，复用 log_cmd 等子命令的初始化链路。"""
-    from core.bus.bus import get_bus
-    from core.memory.manager import MemoryManager
-    from core.memory.models import MemoryType
-    from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
-    from core.memory.session import SessionMemory
-    from core.memory.storage.sqlite_semantic import SQLiteSemanticStore
-    from core.memory.storage.sqlite_decision import SQLiteDecisionStore
-    from applications.ceo_assistant.application import CEOAssistant
-
-    data_dir = os.path.join(os.getcwd(), "data", "sqlite")
-    os.makedirs(data_dir, exist_ok=True)
-
-    bus = get_bus()
-    await bus.start()
-
-    memory = MemoryManager(bus=bus)
-    memory.register_store(MemoryType.SESSION, SessionMemory(default_ttl=3600, bus=bus))
-
-    es = SQLiteEpisodicStore(db_path=os.path.join(data_dir, "episodic.db"))
-    await es.initialize()
-    memory.register_store(MemoryType.EPISODIC, es)
-
-    try:
-        ss = SQLiteSemanticStore(db_path=os.path.join(data_dir, "semantic.db"))
-        await ss.initialize()
-        memory.register_store(MemoryType.SEMANTIC, ss)
-    except Exception:
-        pass
-
-    try:
-        ds = SQLiteDecisionStore(db_path=os.path.join(data_dir, "decision.db"))
-        await ds.initialize()
-        memory.register_store(MemoryType.DECISION, ds)
-    except Exception:
-        pass
-
-    # 初始化 LLM Provider（DeepSeek）
-    llm = None
-    try:
-        from core.providers.llm.openai import OpenAILLMProvider
-        llm = OpenAILLMProvider()
-        await llm.initialize()
-    except Exception as e:
-        import sys
-        print(f"[WARN] LLM 初始化失败，将使用离线模式：{e}", file=sys.stderr)
-
-    app = CEOAssistant(memory_manager=memory, llm_provider=llm)
-    return app, bus, memory, llm
-
-
-async def _handle_command(app, cmd: str, args: str):
+async def _handle_command(runtime, cmd: str, args: str):
     """执行 / 开头的快捷命令。"""
     from applications.models import ApplicationRequest
 
@@ -134,25 +80,25 @@ async def _handle_command(app, cmd: str, args: str):
     elif cmd == "help":
         return HELP_TEXT.strip()
     elif cmd == "brief":
-        resp = await app.run(ApplicationRequest(
+        resp = await runtime.execute(ApplicationRequest(
             application_name="ceo-assistant", user_input="简报"))
         return resp.answer if resp and resp.answer else "暂无简报。"
     elif cmd == "tasks":
-        resp = await app.run(ApplicationRequest(
+        resp = await runtime.execute(ApplicationRequest(
             application_name="ceo-assistant", user_input="查看待办任务"))
         return resp.answer if resp and resp.answer else "暂无待办任务。"
     elif cmd == "records":
-        resp = await app.run(ApplicationRequest(
+        resp = await runtime.execute(ApplicationRequest(
             application_name="ceo-assistant", user_input="查看工作记录"))
         return resp.answer if resp and resp.answer else "暂无工作记录。"
     elif cmd == "decisions":
-        resp = await app.run(ApplicationRequest(
+        resp = await runtime.execute(ApplicationRequest(
             application_name="ceo-assistant", user_input="查看决策记录"))
         return resp.answer if resp and resp.answer else "暂无决策记录。"
     elif cmd == "knowledge":
         if not args.strip():
             return "用法：/knowledge <问题>"
-        resp = await app.run(ApplicationRequest(
+        resp = await runtime.execute(ApplicationRequest(
             application_name="ceo-assistant", user_input=args.strip()))
         return resp.answer if resp and resp.answer else "未找到相关知识。"
     elif cmd == "new-session":
@@ -175,11 +121,7 @@ async def _handle_command(app, cmd: str, args: str):
 
 async def run_ceo():
     """交互式 CEO Assistant 主循环。"""
-    try:
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    except Exception:
-        pass
-
+    settings = load_system_settings()
     info = get_provider_info()
 
     print("=" * 40)
@@ -198,7 +140,9 @@ async def run_ceo():
     print("输入 /help 查看命令，/exit 退出。")
     print()
 
-    app, bus, memory, llm = await _init_app()
+    system = await create_system(settings)
+    await system.start()
+    runtime = system.application_runtime
 
     try:
         while True:
@@ -215,7 +159,7 @@ async def run_ceo():
                 parts = user_input[1:].split(None, 1)
                 cmd = parts[0].lower()
                 a = parts[1] if len(parts) > 1 else ""
-                result = await _handle_command(app, cmd, a)
+                result = await _handle_command(runtime, cmd, a)
                 if result is None:
                     print("再见！")
                     break
@@ -237,7 +181,7 @@ async def run_ceo():
                 user_input=f"{prefix}{user_input}",
             )
             try:
-                resp = await app.run(req)
+                resp = await runtime.execute(req)
                 if resp and resp.answer:
                     print(resp.answer)
                 else:
@@ -245,15 +189,7 @@ async def run_ceo():
             except Exception as e:
                 print(f"[错误] {e}")
     finally:
-        try:
-            await bus.stop()
-        except Exception:
-            pass
-        try:
-            if llm:
-                await llm.shutdown()
-        except Exception:
-            pass
+        await system.shutdown()
 
     print("CEO Assistant 已关闭。")
 
