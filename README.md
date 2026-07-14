@@ -11,6 +11,8 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 ## 架构
 
+当前正在执行 P0 稳定化任务 **SP-001：Single Composition Root**。CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该改动位于独立分支并等待 Pull Request 审查，尚未合并到 `main`。
+
 采用十层架构（v0.22.0）：
 
 ```
@@ -94,6 +96,7 @@ AI-Lab/
 │   ├── workflow/       # Workflow Engine（StateMachine / Checkpoint / Planner）
 │   ├── scheduler/      # Scheduler Runtime（Trigger / Job / Persistence）
 │   ├── task/           # Task Runtime（编排 / 依赖 / 检查点）
+│   ├── system/         # 唯一 Composition Root + SystemContainer + Settings
 │   ├── logging.py      # 日志系统（Trace ID / Agent ID 上下文）
 │   └── config.py       # 配置管理
 ├── tests/
@@ -118,8 +121,8 @@ AI-Lab/
 - Pydantic + YAML + 环境变量（配置）
 - SQLite（存储）+ Chroma / Qdrant（向量，预留）
 - asyncio（进程内通信）
-- 523 个测试，零回归
+- 735 个测试通过，26 个既有 warning，零失败
 
 ---
 
-> 当前版本：v0.30.0 | 架构：十二层 (Application Foundation + Alpha Deployment) | 阶段：Phase 4 (AI OS Runtime) | 测试：523 全绿
+> 当前版本基线：v0.32.4 | 当前任务：SP-001 架构稳定化 | 分支测试：735 passed | 状态：等待 PR 审查
