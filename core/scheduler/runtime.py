@@ -13,7 +13,7 @@ Scheduler 不直接执行业务，只能通过 Workflow Runtime。
 
 from __future__ import annotations
 import asyncio
-import time
+import logging
 from datetime import datetime, timezone
 
 from core.scheduler.models import (
@@ -29,6 +29,16 @@ from core.scheduler.events import publish_scheduler_event, SchedulerEventTypes
 from core.scheduler.exceptions import (
     JobNotFoundError, JobAlreadyExistsError, JobStateError, SchedulerShutdownError,
 )
+from core.errors import (
+    ErrorCategory,
+    FailureInfo,
+    RuntimeStatus,
+    failure_event_payload,
+    failure_from_exception,
+)
+
+
+logger = logging.getLogger("ai-lab.scheduler.runtime")
 
 
 class SchedulerRuntime(SchedulerProtocol):
@@ -50,6 +60,11 @@ class SchedulerRuntime(SchedulerProtocol):
         self._tick_task: asyncio.Task | None = None
         self._running = False
         self._job_locks: dict[str, asyncio.Lock] = {}
+        self._background_tasks: set[asyncio.Task] = set()
+        self._last_tick_at: datetime | None = None
+        self._last_successful_tick_at: datetime | None = None
+        self._last_error: FailureInfo | None = None
+        self._consecutive_failures = 0
 
     # ---- 生命周期 ----
 
@@ -63,8 +78,9 @@ class SchedulerRuntime(SchedulerProtocol):
         if self._running:
             return
         self._running = True
+        self._consecutive_failures = 0
         await publish_scheduler_event(self._bus, SchedulerEventTypes.STARTED)
-        self._tick_task = asyncio.create_task(self._tick_loop())
+        self._tick_task = asyncio.create_task(self._tick_loop(), name="ai-lab-scheduler-tick")
 
     async def shutdown(self) -> None:
         self._running = False
@@ -75,6 +91,21 @@ class SchedulerRuntime(SchedulerProtocol):
             except asyncio.CancelledError:
                 pass
             self._tick_task = None
+        tasks = list(self._background_tasks)
+        if tasks:
+            if self._config.cancel_running_jobs_on_shutdown:
+                for task in tasks:
+                    task.cancel()
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks, return_exceptions=True),
+                    timeout=self._config.shutdown_timeout,
+                )
+            except asyncio.TimeoutError:
+                for task in tasks:
+                    task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
+        self._background_tasks.clear()
         await publish_scheduler_event(self._bus, SchedulerEventTypes.SHUTDOWN)
         if self._persistence:
             await self._persistence.close()
@@ -161,6 +192,30 @@ class SchedulerRuntime(SchedulerProtocol):
     async def health_check(self) -> bool:
         return self._running
 
+    async def health(self) -> dict[str, object]:
+        if not self._running:
+            status = RuntimeStatus.STOPPED
+        elif self._consecutive_failures >= self._config.failure_threshold:
+            status = RuntimeStatus.FAILED
+        elif self._consecutive_failures:
+            status = RuntimeStatus.DEGRADED
+        else:
+            status = RuntimeStatus.OK
+        jobs = self._registry.list()
+        return {
+            "status": status.value,
+            "running": self._running,
+            "active_jobs": sum(1 for job in jobs if job.status == JobStatus.ACTIVE),
+            "running_jobs": len(self._background_tasks),
+            "consecutive_failures": self._consecutive_failures,
+            "last_tick_at": self._last_tick_at.isoformat() if self._last_tick_at else None,
+            "last_successful_tick_at": (
+                self._last_successful_tick_at.isoformat()
+                if self._last_successful_tick_at else None
+            ),
+            "last_error": self._last_error.to_dict() if self._last_error else None,
+        }
+
     # ---- 内部 ----
 
     async def _tick_loop(self):
@@ -168,11 +223,36 @@ class SchedulerRuntime(SchedulerProtocol):
         while self._running:
             try:
                 await self._tick()
+                now = datetime.now(timezone.utc)
+                self._last_tick_at = now
+                self._last_successful_tick_at = now
+                self._consecutive_failures = 0
             except asyncio.CancelledError:
                 break
-            except Exception:
-                pass
-            await asyncio.sleep(self._config.tick_interval)
+            except Exception as exc:
+                self._last_tick_at = datetime.now(timezone.utc)
+                self._consecutive_failures += 1
+                self._last_error = failure_from_exception(
+                    exc,
+                    component="scheduler.runtime",
+                    operation="tick",
+                    code="scheduler.tick.failed",
+                    category=ErrorCategory.EXECUTION_FAILURE,
+                    retryable=True,
+                    details={"consecutive_failures": self._consecutive_failures},
+                )
+                logger.exception(
+                    "scheduler.tick.failed",
+                    extra={"failure_code": self._last_error.code,
+                           "consecutive_failures": self._consecutive_failures},
+                )
+                await publish_scheduler_event(
+                    self._bus,
+                    SchedulerEventTypes.TICK_FAILED,
+                    extra=failure_event_payload(self._last_error),
+                )
+            if self._running:
+                await asyncio.sleep(self._config.tick_interval)
 
     async def _tick(self):
         """一次调度周期：检查所有 ACTIVE Job 是否应该触发"""
@@ -188,14 +268,21 @@ class SchedulerRuntime(SchedulerProtocol):
             if running_count >= self._config.max_concurrent_jobs:
                 continue
 
-            # 执行
-            asyncio.create_task(self._run_job(job))
+            job.status = JobStatus.RUNNING
+            task = asyncio.create_task(
+                self._run_job(job),
+                name=f"ai-lab-scheduler-job-{job.info.id}",
+            )
+            self._background_tasks.add(task)
+            task.add_done_callback(self._background_tasks.discard)
+            task.add_done_callback(self._observe_background_task)
 
     async def _run_job(self, job: Job):
         """执行一次 Job"""
         job.status = JobStatus.RUNNING
         try:
             run = await self._executor.execute(job)
+            job.last_error = run.failure
 
             # 更新状态
             if run.status.value == "success":
@@ -214,10 +301,47 @@ class SchedulerRuntime(SchedulerProtocol):
             else:
                 job.trigger.next_run_at = None
 
-        except Exception:
+        except asyncio.CancelledError:
+            job.status = JobStatus.CANCELLED
+            await self._save_job(job)
+            raise
+        except Exception as exc:
             job.status = JobStatus.FAILED
+            job.last_error = failure_from_exception(
+                exc,
+                component="scheduler.runtime",
+                operation="run_job",
+                code="scheduler.job.runtime_failed",
+                category=ErrorCategory.EXECUTION_FAILURE,
+                retryable=True,
+                details={"job_id": job.info.id},
+            )
+            logger.exception(
+                "scheduler.job.runtime_failed",
+                extra={"job_id": job.info.id, "failure_code": job.last_error.code},
+            )
+            await publish_scheduler_event(
+                self._bus,
+                SchedulerEventTypes.JOB_FAILED,
+                job.info.id,
+                job.info.name,
+                failure_event_payload(job.last_error),
+            )
 
         await self._save_job(job)
+
+    def _observe_background_task(self, task: asyncio.Task) -> None:
+        if task.cancelled():
+            return
+        try:
+            error = task.exception()
+        except asyncio.CancelledError:
+            return
+        if error is not None:
+            logger.error(
+                "scheduler.background_task.failed",
+                exc_info=(type(error), error, error.__traceback__),
+            )
 
     async def _save_job(self, job: Job):
         if self._persistence and self._config.persistence_enabled:

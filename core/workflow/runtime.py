@@ -52,6 +52,10 @@ class WorkflowRuntime:
         self._active.clear()
         self._initialized = False
 
+    @property
+    def initialized(self) -> bool:
+        return self._initialized
+
     async def run(self, request: WorkflowRequest) -> WorkflowResult:
         """执行一个 Workflow
 

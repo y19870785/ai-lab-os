@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from pydantic import BaseModel, Field
+from core.errors import FailureInfo
 
 
 # ---- 状态机 ----
@@ -93,6 +94,9 @@ class TaskResult(BaseModel):
     retry_count: int = 0
     errors: list[str] = Field(default_factory=list)
     outputs: dict[str, Any] = Field(default_factory=dict)
+    trace_id: str = ""
+    retryable: bool = False
+    failure: FailureInfo | None = None
 
 
 class TaskStatistics(BaseModel):

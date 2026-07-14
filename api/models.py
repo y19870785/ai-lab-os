@@ -31,7 +31,14 @@ class AppInfo(BaseModel):
     version: str = ""
     status: str = ""
 
-class ErrorResponse(BaseModel):
-    error: str = ""
-    detail: str = ""
+class APIErrorResponse(BaseModel):
+    status: str = "error"
+    code: str = ""
+    message: str = ""
+    component: str = "api"
+    retryable: bool = False
     trace_id: str = ""
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
+ErrorResponse = APIErrorResponse

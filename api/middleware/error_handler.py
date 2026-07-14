@@ -1,14 +1,63 @@
-﻿"""Error handler middleware —— 统一错误响应，不暴露内部堆栈。"""
+"""Unified API failure responses without leaking internal stack details."""
+
+from __future__ import annotations
+
+import logging
+import uuid
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
+
+from api.models import APIErrorResponse
+from core.errors import (
+    ErrorCategory,
+    FailureInfo,
+    failure_from_exception,
+    http_status_for_failure,
+)
+
+
+logger = logging.getLogger("ai-lab.api.errors")
+
+
+def make_error_response(failure: FailureInfo) -> JSONResponse:
+    body = APIErrorResponse(
+        code=failure.code,
+        message=failure.message,
+        component=failure.component,
+        retryable=failure.retryable,
+        trace_id=failure.trace_id,
+        details={} if failure.category == ErrorCategory.INTERNAL else failure.details,
+    )
+    return JSONResponse(
+        status_code=http_status_for_failure(failure),
+        content=body.model_dump(mode="json"),
+        headers={"X-Trace-ID": failure.trace_id},
+    )
+
 
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         try:
             return await call_next(request)
-        except Exception as e:
-            trace_id = getattr(request.state, "trace_id", "")
-            return JSONResponse(
-                status_code=500,
-                content={"error": "Internal server error", "detail": str(e)[:200], "trace_id": trace_id},
+        except Exception as exc:
+            trace_id = getattr(request.state, "trace_id", "") or uuid.uuid4().hex
+            failure = failure_from_exception(
+                exc,
+                component="api",
+                operation=f"{request.method.lower()} {request.url.path}",
+                trace_id=trace_id,
+                code="api.request.failed",
             )
+            if failure.category == ErrorCategory.INTERNAL:
+                logger.exception(
+                    "api.request.failed",
+                    extra={"trace_id": trace_id, "failure_code": failure.code},
+                )
+            else:
+                logger.warning(
+                    "api.request.rejected",
+                    extra={"trace_id": trace_id, "failure_code": failure.code,
+                           "category": failure.category.value},
+                )
+            return make_error_response(failure)

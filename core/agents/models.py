@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from pydantic import BaseModel, Field
+from core.errors import FailureInfo
 
 class AgentStatus(str, Enum):
     CREATED = "created"
@@ -13,6 +14,7 @@ class AgentStatus(str, Enum):
     IDLE = "idle"
     STOPPED = "stopped"
     DESTROYED = "destroyed"
+    DEGRADED = "degraded"
     ERROR = "error"
 
 class AgentInfo(BaseModel):
@@ -55,6 +57,9 @@ class AgentResponse(BaseModel):
     session_id: str = ""
     agent_id: str = ""
     status: str = "ok"
+    trace_id: str = ""
+    retryable: bool = False
+    failure: FailureInfo | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 class AgentContext(BaseModel):

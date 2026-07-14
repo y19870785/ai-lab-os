@@ -1,8 +1,10 @@
 """AI-Lab REST API，由 FastAPI lifespan 持有唯一 SystemContainer。"""
 
 from contextlib import asynccontextmanager
+import uuid
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import context as ctx_mw
@@ -10,6 +12,7 @@ from api.middleware import error_handler, tracing
 from api.routes import applications, brief, chat, decisions, health, knowledge
 from api.routes import tasks, work_logs, workflows
 from core.system import SystemSettings, create_system, load_system_settings
+from core.errors import ErrorCategory, FailureInfo
 
 
 def create_app(settings: SystemSettings | None = None) -> FastAPI:
@@ -42,6 +45,27 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
     api.add_middleware(tracing.TracingMiddleware)
     api.add_middleware(ctx_mw.ContextMiddleware)
     api.add_middleware(error_handler.ErrorHandlerMiddleware)
+
+    @api.exception_handler(RequestValidationError)
+    async def validation_error_handler(request: Request, exc: RequestValidationError):
+        trace_id = getattr(request.state, "trace_id", "") or uuid.uuid4().hex
+        issues = [
+            {"location": list(item.get("loc", ())), "message": item.get("msg", ""),
+             "type": item.get("type", "")}
+            for item in exc.errors()
+        ]
+        failure = FailureInfo(
+            code="api.request.validation_failed",
+            category=ErrorCategory.VALIDATION,
+            message="Request validation failed",
+            component="api",
+            operation=f"{request.method.lower()} {request.url.path}",
+            retryable=False,
+            trace_id=trace_id,
+            cause_type=exc.__class__.__name__,
+            details={"issues": issues},
+        )
+        return error_handler.make_error_response(failure)
 
     for router in (
         health.router,

@@ -27,6 +27,9 @@ from core.tools.executor import ToolExecutor
 from core.tools.protocol import ToolProtocol
 from core.tools.registry import ToolRegistry
 from core.workflow.runtime import WorkflowRuntime
+from core.agents.models import AgentStatus
+from core.errors import RuntimeStatus
+from core.providers.models import ProviderStatus
 
 logger = logging.getLogger("ai-lab.system")
 
@@ -161,21 +164,90 @@ class SystemContainer:
         logger.info("system.shutdown.completed")
 
     async def health(self) -> dict[str, object]:
-        """Return honest component state without probing external networks."""
+        """Aggregate actual component state without external network probes."""
 
-        scheduler_status = "disabled"
-        if self.scheduler_runtime is not None:
-            scheduler_status = "healthy" if await self.scheduler_runtime.health_check() else "failed"
+        if not self._started:
+            return {
+                "status": RuntimeStatus.NOT_INITIALIZED.value,
+                "provider_mode": self.settings.provider_mode,
+                "components": {},
+            }
+
+        provider_state = self.llm_provider.metadata().status
+        provider_status = {
+            ProviderStatus.READY: RuntimeStatus.OK,
+            ProviderStatus.DEGRADED: RuntimeStatus.DEGRADED,
+            ProviderStatus.UNAVAILABLE: RuntimeStatus.FAILED,
+            ProviderStatus.SHUTDOWN: RuntimeStatus.STOPPED,
+        }.get(provider_state, RuntimeStatus.NOT_INITIALIZED)
+
+        agent_status = {
+            AgentStatus.ERROR: RuntimeStatus.FAILED,
+            AgentStatus.DEGRADED: RuntimeStatus.DEGRADED,
+            AgentStatus.STOPPED: RuntimeStatus.STOPPED,
+            AgentStatus.DESTROYED: RuntimeStatus.STOPPED,
+        }.get(self.agent_runtime.info.status, RuntimeStatus.OK)
+
+        scheduler_health = (
+            await self.scheduler_runtime.health()
+            if self.scheduler_runtime is not None
+            else {"status": RuntimeStatus.DISABLED.value}
+        )
+        memory_health = self.memory_manager.health()
+        components: dict[str, dict[str, object]] = {
+            "event_bus": {
+                "status": RuntimeStatus.OK.value if self.event_bus.is_running
+                else RuntimeStatus.FAILED.value,
+            },
+            "provider": {
+                "status": provider_status.value,
+                "mode": self.settings.provider_mode,
+                "readiness": provider_state.value,
+            },
+            "memory": memory_health,
+            "knowledge": {
+                "status": RuntimeStatus.OK.value if self.knowledge_manager is not None
+                else RuntimeStatus.DISABLED.value,
+            },
+            "tools": {"status": RuntimeStatus.OK.value,
+                      "registered": len(self.tool_registry.list_names())},
+            "agent": {"status": agent_status.value,
+                      "lifecycle": self.agent_runtime.info.status.value},
+            "workflow": {
+                "status": RuntimeStatus.OK.value
+                if self.workflow_runtime.initialized else RuntimeStatus.NOT_INITIALIZED.value,
+            },
+            "scheduler": scheduler_health,
+            "task": {"status": RuntimeStatus.OK.value},
+            "coordination": {
+                "status": RuntimeStatus.OK.value if self.coordination_runtime is not None
+                else RuntimeStatus.DISABLED.value,
+            },
+            "applications": {
+                "status": RuntimeStatus.OK.value,
+                "registered": self.application_registry.count,
+            },
+        }
+
+        critical = {"event_bus", "provider", "memory", "applications", "agent", "workflow"}
+        if self.settings.enable_scheduler:
+            critical.add("scheduler")
+        if self.settings.enable_knowledge:
+            critical.add("knowledge")
+        top_status = RuntimeStatus.OK
+        for name, component in components.items():
+            status = component["status"]
+            if status == RuntimeStatus.FAILED.value:
+                top_status = RuntimeStatus.FAILED if name in critical else RuntimeStatus.DEGRADED
+                if top_status == RuntimeStatus.FAILED:
+                    break
+            elif status == RuntimeStatus.DEGRADED.value and top_status == RuntimeStatus.OK:
+                top_status = RuntimeStatus.DEGRADED
+
         return {
-            "status": "healthy" if self._started else "not_initialized",
+            "status": top_status.value,
             "provider_mode": self.settings.provider_mode,
-            "event_bus": "healthy" if self.event_bus.is_running else "stopped",
-            "provider": "healthy" if self.llm_provider.is_available() else "failed",
-            "memory": "healthy" if self._started else "not_initialized",
-            "knowledge": "healthy" if self.knowledge_manager is not None and self._started else "disabled",
-            "scheduler": scheduler_status,
-            "coordination": "healthy" if self.coordination_runtime is not None and self._started else "disabled",
-            "applications": self.application_registry.count,
+            "components": components,
         }
 
     @property

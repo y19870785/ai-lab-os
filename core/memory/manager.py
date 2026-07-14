@@ -11,6 +11,7 @@ from typing import Any
 from core.memory.models import MemoryFilter, MemoryItem, MemoryQuery, MemoryType
 from core.memory.protocol import MemoryStore
 from core.memory.session import SessionMemory
+from core.errors import FailureInfo, RuntimeStatus
 
 
 class MemoryManager:
@@ -19,12 +20,30 @@ class MemoryManager:
     def __init__(self, bus=None):
         self._stores = {}
         self._bus = bus
+        self._last_failure: FailureInfo | None = None
 
     def register_store(self, memory_type, store):
         self._stores[memory_type] = store
 
     def is_registered(self, memory_type):
         return memory_type in self._stores
+
+    def record_failure(self, failure: FailureInfo) -> None:
+        self._last_failure = failure
+
+    def clear_failure(self) -> None:
+        self._last_failure = None
+
+    def health(self) -> dict[str, object]:
+        return {
+            "status": (
+                RuntimeStatus.FAILED.value
+                if self._last_failure is not None
+                else RuntimeStatus.OK.value
+            ),
+            "registered_stores": len(self._stores),
+            "last_error": self._last_failure.to_dict() if self._last_failure else None,
+        }
 
     def _get_store(self, memory_type):
         store = self._stores.get(memory_type)

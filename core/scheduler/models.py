@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from pydantic import BaseModel, Field
+from core.errors import FailureInfo
 
 
 # ---- 枚举 ----
@@ -86,6 +87,7 @@ class Job(BaseModel):
     run_count: int = 0
     last_run_at: datetime | None = None
     last_result: str = ""
+    last_error: FailureInfo | None = None
 
 
 class JobRun(BaseModel):
@@ -99,6 +101,8 @@ class JobRun(BaseModel):
     latency_ms: float = 0.0
     result: Any = None
     error: str | None = None
+    trace_id: str = ""
+    failure: FailureInfo | None = None
 
 
 class ScheduleRequest(BaseModel):
