@@ -1,5 +1,5 @@
 ﻿
-## [未发布] - SP-001 Single Composition Root
+## SP-001 - Completed（2026-07-14）
 
 ### 架构稳定化
 
@@ -23,7 +23,10 @@
 - Composition Root、真实实例注册、API Memory 写入、跨重启持久化、Scheduler 生命周期和 No Fake Success 测试已新增。
 - DeepSeek 真实测试：`5 passed in 9.20s`。
 - 全量测试：`735 passed, 26 warnings in 34.06s`。
-- 当前变更尚未合并，等待 SP-001 Pull Request 架构审查。
+- PR #1 已合并：https://github.com/y19870785/ai-lab-os/pull/1
+- Merge commit：`0a36e250ab8382af6cf3ab3068e432aa69ba3399`
+- 架构审查：Approved
+- 合并后复核：Passed
 
 ---
 

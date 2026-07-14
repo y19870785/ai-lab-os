@@ -14,6 +14,8 @@ finally:
     await system.shutdown()
 ```
 
+SP-001 已通过 PR #1 合并到 `main`。`core.system.create_system()` 现为主分支唯一且权威的系统组合入口。Merge Commit：`0a36e250ab8382af6cf3ab3068e432aa69ba3399`。
+
 `core/bootstrap.py` 仅是兼容包装器，不再保存另一套组装逻辑。
 
 ## SystemContainer

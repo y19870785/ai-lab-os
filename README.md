@@ -11,7 +11,7 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 ## 架构
 
-当前正在执行 P0 稳定化任务 **SP-001：Single Composition Root**。CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该改动位于独立分支并等待 Pull Request 审查，尚未合并到 `main`。
+**SP-001：Single Composition Root 已完成并合并。** CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该实现已通过架构审查与合并后复核，现为 `main` 的稳定化基线。
 
 采用十层架构（v0.22.0）：
 
@@ -125,4 +125,4 @@ AI-Lab/
 
 ---
 
-> 当前版本基线：v0.32.4 | 当前任务：SP-001 架构稳定化 | 分支测试：735 passed | 状态：等待 PR 审查
+> 当前稳定化基线：SP-001 completed | Main commit：`0a36e250ab8382af6cf3ab3068e432aa69ba3399` | 验证：735 passed
