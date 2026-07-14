@@ -1,5 +1,11 @@
 ﻿
-## SP-002 - Implemented on branch / Awaiting review（2026-07-15）
+## SP-002 - Completed（2026-07-14）
+
+**Merge PR**：[#3](https://github.com/y19870785/ai-lab-os/pull/3)
+**合并方式**：Squash Merge
+**Merge Commit / main 基线**：`a39dc6a2434b409d311709b08b2c0df9a555a610`
+**合并时间**：`2026-07-14T18:22:14Z`
+**审查结论**：APPROVED
 
 ### 失败语义与可观测性收敛
 
@@ -22,7 +28,8 @@
 - 受影响模块测试：`423 passed, 2 warnings in 11.62s`。
 - DeepSeek 真实测试已随全量测试通过（测试子进程清空继承的 SOCKS 代理变量后直连）。
 - 全量测试：`768 passed, 26 warnings in 34.43s`。
-- 当前仅在独立分支实现，等待 Draft PR 审查；尚未合并，不得视为 Completed。
+- 上述结果为合并前的本地 pytest 验证记录；当时 GitHub 没有远端 CI checks，不得视为 GitHub Actions 结果。
+- PR #3 已通过审查并以 Squash Merge 合并到 `main`。
 
 ---
 
