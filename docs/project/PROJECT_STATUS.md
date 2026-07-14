@@ -1,14 +1,14 @@
 ﻿# AI-Lab Project Status
 
-**Date:** 2026-07-14
-**Version:** v0.32.4
-**Status:** PAUSED — Awaiting Independent Architecture Review
+**Date:** 2026-07-15
+**Version:** v0.33.0
+**Status:** Architecture stabilization baseline
 
 ## Current Status
 
-项目已完成 v0.32.4 的全部开发和测试。十层基础架构 + CEO Assistant 处于 Alpha 可用状态。DeepSeek v4-flash 真实 LLM 已接入，CLI 交互式和 API 双链路均已验证通过。
+项目以 v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果。十层基础架构 + CEO Assistant 处于 Alpha 状态；版本唯一来源、Composition Root、失败语义和 DatabaseManager 连接所有权已经收敛。
 
-下一步动作：使用全新 Codex GPT-5.6 进行独立架构审查，审查完成前冻结所有功能开发。
+SP-004 尚未开始。Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
 
 ## Key Metrics
 
@@ -16,7 +16,7 @@
 |---|---|
 | Python Files | 393 |
 | Code Lines | 26,874 |
-| Tests | 712 (0 failed) |
+| Tests | 808 passed, 27 warnings in 40.15s（v0.33.0 本地验证记录） |
 | RFC | 15 |
 | ADR | 29 |
 | Architecture Layers | 11 |
@@ -44,4 +44,4 @@
 
 ## Next Milestone
 
-TBD — dependent on GPT-5.6 review outcome
+SP-004 尚未开始；进入下一产品阶段前先封存 v0.33.0 基线。

@@ -1,19 +1,21 @@
 @echo off
 chcp 65001 >nul
 title AI-Lab API Server
-echo ========================================
-echo   AI-Lab API Server v0.32.4
-echo ========================================
-echo.
 cd /d "%~dp0.."
 
-REM ?? Python
-python --version >nul 2>&1
+REM Python 3.11+
+python -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] Python ??????? Python 3.10+
+    echo [ERROR] Python 3.11+ is required.
     pause
     exit /b 1
 )
+
+for /f "delims=" %%V in ('python -c "import core; print(core.__version__)"') do set "AI_LAB_VERSION=%%V"
+echo ========================================
+echo   AI-Lab API Server v%AI_LAB_VERSION%
+echo ========================================
+echo.
 
 REM ?? .env ?????
 python -c "from dotenv import load_dotenv; load_dotenv(); from core.provider_mode import get_provider_info; info=get_provider_info(); print(info['mode'])" > "%TEMP%\ai_lab_api_mode.txt" 2>nul

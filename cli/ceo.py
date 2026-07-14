@@ -21,6 +21,7 @@ except Exception:
     pass
 
 from core.provider_mode import get_provider_info
+from core import __version__
 from core.system import create_system, load_system_settings
 
 
@@ -106,7 +107,7 @@ async def _handle_command(runtime, cmd: str, args: str):
     elif cmd == "status":
         info = get_provider_info()
         return (
-            f"AI-Lab CEO Assistant v0.32.4\n"
+            f"AI-Lab CEO Assistant v{__version__}\n"
             f"运行模式：{info['mode'].upper()}\n"
             f"Provider：{info['provider']}\n"
             f"模型：{info['model']}\n"
@@ -125,7 +126,7 @@ async def run_ceo():
     info = get_provider_info()
 
     print("=" * 40)
-    print(f"  AI-Lab CEO Assistant v0.32.4")
+    print(f"  AI-Lab CEO Assistant v{__version__}")
     print(f"  运行模式：{info['mode'].upper()}")
     if info["mode"] == "real":
         print(f"  Provider：{info['provider']}")

@@ -1,22 +1,22 @@
 {
   "project": "AI-Lab",
-  "version": "v0.32.4",
-  "git_commit": "N/A (no git history)",
-  "git_branch": "master",
-  "development_status": "paused_for_review",
+  "version": "v0.33.0",
+  "git_commit": "SP-003A merge baseline: 96198897f470b5b80c8b4f8380ef8baf4b852aa4",
+  "git_branch": "main",
+  "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
-  "python_version": "3.10.9",
+  "python_version": ">=3.11",
   "code_stats": {
     "python_files": 393,
     "total_lines": 26874,
     "test_files": 104
   },
   "test_summary": {
-    "passed": 712,
+    "passed": 808,
     "failed": 0,
     "skipped": 0,
-    "warnings": 26,
-    "real_provider_errors": 5
+    "warnings": 27,
+    "real_provider_errors": 0
   },
   "real_provider": {
     "provider": "DeepSeek",
@@ -69,6 +69,6 @@
     "Windows 编码工具链不稳定",
     "Docker 未实际部署测试"
   ],
-  "next_action": "independent_gpt56_architecture_review",
+  "next_action": "seal_v0.33.0_before_sp004",
   "freeze_date": "2026-07-14"
 }

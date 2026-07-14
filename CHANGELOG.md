@@ -1,4 +1,27 @@
 ﻿
+## [0.33.0] - 2026-07-15
+
+### 版本治理
+
+- 将 `pyproject.toml` 的 `[project].version` 确立为唯一运行时产品版本来源。
+- `core.__version__` 优先读取 `ai-lab` distribution metadata；源码模式从同一 `pyproject.toml` 派生，不再维护硬编码副本。
+- CLI、API、Health、基础配置与 Windows 启动入口统一显示派生版本。
+- v0.33.0 基线在隔离 Python 3.12 环境中的最终本地验证为 `808 passed, 27 warnings in 40.15s`；真实 DeepSeek 测试为 `5 passed in 9.14s`。这些结果不是 GitHub Actions 记录。
+
+### 稳定化基线
+
+- SP-001：Single Composition Root 与 CLI/API 真实主链路。
+- SP-002：统一 `FailureInfo`、失败语义与 System Health 聚合。
+- SP-003：DatabaseManager 连接所有权、operation-scoped lease、原子写入和生命周期清理。
+- SP-003 阶段最终本地验证记录为 `800 passed, 26 warnings`，不是 GitHub Actions 结果。
+- `v0.32.4-review-baseline` 历史冻结标签保持不变；v0.33.0 Tag 与 GitHub Release 只允许在 Release PR 审查并合并后创建。
+
+### 已知限制
+
+- Reminder/UserTask-Scheduler 闭环、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
+
+---
+
 ## SP-003 - Completed（2026-07-15）
 
 **Merge PR**：[#5](https://github.com/y19870785/ai-lab-os/pull/5)

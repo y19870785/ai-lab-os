@@ -1,6 +1,6 @@
 ﻿# AI-Lab Roadmap
 
-**Last Updated:** 2026-07-14 | **Current Version:** v0.32.4 (FROZEN)
+**Last Updated:** 2026-07-15 | **Current Version:** v0.33.0
 
 ## Completed
 
@@ -12,12 +12,13 @@
 | 4.0-4.3 | v0.20.0 ~ v0.23.0 | 2026-07-12~13 | Workflow + Scheduler + Task + Multi-Agent |
 | 5.0-5.1 | v0.30.0 ~ v0.31.0 | 2026-07-13 | Application Foundation + Alpha Field Validation |
 | Product 1.0-1.2 | v0.32.0 ~ v0.32.4 | 2026-07-13~14 | CEO Assistant MVP + DeepSeek + Interactive CLI |
+| Stabilization | v0.33.0 | 2026-07-15 | SP-001~SP-003 Composition Root、失败语义、数据库连接所有权与版本治理 |
 
 ## Current
 
 | Status | Action |
 |---|---|
-| **FROZEN** | v0.32.4 — 等待 GPT-5.6 独立架构审查 |
+| **BASELINE** | v0.33.0 — 稳定化基线；SP-004 尚未开始 |
 
 ## Future (Tentative — Subject to Review Outcome)
 

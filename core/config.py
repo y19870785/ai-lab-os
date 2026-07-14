@@ -10,6 +10,8 @@ import yaml
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
+from core import __version__
+
 
 class DatabaseConfig(BaseModel):
     """数据库连接配置。"""
@@ -30,7 +32,7 @@ class LoggingConfig(BaseModel):
 class AppConfig(BaseModel):
     """应用基础配置。"""
     name: str = "AI-Lab"
-    version: str = "0.1.0"
+    version: str = __version__
     debug: bool = False
 
 

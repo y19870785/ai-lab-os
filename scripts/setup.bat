@@ -9,9 +9,9 @@ echo.
 cd /d "%~dp0.."
 
 echo [1/5] Checking Python...
-python --version >nul 2>&1
+python -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] Python 3.10+ required.
+    echo [ERROR] Python 3.11+ required.
     pause & exit /b 1
 )
 python --version
@@ -19,7 +19,8 @@ echo [OK]
 
 echo.
 echo [2/5] Checking dependencies...
-pip install -r requirements.txt -q 2>nul
+python -m pip install -r requirements.txt -q 2>nul
+python -m pip install -e . --no-deps -q 2>nul
 echo [OK]
 
 echo.

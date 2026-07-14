@@ -27,4 +27,6 @@ AI-Lab 的智能 Agent 层，承载所有 Agent 的定义、编排和执行。
     await lifecycle.activate(agent_id)
 """
 
-__version__ = "0.1.0"
+from core import __version__
+
+__all__ = ["__version__"]

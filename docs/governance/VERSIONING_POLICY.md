@@ -6,7 +6,7 @@
 
 ## 1. 版本号规则
 
-采用 **Major.Minor.Patch** 三阶段语义化版本：
+AI-Lab OS 使用 **Semantic Versioning**，正式版本格式为 `vMAJOR.MINOR.PATCH`：
 
 ```
 v1.2.3
@@ -20,18 +20,24 @@ v1.2.3
 
 | 变更类型 | 示例 | 版本号变更 |
 | --- | --- | --- |
-| Patch | 修复日志格式 bug、更新文档错误 | Patch +1 |
+| Patch | Bug、并发、错误语义、安全或小范围兼容修复 | Patch +1 |
 | Patch | 调整配置默认值 | Patch +1 |
-| Minor | 新增架构层（如 Memory Layer） | Minor +1, Patch 归零 |
-| Minor | 新增知识类型 | Minor +1, Patch 归零 |
-| Minor | 新增 Agent 角色 | Minor +1, Patch 归零 |
+| Minor | 形成新的系统能力或真实业务闭环基线 | Minor +1, Patch 归零 |
 | Major | 重写 Core Layer 接口协议 | Major +1, Minor/Patch 归零 |
 | Major | 变更存储 Schema | Major +1, Minor/Patch 归零 |
 | Major | 删除或重命名已有 API | Major +1, Minor/Patch 归零 |
 
-### 当前版本
+纯文档对账通常不单独提升产品版本，除非它属于正式 Release PR。当前处于 `0.x` 开发期；Reminder/Scheduler 闭环、Knowledge 进入真实主链路、自动 Tool Calling 或新的真实业务闭环属于 Minor 基线，兼容性稳定化属于 Patch。
 
-**v0.6.0** — Foundation Phase 末版，五层架构 + Governance 治理体系全部完成。
+### 当前目标基线
+
+**v0.33.0** — 汇总 SP-001 至 SP-003 的 Composition Root、失败语义与 DatabaseManager 连接所有权稳定化成果。
+
+### SP 工作包
+
+- SP 编号是工程工作包，不是产品版本，一个 SP 不要求对应一个版本。
+- `SP-003` 表示 DatabaseManager Connection Ownership；`v0.33.0` 表示包含多个稳定化工作包的产品基线。
+- `SP-003A`、`SP-003B` 的后缀表示工作包关系，不是 SemVer 预发布后缀。
 
 ## 2. 架构升级规则
 
@@ -181,27 +187,36 @@ prompts:
     decision_review: "decision_review_v1"
 ```
 
-## 6. 版本号记录位置
+## 6. 产品版本来源
+
+`pyproject.toml` 的 `[project].version` 是 AI-Lab OS 唯一运行时产品版本来源。
+
+- 已安装或 editable install 环境通过 `importlib.metadata.version("ai-lab")` 读取发行包元数据。
+- Source checkout 尚无发行包元数据时，`core.__version__` 从仓库 `pyproject.toml` 派生。
+- Source fallback 按 `core` 模块位置定位文件，不依赖当前工作目录。
+- metadata 与 source metadata 均不可用时必须明确失败，不返回伪造的正式版本。
+- Agent、Provider、Application 等组件可以维护独立组件版本，但不得替代产品版本。
 
 | 位置 | 文件 | 说明 |
 | --- | --- | --- |
-| 项目配置 | `pyproject.toml` | Python 包版本 |
-| 全局入口 | `core/__init__.py` | `__version__` 常量 |
+| 唯一真源 | `pyproject.toml` | `[project].version` 产品版本 |
+| 运行时入口 | `core/__init__.py` | 从 package metadata 或唯一真源派生 `__version__` |
 | 架构文档 | `docs/architecture/ARCHITECTURE.md` | 架构版本标注 |
 | 上下文 | `docs/governance/PROJECT_CONTEXT.md` | 项目状态版本 |
 | 变更日志 | `CHANGELOG.md` | 按版本记录的变更历史 |
-| Git Tag | `git tag v0.6.0` | 发布版本标记 |
+| Git Tag | `vMAJOR.MINOR.PATCH` | 只在 Release PR 审查、合并后基于 main commit 创建 |
 
 ### 版本发布清单
 
 每次版本发布前检查：
 - [ ] CHANGELOG.md 已更新
 - [ ] pyproject.toml 版本号已更新
-- [ ] core/__init__.py 版本号已同步
+- [ ] `core.__version__` 与 distribution metadata 一致
+- [ ] 版本一致性测试通过
 - [ ] 所有新增/修改的文档已提交
 - [ ] 所有迁移脚本已验证
-- [ ] Git tag 已打
+- [ ] Release PR 已审查并合并后再创建 Git Tag
 
 ---
 
-> 最后更新：2026-07-12 | 维护者：Lin Yuyan
+> 最后更新：2026-07-15 | 维护者：Lin Yuyan

@@ -5,6 +5,7 @@ import time
 from fastapi import APIRouter, Depends
 
 from api.dependencies import get_system
+from core import __version__
 from core.system.container import SystemContainer
 
 router = APIRouter(tags=["health"])
@@ -27,7 +28,7 @@ def record_error() -> None:
 async def health_check(system: SystemContainer = Depends(get_system)):
     record_request()
     result = await system.health()
-    result.update({"uptime_seconds": int(time.time() - _start_time), "version": "0.32.4"})
+    result.update({"uptime_seconds": int(time.time() - _start_time), "version": __version__})
     return result
 
 
@@ -37,7 +38,7 @@ async def health_details(system: SystemContainer = Depends(get_system)):
     health = await system.health()
     return {
         "status": health["status"],
-        "version": "0.32.4",
+        "version": __version__,
         "uptime_seconds": int(time.time() - _start_time),
         "components": health["components"],
     }
@@ -69,5 +70,5 @@ async def metrics(system: SystemContainer = Depends(get_system)):
         },
         "provider": {"mode": system.settings.provider_mode},
         "applications": system.application_registry.count,
-        "version": "0.32.4",
+        "version": __version__,
     }

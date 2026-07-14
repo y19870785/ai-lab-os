@@ -1,5 +1,11 @@
 ﻿# AI-Lab 架构文档
 
+## v0.33.0 产品基线
+
+v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Observability 和 SP-003 DatabaseManager Connection Ownership。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
+
+该基线不代表 Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 或 shutdown 全局请求闸门已经完成。SP-004 尚未开始。
+
 ## SP-003 Memory SQLite 连接所有权
 
 > SP-003 状态：Completed
@@ -254,6 +260,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 | 版本 | 日期 | 变更 |
 | --- | --- | --- |
+| v0.33.0 | 2026-07-15 | SP-001~SP-003 稳定化成果与统一版本来源 |
 | v0.32.4 | 2026-07-13 | CEO Assistant Interactive CLI + Provider Mode 统一 |
 | v0.32.0~v0.32.3 | 2026-07-13 | CEO Assistant MVP + First Run + Release Cleanup |
 | v0.31.0 | 2026-07-13 | Alpha Field Validation |
