@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from core.workspace.models import WorkspaceKey
+from core.errors import FailureInfo
 
 
 class ApplicationStatus(str, Enum):
@@ -93,4 +94,5 @@ class ApplicationResponse(BaseModel):
     trace_id: str = ""
     mode: str = "mock"  # mock | real
     error: str = ""
+    failure: FailureInfo | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)

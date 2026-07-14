@@ -66,15 +66,21 @@ class TaskRuntime(TaskProtocol):
         self._bus = bus
         self._state_machines: dict[str, TaskStateMachine] = {}
         self._cancel_flags: dict[str, bool] = {}
+        self._initialized = False
 
     # ---- 生命周期 ----
 
     async def initialize(self) -> None:
-        pass
+        self._initialized = True
 
     async def shutdown(self) -> None:
         for task_id in list(self._cancel_flags.keys()):
             self._cancel_flags[task_id] = True
+        self._initialized = False
+
+    @property
+    def initialized(self) -> bool:
+        return self._initialized
 
     # ---- Task 管理 ----
 

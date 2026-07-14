@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from api.app import create_app
 from api.middleware.error_handler import ErrorHandlerMiddleware
+from applications.models import ApplicationResponse
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.system import make_test_settings
 
@@ -97,3 +98,44 @@ def test_fastapi_validation_uses_common_400_contract(tmp_path):
 
     _assert_error_contract(response, 400, "api.request.validation_failed")
     assert response.json()["details"]["issues"]
+
+
+def test_ceo_application_failure_is_non_2xx_and_does_not_leak_error(tmp_path):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        async def fail_save_memory(*args, **kwargs):
+            raise OSError("database C:/private/customer.sqlite is unavailable")
+
+        app.state.system.ceo_assistant._memory.save_memory = fail_save_memory
+        response = client.post("/work-logs", json={
+            "user_input": "完成客户报价复核",
+        })
+
+    _assert_error_contract(
+        response,
+        503,
+        "application.ceo_assistant.execute_failed",
+    )
+    assert "answer" not in response.json()
+    assert "C:/private" not in response.text
+    assert "customer.sqlite" not in response.text
+
+
+def test_application_failed_response_is_converted_to_api_error(tmp_path):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        async def failed_response(request):
+            return ApplicationResponse(
+                status="not_configured",
+                answer="private dependency details",
+            )
+
+        app.state.system.ceo_assistant.run = failed_response
+        response = client.post("/chat", json={
+            "application_name": "ceo-assistant",
+            "user_input": "hello",
+        })
+
+    _assert_error_contract(response, 503, "application.not_configured")
+    assert "answer" not in response.json()
+    assert "private dependency details" not in response.text

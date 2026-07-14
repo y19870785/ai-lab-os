@@ -14,6 +14,8 @@ from core.agents.exceptions import AgentExecutionError, ToolExecutionError
 from core.errors import (
     ErrorCategory,
     ErrorSeverity,
+    FailureException,
+    FailureInfo,
     failure_event_payload,
     failure_from_exception,
 )
@@ -49,19 +51,19 @@ class AgentExecutor:
             await publish_agent_event(self._bus, AgentEventTypes.STARTED,
                                       self._info.id, session.session_id)
 
-        operation = "memory.retrieve"
+        operation = "dependencies.validate"
         try:
-            memory_items = await self._fetch_memory(request) if request.memory_enabled and self._memory else []
+            self._validate_requested_dependencies(request, trace_id)
+            operation = "memory.retrieve"
+            memory_items = await self._fetch_memory(request) if request.memory_enabled else []
             operation = "knowledge.retrieve"
-            if request.knowledge_enabled and not self._config.knowledge_enabled:
-                raise AgentExecutionError("Knowledge service is disabled")
-            knowledge_results = await self._fetch_knowledge(request) if request.knowledge_enabled and self._knowledge else []
+            knowledge_results = await self._fetch_knowledge(request) if request.knowledge_enabled else []
             operation = "context.build"
             context = await self._context_builder.build(request, memory_items, knowledge_results)
             operation = "provider.generate"
             answer = await self._invoke_llm(context)
             tools = []
-            if request.tools_enabled and self._tools:
+            if request.tools_enabled:
                 operation = "tool.execute"
                 tools = await self._invoke_tools(request, context)
                 failed_tool = next((record for record in tools if not record.success), None)
@@ -76,7 +78,7 @@ class AgentExecutor:
                 latency_ms=(time.time() - t0) * 1000, status="ok",
                 trace_id=trace_id,
             )
-            if self._memory:
+            if request.memory_enabled:
                 try:
                     await self._save_memory(request, response)
                 except Exception as exc:
@@ -146,6 +148,37 @@ class AgentExecutor:
             )
         finally:
             session.end()
+
+    def _validate_requested_dependencies(self, request: AgentRequest, trace_id: str) -> None:
+        memory_not_configured = self._memory is None
+        if request.memory_enabled and self._memory is not None and hasattr(self._memory, "health"):
+            memory_not_configured = (
+                self._memory.health().get("status") == ErrorCategory.NOT_CONFIGURED.value
+            )
+        requirements = (
+            (request.memory_enabled and memory_not_configured,
+             "agent.memory.not_configured", "agent.memory", "retrieve",
+             "Memory service is not configured", ErrorCategory.NOT_CONFIGURED),
+            (request.knowledge_enabled and not self._config.knowledge_enabled,
+             "agent.knowledge.disabled", "agent.knowledge", "retrieve",
+             "Knowledge service is disabled", ErrorCategory.DISABLED),
+            (request.knowledge_enabled and self._config.knowledge_enabled and self._knowledge is None,
+             "agent.knowledge.not_configured", "agent.knowledge", "retrieve",
+             "Knowledge service is not configured", ErrorCategory.NOT_CONFIGURED),
+            (request.tools_enabled and (self._tools is None or self._tool_executor is None),
+             "agent.tool.not_configured", "agent.tool", "execute",
+             "Tool runtime is not configured", ErrorCategory.NOT_CONFIGURED),
+        )
+        for missing, code, component, action, message, category in requirements:
+            if missing:
+                raise FailureException(FailureInfo(
+                    code=code,
+                    category=category,
+                    message=message,
+                    component=component,
+                    operation=action,
+                    trace_id=trace_id,
+                ))
 
     async def _fetch_memory(self, request: AgentRequest) -> list[dict[str, Any]]:
         if self._memory is None:

@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
 from applications.models import ApplicationRequest
+from core.errors import ErrorCategory, FailureException
 
 
 class TestErrorHandling:
@@ -22,47 +23,47 @@ class TestErrorHandling:
         app = CEOAssistant(memory_manager=None)
 
         # work_log
-        resp = await app.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input="记录: 完成报告",
-        ))
-        assert resp.status == "error"
-        assert "not configured" in resp.error
+        with pytest.raises(FailureException) as exc_info:
+            await app.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="记录: 完成报告",
+            ))
+        assert exc_info.value.failure.category == ErrorCategory.NOT_CONFIGURED
 
         # task
-        resp = await app.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input="提醒我明天开会",
-        ))
-        assert resp.status == "error"
+        with pytest.raises(FailureException):
+            await app.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="提醒我明天开会",
+            ))
 
         # decision
-        resp = await app.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input="决定采用方案A",
-        ))
-        assert resp.status == "error"
+        with pytest.raises(FailureException):
+            await app.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="决定采用方案A",
+            ))
 
     @pytest.mark.asyncio
     async def test_empty_user_input(self):
         """空输入不崩溃。"""
         app = CEOAssistant()
-        resp = await app.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input="",
-        ))
-        assert resp.status in ("error", "not_configured")
+        with pytest.raises(FailureException):
+            await app.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="",
+            ))
 
     @pytest.mark.asyncio
     async def test_very_long_input(self):
         """超长输入不崩溃。"""
         app = CEOAssistant()
         long_text = "测试一下很长的输入。" * 200
-        resp = await app.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input=long_text,
-        ))
-        assert resp.status in ("error", "not_configured")
+        with pytest.raises(FailureException):
+            await app.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input=long_text,
+            ))
 
     @pytest.mark.asyncio
     async def test_special_characters(self):
@@ -74,28 +75,29 @@ class TestErrorHandling:
             "{{7*7}}",
             '"; DROP TABLE users; --',
         ]:
-            resp = await app.run(ApplicationRequest(
-                application_name="ceo-assistant",
-                user_input=text,
-            ))
-            assert resp.status in ("error", "not_configured"), f"输入 '{text[:30]}' 不应崩溃"
+            with pytest.raises(FailureException):
+                await app.run(ApplicationRequest(
+                    application_name="ceo-assistant",
+                    user_input=text,
+                ))
 
     @pytest.mark.asyncio
     async def test_unicode_input(self):
         """Unicode 字符（emoji、中文、混合）不崩溃。"""
         app = CEOAssistant()
-        resp = await app.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input="记录：测试 🌧️ émoji и русский 混合文字",
-        ))
-        assert resp.status == "error"
+        with pytest.raises(FailureException):
+            await app.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="记录：测试 🌧️ émoji и русский 混合文字",
+            ))
 
     @pytest.mark.asyncio
     async def test_trace_id_on_error(self):
         """错误时 trace_id 仍然存在。"""
         app = CEOAssistant()
-        resp = await app.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input="",
-        ))
-        assert resp.trace_id != "", "trace_id 不能为空"
+        with pytest.raises(FailureException) as exc_info:
+            await app.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="",
+            ))
+        assert exc_info.value.failure.trace_id != "", "trace_id 不能为空"

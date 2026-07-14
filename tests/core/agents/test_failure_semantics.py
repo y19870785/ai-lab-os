@@ -65,6 +65,48 @@ async def test_provider_failure_is_structured_and_runtime_enters_error():
     assert runtime.info.status == AgentStatus.ERROR
 
 
+@pytest.mark.parametrize(
+    ("agent_request", "expected_code"),
+    [
+        (AgentRequest(user_input="x", memory_enabled=True,
+                      knowledge_enabled=False, tools_enabled=False),
+         "agent.memory.not_configured"),
+        (AgentRequest(user_input="x", memory_enabled=False,
+                      knowledge_enabled=True, tools_enabled=False),
+         "agent.knowledge.not_configured"),
+        (AgentRequest(user_input="x", memory_enabled=False,
+                      knowledge_enabled=False, tools_enabled=True),
+         "agent.tool.not_configured"),
+    ],
+)
+async def test_enabled_capability_without_dependency_fails(agent_request, expected_code):
+    response = await AgentExecutor(
+        AgentInfo(id="missing-dependency-agent"),
+        llm_provider=await _mock_llm(),
+    ).execute(agent_request)
+
+    assert response.status == "failed"
+    assert response.answer == ""
+    assert response.failure is not None
+    assert response.failure.code == expected_code
+    assert response.failure.category == ErrorCategory.NOT_CONFIGURED
+
+
+async def test_explicitly_disabled_capabilities_may_be_skipped():
+    response = await AgentExecutor(
+        AgentInfo(id="disabled-capabilities-agent"),
+        llm_provider=await _mock_llm(),
+    ).execute(AgentRequest(
+        user_input="x",
+        memory_enabled=False,
+        knowledge_enabled=False,
+        tools_enabled=False,
+    ))
+
+    assert response.status == "ok"
+    assert response.failure is None
+
+
 async def test_memory_retrieve_and_knowledge_failures_have_distinct_codes():
     llm = await _mock_llm()
     memory_response = await AgentExecutor(

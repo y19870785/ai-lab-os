@@ -37,6 +37,8 @@ class TestEndToEnd:
             user_input="What is the capital of France?",
             session_id="e2e-session-1",
             memory_enabled=True,
+            knowledge_enabled=False,
+            tools_enabled=False,
         )
         resp = await executor.execute(req)
         # ????
@@ -135,7 +137,10 @@ class TestEndToEnd:
 
         info = AgentInfo(name="recovery-agent", description="Error recovery")
         executor = AgentExecutor(info=info, llm_provider=BrokenLLM())
-        req = AgentRequest(user_input="test", session_id="recovery-1")
+        req = AgentRequest(
+            user_input="test", session_id="recovery-1",
+            memory_enabled=False, knowledge_enabled=False, tools_enabled=False,
+        )
         resp = await executor.execute(req)
         assert resp.status == "failed"
         assert resp.failure is not None
@@ -146,7 +151,10 @@ class TestEndToEnd:
         """Bare agents expose missing LLM instead of returning a fake echo."""
         info = AgentInfo(name="bare-agent", description="Bare minimum")
         executor = AgentExecutor(info=info)
-        req = AgentRequest(user_input="echo this", session_id="bare-1")
+        req = AgentRequest(
+            user_input="echo this", session_id="bare-1",
+            memory_enabled=False, knowledge_enabled=False, tools_enabled=False,
+        )
         resp = await executor.execute(req)
         assert resp.status == "failed"
         assert resp.failure is not None

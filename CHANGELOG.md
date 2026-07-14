@@ -11,12 +11,17 @@
 - API 使用统一错误响应和 HTTP 状态映射；未知异常不再向客户端暴露内部路径或堆栈。
 - `SystemContainer.health()` 改为真实组件聚合，区分 `healthy`、`degraded`、`failed`、`disabled` 与 `not_initialized`。
 - Agent、Task、Scheduler 的失败事件采用统一扁平 envelope，并携带 trace id。
+- 首轮审查修复：Agent 开启 Memory、Knowledge 或 Tool 但缺少依赖时返回 `failed + FailureInfo`，不再静默跳过。
+- CEO Assistant 与 ApplicationRuntime 不再把失败包装成 HTTP 200；API 统一返回非 2xx 错误契约，且不在 `answer` 中携带异常文本。
+- MemoryManager 记录 Store 操作故障，并在后续成功操作或健康探针通过后恢复为 `healthy`。
+- System Health 将关键组件的 `stopped`、`not_initialized`、`not_configured`、`disabled`、`degraded`、`failed` 纳入顶层聚合。
 
 ### 验证状态
 
-- SP-002 专项故障注入测试：`24 passed`。
-- DeepSeek 真实测试：`5 passed in 9.19s`（测试子进程清空继承的 SOCKS 代理变量后直连通过）。
-- 全量测试：`759 passed, 26 warnings in 33.59s`。
+- SP-002 审查修复专项故障注入测试：`28 passed in 1.56s`。
+- 受影响模块测试：`423 passed, 2 warnings in 11.62s`。
+- DeepSeek 真实测试已随全量测试通过（测试子进程清空继承的 SOCKS 代理变量后直连）。
+- 全量测试：`768 passed, 26 warnings in 34.43s`。
 - 当前仅在独立分支实现，等待 Draft PR 审查；尚未合并，不得视为 Completed。
 
 ---

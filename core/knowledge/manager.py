@@ -48,6 +48,7 @@ class KnowledgeManager:
         self._vector = vector_provider
         self._config = config or KnowledgeConfig()
         self._bus = bus
+        self._initialized = False
 
         # Pipeline
         self._pipeline = IngestionPipeline(
@@ -86,10 +87,16 @@ class KnowledgeManager:
     async def initialize(self) -> None:
         """Initialize the knowledge store."""
         await self._store.initialize()
+        self._initialized = True
 
     async def close(self) -> None:
         """Release resources."""
         await self._store.close()
+        self._initialized = False
+
+    @property
+    def initialized(self) -> bool:
+        return self._initialized
 
     # ── Ingestion ──
 

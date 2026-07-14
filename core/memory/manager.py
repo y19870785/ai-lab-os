@@ -11,7 +11,12 @@ from typing import Any
 from core.memory.models import MemoryFilter, MemoryItem, MemoryQuery, MemoryType
 from core.memory.protocol import MemoryStore
 from core.memory.session import SessionMemory
-from core.errors import FailureInfo, RuntimeStatus
+from core.errors import (
+    ErrorCategory,
+    FailureInfo,
+    RuntimeStatus,
+    failure_from_exception,
+)
 
 
 class MemoryManager:
@@ -35,15 +40,51 @@ class MemoryManager:
         self._last_failure = None
 
     def health(self) -> dict[str, object]:
+        if self._last_failure is not None:
+            status = RuntimeStatus.FAILED.value
+        elif not self._stores:
+            status = RuntimeStatus.NOT_CONFIGURED.value
+        else:
+            status = RuntimeStatus.OK.value
         return {
-            "status": (
-                RuntimeStatus.FAILED.value
-                if self._last_failure is not None
-                else RuntimeStatus.OK.value
-            ),
+            "status": status,
             "registered_stores": len(self._stores),
             "last_error": self._last_failure.to_dict() if self._last_failure else None,
         }
+
+    async def health_check(self) -> dict[str, object]:
+        """Probe registered stores and clear a transient failure after recovery."""
+        try:
+            for store in self._stores.values():
+                await store.count()
+        except Exception as exc:
+            self.record_failure(failure_from_exception(
+                exc,
+                component="memory",
+                operation="health_check",
+                code="memory.health_check.failed",
+                category=ErrorCategory.PERSISTENCE_FAILURE,
+                retryable=True,
+            ))
+        else:
+            self.clear_failure()
+        return self.health()
+
+    async def _store_call(self, operation: str, awaitable):
+        try:
+            result = await awaitable
+        except Exception as exc:
+            self.record_failure(failure_from_exception(
+                exc,
+                component="memory",
+                operation=operation,
+                code=f"memory.{operation}.failed",
+                category=ErrorCategory.PERSISTENCE_FAILURE,
+                retryable=True,
+            ))
+            raise
+        self.clear_failure()
+        return result
 
     def _get_store(self, memory_type):
         store = self._stores.get(memory_type)
@@ -61,7 +102,7 @@ class MemoryManager:
             item_kw["id"] = item_id
         item = MemoryItem(**item_kw)
         store = self._get_store(memory_type)
-        memory_id = await store.save(item)
+        memory_id = await self._store_call("save", store.save(item))
         if self._bus:
             await self._publish_event("created", memory_type.value, memory_id, {"importance": importance})
         return memory_id
@@ -70,11 +111,11 @@ class MemoryManager:
         """Retrieve memories matching a query."""
         if query.memory_type:
             store = self._get_store(query.memory_type)
-            results = await store.query(query)
+            results = await self._store_call("retrieve", store.query(query))
         else:
             results = []
             for store in self._stores.values():
-                results.extend(await store.query(query))
+                results.extend(await self._store_call("retrieve", store.query(query)))
             results.sort(key=lambda x: x.importance, reverse=True)
             results = results[:query.top_k]
         if self._bus and results:
@@ -93,7 +134,7 @@ class MemoryManager:
     async def delete_memory(self, memory_id, memory_type):
         """Delete a memory by ID and type."""
         store = self._get_store(memory_type)
-        result = await store.delete(memory_id)
+        result = await self._store_call("delete", store.delete(memory_id))
         if result and self._bus:
             await self._publish_event("deleted", memory_type.value, memory_id)
         return result
@@ -104,18 +145,18 @@ class MemoryManager:
     async def save(self, item):
         store = self._get_store(item.memory_type)
         item.metadata.setdefault("action", "created")
-        mid = await store.save(item)
+        mid = await self._store_call("save", store.save(item))
         if self._bus and item.metadata.get("_event_published") is None:
             await self._publish_event("created", item.memory_type.value, mid)
         return mid
 
     async def update(self, memory_id, memory_type, data):
         store = self._get_store(memory_type)
-        existing = await store.get(memory_id)
+        existing = await self._store_call("get", store.get(memory_id))
         if existing is None: return None
         existing.content.update(data)
         existing.metadata["action"] = "updated"
-        await store.save(existing)
+        await self._store_call("update", store.save(existing))
         if self._bus:
             await self._publish_event("updated", memory_type.value, memory_id)
         return existing
@@ -128,7 +169,7 @@ class MemoryManager:
 
     async def get(self, memory_id, memory_type):
         store = self._get_store(memory_type)
-        return await store.get(memory_id)
+        return await self._store_call("get", store.get(memory_id))
 
     async def get_context(self, session_id):
         sm = self.get_session_memory()
@@ -140,9 +181,13 @@ class MemoryManager:
         return store if isinstance(store, SessionMemory) else None
 
     async def count(self, memory_type=None):
-        if memory_type: return await self._get_store(memory_type).count()
+        if memory_type:
+            return await self._store_call(
+                "count", self._get_store(memory_type).count()
+            )
         total = 0
-        for store in self._stores.values(): total += await store.count()
+        for store in self._stores.values():
+            total += await self._store_call("count", store.count())
         return total
 
     async def _publish_event(self, action, mt_str, memory_id, extra=None):
