@@ -1,5 +1,30 @@
 ﻿# AI-Lab 架构文档
 
+## SP-003 Memory SQLite 连接所有权
+
+> SP-003 状态：Implemented on branch / Awaiting review
+
+Composition Root 创建唯一 `DatabaseManager`，并将它注入 Episodic、Semantic、Decision 三个 SQLite Memory Store。Managed Mode 下 Manager 是连接唯一 Owner，Store 只通过 `ConnectionLease(owned=False)` 借用连接；Standalone Mode 下 Store 使用 `ConnectionLease(owned=True)` 创建并关闭 operation-scoped connection。
+
+```mermaid
+flowchart TD
+    Factory["core.system.create_system"] --> Manager["DatabaseManager"]
+    Manager --> E["episodic.db borrowed lease"]
+    Manager --> S["semantic.db borrowed lease"]
+    Manager --> D["decision.db borrowed lease"]
+    E --> ES["SQLiteEpisodicStore"]
+    S --> SS["SQLiteSemanticStore"]
+    D --> DS["SQLiteDecisionStore"]
+    ES --> Shutdown["SystemContainer.shutdown"]
+    SS --> Shutdown
+    DS --> Shutdown
+    Shutdown --> CloseAll["DatabaseManager.close_all"]
+```
+
+数据库路径仍为 `settings.sqlite_dir/episodic.db`、`semantic.db`、`decision.db`，不迁移、不复制、不修改 Schema。同一逻辑名不可在 Manager 生命周期内重绑其他路径。写操作显式 commit/rollback，`batch_save` 采用单事务；每个逻辑数据库使用独立 `RLock`，SQL 不在全局注册锁内执行。完整契约见 `docs/architecture/DATABASE_CONNECTION_OWNERSHIP.md` 与 `ADR-029`。
+
+Knowledge SQLite Store 与 SchedulerPersistence 本轮不迁移。当前关闭过程也尚未提供阻止所有外部并发数据库调用的全局闸门，调用入口必须先停止请求，再执行 `SystemContainer.shutdown()`。
+
 ## SP-002 失败语义收敛
 
 > SP-002 状态：Completed

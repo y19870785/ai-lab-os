@@ -15,6 +15,8 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 **SP-002：Failure Semantics & Observability 已完成并通过 PR #3 以 Squash Merge 合并到 `main`。** `FailureInfo` 已成为 Agent、Task、Scheduler、API、失败事件与 System Health 的统一失败契约。首轮审查发现的 Agent 缺失依赖静默跳过、HTTP 200 携带错误状态、Memory 健康无法恢复和 Health 聚合错误均已修复。合并基线为 `a39dc6a2434b409d311709b08b2c0df9a555a610`，审查结论为 `APPROVED`。
 
+**SP-003：DatabaseManager Connection Ownership 已在独立分支实现，等待审查。** Composition Root 将同一个 `DatabaseManager` 注入 Episodic、Semantic、Decision Store；Manager 是共享连接唯一 Owner，Store 通过显式 lease 借用连接。现有 `sqlite_dir/*.db` 路径与 Schema 保持不变，Standalone Store 仍保留独立运行能力。
+
 采用十层架构（v0.22.0）：
 
 ```
