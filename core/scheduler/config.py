@@ -14,3 +14,6 @@ class SchedulerConfig:
     db_path: str = "scheduler.db"
     event_publish_enabled: bool = True
     auto_recover: bool = True  # 重启后自动恢复未完成任务
+    failure_threshold: int = 3
+    shutdown_timeout: float = 5.0
+    cancel_running_jobs_on_shutdown: bool = True

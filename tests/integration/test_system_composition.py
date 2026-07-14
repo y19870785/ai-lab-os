@@ -70,7 +70,8 @@ async def test_knowledge_can_be_explicitly_enabled(tmp_path: Path):
     await system.start()
     try:
         assert system.knowledge_manager is not None
-        assert (await system.health())["knowledge"] == "healthy"
+        health = await system.health()
+        assert health["components"]["knowledge"]["status"] == "healthy"
     finally:
         await system.shutdown()
 

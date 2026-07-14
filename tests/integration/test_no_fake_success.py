@@ -26,9 +26,11 @@ async def test_agent_without_llm_returns_error_not_echo():
     response = await AgentExecutor(AgentInfo(name="no-llm")).execute(
         AgentRequest(user_input="hello", memory_enabled=False)
     )
-    assert response.status == "error"
+    assert response.status == "failed"
+    assert response.failure is not None
     assert "Echo" not in response.answer
-    assert "not configured" in response.answer
+    assert response.answer == ""
+    assert "not configured" in response.failure.message
 
 
 async def test_scheduler_job_without_workflow_is_failed():

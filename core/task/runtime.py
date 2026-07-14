@@ -34,6 +34,12 @@ from core.task.exceptions import (
     TaskError, TaskNotFoundError, TaskStateError, TaskTimeout,
     TaskCancelled, TaskExecutionError,
 )
+from core.errors import (
+    ErrorCategory,
+    FailureInfo,
+    failure_event_payload,
+    failure_from_exception,
+)
 
 
 class TaskRuntime(TaskProtocol):
@@ -60,15 +66,21 @@ class TaskRuntime(TaskProtocol):
         self._bus = bus
         self._state_machines: dict[str, TaskStateMachine] = {}
         self._cancel_flags: dict[str, bool] = {}
+        self._initialized = False
 
     # ---- 生命周期 ----
 
     async def initialize(self) -> None:
-        pass
+        self._initialized = True
 
     async def shutdown(self) -> None:
         for task_id in list(self._cancel_flags.keys()):
             self._cancel_flags[task_id] = True
+        self._initialized = False
+
+    @property
+    def initialized(self) -> bool:
+        return self._initialized
 
     # ---- Task 管理 ----
 
@@ -81,7 +93,13 @@ class TaskRuntime(TaskProtocol):
         )
         self._manager.register(info, TaskStatus.CREATED)
         self._state_machines[info.id] = TaskStateMachine(TaskStatus.CREATED)
-        self._context_mgr.create(info.id, request.variables)
+        variables = dict(request.variables)
+        if request.workflow_names or "workflow_names" not in variables:
+            variables["workflow_names"] = list(request.workflow_names)
+        variables["_task_max_retries"] = request.max_retries
+        variables["_task_timeout"] = request.timeout
+        variables["_task_trace_id"] = request.trace_id
+        self._context_mgr.create(info.id, variables)
 
         await publish_task_event(self._bus, TaskEventTypes.CREATED,
                                  info.id, info.name)
@@ -91,85 +109,127 @@ class TaskRuntime(TaskProtocol):
         info = self._manager.get(task_id)
         sm = self._state_machines[info.id]
         sm.transition(TaskStatus.READY)
+        self._manager.set_status(task_id, TaskStatus.READY)
 
         await publish_task_event(self._bus, TaskEventTypes.STARTED,
                                  info.id, info.name)
         sm.transition(TaskStatus.RUNNING)
+        self._manager.set_status(task_id, TaskStatus.RUNNING)
         await publish_task_event(self._bus, TaskEventTypes.RUNNING,
                                  info.id, info.name)
 
-        # 检查是否有快照可恢复
         cp = self._checkpoint_mgr.load(task_id)
         start_idx = cp.current_workflow_index if cp else 0
-
-        # 获取执行计划（从注册的请求中获取 workflow_names）
-        # 这里用 context 中的变量或默认空列表
-        workflow_names = self._context_mgr.get(task_id)
-        wf_list = workflow_names.variables.get("workflow_names", []) if workflow_names else []
-
-        if wf_list and self._workflow_runtime is None:
-            error = "WorkflowRuntime is not configured"
-            sm.transition(TaskStatus.FAILED)
-            self._manager.set_status(task_id, TaskStatus.FAILED)
-            await publish_task_event(
-                self._bus, TaskEventTypes.FAILED, info.id, info.name,
-                {"errors": [error]},
-            )
-            return TaskResult(task_id=task_id, status=TaskStatus.FAILED, errors=[error])
-
+        context = self._context_mgr.get(task_id)
+        variables = context.variables if context else {}
+        wf_list = list(variables.get("workflow_names", []))
+        trace_id = str(variables.get("_task_trace_id", ""))
+        max_retries = max(0, int(variables.get("_task_max_retries", self._config.max_retries)))
+        timeout = max(1, int(variables.get("_task_timeout", self._config.default_timeout)))
         t0 = time.time()
-        errors = []
-        outputs = {}
-        retry_count = 0
+        outputs: dict[str, object] = {}
+        retry_count = cp.retry_count if cp else 0
+
+        if not wf_list:
+            failure = FailureInfo(
+                code="task.plan.empty",
+                category=ErrorCategory.VALIDATION,
+                message="Task execution plan is empty",
+                component="task.runtime",
+                operation="plan",
+                retryable=False,
+                trace_id=trace_id,
+            )
+            return await self._terminal_failure(
+                info, sm, failure, TaskStatus.FAILED, t0, retry_count,
+            )
+
+        if self._workflow_runtime is None:
+            failure = FailureInfo(
+                code="task.workflow.not_configured",
+                category=ErrorCategory.NOT_CONFIGURED,
+                message="WorkflowRuntime is not configured",
+                component="task.runtime",
+                operation="workflow.execute",
+                retryable=False,
+                trace_id=trace_id,
+            )
+            return await self._terminal_failure(
+                info, sm, failure, TaskStatus.FAILED, t0, retry_count,
+            )
 
         for i in range(start_idx, len(wf_list)):
             if self._cancel_flags.get(task_id):
                 sm.transition(TaskStatus.CANCELLED)
+                self._manager.set_status(task_id, TaskStatus.CANCELLED)
                 await publish_task_event(self._bus, TaskEventTypes.CANCELLED, info.id, info.name)
                 return TaskResult(task_id=task_id, status=TaskStatus.CANCELLED,
-                                  total_latency_ms=(time.time() - t0) * 1000)
+                                  total_latency_ms=(time.time() - t0) * 1000,
+                                  trace_id=trace_id)
 
             wf_name = wf_list[i]
-            try:
-                if self._workflow_runtime:
+            attempt = 0
+            while True:
+                attempt += 1
+                try:
                     from core.workflow.models import WorkflowRequest
-                    wf_req = WorkflowRequest(workflow_name=wf_name)
+                    wf_req = WorkflowRequest(workflow_name=wf_name, trace_id=trace_id)
                     wf_result = await asyncio.wait_for(
                         self._workflow_runtime.run(wf_req),
-                        timeout=self._config.default_timeout,
+                        timeout=timeout,
                     )
-                    outputs[wf_name] = wf_result.outputs if hasattr(wf_result, 'outputs') else str(wf_result)
-                else:
-                    raise TaskExecutionError("WorkflowRuntime is not configured")
+                    if getattr(wf_result.status, "value", wf_result.status) != "completed":
+                        message = "; ".join(getattr(wf_result, "errors", [])) or "Workflow failed"
+                        raise TaskExecutionError(message)
+                    outputs[wf_name] = getattr(wf_result, "outputs", {})
+                    self._context_mgr.add_workflow(task_id, wf_name)
+                    break
+                except asyncio.TimeoutError as exc:
+                    failure = failure_from_exception(
+                        exc,
+                        component="task.workflow",
+                        operation="execute",
+                        trace_id=trace_id,
+                        code="task.workflow.timeout",
+                        category=ErrorCategory.TIMEOUT,
+                        retryable=True,
+                        details={"workflow": wf_name, "attempt": attempt},
+                    )
+                    terminal_status = TaskStatus.TIMEOUT
+                except Exception as exc:
+                    failure = failure_from_exception(
+                        exc,
+                        component="task.workflow",
+                        operation="execute",
+                        trace_id=trace_id,
+                        code="task.workflow.execution_failed",
+                        category=ErrorCategory.DEPENDENCY_FAILURE,
+                        retryable=True,
+                        details={"workflow": wf_name, "attempt": attempt},
+                    )
+                    terminal_status = TaskStatus.FAILED
 
-                self._context_mgr.add_workflow(task_id, wf_name)
+                if attempt > max_retries:
+                    return await self._terminal_failure(
+                        info, sm, failure, terminal_status, t0, retry_count,
+                        outputs=outputs,
+                    )
 
-            except asyncio.TimeoutError:
-                errors.append(f"Workflow {wf_name} timed out")
                 retry_count += 1
-                if retry_count >= self._config.max_retries:
-                    sm.transition(TaskStatus.TIMEOUT)
-                    await publish_task_event(self._bus, TaskEventTypes.TIMEOUT, info.id, info.name)
-                    return TaskResult(task_id=task_id, status=TaskStatus.TIMEOUT,
-                                      total_latency_ms=(time.time() - t0) * 1000, errors=errors)
-                else:
-                    await publish_task_event(self._bus, TaskEventTypes.RETRY, info.id, info.name,
-                                             {"retry": retry_count, "workflow": wf_name})
-                    # 重试当前 workflow
-                    i -= 1
-                    continue
+                await publish_task_event(
+                    self._bus,
+                    TaskEventTypes.RETRY,
+                    info.id,
+                    info.name,
+                    {
+                        **failure_event_payload(failure, status="retrying"),
+                        "workflow": wf_name,
+                        "attempt": attempt,
+                        "next_attempt": attempt + 1,
+                        "max_attempts": max_retries + 1,
+                    },
+                )
 
-            except Exception as e:
-                errors.append(f"Workflow {wf_name}: {e}")
-                retry_count += 1
-                if retry_count >= self._config.max_retries:
-                    sm.transition(TaskStatus.FAILED)
-                    await publish_task_event(self._bus, TaskEventTypes.FAILED, info.id, info.name,
-                                             {"errors": errors})
-                    return TaskResult(task_id=task_id, status=TaskStatus.FAILED,
-                                      total_latency_ms=(time.time() - t0) * 1000, errors=errors)
-
-            # 保存快照
             self._checkpoint_mgr.save(TaskCheckpoint(
                 task_id=task_id,
                 status=sm.current,
@@ -178,12 +238,8 @@ class TaskRuntime(TaskProtocol):
                 context=self._context_mgr.get(task_id) or TaskContext(),
                 retry_count=retry_count,
             ))
-
-            # 更新状态
             self._manager.set_status(task_id, sm.current)
-            retry_count = 0
 
-        # 完成
         sm.transition(TaskStatus.COMPLETED)
         self._manager.set_status(task_id, TaskStatus.COMPLETED)
         await publish_task_event(self._bus, TaskEventTypes.COMPLETED, info.id, info.name)
@@ -191,8 +247,42 @@ class TaskRuntime(TaskProtocol):
         total_ms = (time.time() - t0) * 1000
         return TaskResult(
             task_id=task_id, status=TaskStatus.COMPLETED,
-            workflow_results=outputs, total_latency_ms=total_ms, errors=errors,
-            outputs=outputs,
+            workflow_results=outputs, total_latency_ms=total_ms, errors=[],
+            outputs=outputs, retry_count=retry_count, trace_id=trace_id,
+        )
+
+    async def _terminal_failure(
+        self,
+        info: TaskInfo,
+        sm: TaskStateMachine,
+        failure: FailureInfo,
+        status: TaskStatus,
+        started_at: float,
+        retry_count: int,
+        *,
+        outputs: dict[str, object] | None = None,
+    ) -> TaskResult:
+        sm.transition(status)
+        self._manager.set_status(info.id, status)
+        event_type = TaskEventTypes.TIMEOUT if status == TaskStatus.TIMEOUT else TaskEventTypes.FAILED
+        await publish_task_event(
+            self._bus,
+            event_type,
+            info.id,
+            info.name,
+            failure_event_payload(failure),
+        )
+        return TaskResult(
+            task_id=info.id,
+            status=status,
+            workflow_results=outputs or {},
+            outputs=outputs or {},
+            total_latency_ms=(time.time() - started_at) * 1000,
+            retry_count=retry_count,
+            errors=[failure.message],
+            trace_id=failure.trace_id,
+            retryable=failure.retryable,
+            failure=failure,
         )
 
     async def pause(self, task_id: str) -> bool:

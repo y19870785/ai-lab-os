@@ -19,7 +19,8 @@ class TestTaskRuntime:
         rt = self._make_runtime()
         info = await rt.create_task(TaskRequest(task_name="no-wf"))
         result = await rt.run(info.id)
-        assert result.status == TaskStatus.COMPLETED
+        assert result.status == TaskStatus.FAILED
+        assert result.failure.code == "task.plan.empty"
 
     async def test_pause_resume(self):
         rt = self._make_runtime()
@@ -54,6 +55,5 @@ class TestTaskRuntime:
     async def test_retry_from_failed(self):
         rt = self._make_runtime()
         info = await rt.create_task(TaskRequest(task_name="retry-test"))
-        await rt.run(info.id)  # complete it
-        # can't retry from COMPLETED
-        assert await rt.retry(info.id) is False
+        await rt.run(info.id)
+        assert await rt.retry(info.id) is True

@@ -1,4 +1,31 @@
 ﻿
+## SP-002 - Implemented on branch / Awaiting review（2026-07-15）
+
+### 失败语义与可观测性收敛
+
+- 新增唯一错误契约 `core/errors/`：`ErrorCategory`、`ErrorSeverity`、`RuntimeStatus`、不可变 `FailureInfo`、异常与 HTTP 映射。
+- Agent 失败不再把错误文本写入 `answer`；Provider、Memory、Knowledge、Tool 使用可机器读取的独立错误码。
+- LLM 回答成功但 Memory 保存失败时返回 `degraded`，保留回答并明确记录持久化失败。
+- Task 修复 `i -= 1` 无效重试，改为每个 Workflow 独立 attempt 循环；空计划和重试耗尽不再标记完成。
+- Scheduler 不再静默吞掉 tick 异常，新增连续失败、最近错误、后台 task 跟踪及完整 shutdown 收集。
+- API 使用统一错误响应和 HTTP 状态映射；未知异常不再向客户端暴露内部路径或堆栈。
+- `SystemContainer.health()` 改为真实组件聚合，区分 `healthy`、`degraded`、`failed`、`disabled` 与 `not_initialized`。
+- Agent、Task、Scheduler 的失败事件采用统一扁平 envelope，并携带 trace id。
+- 首轮审查修复：Agent 开启 Memory、Knowledge 或 Tool 但缺少依赖时返回 `failed + FailureInfo`，不再静默跳过。
+- CEO Assistant 与 ApplicationRuntime 不再把失败包装成 HTTP 200；API 统一返回非 2xx 错误契约，且不在 `answer` 中携带异常文本。
+- MemoryManager 记录 Store 操作故障，并在后续成功操作或健康探针通过后恢复为 `healthy`。
+- System Health 将关键组件的 `stopped`、`not_initialized`、`not_configured`、`disabled`、`degraded`、`failed` 纳入顶层聚合。
+
+### 验证状态
+
+- SP-002 审查修复专项故障注入测试：`28 passed in 1.56s`。
+- 受影响模块测试：`423 passed, 2 warnings in 11.62s`。
+- DeepSeek 真实测试已随全量测试通过（测试子进程清空继承的 SOCKS 代理变量后直连）。
+- 全量测试：`768 passed, 26 warnings in 34.43s`。
+- 当前仅在独立分支实现，等待 Draft PR 审查；尚未合并，不得视为 Completed。
+
+---
+
 ## SP-001 - Completed（2026-07-14）
 
 ### 架构稳定化

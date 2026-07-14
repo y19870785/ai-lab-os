@@ -24,9 +24,11 @@ async def publish_task_event(bus, event_type: str, task_id: str = "",
     if bus is None:
         return
     from core.bus.memory_events import make_memory_event
+    event_data = extra or {}
     event = make_memory_event(
         event_type=event_type, memory_id=task_id or "task",
         memory_type="task", source="task.runtime",
-        extra={"task_name": task_name, **(extra or {})},
+        trace_id=str(event_data.get("trace_id", "")),
+        extra={"task_name": task_name, **event_data},
     )
     await bus.publish(event.event_type, event)

@@ -1,5 +1,25 @@
 ﻿# AI-Lab 架构文档
 
+## SP-002 失败语义收敛
+
+> SP-002 状态：Implemented on branch / Awaiting review
+
+AI-Lab 在唯一 Composition Root 之上新增统一失败契约 `core/errors/`。`FailureInfo` 现在贯穿 Agent、Task、Scheduler、失败事件、System Health 与 API，错误不再通过普通回答、成功 result 或静默异常表达。
+
+```mermaid
+flowchart LR
+    Runtime["Agent / Task / Scheduler"] --> Failure["FailureInfo"]
+    Failure --> Result["Structured Result"]
+    Failure --> Event["EventBus Failure Envelope"]
+    Failure --> Health["SystemContainer Health"]
+    Failure --> API["API Error Contract"]
+    Runtime --> Log["Structured Log + Server Stack"]
+```
+
+Task Runtime 使用每个 Workflow 独立的 attempt 循环并默认 fail-fast；Scheduler 跟踪 tick 连续失败和后台 Job task；Agent 执行失败进入 `ERROR`，回答成功但 Memory 写入失败进入 `DEGRADED`。完整规则见 `docs/architecture/FAILURE_SEMANTICS.md`。
+
+首轮审查修复进一步收紧运行边界：Agent 仅在请求显式关闭某项能力时跳过该能力；Application 的 `error/failed/not_configured/disabled` 不允许作为 HTTP 200 返回；MemoryManager 在 Store 成功操作或显式健康探针通过后清除临时失败；关键组件处于 `stopped/not_initialized/not_configured/disabled/failed` 时，顶层 Health 必须为 `failed`。
+
 ## SP-001 系统组合收敛
 
 AI-Lab 的模块层次保持不变，但所有进程级依赖现在由唯一 Composition Root 组装：

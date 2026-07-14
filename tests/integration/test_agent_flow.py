@@ -11,7 +11,10 @@ from core.agents.runtime import DefaultAgentRuntime
 from core.agents.config import AgentConfig
 from core.providers.llm.mock import MockLLMProvider
 from core.memory.manager import MemoryManager
+from core.memory.models import MemoryType
+from core.memory.session import SessionMemory
 from core.tools.registry import ToolRegistry
+from core.tools.executor import ToolExecutor
 from core.tools.builtin.echo import EchoTool
 from core.tools.builtin.calculator import CalculatorTool
 
@@ -22,11 +25,15 @@ class TestAgentMemoryFlow:
         llm = MockLLMProvider()
         await llm.initialize()
         memory = MemoryManager()
+        memory.register_store(MemoryType.EPISODIC, SessionMemory())
         info = AgentInfo(name="test-agent", description="Test")
         config = AgentConfig(memory_enabled=True, knowledge_enabled=False, tools_enabled=False)
         runtime = DefaultAgentRuntime(info=info, llm_provider=llm, memory_manager=memory, config=config)
         await runtime.initialize()
-        req = AgentRequest(user_input="What is AI-Lab?", session_id="s1", agent_id="test-agent", memory_enabled=True)
+        req = AgentRequest(
+            user_input="What is AI-Lab?", session_id="s1", agent_id="test-agent",
+            memory_enabled=True, knowledge_enabled=False, tools_enabled=False,
+        )
         resp = await runtime.run(req)
         assert resp.answer is not None
         await runtime.shutdown()
@@ -49,6 +56,7 @@ class TestAgentMemoryFlow:
         llm = MockLLMProvider()
         await llm.initialize()
         memory = MemoryManager()
+        memory.register_store(MemoryType.EPISODIC, SessionMemory())
         info = AgentInfo(name="test-agent")
         config = AgentConfig(memory_enabled=True)
         runtime = DefaultAgentRuntime(info=info, llm_provider=llm, memory_manager=memory, config=config)
@@ -57,6 +65,7 @@ class TestAgentMemoryFlow:
         for msg in ["Hi", "How are you?", "What can you do?"]:
             resp = await runtime.run(AgentRequest(
                 user_input=msg, session_id=sid, agent_id="test-agent", memory_enabled=True,
+                knowledge_enabled=False, tools_enabled=False,
             ))
             assert resp.answer is not None
         await runtime.shutdown()
@@ -97,9 +106,15 @@ class TestAgentToolFlow:
         registry.register(echo.info, lambda: EchoTool())
         info = AgentInfo(name="tool-agent")
         config = AgentConfig(tools_enabled=True)
-        runtime = DefaultAgentRuntime(info=info, llm_provider=llm, tool_registry=registry, config=config)
+        runtime = DefaultAgentRuntime(
+            info=info, llm_provider=llm, tool_registry=registry,
+            tool_executor=ToolExecutor(registry=registry), config=config,
+        )
         await runtime.initialize()
-        req = AgentRequest(user_input="echo hello", session_id="ts", agent_id="tool-agent", tools_enabled=True)
+        req = AgentRequest(
+            user_input="echo hello", session_id="ts", agent_id="tool-agent",
+            memory_enabled=False, knowledge_enabled=False, tools_enabled=True,
+        )
         resp = await runtime.run(req)
         assert resp.answer is not None
         await runtime.shutdown()
@@ -113,9 +128,15 @@ class TestAgentToolFlow:
         registry.register(calc.info, lambda: CalculatorTool())
         info = AgentInfo(name="calc-agent")
         config = AgentConfig(tools_enabled=True)
-        runtime = DefaultAgentRuntime(info=info, llm_provider=llm, tool_registry=registry, config=config)
+        runtime = DefaultAgentRuntime(
+            info=info, llm_provider=llm, tool_registry=registry,
+            tool_executor=ToolExecutor(registry=registry), config=config,
+        )
         await runtime.initialize()
-        req = AgentRequest(user_input="2+3", session_id="cs", agent_id="calc-agent", tools_enabled=True)
+        req = AgentRequest(
+            user_input="2+3", session_id="cs", agent_id="calc-agent",
+            memory_enabled=False, knowledge_enabled=False, tools_enabled=True,
+        )
         resp = await runtime.run(req)
         assert resp.answer is not None
         await runtime.shutdown()

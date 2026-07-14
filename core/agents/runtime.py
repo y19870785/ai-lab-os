@@ -50,7 +50,12 @@ class DefaultAgentRuntime(AgentRuntime):
         self._lifecycle.transition(AgentStatus.RUNNING)
         try:
             response = await self._executor.execute(request)
-            self._lifecycle.transition(AgentStatus.IDLE)
+            if response.status == "failed":
+                self._lifecycle.transition(AgentStatus.ERROR)
+            elif response.status == "degraded":
+                self._lifecycle.transition(AgentStatus.DEGRADED)
+            else:
+                self._lifecycle.transition(AgentStatus.IDLE)
             return response
         except Exception:
             self._lifecycle.transition(AgentStatus.ERROR)

@@ -7,8 +7,9 @@ VALID_TRANSITIONS = {
     AgentStatus.CREATED:     {AgentStatus.INITIALIZED, AgentStatus.ERROR, AgentStatus.DESTROYED},
     AgentStatus.INITIALIZED: {AgentStatus.READY, AgentStatus.ERROR, AgentStatus.DESTROYED},
     AgentStatus.READY:       {AgentStatus.RUNNING, AgentStatus.STOPPED, AgentStatus.ERROR, AgentStatus.DESTROYED},
-    AgentStatus.RUNNING:     {AgentStatus.IDLE, AgentStatus.ERROR, AgentStatus.STOPPED},
+    AgentStatus.RUNNING:     {AgentStatus.IDLE, AgentStatus.DEGRADED, AgentStatus.ERROR, AgentStatus.STOPPED},
     AgentStatus.IDLE:        {AgentStatus.RUNNING, AgentStatus.STOPPED, AgentStatus.ERROR, AgentStatus.DESTROYED},
+    AgentStatus.DEGRADED:    {AgentStatus.RUNNING, AgentStatus.STOPPED, AgentStatus.ERROR, AgentStatus.DESTROYED},
     AgentStatus.STOPPED:     {AgentStatus.DESTROYED},
     AgentStatus.ERROR:       {AgentStatus.STOPPED, AgentStatus.DESTROYED},
     AgentStatus.DESTROYED:   set(),
@@ -27,8 +28,8 @@ class AgentLifecycleManager:
         self._info.status = target
         return True
     def assert_ready(self) -> None:
-        if self._info.status not in (AgentStatus.READY, AgentStatus.IDLE):
+        if self._info.status not in (AgentStatus.READY, AgentStatus.IDLE, AgentStatus.DEGRADED):
             raise AgentNotReadyError(f"Agent {self._info.name} is {self._info.status.value}, not ready")
     def assert_runnable(self) -> None:
-        if self._info.status not in (AgentStatus.READY, AgentStatus.IDLE, AgentStatus.RUNNING):
+        if self._info.status not in (AgentStatus.READY, AgentStatus.IDLE, AgentStatus.DEGRADED, AgentStatus.RUNNING):
             raise AgentNotReadyError(f"Agent {self._info.name} is {self._info.status.value}, cannot run")

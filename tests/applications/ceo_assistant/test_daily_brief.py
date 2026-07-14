@@ -118,11 +118,11 @@ class TestDailyBrief:
     @pytest.mark.asyncio
     async def test_brief_priority_ordering(self, app_with_both):
         """高优先级任务应排在前面。"""
-        await app_with_both.run(ApplicationRequest(
+        await app_with_both._handle_task(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="提醒我紧急处理客户投诉",
         ))
-        await app_with_both.run(ApplicationRequest(
+        await app_with_both._handle_task(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="提醒我有空整理文档",
         ))

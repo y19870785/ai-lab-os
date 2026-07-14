@@ -21,6 +21,12 @@ import uuid
 
 from applications.models import ApplicationInfo, ApplicationManifest, ApplicationContext, ApplicationRequest, ApplicationResponse
 from applications.config import ApplicationConfig
+from core.errors import (
+    ErrorCategory,
+    FailureException,
+    FailureInfo,
+    failure_from_exception,
+)
 
 
 class CEOAssistant:
@@ -150,16 +156,22 @@ class CEOAssistant:
                 mode=mode,
                 metadata=result.get("metadata", {}),
             )
-        except Exception as e:
-            return ApplicationResponse(
-                application_id=self.info.application_id,
-                answer="",
-                status="error",
-                error=str(e),
-                latency_ms=(time.time() - t0) * 1000,
+        except FailureException:
+            raise
+        except Exception as exc:
+            failure = failure_from_exception(
+                exc,
+                component="application.ceo_assistant",
+                operation="execute",
                 trace_id=request.workspace_key.trace_id,
-                mode=self._detect_mode(),
+                code="application.ceo_assistant.execute_failed",
             )
+            message = (
+                "CEO Assistant dependency is not configured"
+                if failure.category == ErrorCategory.NOT_CONFIGURED
+                else "CEO Assistant request failed"
+            )
+            raise FailureException(failure.model_copy(update={"message": message})) from exc
 
     # ---- 1. 工作记录 ----
 
@@ -460,10 +472,26 @@ class CEOAssistant:
 
                     return {"answer": "\n".join(answer_parts), "status": "ok", "citations": citations}
                 return {"answer": "[KB] 未找到相关知识。请先导入文档。", "status": "ok"}
-            except Exception as e:
-                return {"answer": f"[KB] 知识检索异常: {e}", "status": "error"}
+            except Exception as exc:
+                failure = failure_from_exception(
+                    exc,
+                    component="application.ceo_assistant.knowledge",
+                    operation="retrieve",
+                    trace_id=request.workspace_key.trace_id,
+                    code="application.ceo_assistant.knowledge_failed",
+                )
+                raise FailureException(failure.model_copy(update={
+                    "message": "Knowledge retrieval failed",
+                })) from exc
 
-        return {"answer": "[KB] 知识服务已禁用。", "status": "disabled"}
+        raise FailureException(FailureInfo(
+            code="application.ceo_assistant.knowledge_disabled",
+            category=ErrorCategory.DISABLED,
+            message="Knowledge service is disabled",
+            component="application.ceo_assistant.knowledge",
+            operation="retrieve",
+            trace_id=request.workspace_key.trace_id,
+        ))
 
     # ---- 5. 每日简报 ----
 
@@ -575,9 +603,25 @@ class CEOAssistant:
                 answer = resp.content or "抱歉，我暂时无法回答。"
                 return {"answer": answer, "status": "ok", "usage": resp.usage or {}}
             except Exception as exc:
-                return {"answer": "", "status": "error", "metadata": {"error": str(exc)}}
+                failure = failure_from_exception(
+                    exc,
+                    component="application.ceo_assistant.provider",
+                    operation="generate",
+                    trace_id=request.workspace_key.trace_id,
+                    code="application.ceo_assistant.provider_failed",
+                )
+                raise FailureException(failure.model_copy(update={
+                    "message": "LLM provider request failed",
+                })) from exc
 
-        return {"answer": "", "status": "not_configured", "metadata": {"error": "LLM provider is not configured"}}
+        raise FailureException(FailureInfo(
+            code="application.ceo_assistant.provider_not_configured",
+            category=ErrorCategory.NOT_CONFIGURED,
+            message="LLM provider is not configured",
+            component="application.ceo_assistant.provider",
+            operation="generate",
+            trace_id=request.workspace_key.trace_id,
+        ))
 
     # ---- 辅助方法 ----
 

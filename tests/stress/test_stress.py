@@ -74,7 +74,14 @@ class TestStress:
         await runtime.initialize()
         t0 = time.time()
         for i in range(50):
-            req = AgentRequest(user_input=f"Stress {i}", session_id="s", agent_id=info.id)
+            req = AgentRequest(
+                user_input=f"Stress {i}",
+                session_id="s",
+                agent_id=info.id,
+                memory_enabled=False,
+                knowledge_enabled=False,
+                tools_enabled=False,
+            )
             resp = await runtime.run(req)
             assert resp.answer is not None
         elapsed = time.time() - t0

@@ -39,7 +39,7 @@ async def health_details(system: SystemContainer = Depends(get_system)):
         "status": health["status"],
         "version": "0.32.4",
         "uptime_seconds": int(time.time() - _start_time),
-        "components": health,
+        "components": health["components"],
     }
 
 
@@ -51,7 +51,11 @@ async def liveness():
 @router.get("/health/ready")
 async def readiness(system: SystemContainer = Depends(get_system)):
     health = await system.health()
-    return {"status": "ready" if health["status"] == "healthy" else "not_ready"}
+    return {
+        "status": "ready"
+        if health["status"] in {"healthy", "degraded"}
+        else "not_ready"
+    }
 
 
 @router.get("/metrics")

@@ -27,6 +27,9 @@ from core.tools.executor import ToolExecutor
 from core.tools.protocol import ToolProtocol
 from core.tools.registry import ToolRegistry
 from core.workflow.runtime import WorkflowRuntime
+from core.agents.models import AgentStatus
+from core.errors import RuntimeStatus
+from core.providers.models import ProviderStatus
 
 logger = logging.getLogger("ai-lab.system")
 
@@ -57,6 +60,7 @@ class SystemContainer:
     ceo_assistant: CEOAssistant
     _started: bool = field(default=False, init=False, repr=False)
     _starting: bool = field(default=False, init=False, repr=False)
+    _stopped: bool = field(default=False, init=False, repr=False)
     _tool_instances: list[ToolProtocol] = field(default_factory=list, init=False, repr=False)
 
     async def start(self) -> None:
@@ -112,6 +116,7 @@ class SystemContainer:
             await self.application_runtime.initialize()
             logger.info("applications.registered")
             self._started = True
+            self._stopped = False
             logger.info("system.ready")
         except Exception as exc:
             logger.exception("system.initialization.failed")
@@ -158,24 +163,143 @@ class SystemContainer:
         await close_component("database_manager", self.database_manager.close_all)
 
         self._started = False
+        self._stopped = True
         logger.info("system.shutdown.completed")
 
     async def health(self) -> dict[str, object]:
-        """Return honest component state without probing external networks."""
+        """Aggregate actual component state without external network probes."""
 
-        scheduler_status = "disabled"
-        if self.scheduler_runtime is not None:
-            scheduler_status = "healthy" if await self.scheduler_runtime.health_check() else "failed"
+        if not self._started:
+            return {
+                "status": (
+                    RuntimeStatus.STOPPED.value
+                    if self._stopped else RuntimeStatus.NOT_INITIALIZED.value
+                ),
+                "provider_mode": self.settings.provider_mode,
+                "components": {},
+            }
+
+        provider_state = self.llm_provider.metadata().status
+        provider_status = {
+            ProviderStatus.READY: RuntimeStatus.OK,
+            ProviderStatus.DEGRADED: RuntimeStatus.DEGRADED,
+            ProviderStatus.UNAVAILABLE: RuntimeStatus.FAILED,
+            ProviderStatus.SHUTDOWN: RuntimeStatus.STOPPED,
+        }.get(provider_state, RuntimeStatus.NOT_INITIALIZED)
+
+        agent_status = {
+            AgentStatus.CREATED: RuntimeStatus.NOT_INITIALIZED,
+            AgentStatus.INITIALIZED: RuntimeStatus.NOT_INITIALIZED,
+            AgentStatus.READY: RuntimeStatus.OK,
+            AgentStatus.RUNNING: RuntimeStatus.OK,
+            AgentStatus.IDLE: RuntimeStatus.OK,
+            AgentStatus.ERROR: RuntimeStatus.FAILED,
+            AgentStatus.DEGRADED: RuntimeStatus.DEGRADED,
+            AgentStatus.STOPPED: RuntimeStatus.STOPPED,
+            AgentStatus.DESTROYED: RuntimeStatus.STOPPED,
+        }.get(self.agent_runtime.info.status, RuntimeStatus.NOT_INITIALIZED)
+
+        scheduler_health = (
+            await self.scheduler_runtime.health()
+            if self.scheduler_runtime is not None
+            else {"status": RuntimeStatus.DISABLED.value}
+        )
+        memory_health = self.memory_manager.health()
+        application_health = await self.application_runtime.health_check()
+        tool_count = len(self.tool_registry.list_names())
+        initialized_tool_count = len(self._tool_instances)
+        components: dict[str, dict[str, object]] = {
+            "event_bus": {
+                "status": RuntimeStatus.OK.value if self.event_bus.is_running
+                else RuntimeStatus.STOPPED.value,
+            },
+            "provider": {
+                "status": provider_status.value,
+                "mode": self.settings.provider_mode,
+                "readiness": provider_state.value,
+            },
+            "memory": memory_health,
+            "knowledge": {
+                "status": (
+                    RuntimeStatus.DISABLED.value
+                    if self.knowledge_manager is None
+                    else RuntimeStatus.OK.value
+                    if self.knowledge_manager.initialized
+                    else RuntimeStatus.NOT_INITIALIZED.value
+                ),
+            },
+            "tools": {
+                "status": (
+                    RuntimeStatus.OK.value
+                    if tool_count > 0 and initialized_tool_count == tool_count
+                    else RuntimeStatus.NOT_CONFIGURED.value
+                    if tool_count == 0
+                    else RuntimeStatus.NOT_INITIALIZED.value
+                ),
+                "registered": tool_count,
+                "initialized": initialized_tool_count,
+            },
+            "agent": {"status": agent_status.value,
+                      "lifecycle": self.agent_runtime.info.status.value},
+            "workflow": {
+                "status": RuntimeStatus.OK.value
+                if self.workflow_runtime.initialized else RuntimeStatus.NOT_INITIALIZED.value,
+            },
+            "scheduler": scheduler_health,
+            "task": {
+                "status": RuntimeStatus.OK.value
+                if self.task_runtime.initialized else RuntimeStatus.NOT_INITIALIZED.value,
+            },
+            "coordination": {
+                "status": (
+                    RuntimeStatus.DISABLED.value
+                    if self.coordination_runtime is None
+                    else RuntimeStatus.OK.value
+                    if self.coordination_runtime.initialized
+                    else RuntimeStatus.NOT_INITIALIZED.value
+                ),
+            },
+            "applications": {
+                "status": (
+                    RuntimeStatus.NOT_CONFIGURED.value
+                    if self.application_registry.count == 0
+                    else application_health["status"]
+                ),
+                "registered": self.application_registry.count,
+            },
+        }
+
+        critical = {
+            "event_bus", "provider", "memory", "tools", "applications",
+            "agent", "workflow", "task",
+        }
+        if self.settings.enable_scheduler:
+            critical.add("scheduler")
+        if self.settings.enable_knowledge:
+            critical.add("knowledge")
+        top_status = RuntimeStatus.OK
+        unavailable_statuses = {
+            RuntimeStatus.FAILED.value,
+            RuntimeStatus.STOPPED.value,
+            RuntimeStatus.NOT_INITIALIZED.value,
+            RuntimeStatus.NOT_CONFIGURED.value,
+            RuntimeStatus.DISABLED.value,
+        }
+        for name, component in components.items():
+            status = component["status"]
+            if status in unavailable_statuses:
+                if status == RuntimeStatus.DISABLED.value and name not in critical:
+                    continue
+                top_status = RuntimeStatus.FAILED if name in critical else RuntimeStatus.DEGRADED
+                if top_status == RuntimeStatus.FAILED:
+                    break
+            elif status == RuntimeStatus.DEGRADED.value and top_status == RuntimeStatus.OK:
+                top_status = RuntimeStatus.DEGRADED
+
         return {
-            "status": "healthy" if self._started else "not_initialized",
+            "status": top_status.value,
             "provider_mode": self.settings.provider_mode,
-            "event_bus": "healthy" if self.event_bus.is_running else "stopped",
-            "provider": "healthy" if self.llm_provider.is_available() else "failed",
-            "memory": "healthy" if self._started else "not_initialized",
-            "knowledge": "healthy" if self.knowledge_manager is not None and self._started else "disabled",
-            "scheduler": scheduler_status,
-            "coordination": "healthy" if self.coordination_runtime is not None and self._started else "disabled",
-            "applications": self.application_registry.count,
+            "components": components,
         }
 
     @property

@@ -18,6 +18,7 @@ from applications.registry import ApplicationRegistry
 from applications.config import ApplicationConfig
 from applications.exceptions import ApplicationNotRegisteredError
 from core.workspace.models import WorkspaceKey
+from core.errors import ErrorCategory, FailureException, FailureInfo
 
 
 class ApplicationRuntime:
@@ -103,6 +104,21 @@ class ApplicationRuntime:
         response = await app.run(app_request)
         response.latency_ms = response.latency_ms or (time.time() - t0) * 1000
         response.trace_id = response.trace_id or ctx.trace_id
+        if response.status in {"error", "failed", "not_configured", "disabled"}:
+            if response.failure is not None:
+                raise FailureException(response.failure)
+            categories = {
+                "not_configured": ErrorCategory.NOT_CONFIGURED,
+                "disabled": ErrorCategory.DISABLED,
+            }
+            raise FailureException(FailureInfo(
+                code=f"application.{response.status}",
+                category=categories.get(response.status, ErrorCategory.EXECUTION_FAILURE),
+                message="Application request failed",
+                component=f"application.{request.application_name}",
+                operation="execute",
+                trace_id=response.trace_id,
+            ))
         return response
 
     # ---- Helpers ----

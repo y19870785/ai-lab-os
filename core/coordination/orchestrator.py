@@ -77,6 +77,10 @@ class AgentOrchestrator(OrchestratorProtocol):
         self._teams.clear()
         self._initialized = False
 
+    @property
+    def initialized(self) -> bool:
+        return self._initialized
+
     # ---- Team Management ----
 
     async def create_team(self, config: TeamConfig) -> None:

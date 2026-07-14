@@ -10,7 +10,10 @@ class TestAgentRuntime:
         runtime = DefaultAgentRuntime(info, llm_provider=llm)
         await runtime.initialize()
         assert runtime.info.status == AgentStatus.READY
-        resp = await runtime.run(AgentRequest(user_input="hello"))
+        resp = await runtime.run(AgentRequest(
+            user_input="hello", memory_enabled=False,
+            knowledge_enabled=False, tools_enabled=False,
+        ))
         assert isinstance(resp, AgentResponse)
         assert resp.status == "ok"
     @pytest.mark.asyncio

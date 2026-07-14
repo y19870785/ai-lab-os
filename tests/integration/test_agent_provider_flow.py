@@ -38,7 +38,10 @@ class TestAgentProviderFlow:
 
         info = AgentInfo(name="full-agent", description="Full test")
         executor = AgentExecutor(info=info, llm_provider=MockLLM())
-        req = AgentRequest(user_input="What is the answer?", session_id="s3")
+        req = AgentRequest(
+            user_input="What is the answer?", session_id="s3",
+            memory_enabled=False, knowledge_enabled=False, tools_enabled=False,
+        )
         resp = await executor.execute(req)
         assert resp.status == "ok"
         assert "42" in resp.answer
