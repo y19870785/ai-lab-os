@@ -17,8 +17,8 @@ class TestErrorHandling:
     """错误处理测试。"""
 
     @pytest.mark.asyncio
-    async def test_no_memory_graceful(self):
-        """无 Memory 时不应崩溃，返回提示信息。"""
+    async def test_no_memory_fails_explicitly(self):
+        """无 Memory 时不得伪造写入成功。"""
         app = CEOAssistant(memory_manager=None)
 
         # work_log
@@ -26,22 +26,22 @@ class TestErrorHandling:
             application_name="ceo-assistant",
             user_input="记录: 完成报告",
         ))
-        assert resp.status == "ok"
-        assert len(resp.answer) > 0
+        assert resp.status == "error"
+        assert "not configured" in resp.error
 
         # task
         resp = await app.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="提醒我明天开会",
         ))
-        assert resp.status == "ok"
+        assert resp.status == "error"
 
         # decision
         resp = await app.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="决定采用方案A",
         ))
-        assert resp.status == "ok"
+        assert resp.status == "error"
 
     @pytest.mark.asyncio
     async def test_empty_user_input(self):
@@ -51,7 +51,7 @@ class TestErrorHandling:
             application_name="ceo-assistant",
             user_input="",
         ))
-        assert resp.status == "ok" or resp.status == "error"
+        assert resp.status in ("error", "not_configured")
 
     @pytest.mark.asyncio
     async def test_very_long_input(self):
@@ -62,7 +62,7 @@ class TestErrorHandling:
             application_name="ceo-assistant",
             user_input=long_text,
         ))
-        assert resp.status in ("ok", "error")
+        assert resp.status in ("error", "not_configured")
 
     @pytest.mark.asyncio
     async def test_special_characters(self):
@@ -78,7 +78,7 @@ class TestErrorHandling:
                 application_name="ceo-assistant",
                 user_input=text,
             ))
-            assert resp.status in ("ok", "error"), f"输入 '{text[:30]}' 不应崩溃"
+            assert resp.status in ("error", "not_configured"), f"输入 '{text[:30]}' 不应崩溃"
 
     @pytest.mark.asyncio
     async def test_unicode_input(self):
@@ -88,7 +88,7 @@ class TestErrorHandling:
             application_name="ceo-assistant",
             user_input="记录：测试 🌧️ émoji и русский 混合文字",
         ))
-        assert resp.status == "ok"
+        assert resp.status == "error"
 
     @pytest.mark.asyncio
     async def test_trace_id_on_error(self):

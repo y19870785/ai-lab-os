@@ -10,12 +10,13 @@ class TestJobExecutor:
         job = Job(info=JobInfo(name="test"), workflow_name="dummy",
                   trigger=Trigger(trigger_type=TriggerType.MANUAL))
         run = await executor.execute(job)
-        assert run.status == JobRunStatus.SUCCESS
+        assert run.status == JobRunStatus.FAILED
+        assert "not configured" in run.error
         assert job.run_count == 1
 
     async def test_execute_paused_job(self):
         from core.scheduler.exceptions import JobStateError
-        executor = JobExecutor()
+        executor = JobExecutor(workflow_runtime=None)
         job = Job(info=JobInfo(name="paused"), status=JobStatus.PAUSED)
         with pytest.raises(JobStateError):
             await executor.execute(job)
@@ -39,3 +40,4 @@ class TestJobExecutor:
         await executor.execute(job)
         assert job.run_count == 1
         assert job.last_run_at is not None
+        assert job.last_result == JobRunStatus.FAILED.value

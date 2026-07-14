@@ -70,8 +70,7 @@ class TestEndToEnd:
         mgr.register_store(MemoryType.EPISODIC, SessionMemory())
         info = AgentInfo(name="tool-agent", description="Agent with tools")
         executor = AgentExecutor(info=info, llm_provider=MockLLM(),
-                                 memory_manager=mgr, tool_registry=reg)
-        executor._tool_executor = te
+                                 memory_manager=mgr, tool_registry=reg, tool_executor=te)
         ctx = AgentContext(session_id="e2e-tool", agent_id=info.id)
         ctx.variables = {"tool_calls": [
             {"name": "echo", "arguments": {"text": "hello"}},
@@ -116,8 +115,7 @@ class TestEndToEnd:
         mgr.register_store(MemoryType.EPISODIC, SessionMemory())
         info = AgentInfo(name="e2e-mcp-agent", description="MCP agent")
         executor = AgentExecutor(info=info, llm_provider=MockLLM(),
-                                 memory_manager=mgr, tool_registry=reg)
-        executor._tool_executor = te
+                                 memory_manager=mgr, tool_registry=reg, tool_executor=te)
         ctx = AgentContext(session_id="e2e-mcp", agent_id=info.id)
         ctx.variables = {"tool_calls": [{
             "name": "mcp.e2e-mcp.lookup",
@@ -143,10 +141,10 @@ class TestEndToEnd:
         assert "unavailable" in resp.answer.lower() or "LLM" in resp.answer or "Error" in resp.answer
 
     async def test_echo_agent_no_deps(self):
-        """??? Agent?? LLM?? Memory?????????"""
+        """Bare agents expose missing LLM instead of returning a fake echo."""
         info = AgentInfo(name="bare-agent", description="Bare minimum")
         executor = AgentExecutor(info=info)
         req = AgentRequest(user_input="echo this", session_id="bare-1")
         resp = await executor.execute(req)
-        assert resp.status == "ok"
-        assert "echo this" in resp.answer.lower()
+        assert resp.status == "error"
+        assert "not configured" in resp.answer.lower()

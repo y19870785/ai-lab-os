@@ -42,12 +42,13 @@ class TestAgentMemoryFlow:
         assert any("Save this" in str(r.content) for r in results)
 
     async def test_agent_without_memory(self):
+        from core.agents.exceptions import AgentExecutionError
         info = AgentInfo(name="no-mem-agent", description="No memory")
         executor = AgentExecutor(info=info, memory_manager=None)
-        items = await executor._fetch_memory(AgentRequest(user_input="test"))
-        assert items == []
-        # save should not crash
-        await executor._save_memory(
-            AgentRequest(user_input="x", session_id="x"),
-            AgentResponse(answer="y", session_id="x", agent_id=info.id),
-        )
+        with pytest.raises(AgentExecutionError, match="not configured"):
+            await executor._fetch_memory(AgentRequest(user_input="test"))
+        with pytest.raises(AgentExecutionError, match="not configured"):
+            await executor._save_memory(
+                AgentRequest(user_input="x", session_id="x"),
+                AgentResponse(answer="y", session_id="x", agent_id=info.id),
+            )

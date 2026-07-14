@@ -4,8 +4,10 @@ from core.agents import DefaultAgentRuntime, AgentInfo, AgentRequest, AgentRespo
 class TestAgentRuntime:
     @pytest.mark.asyncio
     async def test_initialize_and_run(self):
+        from core.providers.llm.mock import MockLLMProvider
+        llm = MockLLMProvider(); await llm.initialize()
         info = AgentInfo(id="a1", name="Test")
-        runtime = DefaultAgentRuntime(info)
+        runtime = DefaultAgentRuntime(info, llm_provider=llm)
         await runtime.initialize()
         assert runtime.info.status == AgentStatus.READY
         resp = await runtime.run(AgentRequest(user_input="hello"))

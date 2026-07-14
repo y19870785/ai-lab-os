@@ -4,8 +4,14 @@ pytestmark = pytest.mark.asyncio(loop_scope="function")
 
 from applications.runtime import ApplicationRuntime
 from applications.models import (
-    ApplicationInfo, ApplicationManifest, ApplicationRequest,
+    ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse,
 )
+from applications.alpha_assistant.application import AlphaAssistant
+
+
+class _ExplicitMockRuntime:
+    async def execute(self, request):
+        return ApplicationResponse(answer=f"[mock] {request.user_input}", mode="mock")
 
 class TestAlphaIntegration:
 
@@ -25,16 +31,22 @@ class TestAlphaIntegration:
     async def test_alpha_execution_mock(self):
         rt = ApplicationRuntime()
         await rt.initialize()
+        info = ApplicationInfo(name="alpha_assistant")
+        manifest = ApplicationManifest(name="alpha_assistant", entrypoint="alpha")
+        await rt.register_application(info, manifest, AlphaAssistant(_ExplicitMockRuntime()))
         req = ApplicationRequest(application_name="alpha_assistant", user_input="What is AI-Lab?")
         resp = await rt.execute(req)
         assert resp.status == "ok"
         assert resp.mode == "mock"  # No API key
-        assert "[MOCK MODE]" in resp.answer
+        assert "[mock]" in resp.answer
         await rt.shutdown()
 
     async def test_alpha_multiple_requests(self):
         rt = ApplicationRuntime()
         await rt.initialize()
+        info = ApplicationInfo(name="alpha_assistant")
+        manifest = ApplicationManifest(name="alpha_assistant", entrypoint="alpha")
+        await rt.register_application(info, manifest, AlphaAssistant(_ExplicitMockRuntime()))
         for i in range(5):
             req = ApplicationRequest(application_name="alpha_assistant", user_input=f"Question {i}")
             resp = await rt.execute(req)
