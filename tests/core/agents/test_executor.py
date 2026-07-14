@@ -19,8 +19,10 @@ class TestAgentExecutor:
         info = AgentInfo(id="a1", name="Test")
         executor = AgentExecutor(info)
         resp = await executor.execute(AgentRequest(user_input="ping"))
-        assert resp.status == "error"
-        assert "not configured" in resp.answer
+        assert resp.status == "failed"
+        assert resp.answer == ""
+        assert resp.failure is not None
+        assert resp.failure.code == "agent.provider.generate_failed"
     @pytest.mark.asyncio
     async def test_execute_with_mock_llm(self):
         from core.providers.llm.mock import MockLLMProvider

@@ -137,8 +137,10 @@ class TestEndToEnd:
         executor = AgentExecutor(info=info, llm_provider=BrokenLLM())
         req = AgentRequest(user_input="test", session_id="recovery-1")
         resp = await executor.execute(req)
-        assert resp.status == "error"
-        assert "unavailable" in resp.answer.lower() or "LLM" in resp.answer or "Error" in resp.answer
+        assert resp.status == "failed"
+        assert resp.failure is not None
+        assert "unavailable" in resp.failure.message.lower()
+        assert resp.answer == ""
 
     async def test_echo_agent_no_deps(self):
         """Bare agents expose missing LLM instead of returning a fake echo."""
@@ -146,5 +148,7 @@ class TestEndToEnd:
         executor = AgentExecutor(info=info)
         req = AgentRequest(user_input="echo this", session_id="bare-1")
         resp = await executor.execute(req)
-        assert resp.status == "error"
-        assert "not configured" in resp.answer.lower()
+        assert resp.status == "failed"
+        assert resp.failure is not None
+        assert "not configured" in resp.failure.message.lower()
+        assert resp.answer == ""

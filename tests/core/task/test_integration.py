@@ -4,16 +4,23 @@ from core.task.runtime import TaskRuntime
 from core.task.manager import TaskManager
 from core.task.models import TaskRequest, TaskStatus, TaskType, TaskPriority
 from core.task.config import TaskConfig
+from core.workflow.models import WorkflowResult, WorkflowStatus
+
+
+class SuccessfulWorkflowRuntime:
+    async def run(self, request):
+        return WorkflowResult(status=WorkflowStatus.COMPLETED, outputs={request.workflow_name: "ok"})
 
 class TestTaskIntegration:
     """Task Runtime ???????"""
 
     async def test_full_lifecycle(self):
-        rt = TaskRuntime(config=TaskConfig())
+        rt = TaskRuntime(config=TaskConfig(), workflow_runtime=SuccessfulWorkflowRuntime())
         # CREATE
         info = await rt.create_task(TaskRequest(
             task_name="e2e", task_type=TaskType.PIPELINE,
             priority=TaskPriority.HIGH,
+            workflow_names=["main"],
         ))
         assert info.priority == TaskPriority.HIGH
         # RUN
@@ -30,7 +37,7 @@ class TestTaskIntegration:
         assert await rt.query(info.id) is None
 
     async def test_cancel_during_run(self):
-        rt = TaskRuntime(config=TaskConfig())
+        rt = TaskRuntime(config=TaskConfig(), workflow_runtime=SuccessfulWorkflowRuntime())
         info = await rt.create_task(TaskRequest(
             task_name="cancel-me", workflow_names=["wf1", "wf2", "wf3"],
         ))
@@ -44,13 +51,13 @@ class TestTaskIntegration:
         assert result.status in {TaskStatus.COMPLETED, TaskStatus.CANCELLED}
 
     async def test_multiple_workflow_task(self):
-        rt = TaskRuntime(config=TaskConfig())
+        rt = TaskRuntime(config=TaskConfig(), workflow_runtime=SuccessfulWorkflowRuntime())
         info = await rt.create_task(TaskRequest(
             task_name="multi-wf", workflow_names=["wf_a", "wf_b"],
         ))
         result = await rt.run(info.id)
         assert result.status == TaskStatus.COMPLETED
-        assert len(result.workflow_results) <= 2  # wfs run but no real runtime
+        assert len(result.workflow_results) == 2
 
     async def test_statistics(self):
         mgr = TaskManager()
