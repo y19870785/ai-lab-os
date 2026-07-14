@@ -13,11 +13,12 @@ Usage:
 from __future__ import annotations
 
 import json
-import sqlite3
 import threading
 from datetime import datetime
 from typing import Any
 
+from core.database.connection import ConnectionLease, transaction
+from core.database.manager import DatabaseManager
 from core.memory.models import MemoryFilter, MemoryItem, MemoryQuery, MemoryType
 from core.memory.protocol import MemoryStore
 
@@ -25,7 +26,11 @@ from core.memory.protocol import MemoryStore
 class SQLiteSemanticStore(MemoryStore):
     """SQLite-backed semantic memory store for entity-relation storage."""
 
-    def __init__(self, db_path: str = "semantic.db", db_manager=None) -> None:
+    def __init__(
+        self,
+        db_path: str = "semantic.db",
+        db_manager: DatabaseManager | None = None,
+    ) -> None:
         self._db_path = db_path
         self._db_manager = db_manager
         self._lock = threading.Lock()
@@ -33,8 +38,7 @@ class SQLiteSemanticStore(MemoryStore):
     async def initialize(self) -> None:
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 conn.executescript("""
                     CREATE TABLE IF NOT EXISTS semantic_memories (
                         id TEXT PRIMARY KEY,
@@ -53,16 +57,12 @@ class SQLiteSemanticStore(MemoryStore):
                     CREATE INDEX IF NOT EXISTS idx_semantic_timestamp
                         ON semantic_memories(timestamp);
                 """)
-                conn.commit()
-            finally:
-                conn.close()
 
     async def save(self, item: MemoryItem) -> str:
         self._validate_type(item)
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 conn.execute(
                     """INSERT OR REPLACE INTO semantic_memories
                     (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
@@ -73,17 +73,13 @@ class SQLiteSemanticStore(MemoryStore):
                      item.timestamp.isoformat(), item.ttl,
                      json.dumps(item.metadata, ensure_ascii=False)),
                 )
-                conn.commit()
-            finally:
-                conn.close()
         return item.id
 
     async def batch_save(self, items: list[MemoryItem]) -> list[str]:
         ids = []
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 for item in items:
                     self._validate_type(item)
                     conn.execute(
@@ -97,19 +93,13 @@ class SQLiteSemanticStore(MemoryStore):
                          json.dumps(item.metadata, ensure_ascii=False)),
                     )
                     ids.append(item.id)
-                conn.commit()
-            finally:
-                conn.close()
         return ids
 
     async def get(self, id: str) -> MemoryItem | None:
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 row = conn.execute("SELECT * FROM semantic_memories WHERE id = ?", (id,)).fetchone()
-            finally:
-                conn.close()
         return self._row_to_item(row) if row else None
 
     async def query(self, spec: MemoryQuery) -> list[MemoryItem]:
@@ -127,57 +117,45 @@ class SQLiteSemanticStore(MemoryStore):
         where = " AND ".join(conditions)
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 rows = conn.execute(f"SELECT * FROM semantic_memories WHERE {where} ORDER BY importance DESC LIMIT ?",
                                     params + [spec.top_k]).fetchall()
-            finally:
-                conn.close()
         return [self._row_to_item(r) for r in rows]
 
     async def delete(self, id: str) -> bool:
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 c = conn.execute("DELETE FROM semantic_memories WHERE id = ?", (id,))
-                conn.commit(); return c.rowcount > 0
-            finally:
-                conn.close()
+                return c.rowcount > 0
 
     async def count(self, filter: MemoryFilter | None = None) -> int:
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 row = conn.execute("SELECT COUNT(*) FROM semantic_memories WHERE memory_type='semantic'").fetchone()
                 return row[0] if row else 0
-            finally:
-                conn.close()
 
     async def vacuum(self) -> None:
         lock = self._db_manager.get_lock("semantic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 conn.execute("VACUUM")
-            finally:
-                conn.close()
 
     async def close(self) -> None:
         pass
 
-    def _get_conn(self) -> sqlite3.Connection:
+    def _lease(self) -> ConnectionLease:
         if self._db_manager:
-            return self._db_manager.get_connection("semantic")
-        conn = sqlite3.connect(self._db_path); conn.row_factory = sqlite3.Row; return conn
+            return self._db_manager.lease("semantic", self._db_path)
+        return ConnectionLease.standalone(self._db_path)
 
     def _validate_type(self, item: MemoryItem) -> None:
         if item.memory_type != MemoryType.SEMANTIC:
             raise ValueError(f"SQLiteSemanticStore only accepts SEMANTIC type, got {item.memory_type}")
 
     @staticmethod
-    def _row_to_item(row: sqlite3.Row) -> MemoryItem:
+    def _row_to_item(row: Any) -> MemoryItem:
         return MemoryItem(id=row["id"], memory_type=MemoryType(row["memory_type"]),
                           content=json.loads(row["content"]) if row["content"] else {},
                           importance=row["importance"],

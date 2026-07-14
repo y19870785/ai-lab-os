@@ -18,13 +18,12 @@ Usage:
 from __future__ import annotations
 
 import json
-import sqlite3
 import threading
-import time
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
+from core.database.connection import ConnectionLease, transaction
+from core.database.manager import DatabaseManager
 from core.memory.models import MemoryFilter, MemoryItem, MemoryQuery, MemoryType
 from core.memory.protocol import MemoryStore
 
@@ -39,7 +38,11 @@ class SQLiteEpisodicStore(MemoryStore):
     - Thread-safe with connection-per-operation
     """
 
-    def __init__(self, db_path: str = "episodic.db", db_manager=None) -> None:
+    def __init__(
+        self,
+        db_path: str = "episodic.db",
+        db_manager: DatabaseManager | None = None,
+    ) -> None:
         self._db_path = db_path
         self._db_manager = db_manager
         self._lock = threading.Lock()
@@ -48,8 +51,7 @@ class SQLiteEpisodicStore(MemoryStore):
         """Create table if not exists. Call before first use."""
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 conn.execute("""
                     CREATE TABLE IF NOT EXISTS episodic_memories (
                         id TEXT PRIMARY KEY,
@@ -76,9 +78,6 @@ class SQLiteEpisodicStore(MemoryStore):
                     CREATE INDEX IF NOT EXISTS idx_episodic_type
                     ON episodic_memories(memory_type)
                 """)
-                conn.commit()
-            finally:
-                conn.close()
 
     # ── MemoryStore interface ──
 
@@ -86,8 +85,7 @@ class SQLiteEpisodicStore(MemoryStore):
         self._validate_type(item)
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 conn.execute(
                     """INSERT OR REPLACE INTO episodic_memories
                     (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
@@ -103,17 +101,13 @@ class SQLiteEpisodicStore(MemoryStore):
                         json.dumps(item.metadata, ensure_ascii=False),
                     ),
                 )
-                conn.commit()
-            finally:
-                conn.close()
         return item.id
 
     async def batch_save(self, items: list[MemoryItem]) -> list[str]:
         ids = []
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 for item in items:
                     self._validate_type(item)
                     conn.execute(
@@ -132,21 +126,15 @@ class SQLiteEpisodicStore(MemoryStore):
                         ),
                     )
                     ids.append(item.id)
-                conn.commit()
-            finally:
-                conn.close()
         return ids
 
     async def get(self, id: str) -> MemoryItem | None:
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 row = conn.execute(
                     "SELECT * FROM episodic_memories WHERE id = ?", (id,)
                 ).fetchone()
-            finally:
-                conn.close()
         return self._row_to_item(row) if row else None
 
     async def query(self, spec: MemoryQuery) -> list[MemoryItem]:
@@ -178,24 +166,17 @@ class SQLiteEpisodicStore(MemoryStore):
 
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 rows = conn.execute(sql, params).fetchall()
-            finally:
-                conn.close()
 
         return [self._row_to_item(r) for r in rows]
 
     async def delete(self, id: str) -> bool:
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn, transaction(conn):
                 cursor = conn.execute("DELETE FROM episodic_memories WHERE id = ?", (id,))
-                conn.commit()
                 return cursor.rowcount > 0
-            finally:
-                conn.close()
 
     async def count(self, filter: MemoryFilter | None = None) -> int:
         conditions = []
@@ -216,14 +197,11 @@ class SQLiteEpisodicStore(MemoryStore):
         where = " AND ".join(conditions)
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 row = conn.execute(
                     f"SELECT COUNT(*) FROM episodic_memories WHERE {where}", params
                 ).fetchone()
                 return row[0] if row else 0
-            finally:
-                conn.close()
 
     # ── Maintenance ──
 
@@ -234,20 +212,15 @@ class SQLiteEpisodicStore(MemoryStore):
         """Rebuild database to reclaim space."""
         lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
         with lock:
-            conn = self._get_conn()
-            try:
+            with self._lease() as conn:
                 conn.execute("VACUUM")
-            finally:
-                conn.close()
 
     # ── Internal helpers ──
 
-    def _get_conn(self) -> sqlite3.Connection:
+    def _lease(self) -> ConnectionLease:
         if self._db_manager:
-            return self._db_manager.get_connection("episodic")
-        conn = sqlite3.connect(self._db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+            return self._db_manager.lease("episodic", self._db_path)
+        return ConnectionLease.standalone(self._db_path)
 
     def _validate_type(self, item: MemoryItem) -> None:
         if item.memory_type not in (MemoryType.EPISODIC,):
@@ -256,7 +229,7 @@ class SQLiteEpisodicStore(MemoryStore):
             )
 
     @staticmethod
-    def _row_to_item(row: sqlite3.Row) -> MemoryItem:
+    def _row_to_item(row: Any) -> MemoryItem:
         return MemoryItem(
             id=row["id"],
             memory_type=MemoryType(row["memory_type"]),
