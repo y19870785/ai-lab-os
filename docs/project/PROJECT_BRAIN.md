@@ -1,9 +1,9 @@
 # AI-Lab Project Brain —— 项目大脑
 
 > 版本基线：v0.32.4
-> SP-001 Status：Completed
-> Integrated：Yes | Verified：Yes | Merged：Yes
-> PR：#1 | Merge Commit：`0a36e250ab8382af6cf3ab3068e432aa69ba3399`
+> SP-001 / SP-001A Status：Completed
+> SP-002 Status：Implemented on branch / Awaiting review
+> SP-002 Branch：`fix/sp-002-failure-semantics`
 
 ## 项目使命
 
@@ -14,12 +14,13 @@ AI-Lab 是面向个人 CEO / 经营者的 AI Operating System 基础设施。目
 ```text
 Repository: https://github.com/y19870785/ai-lab-os
 Baseline branch: main
-Base commit: 0a36e250ab8382af6cf3ab3068e432aa69ba3399
+Base commit: a77e0436f7583531ff2635f3c5422d7a00fe69b5
 Freeze tag: v0.32.4-review-baseline
 SP-001 pull request: https://github.com/y19870785/ai-lab-os/pull/1
+SP-001A pull request: https://github.com/y19870785/ai-lab-os/pull/2
 ```
 
-冻结标签保持不变。SP-001 已通过代码审查、合并到 `main`，并完成合并后复核。
+冻结标签保持不变。SP-001 与 SP-001A 已完成审查、合并和复核。SP-002 从 `a77e0436f7583531ff2635f3c5422d7a00fe69b5` 创建独立分支，当前等待代码审查，尚未合并。
 
 ## 状态词典
 
@@ -42,10 +43,10 @@ SP-001 pull request: https://github.com/y19870785/ai-lab-os/pull/1
 | Embedding / Vector Provider | Implemented | Knowledge 关闭时不启动；真实组合需额外配置 |
 | Knowledge | Disabled | 可显式启用；Reindex、Chunk 持久化等仍有限制 |
 | Tool Runtime | Integrated | Echo、Calculator 通过统一 ToolExecutor 注入 |
-| Agent Runtime | Integrated | 缺少 LLM/Memory/ToolExecutor 时显式失败 |
+| Agent Runtime | Integrated | SP-002 分支已实现结构化失败、ERROR/DEGRADED 生命周期与独立错误码 |
 | Workflow Runtime | Integrated | Registry 与 Executor 由 Composition Root 注入 |
-| Scheduler Runtime | Disabled | 可显式启用，生命周期测试通过 |
-| Execution TaskRuntime | Integrated | 依赖统一 WorkflowRuntime；完整 Retry 技术债未处理 |
+| Scheduler Runtime | Disabled | 可显式启用；SP-002 分支已实现 tick 失败观测、后台 task 跟踪和 shutdown 收集 |
+| Execution TaskRuntime | Integrated | SP-002 分支已实现真实 Workflow retry、空计划失败与 fail-fast |
 | Coordination | Disabled | 本轮不接入 CEO Assistant 主链路 |
 | ApplicationRegistry | Integrated / Verified | 保存并查询真实 Application Instance |
 | ApplicationRuntime | Integrated / Verified | 只派发已注册实例，不再创建 Provider 或默认应用 |
@@ -75,9 +76,11 @@ Mock Provider: 仅显式 mock/test 模式
 
 该统计来自 SP-001 的实际 pytest 输出。PR #1 已通过 ChatGPT 代码审查、合并并完成 `main` 复核。
 
+SP-002 分支当前验证：专项故障注入 `24 passed`；DeepSeek 真实测试 `5 passed in 9.19s`；全量测试 `759 passed, 26 warnings in 33.59s`。真实测试通过一次性清空测试子进程继承的 SOCKS 代理变量完成，未修改用户全局环境。当前状态仍不等于 Completed。
+
 ## 当前优先级
 
-1. SP-001 已关闭：代码审查、合并与 `main` 复核均已完成。
-2. 后续稳定化工作必须从当前 `main` 基线创建独立分支。
+1. SP-002 当前仅在独立分支实现，必须创建 Draft PR 并等待 ChatGPT 审查。
+2. 未经明确 APPROVED 不得合并，也不得将状态写为 Completed。
 3. SP-003 继续处理 DatabaseManager Connection Ownership。
 4. 在主链路稳定前不推进新的产品 Phase。
