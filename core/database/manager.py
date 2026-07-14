@@ -58,13 +58,10 @@ class DatabaseManager:
                     conn.execute("SELECT 1")
                     return conn
                 except sqlite3.Error:
+                    conn.close()
                     with self._lock:
                         if self._connections.get(name) is conn:
                             self._connections.pop(name, None)
-                    try:
-                        conn.close()
-                    except sqlite3.Error:
-                        pass
 
             conn = open_sqlite_connection(path)
             with self._lock:
@@ -75,9 +72,14 @@ class DatabaseManager:
     def lease(
         self, name: str, db_path: str | Path | None = None
     ) -> ConnectionLease:
-        """Return a borrowed lease whose exit never closes manager state."""
+        """Return a lease that protects the complete borrowed operation."""
 
-        return ConnectionLease(self.get_connection(name, db_path), owned=False)
+        path = self.get_path(name, db_path)
+        db_lock = self.get_lock(name)
+        return ConnectionLease.managed(
+            lambda: self.get_connection(name, path),
+            db_lock,
+        )
 
     def get_lock(self, name: str) -> threading.RLock:
         """Return a per-database lock for thread-safe operations."""
@@ -90,9 +92,12 @@ class DatabaseManager:
         db_lock = self.get_lock(name)
         with db_lock:
             with self._lock:
-                conn = self._connections.pop(name, None)
+                conn = self._connections.get(name)
             if conn is not None:
                 conn.close()
+                with self._lock:
+                    if self._connections.get(name) is conn:
+                        self._connections.pop(name, None)
 
     # ── Health & Maintenance ──
 
@@ -146,7 +151,7 @@ class DatabaseManager:
 
     def vacuum(self, name: str) -> None:
         """Rebuild database to reclaim disk space."""
-        with self.get_lock(name), self.lease(name) as conn:
+        with self.lease(name) as conn:
             conn.execute("VACUUM")
 
     def backup(self, name: str, dest_path: str) -> str:

@@ -2,9 +2,14 @@
 from __future__ import annotations
 import sqlite3
 from contextlib import contextmanager
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
+from typing import Callable, Iterator, Protocol
+
+
+class _Lock(Protocol):
+    def acquire(self) -> bool: ...
+
+    def release(self) -> None: ...
 
 
 def open_sqlite_connection(db_path: str | Path) -> sqlite3.Connection:
@@ -23,19 +28,67 @@ def open_sqlite_connection(db_path: str | Path) -> sqlite3.Connection:
         raise
 
 
-@dataclass(frozen=True)
 class ConnectionLease:
-    """Describe whether the borrower owns and must close the connection."""
+    """Hold a connection and, for managed leases, its database lock."""
 
-    connection: sqlite3.Connection
-    owned: bool
+    def __init__(
+        self,
+        connection: sqlite3.Connection | None,
+        *,
+        owned: bool,
+        lock: _Lock | None = None,
+        connection_factory: Callable[[], sqlite3.Connection] | None = None,
+    ) -> None:
+        self._connection = connection
+        self.owned = owned
+        self._lock = lock
+        self._connection_factory = connection_factory
+        self._entered = False
+
+    @property
+    def connection(self) -> sqlite3.Connection:
+        if self._connection is None:
+            raise RuntimeError("Managed connection is available only inside its lease")
+        return self._connection
 
     def __enter__(self) -> sqlite3.Connection:
-        return self.connection
+        if self._entered:
+            raise RuntimeError("Connection lease is already active")
+        if self._lock is not None:
+            self._lock.acquire()
+        try:
+            if self._connection_factory is not None:
+                self._connection = self._connection_factory()
+            self._entered = True
+            return self.connection
+        except Exception:
+            if self._lock is not None:
+                self._lock.release()
+            raise
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
-        if self.owned:
-            self.connection.close()
+        try:
+            if self.owned:
+                self.connection.close()
+        finally:
+            self._entered = False
+            if not self.owned:
+                self._connection = None
+            if self._lock is not None:
+                self._lock.release()
+
+    @classmethod
+    def managed(
+        cls,
+        connection_factory: Callable[[], sqlite3.Connection],
+        lock: _Lock,
+    ) -> "ConnectionLease":
+        return cls(
+            None,
+            owned=False,
+            lock=lock,
+            connection_factory=connection_factory,
+        )
 
     @classmethod
     def standalone(cls, db_path: str | Path) -> "ConnectionLease":

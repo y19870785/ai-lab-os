@@ -18,7 +18,6 @@ Usage:
 from __future__ import annotations
 
 import json
-import threading
 from datetime import datetime
 from typing import Any
 
@@ -45,47 +44,64 @@ class SQLiteEpisodicStore(MemoryStore):
     ) -> None:
         self._db_path = db_path
         self._db_manager = db_manager
-        self._lock = threading.Lock()
 
     async def initialize(self) -> None:
         """Create table if not exists. Call before first use."""
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn, transaction(conn):
-                conn.execute("""
-                    CREATE TABLE IF NOT EXISTS episodic_memories (
-                        id TEXT PRIMARY KEY,
-                        memory_type TEXT NOT NULL DEFAULT 'episodic',
-                        content TEXT NOT NULL DEFAULT '{}',
-                        importance REAL NOT NULL DEFAULT 0.5,
-                        embedding TEXT,
-                        timestamp TEXT NOT NULL,
-                        ttl INTEGER,
-                        metadata TEXT NOT NULL DEFAULT '{}',
-                        created_at TEXT NOT NULL DEFAULT (datetime('now')),
-                        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-                    )
-                """)
-                conn.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_episodic_importance
-                    ON episodic_memories(importance)
-                """)
-                conn.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_episodic_timestamp
-                    ON episodic_memories(timestamp)
-                """)
-                conn.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_episodic_type
-                    ON episodic_memories(memory_type)
-                """)
+        with self._lease() as conn, transaction(conn):
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS episodic_memories (
+                    id TEXT PRIMARY KEY,
+                    memory_type TEXT NOT NULL DEFAULT 'episodic',
+                    content TEXT NOT NULL DEFAULT '{}',
+                    importance REAL NOT NULL DEFAULT 0.5,
+                    embedding TEXT,
+                    timestamp TEXT NOT NULL,
+                    ttl INTEGER,
+                    metadata TEXT NOT NULL DEFAULT '{}',
+                    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+                )
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_episodic_importance
+                ON episodic_memories(importance)
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_episodic_timestamp
+                ON episodic_memories(timestamp)
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_episodic_type
+                ON episodic_memories(memory_type)
+            """)
 
     # ── MemoryStore interface ──
 
     async def save(self, item: MemoryItem) -> str:
         self._validate_type(item)
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn, transaction(conn):
+        with self._lease() as conn, transaction(conn):
+            conn.execute(
+                """INSERT OR REPLACE INTO episodic_memories
+                (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))""",
+                (
+                    item.id,
+                    item.memory_type.value,
+                    json.dumps(item.content, ensure_ascii=False),
+                    item.importance,
+                    json.dumps(item.embedding) if item.embedding else None,
+                    item.timestamp.isoformat(),
+                    item.ttl,
+                    json.dumps(item.metadata, ensure_ascii=False),
+                ),
+            )
+        return item.id
+
+    async def batch_save(self, items: list[MemoryItem]) -> list[str]:
+        ids = []
+        with self._lease() as conn, transaction(conn):
+            for item in items:
+                self._validate_type(item)
                 conn.execute(
                     """INSERT OR REPLACE INTO episodic_memories
                     (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
@@ -101,40 +117,14 @@ class SQLiteEpisodicStore(MemoryStore):
                         json.dumps(item.metadata, ensure_ascii=False),
                     ),
                 )
-        return item.id
-
-    async def batch_save(self, items: list[MemoryItem]) -> list[str]:
-        ids = []
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn, transaction(conn):
-                for item in items:
-                    self._validate_type(item)
-                    conn.execute(
-                        """INSERT OR REPLACE INTO episodic_memories
-                        (id, memory_type, content, importance, embedding, timestamp, ttl, metadata, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))""",
-                        (
-                            item.id,
-                            item.memory_type.value,
-                            json.dumps(item.content, ensure_ascii=False),
-                            item.importance,
-                            json.dumps(item.embedding) if item.embedding else None,
-                            item.timestamp.isoformat(),
-                            item.ttl,
-                            json.dumps(item.metadata, ensure_ascii=False),
-                        ),
-                    )
-                    ids.append(item.id)
+                ids.append(item.id)
         return ids
 
     async def get(self, id: str) -> MemoryItem | None:
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn:
-                row = conn.execute(
-                    "SELECT * FROM episodic_memories WHERE id = ?", (id,)
-                ).fetchone()
+        with self._lease() as conn:
+            row = conn.execute(
+                "SELECT * FROM episodic_memories WHERE id = ?", (id,)
+            ).fetchone()
         return self._row_to_item(row) if row else None
 
     async def query(self, spec: MemoryQuery) -> list[MemoryItem]:
@@ -164,19 +154,15 @@ class SQLiteEpisodicStore(MemoryStore):
         sql = f"SELECT * FROM episodic_memories WHERE {where_clause} ORDER BY importance DESC LIMIT ?"
         params.append(spec.top_k)
 
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn:
-                rows = conn.execute(sql, params).fetchall()
+        with self._lease() as conn:
+            rows = conn.execute(sql, params).fetchall()
 
         return [self._row_to_item(r) for r in rows]
 
     async def delete(self, id: str) -> bool:
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn, transaction(conn):
-                cursor = conn.execute("DELETE FROM episodic_memories WHERE id = ?", (id,))
-                return cursor.rowcount > 0
+        with self._lease() as conn, transaction(conn):
+            cursor = conn.execute("DELETE FROM episodic_memories WHERE id = ?", (id,))
+            return cursor.rowcount > 0
 
     async def count(self, filter: MemoryFilter | None = None) -> int:
         conditions = []
@@ -195,13 +181,11 @@ class SQLiteEpisodicStore(MemoryStore):
                 params.append(filter.time_before.isoformat())
 
         where = " AND ".join(conditions)
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn:
-                row = conn.execute(
-                    f"SELECT COUNT(*) FROM episodic_memories WHERE {where}", params
-                ).fetchone()
-                return row[0] if row else 0
+        with self._lease() as conn:
+            row = conn.execute(
+                f"SELECT COUNT(*) FROM episodic_memories WHERE {where}", params
+            ).fetchone()
+            return row[0] if row else 0
 
     # ── Maintenance ──
 
@@ -210,10 +194,8 @@ class SQLiteEpisodicStore(MemoryStore):
 
     async def vacuum(self) -> None:
         """Rebuild database to reclaim space."""
-        lock = self._db_manager.get_lock("episodic") if self._db_manager else self._lock
-        with lock:
-            with self._lease() as conn:
-                conn.execute("VACUUM")
+        with self._lease() as conn:
+            conn.execute("VACUUM")
 
     # ── Internal helpers ──
 

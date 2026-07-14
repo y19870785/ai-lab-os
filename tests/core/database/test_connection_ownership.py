@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import sqlite3
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -96,6 +97,127 @@ def test_health_probe_does_not_create_database(tmp_path: Path):
     assert not (tmp_path / "missing.db").exists()
 
 
+def test_active_managed_lease_blocks_close_until_exit(tmp_path: Path):
+    manager = DatabaseManager(tmp_path)
+    lease_entered = threading.Event()
+    close_started = threading.Event()
+    allow_exit = threading.Event()
+    close_done = threading.Event()
+    borrowed: list[sqlite3.Connection] = []
+
+    def use_lease() -> None:
+        with manager.lease("episodic") as conn:
+            borrowed.append(conn)
+            lease_entered.set()
+            assert close_started.wait(2)
+            assert conn.execute("SELECT 1").fetchone()[0] == 1
+            assert allow_exit.wait(2)
+
+    def close_connection() -> None:
+        close_started.set()
+        manager.close("episodic")
+        close_done.set()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        lease_future = executor.submit(use_lease)
+        assert lease_entered.wait(2)
+        close_future = executor.submit(close_connection)
+        assert close_started.wait(2)
+        assert not close_done.wait(0.2)
+        allow_exit.set()
+        lease_future.result(timeout=2)
+        close_future.result(timeout=2)
+
+    assert close_done.is_set()
+    with pytest.raises(sqlite3.ProgrammingError):
+        borrowed[0].execute("SELECT 1")
+
+
+def test_active_managed_lease_blocks_close_all_until_exit(tmp_path: Path):
+    manager = DatabaseManager(tmp_path)
+    lease_entered = threading.Event()
+    allow_exit = threading.Event()
+    close_started = threading.Event()
+    close_done = threading.Event()
+
+    def use_lease() -> None:
+        with manager.lease("episodic") as conn:
+            lease_entered.set()
+            assert close_started.wait(2)
+            assert conn.execute("SELECT 1").fetchone()[0] == 1
+            assert allow_exit.wait(2)
+
+    def close_connections() -> None:
+        close_started.set()
+        manager.close_all()
+        close_done.set()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        lease_future = executor.submit(use_lease)
+        assert lease_entered.wait(2)
+        close_future = executor.submit(close_connections)
+        assert close_started.wait(2)
+        assert not close_done.wait(0.2)
+        allow_exit.set()
+        lease_future.result(timeout=2)
+        close_future.result(timeout=2)
+
+    assert close_done.is_set()
+    assert manager.connection_count == 0
+
+
+def test_active_lease_does_not_block_another_database(tmp_path: Path):
+    manager = DatabaseManager(tmp_path)
+    other = manager.get_connection("semantic")
+
+    with manager.lease("episodic") as episodic:
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            close_future = executor.submit(manager.close, "semantic")
+            close_future.result(timeout=1)
+        assert episodic.execute("SELECT 1").fetchone()[0] == 1
+
+    with pytest.raises(sqlite3.ProgrammingError):
+        other.execute("SELECT 1")
+    manager.close_all()
+
+
+def test_managed_lease_exception_releases_lock(tmp_path: Path):
+    manager = DatabaseManager(tmp_path)
+
+    with pytest.raises(RuntimeError, match="injected lease failure"):
+        with manager.lease("episodic") as conn:
+            assert conn.execute("SELECT 1").fetchone()[0] == 1
+            raise RuntimeError("injected lease failure")
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        executor.submit(manager.close, "episodic").result(timeout=2)
+    assert manager.connection_count == 0
+
+
+def test_close_failure_keeps_connection_tracked_for_retry(tmp_path: Path):
+    class FailOnceConnection:
+        def __init__(self):
+            self.attempts = 0
+
+        def close(self):
+            self.attempts += 1
+            if self.attempts == 1:
+                raise sqlite3.OperationalError("injected close failure")
+
+    connection = FailOnceConnection()
+    manager = DatabaseManager(tmp_path)
+    manager._connections = {"failing": connection}
+
+    with pytest.raises(sqlite3.OperationalError, match="injected close failure"):
+        manager.close("failing")
+
+    assert manager.connection_count == 1
+    assert manager._connections["failing"] is connection
+    manager.close("failing")
+    assert connection.attempts == 2
+    assert manager.connection_count == 0
+
+
 def test_close_all_attempts_every_connection_before_reporting_failure(tmp_path: Path):
     closed: list[str] = []
 
@@ -103,22 +225,32 @@ def test_close_all_attempts_every_connection_before_reporting_failure(tmp_path: 
         def __init__(self, name: str, fail: bool = False):
             self.name = name
             self.fail = fail
+            self.attempts = 0
 
         def close(self):
+            self.attempts += 1
             closed.append(self.name)
-            if self.fail:
+            if self.fail and self.attempts == 1:
                 raise sqlite3.OperationalError("injected close failure")
 
     manager = DatabaseManager(tmp_path)
+    failing = FakeConnection("failing", fail=True)
+    healthy = FakeConnection("healthy")
     manager._connections = {
-        "failing": FakeConnection("failing", fail=True),
-        "healthy": FakeConnection("healthy"),
+        "failing": failing,
+        "healthy": healthy,
     }
 
     with pytest.raises(RuntimeError, match="Failed to close 1 database"):
         manager.close_all()
 
     assert closed == ["failing", "healthy"]
+    assert manager.connection_count == 1
+    assert manager._connections["failing"] is failing
+    assert "healthy" not in manager._connections
+
+    manager.close_all()
+    assert closed == ["failing", "healthy", "failing"]
     assert manager.connection_count == 0
 
 
