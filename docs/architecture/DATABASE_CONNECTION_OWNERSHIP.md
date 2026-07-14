@@ -1,6 +1,9 @@
 # AI-Lab Memory SQLite 连接所有权
 
-> SP-003 状态：Implemented on branch / Awaiting re-review
+> SP-003 状态：Completed
+>
+> Merge PR：#5 · 合并方式：Squash Merge · 审查结论：APPROVED
+> SP-003 Merge Commit：`ce3655ff5f7a625da6b168058873dadfc2289b5f` · 合并时间：`2026-07-14T19:59:33Z`
 
 本文定义 `DatabaseManager` 与 Episodic、Semantic、Decision 三个 SQLite Memory Store 的连接所有权。目标是消除共享连接被 Store 关闭、失效连接留在缓存以及数据库路径漂移的问题。
 

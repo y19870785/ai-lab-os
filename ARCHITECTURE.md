@@ -2,7 +2,10 @@
 
 ## SP-003 Memory SQLite 连接所有权
 
-> SP-003 状态：Implemented on branch / Awaiting re-review
+> SP-003 状态：Completed
+>
+> Merge PR：#5 · 合并方式：Squash Merge · 审查结论：APPROVED
+> SP-003 Merge Commit：`ce3655ff5f7a625da6b168058873dadfc2289b5f` · 合并时间：`2026-07-14T19:59:33Z`
 
 Composition Root 创建唯一 `DatabaseManager`，并将它注入 Episodic、Semantic、Decision 三个 SQLite Memory Store。Managed Mode 下 Manager 是连接唯一 Owner，Store 通过 `ConnectionLease(owned=False)` 借用连接；lease 在完整借用周期持有 per-database lock，关闭操作必须等待 lease 退出。Standalone Mode 下 Store 使用 `ConnectionLease(owned=True)` 创建并关闭 operation-scoped connection。
 

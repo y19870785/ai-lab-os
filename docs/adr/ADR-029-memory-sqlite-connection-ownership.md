@@ -2,7 +2,7 @@
 
 ## 状态
 
-Accepted for SP-003 implementation branch
+Accepted
 
 ## 背景
 
