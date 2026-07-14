@@ -41,6 +41,16 @@ class WorkflowRuntime:
         self._config = config or WorkflowConfig()
         self._bus = bus
         self._active: dict[str, WorkflowStateMachine] = {}
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize the runtime idempotently."""
+        self._initialized = True
+
+    async def shutdown(self) -> None:
+        """Release runtime state idempotently."""
+        self._active.clear()
+        self._initialized = False
 
     async def run(self, request: WorkflowRequest) -> WorkflowResult:
         """执行一个 Workflow

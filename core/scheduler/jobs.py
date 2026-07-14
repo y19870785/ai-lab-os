@@ -46,10 +46,7 @@ class JobExecutor:
                 run.status = JobRunStatus.SUCCESS if result.status.value == "completed" else JobRunStatus.FAILED
                 run.result = result.outputs if result.status.value == "completed" else result.errors
             else:
-                # 无 Workflow Runtime 时模拟执行
-                await asyncio.sleep(0.01)
-                run.status = JobRunStatus.SUCCESS
-                run.result = {"status": "ok", "note": "no workflow runtime"}
+                raise JobStateError("WorkflowRuntime is not configured")
 
         except asyncio.TimeoutError:
             run.status = JobRunStatus.TIMEOUT

@@ -19,7 +19,7 @@ class DefaultAgentRuntime(AgentRuntime):
     """Default runtime implementation."""
 
     def __init__(self, info: AgentInfo, llm_provider=None, memory_manager=None,
-                 knowledge_manager=None, tool_registry=None,
+                 knowledge_manager=None, tool_registry=None, tool_executor=None,
                  config: AgentConfig | None = None, bus=None):
         self._info = info
         self._config = config or AgentConfig()
@@ -32,6 +32,7 @@ class DefaultAgentRuntime(AgentRuntime):
         self._executor = AgentExecutor(
             info=info, llm_provider=llm_provider, memory_manager=memory_manager,
             knowledge_manager=knowledge_manager, tool_registry=tool_registry,
+            tool_executor=tool_executor,
             config=self._config, bus=bus,
         )
 
