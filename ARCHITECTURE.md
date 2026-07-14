@@ -6,6 +6,12 @@ v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Obser
 
 该基线不代表 Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 或 shutdown 全局请求闸门已经完成。SP-004 尚未开始。
 
+## 依赖与打包契约
+
+`pyproject.toml` 是产品版本、运行依赖、可选能力和 setuptools 包发现的唯一权威来源。最小 Core 安装仅包含 Pydantic、PyYAML 与 python-dotenv；API、Real Provider、Knowledge、Test、Build、Dev 通过独立 extras 声明，`local` 提供不含大型 Knowledge 依赖的完整本地验收组合。`requirements.txt` 只代理 `.[local]`，不维护第二套依赖版本。
+
+正式 wheel 包含 `core`、`agents`、`knowledge`、`applications`、`workflows`、`api` 与 `cli`；排除 tests、data、logs、runtime、Chroma 数据和构建缓存。Windows `.bat` 仍定位为源码 checkout 启动入口，不作为 Python package data 发布。
+
 ## SP-003 Memory SQLite 连接所有权
 
 > SP-003 状态：Completed
@@ -85,6 +91,14 @@ flowchart TD
 启动由 `SystemContainer.start()` 统一完成，关闭由 `SystemContainer.shutdown()` 反序执行。CLI 不再创建 Store 或 Provider，API dependency 不再创建空 Runtime，ApplicationRuntime 不再直接依赖具体 Provider。
 
 当前默认状态：Knowledge、Scheduler、Coordination 为 `disabled`；仅在明确配置后启用。Mock Provider 只能在显式 `mock/test` 模式创建。完整说明见 `docs/architecture/SYSTEM_COMPOSITION.md`。
+
+| 组件 | 当前状态 | 边界 |
+|---|---|---|
+| Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
+| Scheduler | Implemented / Disabled | Runtime 基础存在；Reminder/UserTask 闭环未完成 |
+| Coordination | Implemented / Disabled | 默认关闭；CEO Assistant 主链路未接入 |
+| Tool Runtime | Integrated | Registry/Executor 与低风险工具已接入；自动 Tool Calling、完整 MCP 产品闭环未完成 |
+| CEO Assistant | Integrated / Verified / Alpha | CLI、API 工作记录和持久化已验证，不代表生产就绪 |
 
 ## 架构总览
 

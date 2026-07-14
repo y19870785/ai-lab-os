@@ -21,6 +21,20 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 SP-003A 已完成合并后状态对账。v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果；`v0.32.4-review-baseline` 继续作为历史冻结标签保留，SP-004 尚未开始。
 
+## 安装契约
+
+`pyproject.toml` 同时是版本与依赖的唯一权威来源：
+
+```powershell
+# 最小 Core 运行环境
+python -m pip install -e .
+
+# 本地开发、API、真实 Provider、测试与构建验收
+python -m pip install -e ".[local]"
+```
+
+`requirements.txt` 仅保留为 `[local]` extra 的兼容安装入口，不再维护第二份依赖列表。Knowledge 的 Chroma 与 SentenceTransformer 仍是显式可选依赖，不会进入最小 Core 或默认本地安装。
+
 采用十层架构（v0.22.0）：
 
 ```
@@ -77,12 +91,12 @@ SP-003A 已完成合并后状态对账。v0.33.0 汇总 SP-001 至 SP-003 的稳
 | --- | --- | --- |
 | 1.1 - 1.6 | Foundation Phase 架构设计 | ✅ |
 | 2.1 - 2.8 | Core + Memory Implementation | ✅ |
-| 3.0 - 3.4 | Provider / Knowledge / Agent / Tool / MCP | ✅ |
-| 4.0 | Workflow Engine | ✅ |
-| 4.1 | Scheduler Runtime | ✅ |
-| 4.2 | Task Runtime | ✅ |
-| 4.3 | Multi-Agent Coordination | ⏳ |
-| 5.0 | Real LLM Integration + Application Layer | ⏳ |
+| 3.0 - 3.4 | Provider / Knowledge / Agent / Tool / MCP | Implemented；Knowledge 默认 Disabled，自动 Tool Calling 未完成 |
+| 4.0 | Workflow Engine | Integrated |
+| 4.1 | Scheduler Runtime | Implemented / Disabled；Reminder/UserTask 闭环未完成 |
+| 4.2 | Task Runtime | Integrated |
+| 4.3 | Multi-Agent Coordination | Implemented / Disabled；未接入 CEO Assistant 主链路 |
+| 5.0 | Real LLM Integration + Application Layer | Integrated；CEO Assistant 为 Alpha |
 
 ## 项目结构
 
@@ -125,12 +139,12 @@ AI-Lab/
 
 ## 技术栈
 
-- Python 3.10+
+- Python >=3.11
 - Pydantic + YAML + 环境变量（配置）
 - SQLite（存储）+ Chroma / Qdrant（向量，预留）
 - asyncio（进程内通信）
-- 735 个测试通过，26 个既有 warning，零失败
+- 当前验证统计以 `docs/project/PROJECT_HEALTH.md` 为准；所有记录均为本地 pytest，不是 GitHub Actions 结果
 
 ---
 
-> 当前稳定化基线：SP-001 completed | Main commit：`0a36e250ab8382af6cf3ab3068e432aa69ba3399` | 验证：735 passed
+> 当前稳定化来源基线：SP-003A merge baseline `96198897f470b5b80c8b4f8380ef8baf4b852aa4`。SP-004 尚未开始。

@@ -39,6 +39,13 @@ v1.2.3
 - `SP-003` 表示 DatabaseManager Connection Ownership；`v0.33.0` 表示包含多个稳定化工作包的产品基线。
 - `SP-003A`、`SP-003B` 的后缀表示工作包关系，不是 SemVer 预发布后缀。
 
+### 依赖与构建来源
+
+- `pyproject.toml` 同时是运行依赖、可选 extras、构建后端与包发现的唯一权威来源。
+- `requirements.txt` 只允许作为已声明 extra 的兼容安装入口，不得维护独立版本列表。
+- 最小 Core 不强制安装 API、真实 Provider 或大型 Knowledge 依赖。
+- wheel 必须包含声明为产品入口的 API 与 CLI Python 包，并排除 tests、运行数据、日志和本地缓存。
+
 ## 2. 架构升级规则
 
 ### 架构变更流程

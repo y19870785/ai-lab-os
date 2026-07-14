@@ -10,31 +10,26 @@
 | Version | v0.33.0 |
 | RFCs | 15 |
 | ADRs | 29 |
-| Tests | 808 |
-| Test Pass Rate | 100% (808 passed, 0 failed) |
-| Real Provider Tests | 5 passed in 9.14s in the isolated Python 3.12 environment |
+| Tests | 819 |
+| Test Pass Rate | 100% (819 passed, 0 failed) |
+| Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |
 | Release Stage | Alpha |
 | Development Status | **Architecture stabilization baseline** |
 
-## Architecture Maturity
+## Architecture Status
 
-```
-Governance        ██████████ 100%
-Core              ██████████ 100%
-Memory            ██████████ 100%
-Knowledge         ██████████ 100%
-Provider          ██████████ 100%
-Agent Runtime     ██████████ 100%
-Tool Runtime      ██████████ 100%
-Workflow          ██████████ 100%
-Scheduler         ██████████ 100%
-Task              ██████████ 100%
-Coordination      ██████████ 100%
-Application       ██████████ 100%
-CEO Assistant     ████████░░  80%
-```
+| Module | Status | Evidence / Limitation |
+|---|---|---|
+| Governance | Implemented | RFC、ADR 与策略文档存在，持续核对实现一致性 |
+| Core / Database / Memory | Integrated / Verified | Composition Root、失败语义、连接所有权与持久化测试覆盖 |
+| Provider / Agent / Workflow / Task | Integrated / Verified | Mock 与真实 LLM 路径、运行时和失败语义已验证 |
+| Knowledge | Implemented / Disabled | 默认不启动；Reindex、Chunk Persistence、Citation 和真实主链路未完成 |
+| Tool Runtime / MCP | Integrated | Registry/Executor 和低风险工具已接入；自动 Tool Calling 与完整 MCP 产品闭环未完成 |
+| Scheduler | Implemented / Disabled | Runtime 基础存在；Reminder/UserTask 调度闭环未完成 |
+| Coordination | Implemented / Disabled | 默认关闭；CEO Assistant 主链路未接入 |
+| Application / CEO Assistant | Integrated / Verified / Alpha | CLI、API 工作记录和持久化已验证；尚非生产级产品 |
 
 ## Freeze Info
 

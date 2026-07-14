@@ -16,31 +16,27 @@ SP-004 尚未开始。Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Pers
 |---|---|
 | Python Files | 393 |
 | Code Lines | 26,874 |
-| Tests | 808 passed, 27 warnings in 40.15s（v0.33.0 本地验证记录） |
+| Tests | 819 passed, 27 warnings in 36.49s（v0.33.0 本地验证记录） |
 | RFC | 15 |
 | ADR | 29 |
 | Architecture Layers | 11 |
-| Real Providers | 3 (DeepSeek, SentenceTransformer, Chroma) |
+| Real Provider Validation | DeepSeek 本地验证通过；SentenceTransformer / Chroma 为可选实现，默认未启用 |
 | Business Apps | 1 (CEO Assistant) |
 
 ## Module Status
 
-| Module | Completion | Status |
+| Module | Status | Current Boundary |
 |---|---|---|
-| Governance | 100% | Stable |
-| Core (EventBus, Config, Logging) | 100% | Stable |
-| Database | 100% | Stable |
-| Memory (4 types) | 100% | Stable |
-| Provider (protocols only) | 100% | Stable |
-| Knowledge | 100% | Stable |
-| Agent Runtime | 100% | Stable |
-| Tool Runtime + MCP | 100% | Stable |
-| Workflow Engine | 100% | Stable |
-| Scheduler | 100% | Stable |
-| Task Runtime | 100% | Stable |
-| Coordination (Multi-Agent) | 100% | Stable |
-| Application Runtime | 100% | Stable |
-| CEO Assistant | 80% | Alpha — CLI works, needs more product polish |
+| Governance | Implemented | 文档与实现仍需持续一致性审查 |
+| Core / Database / Memory | Integrated / Verified | 当前稳定化主链路 |
+| Provider / Agent Runtime | Integrated / Verified | DeepSeek 本地验证通过；依赖 `real` extra 与授权配置 |
+| Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
+| Tool Runtime + MCP | Integrated | Registry/Executor 已接入；自动 Tool Calling 和完整 MCP 产品闭环未完成 |
+| Workflow / Task Runtime | Integrated / Verified | 当前组合与失败语义已验证 |
+| Scheduler | Implemented / Disabled | Reminder/UserTask 闭环未完成 |
+| Coordination | Implemented / Disabled | 默认关闭，未接入 CEO Assistant 主链路 |
+| Application Runtime | Integrated / Verified | 只派发注册实例 |
+| CEO Assistant | Integrated / Verified / Alpha | CLI 与工作记录闭环可用，尚非生产级产品 |
 
 ## Next Milestone
 

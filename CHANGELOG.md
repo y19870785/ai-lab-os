@@ -6,7 +6,11 @@
 - 将 `pyproject.toml` 的 `[project].version` 确立为唯一运行时产品版本来源。
 - `core.__version__` 优先读取 `ai-lab` distribution metadata；源码模式从同一 `pyproject.toml` 派生，不再维护硬编码副本。
 - CLI、API、Health、基础配置与 Windows 启动入口统一显示派生版本。
-- v0.33.0 基线在隔离 Python 3.12 环境中的最终本地验证为 `808 passed, 27 warnings in 40.15s`；真实 DeepSeek 测试为 `5 passed in 9.14s`。这些结果不是 GitHub Actions 记录。
+- v0.33.0 基线在全新隔离 Python 3.12 环境中的最终本地验证为 `819 passed, 27 warnings in 36.49s`；真实 DeepSeek 测试为 `5 passed in 8.37s`。这些结果不是 GitHub Actions 记录。
+- 审查修复将 Core、API、Real Provider、Knowledge、Test、Build、Dev 依赖按 PEP 621 extras 分层，`requirements.txt` 不再维护第二套依赖真源。
+- setuptools 包发现补齐 `api` 与 `cli`，并显式排除 tests、data、logs、runtime 与 Chroma 运行数据。
+- `setup.bat` 不再吞掉 pip/pytest 失败；CLI/API 启动脚本会传播版本解析、CLI 与 Uvicorn 的真实退出码。
+- 项目状态文档改用 Implemented / Integrated / Verified / Disabled，删除与未完成主链路冲突的“100% Stable”表述。
 
 ### 稳定化基线
 

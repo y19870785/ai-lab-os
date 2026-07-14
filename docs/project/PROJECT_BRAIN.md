@@ -15,7 +15,7 @@ AI-Lab 是面向个人 CEO / 经营者的 AI Operating System 基础设施。目
 
 `pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源。`core.__version__` 优先读取 distribution metadata，源码运行时从同一文件派生。v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果；`v0.32.4-review-baseline` 是不可重写的历史冻结标签。SP-004 尚未开始。
 
-v0.33.0 基线在隔离 Python 3.12 环境中的最终本地验证为 `808 passed, 27 warnings in 40.15s`；真实 DeepSeek 测试为 `5 passed in 9.14s`。这些统计来自本地验证，不是 GitHub Actions 结果。
+v0.33.0 基线在全新隔离 Python 3.12 环境中的最终本地验证为 `819 passed, 27 warnings in 36.49s`；真实 DeepSeek 测试为 `5 passed in 8.37s`。这些统计来自本地验证，不是 GitHub Actions 结果。
 
 ## Git 基线
 
@@ -55,13 +55,13 @@ SP-003 merged at: 2026-07-14T19:59:33Z
 | 四层 Memory | Integrated / Verified | Session + 三个 SQLite Store；Managed/Standalone 双模式与跨重启工作记录已验证 |
 | LLM Provider | Integrated / Verified | DeepSeek OpenAI Compatible 真实测试通过 |
 | Embedding / Vector Provider | Implemented | Knowledge 关闭时不启动；真实组合需额外配置 |
-| Knowledge | Disabled | 可显式启用；Reindex、Chunk 持久化等仍有限制 |
-| Tool Runtime | Integrated | Echo、Calculator 通过统一 ToolExecutor 注入 |
+| Knowledge | Implemented / Disabled | 默认关闭；Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
+| Tool Runtime | Integrated | Echo、Calculator 通过统一 ToolExecutor 注入；自动 Tool Calling 与完整 MCP 产品闭环未完成 |
 | Agent Runtime | Integrated | SP-002 已合并：结构化失败、ERROR/DEGRADED 生命周期与独立错误码 |
 | Workflow Runtime | Integrated | Registry 与 Executor 由 Composition Root 注入 |
-| Scheduler Runtime | Disabled | 可显式启用；SP-002 已合并 tick 失败观测、后台 task 跟踪和 shutdown 收集 |
+| Scheduler Runtime | Implemented / Disabled | 可显式启用；Reminder/UserTask 调度闭环未完成 |
 | Execution TaskRuntime | Integrated | SP-002 已合并真实 Workflow retry、空计划失败与 fail-fast |
-| Coordination | Disabled | 本轮不接入 CEO Assistant 主链路 |
+| Coordination | Implemented / Disabled | 默认关闭；不接入 CEO Assistant 主链路 |
 | ApplicationRegistry | Integrated / Verified | 保存并查询真实 Application Instance |
 | ApplicationRuntime | Integrated / Verified | 只派发已注册实例，不再创建 Provider 或默认应用 |
 | CEO Assistant | Integrated / Verified | CLI、API `/work-logs`、Memory 写入和跨重启持久化已验证 |
@@ -79,6 +79,8 @@ Scheduler: disabled
 Coordination: disabled
 Mock Provider: 仅显式 mock/test 模式
 ```
+
+依赖和包发现同样由 `pyproject.toml` 统一管理。最小 Core、API、Real Provider、Knowledge、Test、Build、Dev 按 extras 分层；`requirements.txt` 仅是 `.[local]` 的兼容入口。正式 wheel 必须包含 API 与 CLI Python 包，但不包含 tests、data、logs 或运行数据库。
 
 ## 验证基线
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from importlib import metadata
 from pathlib import Path
 
@@ -9,7 +10,10 @@ import pytest
 import tomllib
 
 import core
+from api.app import create_app
+from api.routes.health import health_check
 from core import _version
+from core.config import AppConfig
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -45,6 +49,20 @@ def test_core_does_not_hardcode_release_version():
         PROJECT_ROOT / "core" / "_version.py",
     ):
         assert "0.33.0" not in path.read_text(encoding="utf-8")
+
+
+def test_app_config_and_api_use_runtime_version():
+    assert AppConfig().version == core.__version__
+    assert create_app().version == core.__version__
+
+
+def test_health_route_uses_runtime_version():
+    class HealthySystem:
+        async def health(self):
+            return {"status": "healthy", "components": {}}
+
+    result = asyncio.run(health_check(HealthySystem()))
+    assert result["version"] == core.__version__
 
 
 @pytest.mark.parametrize(
