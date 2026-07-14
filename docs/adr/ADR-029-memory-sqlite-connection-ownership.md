@@ -25,4 +25,3 @@ Accepted for SP-003 implementation branch
 - 现有 Memory 数据路径和 Schema 保持不变。
 - Standalone Store API 保持兼容。
 - Knowledge 与 Scheduler SQLite 所有权不在 SP-003 中迁移，后续如需统一必须另行设计。
-
