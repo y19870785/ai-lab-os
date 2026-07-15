@@ -18,7 +18,7 @@ SP-004 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。审查
 |---|---|
 | Python Files | 446 |
 | Code Lines | 29,259 |
-| Tests | 886 passed, 27 warnings in 44.30s（SP-005 候选 Windows 本地验证，非跨平台 CI） |
+| Tests | 888 passed, 27 warnings in 45.19s（SP-005 候选 Windows 本地验证，非跨平台 CI） |
 | RFC | 16 |
 | ADR | 34 |
 | Architecture Layers | 11 |

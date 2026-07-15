@@ -578,6 +578,62 @@ async def test_scheduler_failed_event_hook_cannot_block_claim_finalize(tmp_path)
     await bus.stop()
 
 
+@pytest.mark.parametrize(
+    ("should_fail", "terminal_event", "run_status"),
+    [
+        (False, "scheduler.job.completed", JobRunStatus.SUCCESS),
+        (True, "scheduler.job.failed", JobRunStatus.FAILED),
+    ],
+)
+async def test_scheduler_started_and_terminal_events_share_job_run_trace(
+    tmp_path, should_fail, terminal_event, run_status
+):
+    bus = MemoryBus()
+    await bus.start()
+    captured = []
+
+    async def capture(event):
+        captured.append(event)
+
+    await bus.subscribe("scheduler.job.started", capture)
+    await bus.subscribe(terminal_event, capture)
+    handlers = ActionHandlerRegistry()
+    action_type = "trace-failure" if should_fail else "trace-success"
+    handler = FailingActionHandler() if should_fail else SuccessfulActionHandler()
+    handlers.register(action_type, handler)
+    path = tmp_path / f"scheduler-trace-{should_fail}.db"
+    runtime = SchedulerRuntime(
+        executor=JobExecutor(bus=bus, handler_registry=handlers),
+        persistence=SchedulerPersistence(str(path)),
+        config=_config(path),
+        bus=bus,
+    )
+    await runtime.initialize()
+    trace_id = f"trace-request-{should_fail}"
+    job = await runtime.schedule(ScheduleRequest(
+        job_name=f"trace-events-{should_fail}",
+        action_type=action_type,
+        trace_id=trace_id,
+        trigger=Trigger(
+            trigger_type=TriggerType.ONE_SHOT,
+            run_at=datetime.now(timezone.utc) - timedelta(seconds=1),
+        ),
+    ))
+
+    await runtime._tick()
+    await _settle(runtime)
+    runs = await runtime.list_job_runs(job.info.id)
+    event_types = [event.event_type for event in captured]
+    assert event_types == ["scheduler.job.started", terminal_event]
+    assert len(runs) == 1
+    assert runs[0].status == run_status
+    assert runs[0].trace_id == trace_id
+    assert all(event.metadata["trace_id"] == trace_id for event in captured)
+    assert all(event.metadata["trace_id"] for event in captured)
+    await runtime.shutdown()
+    await bus.stop()
+
+
 async def test_different_jobs_execute_concurrently_without_global_serial_lock(tmp_path):
     path = tmp_path / "scheduler.db"
     executor = MultiJobBlockingExecutor()

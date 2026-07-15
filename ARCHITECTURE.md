@@ -12,7 +12,7 @@ SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge
 
 `core/reminders` 将 UserTask、Reminder、ReminderOccurrence 与 Scheduled Job 保持为四个独立概念。Scheduler 使用 SQLite 条件 UPDATE 获取唯一 claim；Handler 成功后 One-shot Job 原子进入 completed。Reminder Handler 在 `reminders.db` 单事务内提交 Reminder 与唯一 Occurrence，EventBus 在提交后发布。两个数据库之间不声称原子事务，而是通过 pending 状态、补偿和可重复 reconciliation 恢复。完整契约见 `docs/architecture/REMINDER_SCHEDULER_BRIDGE.md`。
 
-SP-005 候选的 Windows 隔离 Python 3.12 本地验证为 `886 passed, 27 warnings in 44.30s`，不是 GitHub Actions 或跨平台 CI 结果。
+SP-005 候选的 Windows 隔离 Python 3.12 本地验证为 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果。
 
 ## UserTask 领域
 

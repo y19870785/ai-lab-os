@@ -10,7 +10,7 @@
 - UserTask complete/cancel 同步协调未触发 Reminder；部分失败保留 pending_cancel，并允许同一终态请求再次补偿。
 - reminders.db 与 scheduler.db 使用显式 Saga 和 reconciliation，不宣称跨数据库事务或 exactly-once execution。
 - 产品版本保持 `0.33.0`；未创建 v0.34.0 Tag 或 GitHub Release。
-- Windows 隔离 Python 3.12 本地候选验证：`886 passed, 27 warnings in 44.30s`；不是 GitHub Actions 或跨平台 CI 结果。
+- Windows 隔离 Python 3.12 本地候选验证：`888 passed, 27 warnings in 45.19s`；不是 GitHub Actions 或跨平台 CI 结果。
 - 审查修复：Scheduler 管理操作改为数据库状态、revision 与 claim 条件写；EventBus post-commit 失败只降低 observability；过期 claim 遵守 retry delay；RUNNING Reminder Job 的 reschedule 返回 409 且不修改 Reminder。
 
 ### SP-004 UserTask

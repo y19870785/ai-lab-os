@@ -48,7 +48,12 @@ class JobExecutor:
         )
         run.trace_id = run.trace_id or job.trace_id or run.id
 
-        await self._publish("scheduler.job.started", job.info.id, job.info.name)
+        await self._publish(
+            "scheduler.job.started",
+            job.info.id,
+            job.info.name,
+            {"trace_id": run.trace_id},
+        )
 
         t0 = time.time()
         try:
