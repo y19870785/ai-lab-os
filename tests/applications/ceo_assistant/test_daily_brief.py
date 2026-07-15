@@ -19,6 +19,8 @@ from core.memory.models import MemoryType, MemoryQuery
 from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
 from core.memory.storage.sqlite_decision import SQLiteDecisionStore
 from core.memory.session import SessionMemory
+from core.database import DatabaseManager
+from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 
 
 @pytest_asyncio.fixture
@@ -42,12 +44,18 @@ async def app_with_both(tmp_path):
     await ds.initialize()
     memory.register_store(MemoryType.DECISION, ds)
 
-    app = CEOAssistant(memory_manager=memory)
+    db_manager = DatabaseManager(db_dir)
+    task_repo = SQLiteUserTaskRepository(db_manager, os.path.join(db_dir, "tasks.db"))
+    task_service = UserTaskService(task_repo, bus=bus)
+    await task_service.initialize()
+    app = CEOAssistant(memory_manager=memory, user_task_service=task_service)
     yield app
 
     await bus.stop()
     await es.close()
     await ds.close()
+    await task_service.close()
+    db_manager.close_all()
 
 
 class TestDailyBrief:
@@ -135,4 +143,4 @@ class TestDailyBrief:
         # 高优先级应当出现在低优先级前面
         if "建议优先处理" in resp["answer"]:
             priority_section = resp["answer"].split("建议优先处理:")[1]
-            assert "高" in priority_section, "高优先级任务应在建议中"
+            assert "high" in priority_section, "高优先级任务应在建议中"
