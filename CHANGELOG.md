@@ -3,6 +3,13 @@
 
 ### SP-004 UserTask
 
+- **状态**：Completed
+- **Merge PR**：#8
+- **审查结论**：APPROVED
+- **合并方式**：Squash Merge
+- **Merge Commit / SP-004 merge baseline**：`10d1534049be2d526c930c513912dc661ac41728`
+- **合并时间**：`2026-07-15T11:39:33Z`
+
 - 新增正式 UserTask 领域、UTC 时间模型、生命周期、revision 并发控制和 `tasks.db` 持久化。
 - `/tasks` 从固定 Mock 改为真实 CRUD、列表、更新、完成和取消 API，并复用统一错误契约。
 - CEO Assistant 新任务不再写入 Decision Memory；brief 和任务查询改用 UserTaskService。
@@ -12,7 +19,8 @@
 - Legacy 终态时间不再由创建时间编造；半点、一刻和分钟表达采用完整匹配；列表时间筛选统一进入 FailureInfo 校验边界。
 - revision 强制大于等于 1；损坏持久化行统一归类为 Persistence Failure；metadata 递归拒绝敏感键。
 - Reminder Trigger 与 UserTask-Scheduler Bridge 留给 SP-005。
-- SP-004 Windows 本地完整验证：`847 passed, 27 warnings in 38.81s`；不是 GitHub Actions 结果。
+- SP-004 Windows 本地完整验证：`847 passed, 27 warnings in 38.81s`；不是 GitHub Actions 结果。首次全量测试的 5 个错误来自 pytest 子进程继承的 SOCKS 代理；仅清理测试子进程代理变量后全量通过，未修改系统代理或 `.env`。
+- 产品版本保持 `0.33.0`；本次合并未创建 v0.34.0 Tag 或 GitHub Release，SP-005 Reminder & Scheduler Bridge 为下一项开发。
 
 ## [0.33.0] - 2026-07-15
 

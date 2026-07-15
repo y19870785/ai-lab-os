@@ -8,7 +8,9 @@
 
 项目以 v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果。十层基础架构 + CEO Assistant 处于 Alpha 状态；版本唯一来源、Composition Root、失败语义和 DatabaseManager 连接所有权已经收敛。
 
-SP-004 已实现 Canonical UserTask、`tasks.db` 和真实 Task API。Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
+SP-004 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。Canonical UserTask、`tasks.db`、真实 Task API、CEO Assistant 接入和 Legacy importer 已进入主分支。
+
+当前产品版本仍为 v0.33.0，未创建 v0.34.0 Tag 或 GitHub Release。Reminder Trigger、ReminderOccurrence、UserTask-Scheduler Bridge、通知渠道、Scheduler One-shot 完整幂等投递、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
 
 ## Key Metrics
 
@@ -40,4 +42,4 @@ SP-004 已实现 Canonical UserTask、`tasks.db` 和真实 Task API。Reminder/U
 
 ## Next Milestone
 
-下一稳定化目标是 SP-005 Reminder/UserTask-Scheduler Bridge；在主链路验证前不扩展通知渠道。
+下一稳定化目标是 **SP-005 — Reminder & Scheduler Bridge**；在主链路验证前不扩展通知渠道。

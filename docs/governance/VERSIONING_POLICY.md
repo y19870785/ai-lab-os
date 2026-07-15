@@ -31,13 +31,14 @@ v1.2.3
 
 ### 当前目标基线
 
-**v0.33.0** — 汇总 SP-001 至 SP-003 的 Composition Root、失败语义与 DatabaseManager 连接所有权稳定化成果。
+**v0.33.0** — 当前唯一产品版本。该发布基线汇总 SP-001 至 SP-003 的 Composition Root、失败语义与 DatabaseManager 连接所有权稳定化成果；SP-004 Canonical UserTask 已随后合并到 `main`，但没有提升产品版本，也没有创建 v0.34.0 Tag 或 GitHub Release。v0.34.0 仅为后续目标里程碑。
 
 ### SP 工作包
 
 - SP 编号是工程工作包，不是产品版本，一个 SP 不要求对应一个版本。
 - `SP-003` 表示 DatabaseManager Connection Ownership；`v0.33.0` 表示包含多个稳定化工作包的产品基线。
 - `SP-003A`、`SP-003B` 的后缀表示工作包关系，不是 SemVer 预发布后缀。
+- `SP-004` 已合并不等于 v0.34.0 已发布；产品版本、Git Tag 与 GitHub Release 必须分别按发布清单确认。
 
 ### 依赖与构建来源
 

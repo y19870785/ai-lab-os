@@ -1,5 +1,9 @@
 # UserTask 架构
 
+## 实现状态
+
+SP-004 已完成并通过 PR #8 以 Squash Merge 合并到 `main`，审查结论为 `APPROVED`。SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。当前产品版本仍为 v0.33.0，未创建 v0.34.0 Tag 或 GitHub Release。
+
 ## 领域边界
 
 - **UserTask**：用户可见的待办、承诺和工作事项，由 `core/user_tasks` 管理。
