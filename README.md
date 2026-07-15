@@ -23,7 +23,7 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 当前产品版本仍为 v0.33.0；SP-005 Reminder & Scheduler Bridge 已在独立分支形成实现候选，尚未审查、合并或发布。候选实现包含持久化 Reminder/Occurrence、SQLite CAS claim、One-shot terminal 语义、Action Handler、跨库 Saga/reconciliation、UserTask 终态联动和真实 Reminder API。外部通知渠道、Recurring Reminder、Inbox 与 UI 仍未实现。
 
-SP-005 候选的 Windows 隔离 Python 3.12 本地验证为 `874 passed, 27 warnings in 52.02s`，不是 GitHub Actions 或跨平台 CI 结果。
+SP-005 候选的 Windows 隔离 Python 3.12 本地验证为 `886 passed, 27 warnings in 44.30s`，不是 GitHub Actions 或跨平台 CI 结果。
 
 ## 安装契约
 

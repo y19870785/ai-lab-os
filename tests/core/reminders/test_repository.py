@@ -5,11 +5,14 @@ import pytest
 from pydantic import ValidationError
 
 from core.database import DatabaseManager
+from core.bus import MemoryBus
 from core.reminders import Reminder, ReminderOccurrenceStatus, ReminderStatus
 from core.reminders.exceptions import ReminderConflictError
 from core.reminders.handler import ReminderActionHandler
 from core.reminders.repository import SQLiteReminderRepository
 from core.scheduler.models import Job, JobInfo, JobRun
+from core.reminders.service import ReminderService
+from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
@@ -92,6 +95,40 @@ async def test_event_failure_does_not_roll_back_trigger(tmp_path):
     assert result["status"] == ReminderStatus.TRIGGERED.value
     assert (await repository.get(reminder.id)).status == ReminderStatus.TRIGGERED
     assert (await repository.health_check())["status"] == "degraded"
+    manager.close_all()
+
+
+@pytest.mark.parametrize("hook_kind", ["before", "after"])
+async def test_service_post_commit_event_hook_failure_keeps_business_result(
+    tmp_path, hook_kind
+):
+    manager = DatabaseManager(tmp_path)
+    task_repository = SQLiteUserTaskRepository(manager, tmp_path / "tasks.db")
+    tasks = UserTaskService(task_repository)
+    await tasks.initialize()
+    task = await tasks.create(title="Event failure remains truthful")
+    repository = SQLiteReminderRepository(manager, tmp_path / "reminders.db")
+    bus = MemoryBus()
+    await bus.start()
+
+    async def broken_hook(event):
+        raise RuntimeError("injected event hook failure")
+
+    getattr(bus, f"add_{hook_kind}_publish_hook")(broken_hook)
+    service = ReminderService(repository, tasks, bus)
+    await service.initialize()
+    reminder = await service.create_pending(
+        user_task_id=task.id,
+        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        timezone_name="UTC",
+    )
+    scheduled = await service.transition(reminder, ReminderStatus.SCHEDULED)
+
+    assert scheduled.status == ReminderStatus.SCHEDULED
+    assert (await repository.get(reminder.id)).status == ReminderStatus.SCHEDULED
+    assert len(await repository.list_for_task(task.id)) == 1
+    assert (await repository.health_check())["status"] == "degraded"
+    await bus.stop()
     manager.close_all()
 
 

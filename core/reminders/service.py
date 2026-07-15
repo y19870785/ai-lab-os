@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
@@ -21,6 +22,9 @@ from core.reminders.exceptions import (
 )
 from core.reminders.models import Reminder, ReminderStatus, utc_now
 from core.user_tasks import UserTaskStatus
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ReminderService:
@@ -213,11 +217,19 @@ class ReminderService:
     async def _publish(self, event_type: str, reminder: Reminder) -> None:
         if self._bus is None or not getattr(self._bus, "is_running", False):
             return
-        await publish_reminder_event(
-            self._bus,
-            event_type,
-            reminder_id=reminder.id,
-            user_task_id=reminder.user_task_id,
-            status=reminder.status.value,
-            trace_id=reminder.trace_id,
-        )
+        try:
+            await publish_reminder_event(
+                self._bus,
+                event_type,
+                reminder_id=reminder.id,
+                user_task_id=reminder.user_task_id,
+                status=reminder.status.value,
+                trace_id=reminder.trace_id,
+            )
+            self._repository.clear_observability_degraded()
+        except Exception:
+            self._repository.mark_observability_degraded("event_publish_failed")
+            _LOGGER.warning(
+                "reminder.event.publish_failed",
+                extra={"event_type": event_type, "reminder_id": reminder.id},
+            )

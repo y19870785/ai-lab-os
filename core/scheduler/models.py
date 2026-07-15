@@ -101,6 +101,7 @@ class Job(BaseModel):
     workflow_variables: dict[str, Any] = Field(default_factory=dict)
     action_type: str = "workflow"
     action_payload: dict[str, Any] = Field(default_factory=dict)
+    trace_id: str = ""
     status: JobStatus = JobStatus.ACTIVE
     max_retries: int = 3
     timeout: int = 300  # 秒

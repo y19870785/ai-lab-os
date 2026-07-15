@@ -12,9 +12,12 @@ from core.reminders import (
     SQLiteReminderRepository,
     UserTaskReminderLifecycleCoordinator,
 )
-from core.reminders.exceptions import ReminderUnavailableError
-from core.reminders.exceptions import ReminderPersistenceError
-from core.errors import FailureException
+from core.reminders.exceptions import (
+    ReminderConflictError,
+    ReminderPersistenceError,
+    ReminderUnavailableError,
+)
+from core.errors import ErrorCategory, FailureException
 from core.scheduler.exceptions import SchedulerPersistenceError
 from core.scheduler.config import SchedulerConfig
 from core.scheduler.handlers import ActionHandlerRegistry
@@ -22,6 +25,7 @@ from core.scheduler.jobs import JobExecutor
 from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.runtime import SchedulerRuntime
+from core.scheduler.models import JobRun, JobRunStatus, JobStatus
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService, UserTaskStatus
 
 
@@ -84,6 +88,136 @@ async def test_create_trigger_and_repeated_ticks_produce_one_occurrence(tmp_path
     assert stored.status == ReminderStatus.TRIGGERED
     assert len(occurrences) == 1
     assert job.status.value == "completed"
+    await scheduler.shutdown()
+    manager.close_all()
+
+
+async def test_running_job_reschedule_returns_conflict_without_modifying_reminder(tmp_path):
+    manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
+    task = await tasks.create(title="Running reschedule")
+    reminder = await bridge.create(
+        user_task_id=task.id,
+        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        timezone_name="UTC",
+        trace_id="trace-running",
+    )
+    original = await repository.get(reminder.id)
+    claim_now = reminder.remind_at + timedelta(seconds=1)
+    claimed = await scheduler._persistence.claim_job(
+        reminder.scheduler_job_id,
+        now=claim_now,
+        claim_token="running-owner",
+        claim_expires_at=claim_now + timedelta(minutes=1),
+        run_id="running-reschedule-run",
+    )
+    assert claimed.status == JobStatus.RUNNING
+
+    with pytest.raises(FailureException) as caught:
+        await bridge.reschedule(
+            reminder.id,
+            remind_at=reminder.remind_at + timedelta(hours=1),
+            timezone_name="UTC",
+            expected_revision=reminder.revision,
+            trace_id="trace-reschedule",
+        )
+    stored = await repository.get(reminder.id)
+    assert caught.value.failure.category == ErrorCategory.CONFLICT
+    assert stored.status == original.status
+    assert stored.remind_at == original.remind_at
+    assert stored.revision == original.revision
+    assert (await scheduler.get_job(reminder.scheduler_job_id)).claim_token == "running-owner"
+    await scheduler.shutdown()
+    manager.close_all()
+
+
+async def test_reschedule_trigger_interleaving_cannot_commit_old_occurrence(
+    tmp_path, monkeypatch
+):
+    manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
+    task = await tasks.create(title="Reschedule race")
+    reminder = await bridge.create(
+        user_task_id=task.id,
+        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        timezone_name="UTC",
+    )
+    old_scheduled_at = reminder.remind_at
+    old_job = await scheduler.get_job(reminder.scheduler_job_id)
+    reschedule_entered = asyncio.Event()
+    continue_reschedule = asyncio.Event()
+
+    async def lose_scheduler_race(*args, **kwargs):
+        reschedule_entered.set()
+        await continue_reschedule.wait()
+        return False
+
+    monkeypatch.setattr(scheduler, "reschedule_one_shot", lose_scheduler_race)
+    request = asyncio.create_task(bridge.reschedule(
+        reminder.id,
+        remind_at=old_scheduled_at + timedelta(hours=1),
+        timezone_name="UTC",
+        expected_revision=reminder.revision,
+        trace_id="trace-race",
+    ))
+    await asyncio.wait_for(reschedule_entered.wait(), timeout=1)
+    with pytest.raises(ReminderConflictError):
+        await ReminderActionHandler(repository).execute(
+            old_job,
+            JobRun(job_id=old_job.info.id, trace_id="old-trigger"),
+        )
+    continue_reschedule.set()
+    with pytest.raises(FailureException) as caught:
+        await request
+
+    stored = await repository.get(reminder.id)
+    assert caught.value.failure.category == ErrorCategory.CONFLICT
+    assert stored.status == ReminderStatus.PENDING_RESCHEDULE
+    assert await repository.list_occurrences(reminder.id) == []
+    await scheduler.shutdown()
+    manager.close_all()
+
+
+async def test_reconciliation_repairs_scheduled_reminders_with_terminal_jobs(tmp_path):
+    manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
+    task = await tasks.create(title="Terminal job drift")
+    cancelled_reminder = await bridge.create(
+        user_task_id=task.id,
+        remind_at=datetime.now(timezone.utc) + timedelta(hours=2),
+        timezone_name="UTC",
+    )
+    assert await scheduler.cancel_job(cancelled_reminder.scheduler_job_id)
+
+    failed_reminder = await bridge.create(
+        user_task_id=task.id,
+        remind_at=datetime.now(timezone.utc) + timedelta(hours=3),
+        timezone_name="UTC",
+    )
+    claim_now = failed_reminder.remind_at + timedelta(seconds=1)
+    failed_job = await scheduler._persistence.claim_job(
+        failed_reminder.scheduler_job_id,
+        now=claim_now,
+        claim_token="failed-owner",
+        claim_expires_at=claim_now + timedelta(minutes=1),
+        run_id="failed-terminal-run",
+    )
+    failed_job.status = JobStatus.FAILED
+    failed_job.trigger.next_run_at = None
+    run = JobRun(
+        id="failed-terminal-run",
+        job_id=failed_job.info.id,
+        status=JobRunStatus.FAILED,
+        finished_at=claim_now,
+        claim_token="failed-owner",
+    )
+    await scheduler._persistence.finalize_claim(failed_job, run, "failed-owner")
+
+    result = await bridge.reconcile()
+    cancelled_job = await scheduler.get_job(cancelled_reminder.scheduler_job_id)
+    repaired_failed_job = await scheduler.get_job(failed_reminder.scheduler_job_id)
+    assert result.repaired >= 2
+    assert cancelled_job.status == JobStatus.ACTIVE
+    assert repaired_failed_job.status == JobStatus.ACTIVE
+    assert (await repository.get(cancelled_reminder.id)).status == ReminderStatus.SCHEDULED
+    assert (await repository.get(failed_reminder.id)).status == ReminderStatus.SCHEDULED
     await scheduler.shutdown()
     manager.close_all()
 
@@ -175,6 +309,9 @@ async def test_handler_success_then_job_save_failure_recovers_without_duplicate_
 
     await asyncio.sleep(0.12)
     await scheduler._tick()
+    assert attempts == 1
+    await asyncio.sleep(0.02)
+    await scheduler._tick()
     await _settle(scheduler)
 
     assert attempts == 2
@@ -233,7 +370,7 @@ async def test_retry_exhaustion_persists_failed_job_reminder_and_one_occurrence(
     task = await tasks.create(title="Retry exhaustion")
     reminder = await bridge.create(
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(milliseconds=10),
+        remind_at=datetime.now(timezone.utc) + timedelta(milliseconds=50),
         timezone_name="UTC",
     )
 
@@ -241,7 +378,7 @@ async def test_retry_exhaustion_persists_failed_job_reminder_and_one_occurrence(
         raise ReminderPersistenceError("injected trigger failure")
 
     monkeypatch.setattr(repository, "trigger", always_fail)
-    await asyncio.sleep(0.02)
+    await asyncio.sleep(0.06)
     for _ in range(3):
         await scheduler._tick()
         await _settle(scheduler)

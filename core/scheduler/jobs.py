@@ -30,6 +30,7 @@ class JobExecutor:
         self._bus = bus
         self._running: dict[str, asyncio.Task] = {}
         self._handlers = handler_registry or ActionHandlerRegistry()
+        self._observability_error: str | None = None
         if workflow_runtime is not None and not self._handlers.exists("workflow"):
             self._handlers.register("workflow", WorkflowActionHandler(workflow_runtime))
 
@@ -45,7 +46,7 @@ class JobExecutor:
             attempt=job.run_count + 1,
             claim_token=job.claim_token or "",
         )
-        run.trace_id = run.id
+        run.trace_id = run.trace_id or job.trace_id or run.id
 
         await self._publish("scheduler.job.started", job.info.id, job.info.name)
 
@@ -120,4 +121,16 @@ class JobExecutor:
             trace_id=str((extra or {}).get("trace_id", "")),
             extra=extra or {},
         )
-        await self._bus.publish(event.event_type, event)
+        try:
+            await self._bus.publish(event.event_type, event)
+            self._observability_error = None
+        except Exception:
+            self._observability_error = "event_publish_failed"
+            logger.warning(
+                "scheduler.job.event_publish_failed",
+                extra={"event_type": event_type, "job_id": job_id},
+            )
+
+    @property
+    def observability_degraded(self) -> bool:
+        return self._observability_error is not None

@@ -125,6 +125,37 @@ def test_triggered_reminder_api_exposes_one_occurrence_and_rejects_reschedule(tm
         assert conflict.status_code == 409
 
 
+def test_running_reminder_job_reschedule_returns_409_without_state_change(tmp_path):
+    with TestClient(create_app(_settings(tmp_path))) as client:
+        task = client.post("/tasks", json={"title": "Running reminder"}).json()
+        created = client.post(f"/tasks/{task['id']}/reminders", json={
+            "remind_at": _future(), "timezone": "UTC",
+        }).json()
+        system = client.app.state.system
+        job = asyncio.run(system.scheduler_runtime.get_job(created["scheduler_job_id"]))
+        claim_now = datetime.fromisoformat(created["remind_at"]) + timedelta(seconds=1)
+        asyncio.run(system.scheduler_runtime._persistence.claim_job(
+            job.info.id,
+            now=claim_now,
+            claim_token="api-running-owner",
+            claim_expires_at=claim_now + timedelta(minutes=1),
+            run_id="api-running-run",
+        ))
+
+        response = client.patch(f"/reminders/{created['id']}", json={
+            "remind_at": _future(7200),
+            "timezone": "UTC",
+            "revision": created["revision"],
+        })
+        stored = client.get(f"/reminders/{created['id']}").json()
+        assert response.status_code == 409
+        assert response.json()["code"] == "reminders.bridge.reschedule_failed"
+        assert response.json()["retryable"] is False
+        assert stored["status"] == "scheduled"
+        assert stored["remind_at"] == created["remind_at"]
+        assert stored["revision"] == created["revision"]
+
+
 def test_reminder_api_persistence_failure_is_sanitized_server_error(tmp_path):
     with TestClient(create_app(_settings(tmp_path))) as client:
         task = client.post("/tasks", json={"title": "Failure"}).json()

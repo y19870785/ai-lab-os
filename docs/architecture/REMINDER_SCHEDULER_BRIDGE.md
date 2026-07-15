@@ -30,17 +30,23 @@ Scheduler 不依赖 CEO Assistant，也不使用特殊 Workflow 名称模拟 Rem
 
 SchedulerPersistence 使用 SQLite 单事务条件 `UPDATE` 取得 Job：只有 `status`、`next_run_at`、claim expiry 同时符合条件且 affected rows 为 1 的 Runtime 才能执行。每次 claim 使用唯一 token；续租和终态写入均校验 token，旧 owner 不能覆盖新 owner。数据库事务只保护 claim 和状态写入，绝不包围业务 Handler。
 
-One-shot 成功后在同一事务中写入 JobRun success，并将 Job 设置为 `completed`、清空 `next_run_at`、claim 和 last_error。claim 过期会把未完成 JobRun 记录为脱敏失败，并按 retry policy 恢复或终止。
+`save_job()` 只创建新 Job，不再更新已有行。pause、resume、delete 和 reschedule 分别使用数据库真实 status、revision 与 claim 条件写；成功提交后才同步进程内 Registry。RUNNING Job 或 stale revision 不能覆盖、暂停、恢复或删除活跃 claim 及 JobRun。
+
+One-shot 成功后在同一事务中写入 JobRun success，并将 Job 设置为 `completed`、清空 `next_run_at`、claim 和 last_error。claim 过期会把未完成 JobRun 记录为脱敏失败；可重试 Job 的 `next_run_at` 明确设为 `now + retry_delay`，耗尽后清空执行时间和 claim。已过期 token 不能续租。
 
 ## Trigger 事务
 
 Reminder Handler 在 `reminders.db` 单事务内创建或复用 Occurrence，将 Occurrence 与 Reminder 同时更新为 `triggered`，记录 `triggered_at` 后提交。`reminder.triggered` 只在提交后发布。EventBus 失败不会回滚领域状态，只会让 observability health 降级。
+
+所有 Scheduler 与 Reminder post-commit 事件均遵守同一原则：before/after publish hook、started/completed/failed 事件异常只记录 observability degraded，不改变 API 成功结果、Handler 结果或 claim finalize。
 
 ## 跨库 Saga
 
 `reminders.db` 与 `scheduler.db` 没有跨库原子事务。创建、重新安排和取消使用显式 pending 状态、补偿操作和启动 reconciliation。API 失败时可能已经存在 pending/failed Reminder，错误 details 只返回 Reminder ID、recovery state、retryable 和 trace ID，不声称“什么都没有创建”。
 
 Reconciliation 可重复执行并逐条处理 pending schedule/reschedule/cancel、缺失 Job、终态 UserTask、triggered Occurrence 与非 completed Job、cancelled Reminder 与活动 Job、过期 claim。单条失败不阻断后续记录，并使 Health 降级。
+
+Reschedule 在修改 Reminder 前读取 Scheduler 数据库真实 Job 状态；RUNNING 时返回 409 且 Reminder 保持原 revision 和时间。若 check 后发生 claim 竞争，`pending_reschedule` 与 scheduled-at 校验会拒绝旧 Handler 提交 Occurrence，reconciliation 随后继续恢复。`scheduled` Reminder 对应 failed/cancelled Job 时也会被重新安排。
 
 ## UserTask 生命周期
 

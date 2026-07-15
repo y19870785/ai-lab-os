@@ -67,13 +67,17 @@ class SchedulerRuntime(SchedulerProtocol):
         self._last_successful_tick_at: datetime | None = None
         self._last_error: FailureInfo | None = None
         self._consecutive_failures = 0
+        self._observability_error: str | None = None
 
     # ---- 生命周期 ----
 
     async def initialize(self) -> None:
         if self._persistence and self._config.persistence_enabled:
             await self._persistence.initialize()
-            await self._persistence.release_expired_claims(datetime.now(timezone.utc))
+            await self._persistence.release_expired_claims(
+                datetime.now(timezone.utc),
+                retry_delay_seconds=self._config.retry_delay_seconds,
+            )
             if self._config.auto_recover:
                 await self._recover_jobs()
 
@@ -82,7 +86,7 @@ class SchedulerRuntime(SchedulerProtocol):
             return
         self._running = True
         self._consecutive_failures = 0
-        await publish_scheduler_event(self._bus, SchedulerEventTypes.STARTED)
+        await self._publish_event(SchedulerEventTypes.STARTED)
         self._tick_task = asyncio.create_task(self._tick_loop(), name="ai-lab-scheduler-tick")
 
     async def shutdown(self) -> None:
@@ -109,7 +113,7 @@ class SchedulerRuntime(SchedulerProtocol):
                     task.cancel()
                 await asyncio.gather(*tasks, return_exceptions=True)
         self._background_tasks.clear()
-        await publish_scheduler_event(self._bus, SchedulerEventTypes.SHUTDOWN)
+        await self._publish_event(SchedulerEventTypes.SHUTDOWN)
         if self._persistence:
             await self._persistence.close()
 
@@ -139,6 +143,7 @@ class SchedulerRuntime(SchedulerProtocol):
             workflow_variables=request.variables,
             action_type=request.action_type,
             action_payload=request.action_payload,
+            trace_id=request.trace_id,
             timeout=self._config.default_timeout,
         )
 
@@ -150,47 +155,82 @@ class SchedulerRuntime(SchedulerProtocol):
             self._registry.unregister(job.info.id)
             raise
 
-        await publish_scheduler_event(
-            self._bus, SchedulerEventTypes.CREATED, job.info.id, job.info.name,
+        await self._publish_event(
+            SchedulerEventTypes.CREATED, job.info.id, job.info.name,
+            {"trace_id": job.trace_id},
         )
         return job
 
     async def pause_job(self, job_id: str) -> bool:
-        job = self._registry.get(job_id)
+        job = await self.get_job(job_id)
+        if job is None:
+            return False
         if job.status == JobStatus.RUNNING:
             raise JobStateError("Running Job cannot be paused")
-        job.status = JobStatus.PAUSED
-        await self._save_job(job)
-        await publish_scheduler_event(
-            self._bus, SchedulerEventTypes.PAUSED, job_id, job.info.name,
+        if self._persistence and self._config.persistence_enabled:
+            changed = await self._persistence.pause_job(
+                job_id, job.revision, datetime.now(timezone.utc)
+            )
+            if changed is None:
+                await self._sync_registry_from_persistence()
+                raise JobStateError("Job changed concurrently and cannot be paused")
+            self._registry.replace(changed)
+            job = changed
+        else:
+            if job.status not in {JobStatus.ACTIVE, JobStatus.RETRYING}:
+                raise JobStateError("Only active or retrying Job can be paused")
+            job.status = JobStatus.PAUSED
+        await self._publish_event(
+            SchedulerEventTypes.PAUSED, job_id, job.info.name,
+            {"trace_id": job.trace_id},
         )
         return True
 
     async def resume_job(self, job_id: str) -> bool:
-        job = self._registry.get(job_id)
+        job = await self.get_job(job_id)
+        if job is None:
+            return False
         if job.status != JobStatus.PAUSED:
             raise JobStateError("Only paused Job can be resumed")
-        job.status = JobStatus.ACTIVE
-        # 重新计算下次触发时间
+        next_run_at = job.trigger.next_run_at
         if job.trigger.trigger_type != TriggerType.MANUAL:
-            job.trigger.next_run_at = TriggerEngine.compute_next(job.trigger)
-        await self._save_job(job)
-        await publish_scheduler_event(
-            self._bus, SchedulerEventTypes.RESUMED, job_id, job.info.name,
+            next_run_at = TriggerEngine.compute_next(job.trigger)
+        if self._persistence and self._config.persistence_enabled:
+            changed = await self._persistence.resume_job(
+                job_id,
+                job.revision,
+                next_run_at=next_run_at,
+                now=datetime.now(timezone.utc),
+            )
+            if changed is None:
+                await self._sync_registry_from_persistence()
+                raise JobStateError("Job changed concurrently and cannot be resumed")
+            self._registry.replace(changed)
+            job = changed
+        else:
+            job.status = JobStatus.ACTIVE
+            job.trigger.next_run_at = next_run_at
+        await self._publish_event(
+            SchedulerEventTypes.RESUMED, job_id, job.info.name,
+            {"trace_id": job.trace_id},
         )
         return True
 
     async def delete_job(self, job_id: str) -> bool:
-        if not self._registry.exists(job_id):
+        job = await self.get_job(job_id)
+        if job is None:
             return False
-        job = self._registry.get(job_id)
         if job.status == JobStatus.RUNNING:
             raise JobStateError("Running Job cannot be deleted")
+        if self._persistence and self._config.persistence_enabled:
+            deleted = await self._persistence.delete_job(job_id, job.revision)
+            if not deleted:
+                await self._sync_registry_from_persistence()
+                raise JobStateError("Job changed concurrently and cannot be deleted")
         self._registry.unregister(job_id)
-        if self._persistence:
-            await self._persistence.delete_job(job_id)
-        await publish_scheduler_event(
-            self._bus, SchedulerEventTypes.DELETED, job_id, job.info.name,
+        await self._publish_event(
+            SchedulerEventTypes.DELETED, job_id, job.info.name,
+            {"trace_id": job.trace_id},
         )
         return True
 
@@ -224,6 +264,7 @@ class SchedulerRuntime(SchedulerProtocol):
         if self._persistence and self._config.persistence_enabled:
             changed = await self._persistence.reschedule_job(
                 job_id,
+                expected_revision=job.revision,
                 run_at=run_at,
                 timezone_name=timezone_name,
                 action_payload=action_payload,
@@ -273,7 +314,9 @@ class SchedulerRuntime(SchedulerProtocol):
             status = RuntimeStatus.STOPPED
         elif self._consecutive_failures >= self._config.failure_threshold:
             status = RuntimeStatus.FAILED
-        elif self._consecutive_failures:
+        elif self._consecutive_failures or self._observability_error or getattr(
+            self._executor, "observability_degraded", False
+        ):
             status = RuntimeStatus.DEGRADED
         else:
             status = RuntimeStatus.OK
@@ -290,6 +333,7 @@ class SchedulerRuntime(SchedulerProtocol):
                 if self._last_successful_tick_at else None
             ),
             "last_error": self._last_error.to_dict() if self._last_error else None,
+            "observability_error": self._observability_error,
         }
 
     # ---- 内部 ----
@@ -322,8 +366,7 @@ class SchedulerRuntime(SchedulerProtocol):
                     extra={"failure_code": self._last_error.code,
                            "consecutive_failures": self._consecutive_failures},
                 )
-                await publish_scheduler_event(
-                    self._bus,
+                await self._publish_event(
                     SchedulerEventTypes.TICK_FAILED,
                     extra=failure_event_payload(self._last_error),
                 )
@@ -334,7 +377,9 @@ class SchedulerRuntime(SchedulerProtocol):
         """一次调度周期：检查所有 ACTIVE Job 是否应该触发"""
         now = datetime.now(timezone.utc)
         if self._persistence and self._config.persistence_enabled:
-            await self._persistence.release_expired_claims(now)
+            await self._persistence.release_expired_claims(
+                now, retry_delay_seconds=self._config.retry_delay_seconds
+            )
             await self._sync_registry_from_persistence()
         active_jobs = [
             job for job in self._registry.list()
@@ -377,7 +422,7 @@ class SchedulerRuntime(SchedulerProtocol):
                 job_name=job.info.name,
                 status=JobRunStatus.RUNNING,
                 started_at=now,
-                trace_id=run_id,
+                trace_id=job.trace_id or run_id,
                 attempt=job.run_count + 1,
                 claim_token=claim_token,
             )
@@ -467,8 +512,7 @@ class SchedulerRuntime(SchedulerProtocol):
                 "scheduler.job.runtime_failed",
                 extra={"job_id": job.info.id, "failure_code": job.last_error.code},
             )
-            await publish_scheduler_event(
-                self._bus,
+            await self._publish_event(
                 SchedulerEventTypes.JOB_FAILED,
                 job.info.id,
                 job.info.name,
@@ -526,9 +570,24 @@ class SchedulerRuntime(SchedulerProtocol):
                 exc_info=(type(error), error, error.__traceback__),
             )
 
-    async def _save_job(self, job: Job):
-        if self._persistence and self._config.persistence_enabled:
-            await self._persistence.save_job(job)
+    async def _publish_event(
+        self,
+        event_type: str,
+        job_id: str = "",
+        job_name: str = "",
+        extra: dict | None = None,
+    ) -> None:
+        try:
+            await publish_scheduler_event(
+                self._bus, event_type, job_id, job_name, extra
+            )
+            self._observability_error = None
+        except Exception:
+            self._observability_error = "event_publish_failed"
+            logger.warning(
+                "scheduler.event.publish_failed",
+                extra={"event_type": event_type, "job_id": job_id},
+            )
 
     async def _recover_jobs(self):
         """从持久化恢复 Job"""

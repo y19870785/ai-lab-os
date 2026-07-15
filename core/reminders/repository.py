@@ -247,6 +247,27 @@ class SQLiteReminderRepository:
                         ReminderStatus.PENDING_CANCEL,
                     }:
                         raise ReminderConflictError("Cancelled Reminder cannot trigger")
+                    if reminder.status == ReminderStatus.TRIGGERED:
+                        row = conn.execute(
+                            "SELECT * FROM reminder_occurrences WHERE idempotency_key=?",
+                            (key,),
+                        ).fetchone()
+                        if row is None or row["status"] != "triggered":
+                            raise ReminderConflictError(
+                                "Triggered Reminder has no matching occurrence"
+                            )
+                        return reminder, self._occurrence(row), True
+                    if reminder.status not in {
+                        ReminderStatus.SCHEDULED,
+                        ReminderStatus.FAILED,
+                    }:
+                        raise ReminderConflictError(
+                            "Reminder transition prevents this trigger"
+                        )
+                    if reminder.remind_at != scheduled_at.astimezone(timezone.utc):
+                        raise ReminderConflictError(
+                            "Reminder schedule changed before trigger"
+                        )
                     conn.execute(
                         """
                         INSERT OR IGNORE INTO reminder_occurrences (

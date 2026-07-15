@@ -4,10 +4,13 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from core.bus import MemoryBus
 from core.errors import ErrorCategory, failure_from_exception
 from core.scheduler.config import SchedulerConfig
-from core.scheduler.exceptions import JobClaimLostError
+from core.scheduler.exceptions import JobClaimLostError, JobStateError
 from core.scheduler.models import (
+    Job,
+    JobInfo,
     JobRun,
     JobRunStatus,
     JobStatus,
@@ -18,6 +21,8 @@ from core.scheduler.models import (
 from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.runtime import SchedulerRuntime
+from core.scheduler.handlers import ActionHandlerRegistry
+from core.scheduler.jobs import JobExecutor
 
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
@@ -54,6 +59,31 @@ class MultiJobBlockingExecutor:
             "status": JobRunStatus.SUCCESS,
             "finished_at": datetime.now(timezone.utc),
         })
+
+
+class BlockingExecutor:
+    def __init__(self):
+        self.started = asyncio.Event()
+        self.release = asyncio.Event()
+
+    async def execute(self, job, run):
+        self.started.set()
+        await self.release.wait()
+        job.run_count += 1
+        return run.model_copy(update={
+            "status": JobRunStatus.SUCCESS,
+            "finished_at": datetime.now(timezone.utc),
+        })
+
+
+class SuccessfulActionHandler:
+    async def execute(self, job, run):
+        return {"status": "done"}
+
+
+class FailingActionHandler:
+    async def execute(self, job, run):
+        raise RuntimeError("injected handler failure")
 
 
 def _config(path):
@@ -322,6 +352,230 @@ async def test_claim_renewal_requires_current_token(tmp_path):
         job.info.id, "current-owner", now + timedelta(seconds=2)
     ) is True
     await runtime.shutdown()
+
+
+async def test_expired_owner_cannot_renew_and_retry_waits_until_due(tmp_path):
+    path = tmp_path / "scheduler.db"
+    persistence = SchedulerPersistence(str(path))
+    await persistence.initialize()
+    now = datetime.now(timezone.utc)
+    job = Job(
+        info=JobInfo(name="expired-retry-delay"),
+        trigger=Trigger(
+            trigger_type=TriggerType.ONE_SHOT,
+            run_at=now - timedelta(seconds=1),
+            next_run_at=now - timedelta(seconds=1),
+        ),
+    )
+    await persistence.save_job(job)
+    claimed = await persistence.claim_job(
+        job.info.id,
+        now=now,
+        claim_token="expired-owner",
+        claim_expires_at=now + timedelta(milliseconds=10),
+        run_id="expired-run",
+    )
+    assert claimed is not None
+    expired_at = now + timedelta(milliseconds=20)
+    assert await persistence.renew_claim(
+        job.info.id,
+        "expired-owner",
+        expired_at + timedelta(seconds=1),
+        now=expired_at,
+    ) is False
+
+    assert await persistence.release_expired_claims(
+        expired_at, retry_delay_seconds=10
+    ) == 1
+    recovered = await persistence.get_job(job.info.id)
+    assert recovered.status == JobStatus.RETRYING
+    assert recovered.trigger.next_run_at == expired_at + timedelta(seconds=10)
+    assert recovered.claim_token is None
+    assert recovered.claim_expires_at is None
+    assert await persistence.claim_job(
+        job.info.id,
+        now=expired_at + timedelta(seconds=9),
+        claim_token="too-early",
+        claim_expires_at=expired_at + timedelta(seconds=20),
+        run_id="too-early-run",
+    ) is None
+    assert await persistence.claim_job(
+        job.info.id,
+        now=expired_at + timedelta(seconds=10),
+        claim_token="next-owner",
+        claim_expires_at=expired_at + timedelta(seconds=20),
+        run_id="next-run",
+    ) is not None
+    await persistence.close()
+
+
+async def test_expired_claim_retry_exhaustion_clears_terminal_fields(tmp_path):
+    persistence = SchedulerPersistence(str(tmp_path / "scheduler.db"))
+    await persistence.initialize()
+    now = datetime.now(timezone.utc)
+    job = Job(
+        info=JobInfo(name="expired-terminal"),
+        trigger=Trigger(
+            trigger_type=TriggerType.ONE_SHOT,
+            run_at=now - timedelta(seconds=1),
+            next_run_at=now - timedelta(seconds=1),
+        ),
+        max_retries=1,
+    )
+    await persistence.save_job(job)
+    await persistence.claim_job(
+        job.info.id,
+        now=now,
+        claim_token="terminal-owner",
+        claim_expires_at=now + timedelta(milliseconds=10),
+        run_id="terminal-run",
+    )
+    await persistence.release_expired_claims(
+        now + timedelta(milliseconds=20), retry_delay_seconds=10
+    )
+
+    failed = await persistence.get_job(job.info.id)
+    runs = await persistence.list_job_runs(job.info.id)
+    assert failed.status == JobStatus.FAILED
+    assert failed.trigger.next_run_at is None
+    assert failed.claim_token is None
+    assert failed.claim_expires_at is None
+    assert failed.last_error.code == "scheduler.job.claim_expired"
+    assert len(runs) == 1
+    assert runs[0].status == JobRunStatus.FAILED
+    await persistence.close()
+
+
+async def test_stale_runtime_cannot_pause_resume_or_delete_claimed_job(tmp_path):
+    path = tmp_path / "scheduler.db"
+    executor = BlockingExecutor()
+    runtime_a = await _runtime(path, executor)
+    job = await runtime_a.schedule(ScheduleRequest(
+        job_name="managed-claim-owner",
+        workflow_name="workflow",
+        trace_id="trace-reminder-api",
+        trigger=Trigger(
+            trigger_type=TriggerType.ONE_SHOT,
+            run_at=datetime.now(timezone.utc) - timedelta(seconds=1),
+        ),
+    ))
+    runtime_b = await _runtime(path, SuccessExecutor())
+    stale = runtime_b._registry.get(job.info.id)
+    assert stale.status == JobStatus.ACTIVE
+
+    await runtime_a._tick()
+    await asyncio.wait_for(executor.started.wait(), timeout=1)
+    claimed = await runtime_a._persistence.get_job(job.info.id)
+    token = claimed.claim_token
+    runs_before = await runtime_a.list_job_runs(job.info.id)
+    assert claimed.status == JobStatus.RUNNING
+    assert runs_before[0].status == JobRunStatus.RUNNING
+    assert runs_before[0].trace_id == "trace-reminder-api"
+
+    with pytest.raises(JobStateError):
+        await runtime_b.pause_job(job.info.id)
+    with pytest.raises(JobStateError):
+        await runtime_b.resume_job(job.info.id)
+    with pytest.raises(JobStateError):
+        await runtime_b.delete_job(job.info.id)
+
+    still_claimed = await runtime_a._persistence.get_job(job.info.id)
+    runs_after = await runtime_a.list_job_runs(job.info.id)
+    assert still_claimed.status == JobStatus.RUNNING
+    assert still_claimed.claim_token == token
+    assert runs_after[0].status == JobRunStatus.RUNNING
+
+    executor.release.set()
+    await _settle(runtime_a)
+    assert (await runtime_a.get_job(job.info.id)).status == JobStatus.COMPLETED
+    await runtime_a.shutdown()
+    await runtime_b.shutdown()
+
+
+@pytest.mark.parametrize("hook_kind", ["before", "after"])
+async def test_scheduler_event_hook_failure_cannot_change_completed_result(
+    tmp_path, hook_kind
+):
+    bus = MemoryBus()
+    await bus.start()
+
+    async def broken_hook(event):
+        raise RuntimeError("injected scheduler event hook failure")
+
+    getattr(bus, f"add_{hook_kind}_publish_hook")(broken_hook)
+    handlers = ActionHandlerRegistry()
+    handlers.register("test-success", SuccessfulActionHandler())
+    path = tmp_path / f"scheduler-{hook_kind}.db"
+    runtime = SchedulerRuntime(
+        executor=JobExecutor(bus=bus, handler_registry=handlers),
+        persistence=SchedulerPersistence(str(path)),
+        config=_config(path),
+        bus=bus,
+    )
+    await runtime.initialize()
+    await runtime.start()
+    job = await runtime.schedule(ScheduleRequest(
+        job_name=f"event-{hook_kind}",
+        action_type="test-success",
+        trace_id=f"trace-{hook_kind}",
+        trigger=Trigger(
+            trigger_type=TriggerType.ONE_SHOT,
+            run_at=datetime.now(timezone.utc) - timedelta(seconds=1),
+        ),
+    ))
+
+    await runtime._tick()
+    await _settle(runtime)
+    persisted = await runtime.get_job(job.info.id)
+    runs = await runtime.list_job_runs(job.info.id)
+    assert persisted.status == JobStatus.COMPLETED
+    assert persisted.claim_token is None
+    assert len(runs) == 1
+    assert runs[0].status == JobRunStatus.SUCCESS
+    assert runs[0].trace_id == f"trace-{hook_kind}"
+    assert (await runtime.health())["status"] == "degraded"
+    await runtime.shutdown()
+    await bus.stop()
+
+
+async def test_scheduler_failed_event_hook_cannot_block_claim_finalize(tmp_path):
+    bus = MemoryBus()
+    await bus.start()
+
+    async def broken_hook(event):
+        raise RuntimeError("injected failed-event hook failure")
+
+    bus.add_before_publish_hook(broken_hook)
+    handlers = ActionHandlerRegistry()
+    handlers.register("test-failure", FailingActionHandler())
+    path = tmp_path / "scheduler-failed-event.db"
+    runtime = SchedulerRuntime(
+        executor=JobExecutor(bus=bus, handler_registry=handlers),
+        persistence=SchedulerPersistence(str(path)),
+        config=_config(path),
+        bus=bus,
+    )
+    await runtime.initialize()
+    job = await runtime.schedule(ScheduleRequest(
+        job_name="failed-event-finalize",
+        action_type="test-failure",
+        trigger=Trigger(
+            trigger_type=TriggerType.ONE_SHOT,
+            run_at=datetime.now(timezone.utc) - timedelta(seconds=1),
+        ),
+    ))
+
+    await runtime._tick()
+    await _settle(runtime)
+    persisted = await runtime.get_job(job.info.id)
+    runs = await runtime.list_job_runs(job.info.id)
+    assert persisted.status == JobStatus.RETRYING
+    assert persisted.claim_token is None
+    assert persisted.claim_expires_at is None
+    assert len(runs) == 1
+    assert runs[0].status == JobRunStatus.FAILED
+    await runtime.shutdown()
+    await bus.stop()
 
 
 async def test_different_jobs_execute_concurrently_without_global_serial_lock(tmp_path):

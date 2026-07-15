@@ -99,6 +99,8 @@ class ReminderSchedulerBridge:
         category = (
             ErrorCategory.NOT_CONFIGURED
             if isinstance(exc, ReminderUnavailableError)
+            else ErrorCategory.CONFLICT
+            if isinstance(exc, ReminderConflictError)
             else ErrorCategory.DEPENDENCY_FAILURE
         )
         return failure_from_exception(
@@ -108,7 +110,7 @@ class ReminderSchedulerBridge:
             trace_id=reminder.trace_id,
             code=f"reminders.bridge.{operation}_failed",
             category=category,
-            retryable=True,
+            retryable=category != ErrorCategory.CONFLICT,
             details={
                 "reminder_id": reminder.id,
                 "recovery_state": reminder.status.value,
@@ -181,6 +183,15 @@ class ReminderSchedulerBridge:
         trace_id: str,
     ) -> Reminder:
         self._require_scheduler()
+        current = await self._service.get(reminder_id, trace_id)
+        if current.scheduler_job_id:
+            current_job = await self._scheduler.get_job(current.scheduler_job_id)
+            if current_job is not None and current_job.status == JobStatus.RUNNING:
+                raise FailureException(self._failure(
+                    ReminderConflictError("Running Reminder Job cannot be rescheduled"),
+                    "reschedule",
+                    current,
+                ))
         reminder = await self._service.prepare_reschedule(
             reminder_id,
             remind_at=remind_at,
@@ -197,6 +208,12 @@ class ReminderSchedulerBridge:
                     timezone_name=reminder.timezone,
                     action_payload=self._payload(reminder),
                 )
+                if not changed:
+                    latest = await self._scheduler.get_job(reminder.scheduler_job_id)
+                    if latest is not None:
+                        raise ReminderConflictError(
+                            "Reminder Job changed concurrently and cannot be rescheduled"
+                        )
             if not changed:
                 job = await self._create_job(reminder)
                 reminder = reminder.model_copy(update={"scheduler_job_id": job.info.id})
@@ -340,6 +357,11 @@ class ReminderSchedulerBridge:
                     reminder.status == ReminderStatus.PENDING_SCHEDULE
                     or recoverable_failed
                     or (reminder.status == ReminderStatus.SCHEDULED and job is None)
+                    or (
+                        reminder.status == ReminderStatus.SCHEDULED
+                        and job is not None
+                        and job.status in {JobStatus.FAILED, JobStatus.CANCELLED}
+                    )
                 ):
                     job = await self._ensure_job(reminder)
                     await self._service.transition(

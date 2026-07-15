@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from core.errors import ErrorCategory, FailureInfo
@@ -154,6 +154,7 @@ class SchedulerPersistence:
                 created_at TEXT NOT NULL,
                 action_type TEXT NOT NULL DEFAULT 'workflow',
                 action_payload TEXT NOT NULL DEFAULT '{}',
+                trace_id TEXT NOT NULL DEFAULT '',
                 claim_token TEXT,
                 claim_expires_at TEXT,
                 last_error TEXT,
@@ -188,6 +189,7 @@ class SchedulerPersistence:
         additions = {
             "action_type": "TEXT NOT NULL DEFAULT 'workflow'",
             "action_payload": "TEXT NOT NULL DEFAULT '{}'",
+            "trace_id": "TEXT NOT NULL DEFAULT ''",
             "claim_token": "TEXT",
             "claim_expires_at": "TEXT",
             "last_error": "TEXT",
@@ -231,6 +233,7 @@ class SchedulerPersistence:
             "created_at": _utc(job.info.created_at).isoformat(),
             "action_type": job.action_type,
             "action_payload": json.dumps(job.action_payload, ensure_ascii=True),
+            "trace_id": job.trace_id,
             "claim_token": job.claim_token,
             "claim_expires_at": (
                 _utc(job.claim_expires_at).isoformat() if job.claim_expires_at else None
@@ -241,20 +244,16 @@ class SchedulerPersistence:
         }
 
     async def save_job(self, job: Job) -> None:
+        """Insert a new Job; existing rows must use a conditional operation."""
         values = self._job_values(job)
         columns = tuple(values)
         with self._lock:
             conn = self._connection()
             try:
                 conn.execute("BEGIN IMMEDIATE")
-                exists = conn.execute("SELECT 1 FROM jobs WHERE id=?", (job.info.id,)).fetchone()
-                if exists:
-                    assignments = ", ".join(f"{name}=:{name}" for name in columns if name != "id")
-                    conn.execute(f"UPDATE jobs SET {assignments} WHERE id=:id", values)
-                else:
-                    names = ", ".join(columns)
-                    params = ", ".join(f":{name}" for name in columns)
-                    conn.execute(f"INSERT INTO jobs ({names}) VALUES ({params})", values)
+                names = ", ".join(columns)
+                params = ", ".join(f":{name}" for name in columns)
+                conn.execute(f"INSERT INTO jobs ({names}) VALUES ({params})", values)
                 conn.commit()
             except Exception as exc:
                 conn.rollback()
@@ -299,7 +298,7 @@ class SchedulerPersistence:
                         run_id, job_id, attempt, started_at, status, claim_token, trace_id
                     ) VALUES (?, ?, ?, ?, 'running', ?, ?)
                     """,
-                    (run_id, job_id, attempt, now_iso, claim_token, run_id),
+                    (run_id, job_id, attempt, now_iso, claim_token, row["trace_id"] or run_id),
                 )
                 conn.commit()
                 return self._row_to_job(row)
@@ -353,27 +352,38 @@ class SchedulerPersistence:
                 raise SchedulerPersistenceError("Scheduler claim finalization failed") from exc
 
     async def renew_claim(
-        self, job_id: str, claim_token: str, claim_expires_at: datetime
+        self,
+        job_id: str,
+        claim_token: str,
+        claim_expires_at: datetime,
+        *,
+        now: datetime | None = None,
     ) -> bool:
+        now = _utc(now or datetime.now(timezone.utc))
         with self._lock:
             conn = self._connection()
             cursor = conn.execute(
                 """
                 UPDATE jobs SET claim_expires_at=?, updated_at=?, revision=revision+1
                 WHERE id=? AND status='running' AND claim_token=?
+                  AND claim_expires_at IS NOT NULL AND claim_expires_at>?
                 """,
                 (
                     _utc(claim_expires_at).isoformat(),
-                    datetime.now(timezone.utc).isoformat(),
+                    now.isoformat(),
                     job_id,
                     claim_token,
+                    now.isoformat(),
                 ),
             )
             conn.commit()
             return cursor.rowcount == 1
 
-    async def release_expired_claims(self, now: datetime) -> int:
+    async def release_expired_claims(
+        self, now: datetime, *, retry_delay_seconds: float = 0.0
+    ) -> int:
         now_iso = _utc(now).isoformat()
+        retry_at_iso = (_utc(now) + timedelta(seconds=retry_delay_seconds)).isoformat()
         expired_failure = _failure_json(FailureInfo(
             code="scheduler.job.claim_expired",
             category=ErrorCategory.EXECUTION_FAILURE,
@@ -406,6 +416,10 @@ class SchedulerPersistence:
                         END,
                         retry_count=retry_count+1,
                         run_count=run_count+1,
+                        next_run_at=CASE
+                            WHEN retry_count + 1 >= max_retries THEN NULL
+                            ELSE ?
+                        END,
                         last_result='failed',
                         last_error=?,
                         claim_token=NULL, claim_expires_at=NULL,
@@ -413,7 +427,7 @@ class SchedulerPersistence:
                     WHERE status='running' AND claim_expires_at IS NOT NULL
                       AND claim_expires_at<=?
                     """,
-                    (expired_failure, now_iso, now_iso),
+                    (retry_at_iso, expired_failure, now_iso, now_iso),
                 )
                 conn.commit()
                 return cursor.rowcount
@@ -450,15 +464,86 @@ class SchedulerPersistence:
             except Exception as exc:
                 raise SchedulerPersistenceError("Scheduler JobRun query failed") from exc
 
-    async def delete_job(self, job_id: str) -> bool:
+    async def pause_job(self, job_id: str, expected_revision: int, now: datetime) -> Job | None:
+        with self._lock:
+            conn = self._connection()
+            try:
+                cursor = conn.execute(
+                    """
+                    UPDATE jobs SET status='paused', updated_at=?, revision=revision+1
+                    WHERE id=? AND revision=? AND status IN ('active', 'retrying')
+                      AND claim_token IS NULL
+                    """,
+                    (_utc(now).isoformat(), job_id, expected_revision),
+                )
+                conn.commit()
+                if cursor.rowcount != 1:
+                    return None
+                row = conn.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+                return self._row_to_job(row)
+            except Exception as exc:
+                conn.rollback()
+                raise SchedulerPersistenceError("Scheduler job pause failed") from exc
+
+    async def resume_job(
+        self,
+        job_id: str,
+        expected_revision: int,
+        *,
+        next_run_at: datetime | None,
+        now: datetime,
+    ) -> Job | None:
+        with self._lock:
+            conn = self._connection()
+            try:
+                cursor = conn.execute(
+                    """
+                    UPDATE jobs SET status='active', next_run_at=?, updated_at=?,
+                        revision=revision+1
+                    WHERE id=? AND revision=? AND status='paused'
+                      AND claim_token IS NULL
+                    """,
+                    (
+                        _utc(next_run_at).isoformat() if next_run_at else None,
+                        _utc(now).isoformat(),
+                        job_id,
+                        expected_revision,
+                    ),
+                )
+                conn.commit()
+                if cursor.rowcount != 1:
+                    return None
+                row = conn.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+                return self._row_to_job(row)
+            except Exception as exc:
+                conn.rollback()
+                raise SchedulerPersistenceError("Scheduler job resume failed") from exc
+
+    async def delete_job(self, job_id: str, expected_revision: int | None = None) -> bool:
         with self._lock:
             conn = self._connection()
             try:
                 conn.execute("BEGIN IMMEDIATE")
-                conn.execute("DELETE FROM job_runs WHERE job_id=?", (job_id,))
-                cursor = conn.execute("DELETE FROM jobs WHERE id=?", (job_id,))
+                if expected_revision is None:
+                    row = conn.execute(
+                        "SELECT revision FROM jobs WHERE id=?", (job_id,)
+                    ).fetchone()
+                    if row is None:
+                        conn.rollback()
+                        return False
+                    expected_revision = int(row["revision"])
+                cursor = conn.execute(
+                    """
+                    DELETE FROM jobs
+                    WHERE id=? AND revision=? AND status!='running'
+                      AND claim_token IS NULL
+                    """,
+                    (job_id, expected_revision),
+                )
+                if cursor.rowcount == 1:
+                    conn.execute("DELETE FROM job_runs WHERE job_id=?", (job_id,))
                 conn.commit()
-                return cursor.rowcount > 0
+                return cursor.rowcount == 1
             except Exception as exc:
                 conn.rollback()
                 raise SchedulerPersistenceError("Scheduler job delete failed") from exc
@@ -487,6 +572,7 @@ class SchedulerPersistence:
         self,
         job_id: str,
         *,
+        expected_revision: int,
         run_at: datetime,
         timezone_name: str,
         action_payload: dict[str, object],
@@ -501,7 +587,8 @@ class SchedulerPersistence:
                     UPDATE jobs SET run_at=?, next_run_at=?, trigger_timezone=?,
                         action_payload=?, status='active', retry_count=0,
                         last_error=NULL, updated_at=?, revision=revision+1
-                    WHERE id=? AND status IN ('active', 'retrying', 'paused', 'failed', 'cancelled')
+                    WHERE id=? AND revision=? AND claim_token IS NULL
+                      AND status IN ('active', 'retrying', 'paused', 'failed', 'cancelled')
                     """,
                     (
                         run_iso,
@@ -510,6 +597,7 @@ class SchedulerPersistence:
                         json.dumps(action_payload, ensure_ascii=True),
                         now_iso,
                         job_id,
+                        expected_revision,
                     ),
                 )
                 conn.commit()
@@ -542,6 +630,7 @@ class SchedulerPersistence:
             workflow_variables=json.loads(row["workflow_variables"] or "{}"),
             action_type=row["action_type"] or "workflow",
             action_payload=json.loads(row["action_payload"] or "{}"),
+            trace_id=row["trace_id"] or "",
             status=JobStatus(row["status"]),
             max_retries=row["max_retries"],
             timeout=row["timeout"],
