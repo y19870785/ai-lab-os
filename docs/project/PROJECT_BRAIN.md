@@ -13,9 +13,11 @@ AI-Lab 是面向个人 CEO / 经营者的 AI Operating System 基础设施。目
 
 ## 版本治理
 
-`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源。`core.__version__` 优先读取 distribution metadata，源码运行时从同一文件派生。v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果；`v0.32.4-review-baseline` 是不可重写的历史冻结标签。SP-004 尚未开始。
+`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源。v0.33.0 是稳定化发布基线。SP-004 建立 Canonical UserTask 与真实 Task API，但不创建新 Tag；Reminder/UserTask-Scheduler Bridge 留给 SP-005。
 
 v0.33.0 基线在全新隔离 Python 3.12 环境中的最终 Windows 本地验证为 `820 passed, 27 warnings in 37.64s`；真实 DeepSeek 测试为 `5 passed in 8.37s`。这些统计不是跨平台 CI 或 GitHub Actions 结果。
+
+SP-004 开发分支的 Windows 本地完整验证为 `835 passed, 27 warnings in 47.46s`，该数字不回写为 v0.33.0 发布基线，也不是 GitHub Actions 结果。
 
 ## Git 基线
 

@@ -1,4 +1,15 @@
 ﻿
+## [Unreleased]
+
+### SP-004 UserTask
+
+- 新增正式 UserTask 领域、UTC 时间模型、生命周期、revision 并发控制和 `tasks.db` 持久化。
+- `/tasks` 从固定 Mock 改为真实 CRUD、列表、更新、完成和取消 API，并复用统一错误契约。
+- CEO Assistant 新任务不再写入 Decision Memory；brief 和任务查询改用 UserTaskService。
+- 提供显式、幂等、非破坏的历史 Decision Memory 任务导入入口。
+- Reminder Trigger 与 UserTask-Scheduler Bridge 留给 SP-005。
+- SP-004 Windows 本地完整验证：`835 passed, 27 warnings in 47.46s`；不是 GitHub Actions 结果。
+
 ## [0.33.0] - 2026-07-15
 
 ### 版本治理

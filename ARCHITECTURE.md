@@ -4,7 +4,11 @@
 
 v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Observability 和 SP-003 DatabaseManager Connection Ownership。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
 
-该基线不代表 Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 或 shutdown 全局请求闸门已经完成。SP-004 尚未开始。
+该基线不代表 Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 或 shutdown 全局请求闸门已经完成。SP-004 只建立 UserTask 领域与真实持久化 API，Reminder 桥梁仍未实现。
+
+## UserTask 领域
+
+`core/user_tasks` 是用户待办的唯一领域边界：Domain → UserTaskService → SQLiteUserTaskRepository → DatabaseManager lease → `tasks.db`。API 与 CEO Assistant 只调用 Service；`core/task` 继续专注 Workflow 执行任务，`core/scheduler` 继续管理 Scheduled Job。
 
 ## 依赖与打包契约
 
