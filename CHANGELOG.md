@@ -5,9 +5,8 @@
 - New UNAUTHENTICATED ErrorCategory (HTTP 401)
 - 51 security-specific tests
 - Merged through PR #12 on 2026-07-15; no new product Tag or Release
-- Review: APPROVED, Squash Merge
+- No new product Tag or Release was created.
 
-## [Unreleased]
 
 ### SP-005 Reminder & Scheduler Bridge（已合并，尚未发布）
 
