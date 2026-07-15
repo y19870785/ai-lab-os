@@ -13,20 +13,22 @@
 | 5.0-5.1 | v0.30.0 ~ v0.31.0 | 2026-07-13 | Application Foundation + Alpha Field Validation |
 | Product 1.0-1.2 | v0.32.0 ~ v0.32.4 | 2026-07-13~14 | CEO Assistant MVP + DeepSeek + Interactive CLI |
 | Stabilization | v0.33.0 | 2026-07-15 | SP-001~SP-003 Composition Root、失败语义、数据库连接所有权与版本治理 |
+| SP-004 | v0.33.0（未新增 Release） | 2026-07-15 | Canonical UserTask、`tasks.db`、真实 Task API、CEO Assistant 接入与 Legacy importer |
 
 ## Current
 
 | Status | Action |
 |---|---|
-| **BASELINE** | v0.33.0 — 稳定化基线；Canonical UserTask 为当前稳定化方向 |
-| **LIMITS** | Reminder/UserTask-Scheduler、Knowledge 主链路、自动 Tool Calling、Coordination 主链路仍未完成 |
+| **BASELINE** | v0.33.0 — SP-004 已通过 PR #8 合并；merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728` |
+| **NEXT** | SP-005 — Reminder & Scheduler Bridge |
+| **LIMITS** | ReminderOccurrence、通知渠道、Scheduler One-shot 完整幂等投递、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
 
 ## Future (Tentative — Subject to Review Outcome)
 
 | Version | Goal |
 |---|---|
 | v0.33.0 | 根据审查结果修复关键问题（P1 技术债清理） |
-| v0.34.0 | CEO Assistant 产品化完善 |
+| v0.34.0 | 目标里程碑：CEO Assistant 产品化完善（Tag / Release 尚未创建） |
 | v0.40.0 | Beta Release — 多 App 支持 |
 | v0.50.0 | 企业微信 / ERP / 报价系统接入 |
 | v1.0.0 | Production Release — 稳定运营 |

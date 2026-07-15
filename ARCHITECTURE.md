@@ -4,13 +4,17 @@
 
 v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Observability 和 SP-003 DatabaseManager Connection Ownership。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
 
-该基线不代表 Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 或 shutdown 全局请求闸门已经完成。SP-004 只建立 UserTask 领域与真实持久化 API，Reminder 桥梁仍未实现。
+SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
+
+当前产品版本仍为 v0.33.0，SP-004 没有创建 v0.34.0 Tag 或 GitHub Release。该状态不代表 Reminder Trigger、ReminderOccurrence、UserTask-Scheduler Bridge、通知渠道、Scheduler One-shot 完整幂等投递、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 或 shutdown 全局请求闸门已经完成。
 
 ## UserTask 领域
 
 `core/user_tasks` 是用户待办的唯一领域边界：Domain → UserTaskService → SQLiteUserTaskRepository → DatabaseManager lease → `tasks.db`。API 与 CEO Assistant 只调用 Service；`core/task` 继续专注 Workflow 执行任务，`core/scheduler` 继续管理 Scheduled Job。
 
 UserTask 将 `due_at` 统一持久化为 UTC，并用经过 IANA 校验的 `timezone` 保留用户展示语义；Legacy Decision Memory 通过 offset 分页导入并显式迁移 deadline、priority、status、session、agent 与 source。revision 必须大于等于 1，损坏持久化行归类为 Persistence Failure。
+
+SP-004 的 Windows 本地最终验证记录为 `847 passed, 27 warnings in 38.81s`，不是 GitHub Actions 结果。首次全量测试的 5 个错误来自 pytest 子进程继承的 SOCKS 代理环境；仅清理测试子进程代理变量后全量通过，未修改系统代理或 `.env`。
 
 ## 依赖与打包契约
 

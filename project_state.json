@@ -1,7 +1,7 @@
 {
   "project": "AI-Lab",
   "version": "v0.33.0",
-  "source_baseline": "SP-003A merge baseline: 96198897f470b5b80c8b4f8380ef8baf4b852aa4",
+  "source_baseline": "SP-004 merge baseline: 10d1534049be2d526c930c513912dc661ac41728",
   "git_branch": "main",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
@@ -12,7 +12,7 @@
     "test_files": 104
   },
   "test_summary": {
-    "passed": 841,
+    "passed": 847,
     "failed": 0,
     "skipped": 0,
     "warnings": 27,
@@ -58,7 +58,7 @@
     "Scheduler": "Implemented / Disabled: Reminder/UserTask scheduling loop remains incomplete",
     "Coordination": "Implemented / Disabled: not connected to the CEO Assistant main path",
     "CEO_Assistant": "Integrated / Verified / Alpha",
-    "UserTask": "Implemented / Integrated: persistent tasks.db and truthful API; Reminder scheduler bridge not implemented"
+    "UserTask": "Completed / Integrated / Verified: SP-004 merged persistent tasks.db, truthful API, CEO Assistant integration, and legacy importer; Reminder scheduler bridge not implemented"
   },
   "open_technical_debt": [
     "TD-001: 部分测试辅助函数错误传入 id=None",
@@ -79,6 +79,6 @@
     "Windows 编码工具链不稳定",
     "Docker 未实际部署测试"
   ],
-  "next_action": "review_sp004_then_plan_sp005_reminder_bridge",
+  "next_action": "sp005_reminder_and_scheduler_bridge",
   "freeze_date": "2026-07-14"
 }

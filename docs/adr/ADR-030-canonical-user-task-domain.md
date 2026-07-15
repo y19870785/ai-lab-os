@@ -2,7 +2,11 @@
 
 ## 状态
 
-Accepted
+Accepted / Implemented
+
+## 采用记录
+
+SP-004 已通过 PR #8 完成审查，审查结论为 `APPROVED`，并于 `2026-07-15T11:39:33Z` 以 Squash Merge 合并到 `main`。SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`。
 
 ## 决策
 

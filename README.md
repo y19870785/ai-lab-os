@@ -19,7 +19,9 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 **SP-003：DatabaseManager Connection Ownership 已完成，并通过 PR #5 以 Squash Merge 合并到 `main`。** Composition Root 将同一个 `DatabaseManager` 注入 Episodic、Semantic、Decision Store；Manager 是共享连接唯一 Owner。Managed lease 在完整借用周期持有对应数据库锁，`close()`/`close_all()` 会等待活跃借用，关闭失败的连接继续由 Manager 跟踪并可重试。现有 `sqlite_dir/*.db` 路径与 Schema 保持不变，Standalone Store 仍保留独立运行能力。SP-003 merge baseline 为 `ce3655ff5f7a625da6b168058873dadfc2289b5f`。
 
-v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果；SP-004 在此基础上建立正式 UserTask 领域、`tasks.db` 持久化和真实 `/tasks` API。任务截止时间统一存储 UTC，并保留经验证的 IANA 用户时区。Reminder/UserTask-Scheduler Bridge 不属于本阶段。
+**SP-004：Canonical UserTask Domain 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。** 合并提交为 `10d1534049be2d526c930c513912dc661ac41728`，审查结论为 `APPROVED`。正式 UserTask 领域、`tasks.db` 持久化、真实 `/tasks` API、CEO Assistant 接入和显式 Legacy Decision Memory importer 已进入主分支。
+
+当前产品版本仍为 v0.33.0；SP-004 没有创建 v0.34.0 Tag 或 GitHub Release。任务截止时间统一存储 UTC，并保留经验证的 IANA 用户时区。Reminder Trigger、ReminderOccurrence、UserTask-Scheduler Bridge、通知渠道和 Scheduler One-shot 完整幂等投递尚未实现，下一项开发为 SP-005。
 
 ## 安装契约
 
@@ -147,4 +149,4 @@ AI-Lab/
 
 ---
 
-> 当前发布基线：`v0.33.0`。SP-004 保持产品版本 `0.33.0`，v0.34.0 仍是后续里程碑，不在本分支创建 Tag 或 Release。
+> 当前产品版本：`v0.33.0`。SP-004 已合并但未创建新 Tag 或 Release；v0.34.0 仍是目标里程碑。
