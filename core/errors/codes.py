@@ -17,6 +17,7 @@ class ErrorCategory(str, Enum):
     EXECUTION_FAILURE = "execution_failure"
     PERSISTENCE_FAILURE = "persistence_failure"
     PERMISSION_DENIED = "permission_denied"
+    UNAUTHENTICATED = "unauthenticated"
     RATE_LIMITED = "rate_limited"
     INTERNAL = "internal"
 

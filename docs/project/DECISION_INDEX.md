@@ -63,3 +63,7 @@
 | ADR-032 | Reminder Effectively-Once Occurrence | Adopted |
 
 **总计：RFC 文件 16 篇（含历史编号重复），ADR 文件 34 篇（含历史编号重复）**
+
+| ADR-033 | API Authentication Mechanism | Proposed (SP-006 Implementation Candidate) | 2026-07-17 |
+| ADR-034 | CORS Allowlist Policy | Proposed (SP-006 Implementation Candidate) | 2026-07-17 |
+| RFC-016 | Application API Security Boundary | Proposed (SP-006 Implementation Candidate) | 2026-07-17 |

@@ -16,6 +16,7 @@ _HTTP_STATUS = {
     ErrorCategory.ALREADY_EXISTS: 409,
     ErrorCategory.CONFLICT: 409,
     ErrorCategory.PERMISSION_DENIED: 403,
+    ErrorCategory.UNAUTHENTICATED: 401,
     ErrorCategory.NOT_CONFIGURED: 503,
     ErrorCategory.DISABLED: 503,
     ErrorCategory.UNAVAILABLE: 503,

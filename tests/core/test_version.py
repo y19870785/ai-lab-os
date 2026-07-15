@@ -52,8 +52,14 @@ def test_core_does_not_hardcode_release_version():
 
 
 def test_app_config_and_api_use_runtime_version():
+    from pathlib import Path
+    import tempfile
+    from core.system.settings import make_test_settings
     assert AppConfig().version == core.__version__
-    assert create_app().version == core.__version__
+    data_dir = Path(tempfile.mkdtemp(prefix="version-test-"))
+    settings = make_test_settings(data_dir)
+    app = create_app(settings)
+    assert app.version == core.__version__
 
 
 def test_health_route_uses_runtime_version():

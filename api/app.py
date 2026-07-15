@@ -13,11 +13,20 @@ from api.routes import applications, brief, chat, decisions, health, knowledge
 from api.routes import reminders, tasks, work_logs, workflows
 from core import __version__
 from core.system import SystemSettings, create_system, load_system_settings
+from applications.security import ApiSecurityConfig, Authenticator
 from core.errors import ErrorCategory, FailureInfo
 
 
+
+
 def create_app(settings: SystemSettings | None = None) -> FastAPI:
-    """Create an API app; tests may inject isolated settings."""
+    """Create an API app; tests may inject isolated settings.
+
+    When settings are omitted, runtime settings are loaded from the
+    configured environment.  Authentication remains enabled by default
+    and requires a configured token unless explicitly disabled with
+    AI_LAB_API_AUTH_ENABLED=false.
+    """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -31,18 +40,33 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
             await system.shutdown()
             app.state.system = None
 
+    effective_settings = (
+        settings
+        or load_system_settings()
+    )
+    # Runtime settings from environment; auth remains enabled by default.
+    sec_cfg = ApiSecurityConfig.from_settings(
+        auth_enabled=effective_settings.enable_api_auth,
+        api_token=effective_settings.api_token,
+        allowed_origins=list(effective_settings.api_allowed_origins),
+        environment=effective_settings.environment,
+    )
+
+    cors_kwargs: dict = dict(allow_methods=["*"], allow_headers=["*"])
+    if sec_cfg.allowed_origins:
+        cors_kwargs["allow_origins"] = sec_cfg.allowed_origins
+    else:
+        cors_kwargs["allow_origins"] = []
+
     api = FastAPI(
         title="AI-Lab API",
         version=__version__,
         description="AI-Lab Application Platform REST API - CEO Assistant",
         lifespan=lifespan,
     )
-    api.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    api.state.api_security = sec_cfg
+    api.state.authenticator = Authenticator(sec_cfg)
+    api.add_middleware(CORSMiddleware, **cors_kwargs)
     api.add_middleware(tracing.TracingMiddleware)
     api.add_middleware(ctx_mw.ContextMiddleware)
     api.add_middleware(error_handler.ErrorHandlerMiddleware)
@@ -68,8 +92,14 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
         )
         return error_handler.make_error_response(failure)
 
+    # Public: health, metrics (no auth)
+    for router in (health.router,):
+        api.include_router(router)
+
+    # Protected: all business routes
+    from api.dependencies import require_auth
+    from fastapi import Depends
     for router in (
-        health.router,
         applications.router,
         chat.router,
         tasks.router,
@@ -80,8 +110,20 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
         brief.router,
         knowledge.router,
     ):
-        api.include_router(router)
+        api.include_router(router, dependencies=[Depends(require_auth)])
+
     return api
 
 
-app = create_app()
+
+# Lazy module-level app: create on first access, not at import time.
+# Tests import from api.app for create_app(); uvicorn accesses api.app:app.
+_app_instance = None
+
+def __getattr__(name):
+    if name == "app":
+        global _app_instance
+        if _app_instance is None:
+            _app_instance = create_app()
+        return _app_instance
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

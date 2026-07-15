@@ -82,6 +82,7 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "define_next_stabilization_task_after_sp005",
-  "freeze_date": "2026-07-14"
+  "next_action": "Awaiting ChatGPT review of SP-006 PR #12",
+  "freeze_date": "2026-07-14",
+  "current_work": "SP-006 API Security Boundary ? implementation candidate, Draft PR #12"
 }
