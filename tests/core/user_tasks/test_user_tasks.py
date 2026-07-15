@@ -10,6 +10,8 @@ from pydantic import ValidationError
 from core.database import DatabaseManager
 from core.bus.bus import MemoryBus
 from core.errors import ErrorCategory, FailureException
+from core.memory.models import MemoryItem, MemoryQuery, MemoryType
+from core.memory.storage.sqlite_decision import SQLiteDecisionStore
 from core.user_tasks.exceptions import UserTaskPersistenceError
 from core.user_tasks import (
     SQLiteUserTaskRepository,
@@ -26,6 +28,8 @@ def test_domain_rejects_blank_title_and_naive_datetime():
         UserTask(title="  ")
     with pytest.raises(ValidationError):
         UserTask(title="task", due_at=datetime.now())
+    with pytest.raises(ValidationError):
+        UserTask(title="task", timezone="Mars/Olympus_Mons")
 
 
 def test_domain_normalizes_aware_datetime_and_derives_overdue():
@@ -34,6 +38,13 @@ def test_domain_normalizes_aware_datetime_and_derives_overdue():
     assert task.due_at.utcoffset() == timedelta(0)
     assert task.is_overdue()
     assert not task.model_copy(update={"status": UserTaskStatus.COMPLETED}).is_overdue()
+
+
+def test_domain_preserves_timezone_for_utc_round_trip():
+    local_due = datetime(2026, 7, 16, 15, 30, tzinfo=timezone(timedelta(hours=8)))
+    task = UserTask(title="round trip", due_at=local_due, timezone="Asia/Shanghai")
+    assert task.due_at == datetime(2026, 7, 16, 7, 30, tzinfo=timezone.utc)
+    assert task.due_at_in_timezone().isoformat() == "2026-07-16T15:30:00+08:00"
 
 
 async def _service(path: Path):
@@ -82,6 +93,13 @@ async def test_not_found_and_optimistic_concurrency(tmp_path: Path):
     with pytest.raises(FailureException) as conflict:
         await service.update(task.id, title="stale", expected_revision=1)
     assert conflict.value.failure.category == ErrorCategory.CONFLICT
+    for invalid_revision in (0, -1):
+        with pytest.raises(FailureException) as invalid:
+            await service.update(
+                task.id, title="must not overwrite", expected_revision=invalid_revision
+            )
+        assert invalid.value.failure.category == ErrorCategory.CONFLICT
+    assert (await service.get(task.id)).title == "winner"
     manager.close_all()
 
 
@@ -212,7 +230,12 @@ async def test_repository_failure_is_sanitized_as_failure_info(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_metadata_rejects_sensitive_and_non_serializable_values(tmp_path: Path):
     manager, repository, service = await _service(tmp_path)
-    for metadata in ({"api_key": "hidden"}, {"value": object()}):
+    for metadata in (
+        {"api_key": "hidden"},
+        {"nested": {"token": "hidden"}},
+        {"items": [{"password": "hidden"}]},
+        {"value": object()},
+    ):
         with pytest.raises(FailureException) as exc:
             await service.create(title="invalid", metadata=metadata)
         assert exc.value.failure.category == ErrorCategory.VALIDATION
@@ -227,7 +250,11 @@ async def test_legacy_import_is_filtered_non_destructive_and_idempotent(tmp_path
         async def retrieve_memory(self, query):
             return [
                 SimpleNamespace(id="legacy-task", content={
-                    "type": "task", "title": "Imported", "priority": "高"
+                    "type": "task", "title": "Imported", "priority": "高",
+                    "status": "已完成", "deadline": "2026-07-16",
+                }, timestamp=datetime(2026, 7, 15, 9, 0), metadata={
+                    "session_id": "legacy-session", "agent_id": "legacy-agent",
+                    "source": "ceo_assistant", "timezone": "Asia/Shanghai",
                 }),
                 SimpleNamespace(id="legacy-decision", content={
                     "type": "decision", "chosen": "Keep original"
@@ -243,4 +270,80 @@ async def test_legacy_import_is_filtered_non_destructive_and_idempotent(tmp_path
     assert second.imported == 0 and second.skipped == 2 and second.failed == 3
     tasks = await service.list()
     assert len(tasks) == 1 and tasks[0].legacy_source_id == "legacy-task"
+    imported = tasks[0]
+    assert imported.status == UserTaskStatus.COMPLETED
+    assert imported.priority == UserTaskPriority.HIGH
+    assert imported.due_at_in_timezone().isoformat() == "2026-07-16T23:59:59+08:00"
+    assert imported.session_id == "legacy-session"
+    assert imported.agent_id == "legacy-agent"
+    assert imported.source == "ceo_assistant"
+    manager.close_all()
+
+
+@pytest.mark.asyncio
+async def test_legacy_import_pages_beyond_five_hundred(tmp_path: Path):
+    manager, repository, service = await _service(tmp_path)
+    items = [
+        SimpleNamespace(
+            id=f"legacy-{index}",
+            content={"type": "task", "title": f"Task {index}"},
+            timestamp=datetime(2026, 7, 15, tzinfo=timezone.utc),
+            metadata={},
+        )
+        for index in range(501)
+    ]
+
+    class PagedLegacyMemory:
+        def __init__(self):
+            self.offsets = []
+
+        async def retrieve_memory(self, query):
+            self.offsets.append(query.offset)
+            return items[query.offset:query.offset + query.top_k]
+
+    memory = PagedLegacyMemory()
+    result = await service.import_legacy(memory)
+    assert result.model_dump() == {"imported": 501, "skipped": 0, "failed": 0}
+    assert memory.offsets == [0, 500]
+    assert len(await service.list(UserTaskQuery(limit=500))) == 500
+    manager.close_all()
+
+
+@pytest.mark.asyncio
+async def test_decision_store_honors_offset_for_legacy_pagination(tmp_path: Path):
+    store = SQLiteDecisionStore(str(tmp_path / "decision.db"))
+    await store.initialize()
+    timestamp = datetime(2026, 7, 15, tzinfo=timezone.utc)
+    for item_id in ("a", "b", "c"):
+        await store.save(MemoryItem(
+            id=item_id,
+            memory_type=MemoryType.DECISION,
+            content={"type": "task", "title": item_id},
+            timestamp=timestamp,
+        ))
+    page = await store.query(MemoryQuery(
+        memory_type=MemoryType.DECISION, top_k=1, offset=1
+    ))
+    assert [item.id for item in page] == ["b"]
+    await store.close()
+
+
+@pytest.mark.asyncio
+async def test_corrupt_persisted_rows_are_persistence_failures(tmp_path: Path):
+    manager, repository, service = await _service(tmp_path)
+    task_ids = []
+    for suffix in ("metadata", "status", "datetime"):
+        task_ids.append((await service.create(title=f"corrupt-{suffix}")).id)
+    with manager.lease("user_tasks") as conn:
+        conn.execute("UPDATE user_tasks SET metadata=? WHERE id=?", ("{broken", task_ids[0]))
+        conn.execute("UPDATE user_tasks SET status=? WHERE id=?", ("unknown", task_ids[1]))
+        conn.execute("UPDATE user_tasks SET due_at=? WHERE id=?", ("not-a-datetime", task_ids[2]))
+        conn.commit()
+    for task_id in task_ids:
+        with pytest.raises(FailureException) as exc:
+            await service.get(task_id)
+        assert exc.value.failure.category == ErrorCategory.PERSISTENCE_FAILURE
+    with pytest.raises(FailureException) as listed:
+        await service.list()
+    assert listed.value.failure.category == ErrorCategory.PERSISTENCE_FAILURE
     manager.close_all()

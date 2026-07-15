@@ -34,7 +34,7 @@ class TaskUpdateRequest(BaseModel):
     due_at: datetime | None = None
     timezone: str | None = None
     metadata: dict[str, Any] | None = None
-    revision: int | None = None
+    revision: int | None = Field(default=None, ge=1)
 
 class TaskResponse(BaseModel):
     id: str

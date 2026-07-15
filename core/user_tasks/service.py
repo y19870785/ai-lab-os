@@ -3,17 +3,19 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime
+from datetime import datetime, time, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
 from core.bus.event import Event
-from core.errors import ErrorCategory, FailureException, FailureInfo, failure_from_exception
+from core.errors import ErrorCategory, FailureException, failure_from_exception
 from core.memory.models import MemoryQuery, MemoryType
 from core.user_tasks.exceptions import (
     UserTaskConflictError,
     UserTaskNotFoundError,
+    UserTaskPersistenceError,
 )
 from core.user_tasks.models import (
     LegacyImportResult,
@@ -27,6 +29,66 @@ from core.user_tasks.repository import SQLiteUserTaskRepository
 
 
 _UNSET = object()
+_LEGACY_PAGE_SIZE = 500
+
+
+def _legacy_priority(value: Any) -> UserTaskPriority:
+    normalized = str(value or "").strip().lower()
+    mapping = {
+        "": UserTaskPriority.MEDIUM,
+        "中": UserTaskPriority.MEDIUM,
+        "medium": UserTaskPriority.MEDIUM,
+        "normal": UserTaskPriority.MEDIUM,
+        "高": UserTaskPriority.HIGH,
+        "high": UserTaskPriority.HIGH,
+        "urgent": UserTaskPriority.URGENT,
+        "紧急": UserTaskPriority.URGENT,
+        "低": UserTaskPriority.LOW,
+        "low": UserTaskPriority.LOW,
+    }
+    if normalized not in mapping:
+        raise ValueError("unsupported legacy priority")
+    return mapping[normalized]
+
+
+def _legacy_status(value: Any) -> UserTaskStatus:
+    normalized = str(value or "").strip().lower()
+    mapping = {
+        "": UserTaskStatus.ACTIVE,
+        "待办": UserTaskStatus.ACTIVE,
+        "进行中": UserTaskStatus.ACTIVE,
+        "active": UserTaskStatus.ACTIVE,
+        "pending": UserTaskStatus.ACTIVE,
+        "完成": UserTaskStatus.COMPLETED,
+        "已完成": UserTaskStatus.COMPLETED,
+        "complete": UserTaskStatus.COMPLETED,
+        "completed": UserTaskStatus.COMPLETED,
+        "取消": UserTaskStatus.CANCELLED,
+        "已取消": UserTaskStatus.CANCELLED,
+        "cancel": UserTaskStatus.CANCELLED,
+        "cancelled": UserTaskStatus.CANCELLED,
+        "canceled": UserTaskStatus.CANCELLED,
+    }
+    if normalized not in mapping:
+        raise ValueError("unsupported legacy status")
+    return mapping[normalized]
+
+
+def _legacy_datetime(value: Any, timezone_name: str, *, date_end: bool = False) -> datetime | None:
+    if value in (None, ""):
+        return None
+    zone = ZoneInfo(timezone_name)
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        text = str(value).strip()
+        if date_end and len(text) == 10:
+            parsed = datetime.combine(datetime.fromisoformat(text).date(), time(23, 59, 59))
+        else:
+            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        parsed = parsed.replace(tzinfo=zone)
+    return parsed.astimezone(timezone.utc)
 
 
 class UserTaskService:
@@ -74,13 +136,19 @@ class UserTaskService:
     async def create(self, *, title: str, description: str = "",
                      priority: UserTaskPriority = UserTaskPriority.MEDIUM,
                      due_at: datetime | None = None, timezone: str = "UTC",
+                     status: UserTaskStatus = UserTaskStatus.ACTIVE,
+                     created_at: datetime | None = None,
+                     completed_at: datetime | None = None,
+                     cancelled_at: datetime | None = None,
                      source: str = "api", session_id: str = "", agent_id: str = "",
                      trace_id: str = "", metadata: dict[str, Any] | None = None,
                      task_id: str | None = None, legacy_source_id: str | None = None) -> UserTask:
         try:
             task = UserTask(
                 **({"id": task_id} if task_id else {}), title=title, description=description,
-                priority=priority, due_at=due_at, timezone=timezone, source=source,
+                priority=priority, due_at=due_at, timezone=timezone, status=status,
+                **({"created_at": created_at, "updated_at": created_at} if created_at else {}),
+                completed_at=completed_at, cancelled_at=cancelled_at, source=source,
                 session_id=session_id, agent_id=agent_id, trace_id=trace_id,
                 metadata=metadata or {}, legacy_source_id=legacy_source_id,
             )
@@ -124,7 +192,8 @@ class UserTaskService:
             changes["due_at"] = due_at
         try:
             candidate = UserTask.model_validate({**current.model_dump(), **changes})
-            result = await self._repository.update(candidate, expected_revision or current.revision)
+            revision = current.revision if expected_revision is None else expected_revision
+            result = await self._repository.update(candidate, revision)
             await self._publish("user_task.updated", result.id, trace_id)
             return result
         except Exception as exc:
@@ -173,46 +242,98 @@ class UserTaskService:
 
     async def import_legacy(self, memory_manager, trace_id: str = "") -> LegacyImportResult:
         result = LegacyImportResult()
-        try:
-            items = await memory_manager.retrieve_memory(
-                MemoryQuery(memory_type=MemoryType.DECISION, top_k=500)
-            )
-        except Exception as exc:
-            self._degraded = True
-            await self._publish("user_task.failed", "legacy_import", trace_id, "failed")
-            self._raise(exc, "legacy_import", trace_id)
-        for item in items:
+        offset = 0
+        seen_pages: set[tuple[str, ...]] = set()
+        while True:
             try:
-                content = getattr(item, "content", None)
-                if not isinstance(content, dict):
-                    raise ValueError("legacy task content must be an object")
-                if content.get("type") != "task":
-                    result.skipped += 1
-                    continue
-                raw_legacy_id = getattr(item, "id", None)
-                title = str(content.get("title") or content.get("subject") or "").strip()
-                if not raw_legacy_id or not title:
-                    raise ValueError("legacy task requires id and title")
-                legacy_id = str(raw_legacy_id)
-                task_id = "ut_legacy_" + hashlib.sha256(legacy_id.encode()).hexdigest()[:24]
-                priority = {"高": UserTaskPriority.HIGH, "低": UserTaskPriority.LOW}.get(
-                    content.get("priority"), UserTaskPriority.MEDIUM
+                items = await memory_manager.retrieve_memory(MemoryQuery(
+                    memory_type=MemoryType.DECISION,
+                    top_k=_LEGACY_PAGE_SIZE,
+                    offset=offset,
+                ))
+            except Exception as exc:
+                self._degraded = True
+                await self._publish("user_task.failed", "legacy_import", trace_id, "failed")
+                self._raise(exc, "legacy_import", trace_id)
+            if not items:
+                break
+            page_signature = tuple(str(getattr(item, "id", "")) for item in items)
+            if page_signature in seen_pages:
+                self._degraded = True
+                await self._publish("user_task.failed", "legacy_import", trace_id, "failed")
+                self._raise(
+                    UserTaskPersistenceError("Legacy memory pagination did not advance"),
+                    "legacy_import",
+                    trace_id,
                 )
-                await self.create(
-                    task_id=task_id, title=title, description=str(content.get("raw_text", "")),
-                    priority=priority, source="legacy_decision_memory", trace_id=trace_id,
-                    legacy_source_id=legacy_id,
-                )
-                result.imported += 1
-            except FailureException as exc:
-                if exc.failure.category == ErrorCategory.CONFLICT:
-                    result.skipped += 1
-                else:
+            seen_pages.add(page_signature)
+            for item in items:
+                try:
+                    content = getattr(item, "content", None)
+                    if not isinstance(content, dict):
+                        raise ValueError("legacy task content must be an object")
+                    if content.get("type") != "task":
+                        result.skipped += 1
+                        continue
+                    raw_legacy_id = getattr(item, "id", None)
+                    title = str(content.get("title") or content.get("subject") or "").strip()
+                    if not raw_legacy_id or not title:
+                        raise ValueError("legacy task requires id and title")
+                    legacy_id = str(raw_legacy_id)
+                    item_metadata = getattr(item, "metadata", {})
+                    if not isinstance(item_metadata, dict):
+                        item_metadata = {}
+                    timezone_name = str(
+                        content.get("timezone") or item_metadata.get("timezone")
+                        or "Asia/Shanghai"
+                    )
+                    priority = _legacy_priority(content.get("priority"))
+                    status = _legacy_status(content.get("status"))
+                    due_at = _legacy_datetime(
+                        content.get("deadline"), timezone_name, date_end=True
+                    )
+                    created_at = _legacy_datetime(
+                        getattr(item, "timestamp", None), timezone_name
+                    ) or utc_now()
+                    task_id = "ut_legacy_" + hashlib.sha256(legacy_id.encode()).hexdigest()[:24]
+                    await self.create(
+                        task_id=task_id,
+                        title=title,
+                        description=str(content.get("raw_text", "")),
+                        priority=priority,
+                        due_at=due_at,
+                        timezone=timezone_name,
+                        status=status,
+                        created_at=created_at,
+                        completed_at=created_at if status == UserTaskStatus.COMPLETED else None,
+                        cancelled_at=created_at if status == UserTaskStatus.CANCELLED else None,
+                        source=str(
+                            content.get("source") or item_metadata.get("source")
+                            or "legacy_decision_memory"
+                        ),
+                        session_id=str(
+                            content.get("session_id") or item_metadata.get("session_id") or ""
+                        ),
+                        agent_id=str(
+                            content.get("agent_id") or item_metadata.get("agent_id") or ""
+                        ),
+                        trace_id=trace_id,
+                        metadata={"legacy_imported": True},
+                        legacy_source_id=legacy_id,
+                    )
+                    result.imported += 1
+                except FailureException as exc:
+                    if exc.failure.category == ErrorCategory.CONFLICT:
+                        result.skipped += 1
+                    else:
+                        result.failed += 1
+                        self._degraded = True
+                except Exception:
                     result.failed += 1
                     self._degraded = True
-            except Exception:
-                result.failed += 1
-                self._degraded = True
+            offset += len(items)
+            if len(items) < _LEGACY_PAGE_SIZE:
+                break
         if result.failed:
             await self._publish("user_task.failed", "legacy_import", trace_id, "degraded")
         await self._publish(

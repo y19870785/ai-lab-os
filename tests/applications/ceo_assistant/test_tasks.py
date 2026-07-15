@@ -7,7 +7,11 @@
 - 不再把正式任务写入 Decision Memory
 """
 
-import pytest, pytest_asyncio,  sys, os
+import os
+import sys
+
+import pytest
+import pytest_asyncio
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
@@ -75,13 +79,26 @@ class TestTasks:
         """截止时间应被正确解析。"""
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天下午完成报告",
+            user_input="提醒我明天完成报告",
         ))
         assert resp.status == "ok"
         # deadline 应为明天
         from datetime import datetime, timedelta
         tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
         assert tomorrow in str(resp.metadata.get("due_at", "")), f"due_at 应为 {tomorrow}"
+
+    @pytest.mark.asyncio
+    async def test_specific_time_is_parsed_without_end_of_day_fallback(self, app_with_decision):
+        from datetime import datetime, timedelta, timezone
+
+        resp = await app_with_decision.run(ApplicationRequest(
+            application_name="ceo-assistant",
+            user_input="提醒我明天下午3点跟进客户",
+        ))
+        assert resp.status == "ok"
+        due_at = datetime.fromisoformat(resp.metadata["due_at"])
+        local_due = due_at.astimezone(timezone(timedelta(hours=8)))
+        assert (local_due.hour, local_due.minute) == (15, 0)
 
     @pytest.mark.asyncio
     async def test_task_priority_high(self, app_with_decision):
@@ -97,7 +114,7 @@ class TestTasks:
     async def test_unparsed_deadline_is_explicit_and_not_fabricated(self, app_with_decision):
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我下周五完成报告",
+            user_input="提醒我明天下午完成报告",
         ))
         assert resp.status == "ok"
         assert resp.metadata.get("due_at") is None

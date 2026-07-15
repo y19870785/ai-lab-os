@@ -39,6 +39,22 @@ def test_user_task_api_validation_not_found_and_no_internal_leak(tmp_path):
         assert {"status", "code", "message", "component", "retryable", "trace_id", "details"} <= body.keys()
         assert "sqlite" not in missing.text.lower()
         assert "select " not in missing.text.lower()
+        invalid_zone = client.post("/tasks", json={
+            "title": "bad zone", "timezone": "Mars/Olympus_Mons",
+        })
+        assert invalid_zone.status_code == 400
+
+        created = client.post("/tasks", json={"title": "revision guard"})
+        task_id = created.json()["id"]
+        for revision in (0, -1):
+            invalid_revision = client.patch(
+                f"/tasks/{task_id}", json={"title": "must fail", "revision": revision}
+            )
+            assert invalid_revision.status_code == 400
+        stale = client.patch(
+            f"/tasks/{task_id}", json={"title": "stale", "revision": 99}
+        )
+        assert stale.status_code == 409
 
 
 def test_user_task_api_database_failure_and_disabled_service_are_non_2xx(tmp_path):
@@ -62,3 +78,23 @@ def test_user_task_api_database_failure_and_disabled_service_are_non_2xx(tmp_pat
         response = client.post("/tasks", json={"title": "must not mock"})
         assert response.status_code >= 400
         assert response.json()["code"] == "user_tasks.disabled"
+
+
+def test_user_task_api_corrupt_row_is_server_failure_without_leak(tmp_path):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        created = client.post("/tasks", json={"title": "corrupt me"})
+        task_id = created.json()["id"]
+        manager = client.app.state.system.database_manager
+        with manager.lease("user_tasks") as conn:
+            conn.execute(
+                "UPDATE user_tasks SET metadata=? WHERE id=?",
+                ('{"nested":{"token":"private-value"}} trailing', task_id),
+            )
+            conn.commit()
+        response = client.get(f"/tasks/{task_id}")
+        assert response.status_code >= 500
+        assert response.status_code != 400
+        assert response.json()["component"] == "user_tasks"
+        assert "private-value" not in response.text
+        assert "metadata" not in response.text.lower()

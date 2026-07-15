@@ -102,18 +102,24 @@ class SQLiteDecisionStore(MemoryStore):
         conditions = ["memory_type = ?"]
         params: list[Any] = [MemoryType.DECISION.value]
         if spec.min_importance > 0:
-            conditions.append("importance >= ?"); params.append(spec.min_importance)
+            conditions.append("importance >= ?")
+            params.append(spec.min_importance)
         if spec.time_range:
             start, end = spec.time_range
             conditions.append("timestamp >= ? AND timestamp <= ?")
-            params.append(start.isoformat()); params.append(end.isoformat())
+            params.append(start.isoformat())
+            params.append(end.isoformat())
         for key, value in spec.filters.items():
             if key in ("outcome", "agent_id", "session_id", "decision_type"):
-                conditions.append(f"json_extract(content, '$.{key}') = ?"); params.append(str(value))
+                conditions.append(f"json_extract(content, '$.{key}') = ?")
+                params.append(str(value))
         where = " AND ".join(conditions)
         with self._lease() as conn:
-            rows = conn.execute(f"SELECT * FROM decision_memories WHERE {where} ORDER BY importance DESC LIMIT ?",
-                                params + [spec.top_k]).fetchall()
+            rows = conn.execute(
+                f"SELECT * FROM decision_memories WHERE {where} "
+                "ORDER BY importance DESC, timestamp DESC, id ASC LIMIT ? OFFSET ?",
+                params + [spec.top_k, spec.offset],
+            ).fetchall()
         return [self._row_to_item(r) for r in rows]
 
     async def delete(self, id: str) -> bool:

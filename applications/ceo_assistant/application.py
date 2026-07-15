@@ -11,15 +11,12 @@ AI-Lab 首个真实业务应用。支持：
 
 from __future__ import annotations
 import re
-import os
-import json
 import time
-import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from typing import Any
-import uuid
 
-from applications.models import ApplicationInfo, ApplicationManifest, ApplicationContext, ApplicationRequest, ApplicationResponse
+from applications.models import ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse
 from applications.config import ApplicationConfig
 from core.errors import (
     ErrorCategory,
@@ -351,11 +348,46 @@ class CEOAssistant:
         user_timezone = "Asia/Shanghai"
         unparsed_due_expression = False
         if "明天" in user_input or "今天" in user_input:
-            local_zone = timezone(timedelta(hours=8))
+            local_zone = ZoneInfo(user_timezone)
             local_now = datetime.now(local_zone)
             due_date = local_now.date() + timedelta(days=1 if "明天" in user_input else 0)
-            due_at = datetime.combine(due_date, datetime.max.time().replace(microsecond=0),
-                                      tzinfo=local_zone)
+            clock_match = re.search(
+                r"(上午|下午|晚上|中午)?\s*(\d{1,2})(?:[:：](\d{1,2}))?\s*(?:点|时)",
+                user_input,
+            )
+            specific_time_requested = bool(re.search(
+                r"上午|下午|晚上|中午|\d{1,2}\s*(?:点|时)|\d{1,2}[:：]\d{1,2}",
+                user_input,
+            ))
+            if clock_match:
+                period, hour_text, minute_text = clock_match.groups()
+                hour = int(hour_text)
+                minute = int(minute_text or 0)
+                valid = 0 <= minute <= 59
+                if period:
+                    valid = valid and 1 <= hour <= 12
+                    if valid and period in {"下午", "晚上"} and hour < 12:
+                        hour += 12
+                    elif valid and period == "上午" and hour == 12:
+                        hour = 0
+                    elif valid and period == "中午" and hour < 11:
+                        valid = False
+                else:
+                    valid = valid and 0 <= hour <= 23
+                if valid:
+                    due_at = datetime.combine(
+                        due_date, datetime.min.time().replace(hour=hour, minute=minute),
+                        tzinfo=local_zone,
+                    )
+                else:
+                    unparsed_due_expression = True
+            elif specific_time_requested:
+                unparsed_due_expression = True
+            else:
+                due_at = datetime.combine(
+                    due_date, datetime.max.time().replace(microsecond=0),
+                    tzinfo=local_zone,
+                )
         elif any(marker in user_input for marker in ("后天", "下周", "周一", "周二", "周三",
                                                      "周四", "周五", "周六", "周日")):
             unparsed_due_expression = True
@@ -373,7 +405,7 @@ class CEOAssistant:
         if task.due_at:
             answer += f"\n截止: {task.due_at.isoformat()}"
         elif unparsed_due_expression:
-            answer += "\n截止: 未识别，任务已保存为无截止日期"
+            answer += "\n截止: 未识别具体时间，任务已保存为无截止日期"
         return {"answer": answer, "status": "ok", "metadata": task.model_dump(mode="json")}
 
     # ---- 3. 决策记录 ----
@@ -439,7 +471,7 @@ class CEOAssistant:
             answer_parts.append(f"理由: {decision_info['reason']}")
         if decision_info["alternatives"]:
             answer_parts.append(f"备选方案: {', '.join(decision_info['alternatives'])}")
-        answer_parts.append(f"状态: 待追踪结果")
+        answer_parts.append("状态: 待追踪结果")
 
         return {"answer": "\n".join(answer_parts), "status": "ok", "metadata": decision_info}
 
@@ -452,7 +484,6 @@ class CEOAssistant:
 
         if self._knowledge:
             try:
-                from core.knowledge.models import KnowledgeQuery
                 results = await self._knowledge.search(user_input, top_k=5)
                 if results:
                     answer_parts = ["[KB] 基于知识库检索：", ""]

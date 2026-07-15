@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -34,6 +35,20 @@ def _aware_utc(value: datetime | None) -> datetime | None:
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("datetime values must include timezone information")
     return value.astimezone(timezone.utc)
+
+
+def _contains_sensitive_key(value: Any) -> bool:
+    sensitive = {
+        "api_key", "apikey", "token", "secret", "password", "authorization",
+    }
+    if isinstance(value, dict):
+        for key, nested in value.items():
+            normalized = str(key).strip().lower().replace("-", "_")
+            if normalized in sensitive or _contains_sensitive_key(nested):
+                return True
+    elif isinstance(value, (list, tuple)):
+        return any(_contains_sensitive_key(item) for item in value)
+    return False
 
 
 class UserTask(BaseModel):
@@ -69,11 +84,22 @@ class UserTask(BaseModel):
     def normalize_datetimes(cls, value: datetime | None) -> datetime | None:
         return _aware_utc(value)
 
+    @field_validator("timezone")
+    @classmethod
+    def validate_timezone(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("timezone must not be blank")
+        try:
+            ZoneInfo(value)
+        except ZoneInfoNotFoundError as exc:
+            raise ValueError("timezone must be a valid IANA timezone") from exc
+        return value
+
     @field_validator("metadata")
     @classmethod
     def validate_metadata(cls, value: dict[str, Any]) -> dict[str, Any]:
-        sensitive = {"api_key", "token", "secret", "password", "authorization"}
-        if any(str(key).lower() in sensitive for key in value):
+        if _contains_sensitive_key(value):
             raise ValueError("task metadata contains a sensitive key")
         try:
             json.dumps(value, ensure_ascii=False)
@@ -88,6 +114,11 @@ class UserTask(BaseModel):
             and self.due_at is not None
             and self.due_at < current
         )
+
+    def due_at_in_timezone(self) -> datetime | None:
+        """Return the UTC instant in the task's validated presentation timezone."""
+
+        return self.due_at.astimezone(ZoneInfo(self.timezone)) if self.due_at else None
 
 
 class UserTaskQuery(BaseModel):

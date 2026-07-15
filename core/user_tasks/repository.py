@@ -97,13 +97,14 @@ class SQLiteUserTaskRepository:
         try:
             with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
                 row = conn.execute("SELECT * FROM user_tasks WHERE id = ?", (task_id,)).fetchone()
+            task = self._task(row) if row is not None else None
             self._last_error = None
         except Exception as exc:
             self._last_error = exc.__class__.__name__
             raise UserTaskPersistenceError("UserTask query failed") from exc
-        if row is None:
+        if task is None:
             raise UserTaskNotFoundError("UserTask not found")
-        return self._task(row)
+        return task
 
     async def list(self, query: UserTaskQuery | None = None) -> list[UserTask]:
         query = query or UserTaskQuery()
