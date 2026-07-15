@@ -2,7 +2,7 @@
 
 ## 状态
 
-Proposed / SP-005 implementation candidate
+Adopted / SP-005 merged via PR #10
 
 ## 问题
 

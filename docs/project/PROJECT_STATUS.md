@@ -10,7 +10,9 @@
 
 SP-004 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。Canonical UserTask、`tasks.db`、真实 Task API、CEO Assistant 接入和 Legacy importer 已进入主分支。
 
-当前产品版本仍为 v0.33.0，未创建 v0.34.0 Tag 或 GitHub Release。SP-005 Reminder/Occurrence、Scheduler CAS claim、One-shot terminal、Saga reconciliation 与 API 已形成未合并候选；通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
+SP-005 已完成审查并通过 PR #10 以 Squash Merge 合并到 `main`。审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。Reminder/Occurrence、Scheduler CAS claim、One-shot terminal、Saga reconciliation 与真实 API 已进入主分支，并保持默认关闭。
+
+当前产品版本仍为 v0.33.0，未创建 v0.34.0 Tag 或 GitHub Release。外部通知渠道、Recurring Reminder、Inbox、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
 
 ## Key Metrics
 
@@ -18,7 +20,7 @@ SP-004 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。审查
 |---|---|
 | Python Files | 446 |
 | Code Lines | 29,259 |
-| Tests | 888 passed, 27 warnings in 45.19s（SP-005 候选 Windows 本地验证，非跨平台 CI） |
+| Tests | 888 passed, 27 warnings in 45.19s（SP-005 Windows 本地最终验证，非跨平台 CI） |
 | RFC | 16 |
 | ADR | 34 |
 | Architecture Layers | 11 |
@@ -35,11 +37,11 @@ SP-004 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。审查
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime + MCP | Integrated | Registry/Executor 已接入；自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Workflow / Task Runtime | Integrated / Verified | 当前组合与失败语义已验证 |
-| Scheduler / Reminder | Implementation candidate / Disabled by default | SP-005 候选待审查；外部通知未实现 |
+| Scheduler / Reminder | Integrated / Verified / Disabled by default | SP-005 已合并；外部通知未实现 |
 | Coordination | Implemented / Disabled | 默认关闭，未接入 CEO Assistant 主链路 |
 | Application Runtime | Integrated / Verified | 只派发注册实例 |
 | CEO Assistant | Integrated / Verified / Alpha | CLI 与工作记录闭环可用，尚非生产级产品 |
 
 ## Next Milestone
 
-当前稳定化工作是 **SP-005 — Reminder & Scheduler Bridge** 的真实 Diff 审查；审查合并前不扩展通知渠道。
+SP-005 已完成并封存。下一项稳定化工作尚待独立任务书确认；在此之前不扩展通知渠道，也不提前实施新的产品 Phase。

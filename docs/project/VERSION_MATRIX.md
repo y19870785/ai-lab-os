@@ -14,7 +14,7 @@
 | Scheduler Runtime | 1.0 | v0.21.0 | Workflow, Memory |
 | Task Runtime | 1.0 | v0.22.0 | Scheduler, Workflow |
 | UserTask | 1.0 | Unreleased（post-v0.33.0 main） | DatabaseManager, EventBus |
-| Reminder Bridge | Candidate | Unreleased（post-v0.33.0） | UserTask, Scheduler, DatabaseManager |
+| Reminder Bridge | 1.0 | Unreleased（post-v0.33.0 main） | UserTask, Scheduler, DatabaseManager |
 
 ## 升级说明
 
@@ -26,4 +26,4 @@
 - v0.20.0 → v0.21.0: Scheduler Runtime 新增，Workflow 接口不变
 - v0.21.0 → v0.22.0: Task Runtime 新增，Scheduler/Workflow 接口不变
 - post-v0.33.0 main（SP-004）: 新增 Canonical UserTask 与真实 Task API；尚未进入新的正式 Release，Reminder/Scheduler Bridge 留给 SP-005
-- SP-005 candidate: 新增 Reminder/Occurrence、Scheduler CAS claim 与 Saga reconciliation；尚未审查或进入正式 Release
+- post-v0.33.0 main（SP-005）: 新增 Reminder/Occurrence、Scheduler CAS claim 与 Saga reconciliation；已通过 PR #10 合并，尚未进入新的正式 Release
