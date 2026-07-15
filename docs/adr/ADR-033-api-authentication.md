@@ -1,7 +1,7 @@
 ﻿# ADR-033: API Authentication Mechanism
 
 ## Status
-Accepted
+Proposed / SP-006 implementation candidate
 
 ## Context
 The AI-Lab API previously allowed unauthenticated access to all endpoints. As the system transitions from prototype to alpha, API access must be controlled.

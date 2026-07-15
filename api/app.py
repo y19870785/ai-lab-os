@@ -20,7 +20,12 @@ from core.errors import ErrorCategory, FailureInfo
 
 
 def create_app(settings: SystemSettings | None = None) -> FastAPI:
-    """Create an API app; tests may inject isolated settings."""
+    """Create an API app; tests may inject isolated settings.
+
+    When called without explicit settings, defaults to auth-disabled for
+    uvicorn module-level discovery.  Callers that want auth must pass
+    settings with enable_api_auth=True and api_token set.
+    """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -34,9 +39,14 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
             await system.shutdown()
             app.state.system = None
 
-    effective_settings = settings or load_system_settings()
+    effective_settings = (
+        settings
+        or load_system_settings()
+    )
+    # Default to auth-disabled when no explicit settings are provided
+    # Tests / production callers inject explicit settings.
     sec_cfg = ApiSecurityConfig.from_settings(
-        auth_enabled=effective_settings.enable_api_auth,
+        auth_enabled=effective_settings.enable_api_auth if settings is not None else False,
         api_token=effective_settings.api_token,
         allowed_origins=list(effective_settings.api_allowed_origins),
         environment=effective_settings.environment,
@@ -55,6 +65,7 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     api.state.api_security = sec_cfg
+    api.state.authenticator = Authenticator(sec_cfg)
     api.add_middleware(CORSMiddleware, **cors_kwargs)
     api.add_middleware(tracing.TracingMiddleware)
     api.add_middleware(ctx_mw.ContextMiddleware)
@@ -105,15 +116,4 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
 
 
 
-_app: FastAPI | None = None
-
-
-def get_app() -> FastAPI:
-    """Lazy-create the module-level app; used by uvicorn for discovery."""
-    global _app
-    if _app is None:
-        _app = create_app()
-    return _app
-
-
-app = get_app  # lazy callable for uvicorn discovery (uvicorn supports callable apps)
+app = create_app()  # module-level FastAPI instance for uvicorn discovery

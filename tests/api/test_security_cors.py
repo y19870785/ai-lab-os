@@ -1,4 +1,4 @@
-﻿"SP-006 CORS tests."
+"""SP-006 CORS tests with tightened assertions."""
 
 from pathlib import Path
 import tempfile
@@ -41,7 +41,7 @@ def no_origin_client():
 
 
 class TestCorsAllowlist:
-    def test_no_allowed_origins_by_default(self, no_origin_client):
+    def test_no_allowed_origins_denies_cross_origin(self, no_origin_client):
         resp = no_origin_client.get("/health", headers={"Origin": "http://example.com"})
         acao = resp.headers.get("access-control-allow-origin")
         assert acao is None or acao == ""
@@ -55,12 +55,12 @@ class TestCorsAllowlist:
         acao = resp.headers.get("access-control-allow-origin")
         assert acao is None or acao == ""
 
-    def test_preflight_options_works(self, cors_client):
+    def test_preflight_options_success(self, cors_client):
         resp = cors_client.options(
             "/health",
             headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"},
         )
-        assert resp.status_code in {200, 405}
+        assert resp.status_code == 200
 
     def test_cli_direct_call_works_without_origin(self, no_origin_client):
         resp = no_origin_client.get("/health")
@@ -72,11 +72,45 @@ class TestCorsConfigErrors:
         with pytest.raises(ValueError, match="Wildcard origin"):
             from applications.security.config import ApiSecurityConfig
             ApiSecurityConfig.from_settings(
-                auth_enabled=True, api_token="test",
-                allowed_origins=["*"],
+                auth_enabled=True, api_token="test", allowed_origins=["*"],
             )
 
-    def test_duplicate_origins_normalized(self):
+    def test_origin_invalid_scheme(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="invalid"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["ftp://example.com"])
+
+    def test_origin_no_host(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="invalid"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["not-a-url"])
+
+    def test_origin_with_credentials(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="credentials"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://user:pass@example.com"])
+
+    def test_origin_with_path(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="path"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://example.com/path"])
+
+    def test_origin_with_query(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="query"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://example.com?query=1"])
+
+    def test_origin_with_fragment(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="fragment"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://example.com/#fragment"])
+
+    def test_origin_missing_scheme(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="invalid"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["localhost:3000"])
+
+    def test_dup_normalized(self):
         from applications.security.config import ApiSecurityConfig
         cfg = ApiSecurityConfig.from_settings(
             auth_enabled=False, api_token="",

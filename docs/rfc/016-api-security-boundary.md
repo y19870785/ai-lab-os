@@ -1,7 +1,7 @@
 ﻿# RFC-016: Application API Security Boundary
 
 ## Status
-Adopted
+Proposed / SP-006 implementation candidate
 
 ## Context
 AI-Lab Application / CEO Assistant API has entered the real execution chain. However:

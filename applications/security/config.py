@@ -14,6 +14,7 @@ class ApiSecurityConfig:
     allowed_origins: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        from urllib.parse import urlparse
         normalized = []
         seen = set()
         for origin in self.allowed_origins:
@@ -28,10 +29,34 @@ class ApiSecurityConfig:
                 normalized.append(o)
                 seen.add(o)
                 continue
-            if o.lower() in seen:
-                continue
-            seen.add(o.lower())
-            normalized.append(o)
+            # Validate origin format: must be http(s)://host[:port]
+            parsed = urlparse(o)
+            if parsed.scheme not in ("http", "https"):
+                raise ValueError(
+                    f"Origin '{o}' has invalid scheme; must be http or https"
+                )
+            if not parsed.hostname:
+                raise ValueError(f"Origin '{o}' lacks a valid host")
+            if parsed.username or parsed.password:
+                raise ValueError(
+                    f"Origin '{o}' contains credentials; not allowed"
+                )
+            if parsed.path and parsed.path != "/":
+                raise ValueError(
+                    f"Origin '{o}' contains a path; only scheme+host+port allowed"
+                )
+            if parsed.query or parsed.fragment:
+                raise ValueError(
+                    f"Origin '{o}' contains query/fragment; only scheme+host+port allowed"
+                )
+            # Reconstruct canonical form
+            canonical = parsed.hostname
+            if parsed.port:
+                canonical = f"{parsed.hostname}:{parsed.port}"
+            canonical = f"{parsed.scheme}://{canonical}"
+            if canonical.lower() not in seen:
+                seen.add(canonical.lower())
+                normalized.append(canonical)
         object.__setattr__(self, "allowed_origins", normalized)
 
     @classmethod

@@ -1,7 +1,7 @@
 ﻿# ADR-034: CORS Allowlist Policy
 
 ## Status
-Accepted
+Proposed / SP-006 implementation candidate
 
 ## Context
 The API previously used \llow_origins=["*"]\, allowing any browser-based origin to access API endpoints. This is unsafe for browser-based integrations.

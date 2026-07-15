@@ -27,8 +27,18 @@ def require_auth(request: Request) -> None:
     """
     sec_cfg = getattr(request.app.state, "api_security", None)
     if sec_cfg is None:
-        return
-    authenticator = Authenticator(sec_cfg)
+        from core.errors import FailureInfo, ErrorCategory
+        raise FailureException(FailureInfo(
+            code="api.auth.not_configured",
+            category=ErrorCategory.NOT_CONFIGURED,
+            message="API authentication is not configured",
+            component="api.auth",
+            operation="validate_bearer",
+            retryable=False,
+        ))
+    authenticator = getattr(request.app.state, "authenticator", None)
+    if authenticator is None:
+        authenticator = Authenticator(sec_cfg)
     result = authenticator.validate_from_request(request)
     if not result.is_valid and result.failure is not None:
         raise FailureException(result.failure)
