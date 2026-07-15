@@ -27,6 +27,7 @@ from core.tools.executor import ToolExecutor
 from core.tools.protocol import ToolProtocol
 from core.tools.registry import ToolRegistry
 from core.workflow.runtime import WorkflowRuntime
+from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.agents.models import AgentStatus
 from core.errors import RuntimeStatus
 from core.providers.models import ProviderStatus
@@ -54,6 +55,8 @@ class SystemContainer:
     workflow_runtime: WorkflowRuntime
     scheduler_runtime: SchedulerRuntime | None
     task_runtime: TaskRuntime
+    user_task_repository: SQLiteUserTaskRepository | None
+    user_task_service: UserTaskService | None
     coordination_runtime: AgentOrchestrator | None
     application_registry: ApplicationRegistry
     application_runtime: ApplicationRuntime
@@ -84,6 +87,12 @@ class SystemContainer:
             for store in self.memory_stores:
                 await store.initialize()
             logger.info("memory.initialized")
+
+            if self.user_task_service is not None:
+                await self.user_task_service.initialize()
+                logger.info("user_tasks.initialized")
+            else:
+                logger.info("user_tasks.disabled")
 
             if self.knowledge_manager is not None:
                 await self.knowledge_manager.initialize()
@@ -144,6 +153,8 @@ class SystemContainer:
         if self.coordination_runtime is not None:
             await close_component("coordination_runtime", self.coordination_runtime.shutdown)
         await close_component("task_runtime", self.task_runtime.shutdown)
+        if self.user_task_service is not None:
+            await close_component("user_task_service", self.user_task_service.close)
         if self.scheduler_runtime is not None:
             await close_component("scheduler_runtime", self.scheduler_runtime.shutdown)
         await close_component("workflow_runtime", self.workflow_runtime.shutdown)
@@ -207,6 +218,11 @@ class SystemContainer:
         database_health = self.database_manager.health()
         memory_health = self.memory_manager.health()
         application_health = await self.application_runtime.health_check()
+        user_task_health = (
+            await self.user_task_service.health()
+            if self.user_task_service is not None
+            else {"status": RuntimeStatus.DISABLED.value}
+        )
         tool_count = len(self.tool_registry.list_names())
         initialized_tool_count = len(self._tool_instances)
         components: dict[str, dict[str, object]] = {
@@ -252,6 +268,7 @@ class SystemContainer:
                 "status": RuntimeStatus.OK.value
                 if self.task_runtime.initialized else RuntimeStatus.NOT_INITIALIZED.value,
             },
+            "user_tasks": user_task_health,
             "coordination": {
                 "status": (
                     RuntimeStatus.DISABLED.value
@@ -279,6 +296,8 @@ class SystemContainer:
             critical.add("scheduler")
         if self.settings.enable_knowledge:
             critical.add("knowledge")
+        if self.settings.enable_user_tasks:
+            critical.add("user_tasks")
         top_status = RuntimeStatus.OK
         unavailable_statuses = {
             RuntimeStatus.FAILED.value,
