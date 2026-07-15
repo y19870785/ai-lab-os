@@ -37,6 +37,7 @@ class SystemSettings:
     enable_scheduler: bool = False
     enable_coordination: bool = False
     enable_user_tasks: bool = True
+    enable_reminders: bool = False
     enable_api: bool = False
 
     def __post_init__(self) -> None:
@@ -100,6 +101,7 @@ def load_system_settings(
         enable_scheduler=_as_bool(os.getenv("AI_LAB_ENABLE_SCHEDULER"), False),
         enable_coordination=_as_bool(os.getenv("AI_LAB_ENABLE_COORDINATION"), False),
         enable_user_tasks=_as_bool(os.getenv("AI_LAB_ENABLE_USER_TASKS"), True),
+        enable_reminders=_as_bool(os.getenv("AI_LAB_ENABLE_REMINDERS"), False),
         enable_api=_as_bool(os.getenv("AI_LAB_ENABLE_API"), False),
     )
 
@@ -110,6 +112,7 @@ def make_test_settings(
     enable_knowledge: bool = False,
     enable_scheduler: bool = False,
     enable_coordination: bool = False,
+    enable_reminders: bool = False,
 ) -> SystemSettings:
     """Build isolated settings that never touch the user's runtime data."""
 
@@ -121,4 +124,5 @@ def make_test_settings(
         enable_knowledge=enable_knowledge,
         enable_scheduler=enable_scheduler,
         enable_coordination=enable_coordination,
+        enable_reminders=enable_reminders,
     )

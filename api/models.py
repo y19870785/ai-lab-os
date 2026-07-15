@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from typing import Any
 
 from core.user_tasks import UserTaskPriority, UserTaskStatus
+from core.reminders import ReminderOccurrenceStatus, ReminderStatus
 
 class ChatRequest(BaseModel):
     user_input: str = ""
@@ -55,6 +56,45 @@ class TaskResponse(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     revision: int
     overdue: bool = False
+
+
+class ReminderCreateRequest(BaseModel):
+    remind_at: datetime
+    timezone: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ReminderUpdateRequest(BaseModel):
+    remind_at: datetime
+    timezone: str
+    revision: int | None = Field(default=None, ge=1)
+
+
+class ReminderResponse(BaseModel):
+    id: str
+    user_task_id: str
+    remind_at: datetime
+    timezone: str
+    status: ReminderStatus
+    scheduler_job_id: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    cancelled_at: datetime | None = None
+    trace_id: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    revision: int
+
+
+class ReminderOccurrenceResponse(BaseModel):
+    id: str
+    reminder_id: str
+    user_task_id: str
+    scheduled_at: datetime
+    triggered_at: datetime | None = None
+    status: ReminderOccurrenceStatus
+    trace_id: str = ""
+    idempotency_key: str
+    attempt: int
 
 class AppInfo(BaseModel):
     application_id: str = ""
