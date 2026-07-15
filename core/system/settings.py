@@ -40,6 +40,12 @@ class SystemSettings:
     enable_reminders: bool = False
     enable_api: bool = False
 
+    enable_api_auth: bool = True
+
+    api_token: str = ""
+
+    api_allowed_origins: list[str] = ()
+
     def __post_init__(self) -> None:
         mode = self.provider_mode.lower().strip()
         if mode not in {"real", "mock", "test", "invalid"}:
@@ -103,6 +109,20 @@ def load_system_settings(
         enable_user_tasks=_as_bool(os.getenv("AI_LAB_ENABLE_USER_TASKS"), True),
         enable_reminders=_as_bool(os.getenv("AI_LAB_ENABLE_REMINDERS"), False),
         enable_api=_as_bool(os.getenv("AI_LAB_ENABLE_API"), False),
+
+        enable_api_auth=_as_bool(os.getenv("AI_LAB_API_AUTH_ENABLED"), True),
+
+        api_token=os.getenv("AI_LAB_API_TOKEN", ""),
+
+        api_allowed_origins=[
+
+            o.strip() for o in
+
+            os.getenv("AI_LAB_API_ALLOWED_ORIGINS", "").split(",")
+
+            if o.strip()
+
+        ],
     )
 
 
@@ -114,7 +134,11 @@ def make_test_settings(
     enable_coordination: bool = False,
     enable_reminders: bool = False,
 ) -> SystemSettings:
-    """Build isolated settings that never touch the user's runtime data."""
+    """Build isolated settings that never touch the user's runtime data.
+
+    API auth is disabled by default so existing tests can call the API directly.
+    Auth-specific tests should enable it explicitly.
+    """
 
     return SystemSettings(
         environment="test",
@@ -125,4 +149,5 @@ def make_test_settings(
         enable_scheduler=enable_scheduler,
         enable_coordination=enable_coordination,
         enable_reminders=enable_reminders,
+        enable_api_auth=False,
     )
