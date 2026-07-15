@@ -16,7 +16,7 @@ SP-004 尚未开始。Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Pers
 |---|---|
 | Python Files | 393 |
 | Code Lines | 26,874 |
-| Tests | 819 passed, 27 warnings in 36.49s（v0.33.0 本地验证记录） |
+| Tests | 820 passed, 27 warnings in 37.64s（v0.33.0 Windows 本地验证记录，非跨平台 CI） |
 | RFC | 15 |
 | ADR | 29 |
 | Architecture Layers | 11 |

@@ -1,5 +1,6 @@
 """Static release-contract checks; wheel construction remains a release gate."""
 
+import ast
 from pathlib import Path
 
 import tomllib
@@ -56,3 +57,23 @@ def test_requirements_is_only_a_local_extra_compatibility_entrypoint():
         if line.strip() and not line.lstrip().startswith("#")
     ]
     assert lines == ["-e .[local]"]
+
+
+def test_windows_script_tests_have_a_module_level_platform_gate():
+    test_path = PROJECT_ROOT / "tests" / "deployment" / "test_windows_scripts.py"
+    tree = ast.parse(test_path.read_text(encoding="utf-8"))
+    assignments = [
+        node
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(
+            isinstance(target, ast.Name) and target.id == "pytestmark"
+            for target in node.targets
+        )
+    ]
+
+    assert len(assignments) == 1
+    gate = ast.unparse(assignments[0].value)
+    assert "pytest.mark.skipif" in gate
+    assert "os.name" in gate
+    assert "shutil.which('cmd.exe')" in gate

@@ -4,7 +4,16 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import shutil
 import subprocess
+
+import pytest
+
+
+pytestmark = pytest.mark.skipif(
+    os.name != "nt" or shutil.which("cmd.exe") is None,
+    reason="Windows batch-script tests require cmd.exe",
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

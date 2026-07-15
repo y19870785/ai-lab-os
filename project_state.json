@@ -12,11 +12,12 @@
     "test_files": 104
   },
   "test_summary": {
-    "passed": 819,
+    "passed": 820,
     "failed": 0,
     "skipped": 0,
     "warnings": 27,
-    "real_provider_errors": 0
+    "real_provider_errors": 0,
+    "environment": "Windows local Python 3.12; not a cross-platform CI result"
   },
   "real_provider": {
     "provider": "DeepSeek",
