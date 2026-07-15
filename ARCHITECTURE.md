@@ -308,7 +308,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 | v0.6.0 ~ v0.1.0 | 2026-07-11~12 | Foundation Phase + Governance |
 
 ### SP-006: API Security Boundary (Implementation Candidate)
-- pplications/security/ module: centralized Authenticator + ApiSecurityConfig
+- pplications/security/ module: centralized Authenticator + ApiSecurityConfig
 - Bearer-token auth with constant-time comparison (hmac.compare_digest)
 - CORS explicit allowlist (no wildcard when auth enabled)
 - Protected routes require Depends(require_auth); health/metrics remain public

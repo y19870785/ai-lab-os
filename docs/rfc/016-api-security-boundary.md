@@ -6,7 +6,7 @@ Proposed / SP-006 implementation candidate
 ## Context
 AI-Lab Application / CEO Assistant API has entered the real execution chain. However:
 - The API lacks unified access authentication.
-- CORS is configured to allow any origin (\llow_origins=["*"]\).
+- CORS is configured to allow any origin (\llow_origins=["*"]\).
 - Without authentication, any caller with network access can invoke business APIs.
 - There is no explicit contract between caller identity and API trust boundary.
 
@@ -17,7 +17,7 @@ SP-006 establishes the minimum, verifiable API security boundary for the alpha d
 2. Health and metrics endpoints (/health, /health/*, /metrics) remain public.
 3. Authentication uses static bearer tokens configured via \AI_LAB_API_TOKEN\. Token validation uses \hmac.compare_digest\ for constant-time comparison.
 4. CORS uses an explicit allowlist via \AI_LAB_API_ALLOWED_ORIGINS\; the default forbids any origin. Wildcard \*\ with authentication enabled is rejected at configuration time.
-5. Authentication enforcement is centralized in \pplications/security/\ and applied at router level via \include_router(dependencies=[Depends(require_auth)])\.
+5. Authentication enforcement is centralized in \pplications/security/\ and applied at router level via \include_router(dependencies=[Depends(require_auth)])\.
 6. Token configuration is validated at application build time: if auth is enabled and no token is configured, the app fails to start.
 7. When auth is disabled (explicit \AI_LAB_API_AUTH_ENABLED=false\), it must be explicit and is intended only for trusted local development.
 

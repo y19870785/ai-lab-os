@@ -4,7 +4,7 @@
 Proposed / SP-006 implementation candidate
 
 ## Context
-The API previously used \llow_origins=["*"]\, allowing any browser-based origin to access API endpoints. This is unsafe for browser-based integrations.
+The API previously used \llow_origins=["*"]\, allowing any browser-based origin to access API endpoints. This is unsafe for browser-based integrations.
 
 ## Decision
 Use an explicit, centrally-configured CORS allowlist.
