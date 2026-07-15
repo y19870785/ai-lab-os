@@ -10,6 +10,8 @@ v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Obser
 
 `core/user_tasks` 是用户待办的唯一领域边界：Domain → UserTaskService → SQLiteUserTaskRepository → DatabaseManager lease → `tasks.db`。API 与 CEO Assistant 只调用 Service；`core/task` 继续专注 Workflow 执行任务，`core/scheduler` 继续管理 Scheduled Job。
 
+UserTask 将 `due_at` 统一持久化为 UTC，并用经过 IANA 校验的 `timezone` 保留用户展示语义；Legacy Decision Memory 通过 offset 分页导入并显式迁移 deadline、priority、status、session、agent 与 source。revision 必须大于等于 1，损坏持久化行归类为 Persistence Failure。
+
 ## 依赖与打包契约
 
 `pyproject.toml` 是产品版本、运行依赖、可选能力和 setuptools 包发现的唯一权威来源。最小 Core 安装仅包含 Pydantic、PyYAML 与 python-dotenv；API、Real Provider、Knowledge、Test、Build、Dev 通过独立 extras 声明，`local` 提供不含大型 Knowledge 依赖的完整本地验收组合。`requirements.txt` 只代理 `.[local]`，不维护第二套依赖版本。

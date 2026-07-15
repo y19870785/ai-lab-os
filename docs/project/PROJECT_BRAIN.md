@@ -17,7 +17,7 @@ AI-Lab 是面向个人 CEO / 经营者的 AI Operating System 基础设施。目
 
 v0.33.0 基线在全新隔离 Python 3.12 环境中的最终 Windows 本地验证为 `820 passed, 27 warnings in 37.64s`；真实 DeepSeek 测试为 `5 passed in 8.37s`。这些统计不是跨平台 CI 或 GitHub Actions 结果。
 
-SP-004 开发分支的 Windows 本地完整验证为 `835 passed, 27 warnings in 47.46s`，该数字不回写为 v0.33.0 发布基线，也不是 GitHub Actions 结果。
+SP-004 开发分支的 Windows 本地完整验证为 `841 passed, 27 warnings in 38.09s`，该数字不回写为 v0.33.0 发布基线，也不是 GitHub Actions 结果。
 
 ## Git 基线
 

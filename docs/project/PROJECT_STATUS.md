@@ -16,7 +16,7 @@ SP-004 已实现 Canonical UserTask、`tasks.db` 和真实 Task API。Reminder/U
 |---|---|
 | Python Files | 393 |
 | Code Lines | 26,874 |
-| Tests | 835 passed, 27 warnings in 47.46s（SP-004 Windows 本地验证记录，非跨平台 CI） |
+| Tests | 841 passed, 27 warnings in 38.09s（SP-004 Windows 本地验证记录，非跨平台 CI） |
 | RFC | 15 |
 | ADR | 29 |
 | Architecture Layers | 11 |

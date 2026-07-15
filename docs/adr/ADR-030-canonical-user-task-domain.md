@@ -8,7 +8,7 @@ Accepted
 
 建立独立 `core/user_tasks` 作为唯一用户待办领域。UserTask 不复用 Workflow 的 Execution Task，也不继续把 Decision Memory 当作正式任务数据库。数据持久化到统一 SQLite 目录的 `tasks.db`，连接由 DatabaseManager 所有。
 
-历史 `type=task` Decision Memory 通过显式、幂等、非破坏 importer 兼容。Reminder 与 Scheduler 桥梁留给 SP-005。
+历史 `type=task` Decision Memory 通过显式、分页、幂等、非破坏 importer 兼容；deadline、priority、status、session、agent 和 source 按明确规则迁移。`due_at` 统一存储 UTC，`timezone` 使用有效 IANA 标识。Reminder 与 Scheduler 桥梁留给 SP-005。
 
 ## 原因
 
@@ -16,4 +16,4 @@ Accepted
 
 ## 后果
 
-API 和 CEO Assistant 统一依赖 UserTaskService。更新使用 revision 防止静默覆盖；旧任务不会自动无限双读，也不会被删除。系统新增一个由 Composition Root 管理的 `user_tasks` 关键组件。
+API 和 CEO Assistant 统一依赖 UserTaskService。更新使用 `revision >= 1` 防止静默覆盖；旧任务不会自动无限双读，也不会被删除。损坏持久化行统一报告 Persistence Failure。系统新增一个由 Composition Root 管理的 `user_tasks` 关键组件。

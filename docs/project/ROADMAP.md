@@ -18,7 +18,7 @@
 
 | Status | Action |
 |---|---|
-| **BASELINE** | v0.33.0 — 稳定化基线；SP-004 尚未开始 |
+| **BASELINE** | v0.33.0 — 稳定化基线；Canonical UserTask 为当前稳定化方向 |
 | **LIMITS** | Reminder/UserTask-Scheduler、Knowledge 主链路、自动 Tool Calling、Coordination 主链路仍未完成 |
 
 ## Future (Tentative — Subject to Review Outcome)
