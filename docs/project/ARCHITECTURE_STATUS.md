@@ -55,9 +55,11 @@ TaskRuntime
 ```
 SchedulerRuntime (Tick-loop)
   ├── TriggerEngine (Cron / Interval / One-shot / Manual / Event)
-  ├── JobExecutor → WorkflowRuntime
+  ├── SQLite CAS Claim + Persistent JobRun
+  ├── ActionHandlerRegistry → Workflow / Reminder Handler
   ├── SchedulerRegistry
-  └── SchedulerPersistence (SQLite)
+  ├── SchedulerPersistence (SQLite, independent owner)
+  └── ReminderSchedulerBridge → reminders.db / reconciliation
 ```
 
 ## Workflow Engine

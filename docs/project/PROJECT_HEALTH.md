@@ -8,10 +8,10 @@
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| RFCs | 15 |
-| ADRs | 29 |
-| Tests | 847（SP-004 Windows 本地验证） |
-| Test Pass Rate | 100% (847 passed, 0 failed；非跨平台 CI 结果) |
+| RFCs | 16 |
+| ADRs | 34 |
+| Tests | 874（SP-005 候选 Windows 本地验证） |
+| Test Pass Rate | 100% (874 passed, 0 failed；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |
@@ -28,7 +28,7 @@
 | UserTask | Integrated / Verified | SP-004 已合并；正式领域、`tasks.db`、真实 API、CEO Assistant 接入和 Legacy importer 已验证 |
 | Knowledge | Implemented / Disabled | 默认不启动；Reindex、Chunk Persistence、Citation 和真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | Registry/Executor 和低风险工具已接入；自动 Tool Calling 与完整 MCP 产品闭环未完成 |
-| Scheduler | Implemented / Disabled | Runtime 基础存在；Reminder/UserTask 调度闭环未完成 |
+| Scheduler / Reminder | Implementation candidate / Disabled by default | CAS claim、Occurrence 幂等与 Saga 候选待审查；通知渠道未实现 |
 | Coordination | Implemented / Disabled | 默认关闭；CEO Assistant 主链路未接入 |
 | Application / CEO Assistant | Integrated / Verified / Alpha | CLI、API 工作记录和持久化已验证；尚非生产级产品 |
 
@@ -42,5 +42,5 @@
 - SP-004 Merge Baseline: `10d1534049be2d526c930c513912dc661ac41728`
 - SP-004 Merged At: `2026-07-15T11:39:33Z`
 - UserTask: Integrated / Verified
-- Next Stabilization: SP-005 Reminder/UserTask-Scheduler Bridge
+- Current Stabilization: SP-005 Reminder/UserTask-Scheduler Bridge implementation candidate
 - Validation Source: SP-004 为 Windows 本地 `847 passed, 27 warnings in 38.81s`，不是 GitHub Actions；首次 5 个错误来自测试子进程继承 SOCKS 代理，仅清理子进程代理后通过，未修改系统代理或 `.env`

@@ -12,7 +12,8 @@
 | AgentRuntime | `core/agents/runtime.py` | run / initialize / shutdown |
 | ToolExecutor | `core/tools/executor.py` | execute |
 | WorkflowRuntime | `core/workflow/runtime.py` | create / start / pause / resume / cancel |
-| SchedulerRuntime | `core/scheduler/runtime.py` | schedule / start / stop / get_jobs |
+| SchedulerRuntime | `core/scheduler/runtime.py` | schedule / cancel_job / reschedule_one_shot / list_job_runs / start / shutdown |
+| ReminderService / Bridge | `core/reminders/` | create / get / list / reschedule / cancel / reconcile |
 | TaskRuntime | `core/task/runtime.py` | create / start / pause / resume / retry |
 | AgentOrchestrator | `core/coordination/orchestrator.py` | create_team / coordinate |
 
