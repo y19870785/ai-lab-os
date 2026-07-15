@@ -27,3 +27,5 @@
 - v0.21.0 → v0.22.0: Task Runtime 新增，Scheduler/Workflow 接口不变
 - post-v0.33.0 main（SP-004）: 新增 Canonical UserTask 与真实 Task API；尚未进入新的正式 Release，Reminder/Scheduler Bridge 留给 SP-005
 - post-v0.33.0 main（SP-005）: 新增 Reminder/Occurrence、Scheduler CAS claim 与 Saga reconciliation；已通过 PR #10 合并，尚未进入新的正式 Release
+
+> SP-006 API Security Boundary: Implementation candidate (Draft PR #12, not merged).

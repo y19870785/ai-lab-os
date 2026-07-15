@@ -33,3 +33,5 @@
 | v0.40.0 | Beta Release — 多 App 支持 |
 | v0.50.0 | 企业微信 / ERP / 报价系统接入 |
 | v1.0.0 | Production Release — 稳定运营 |
+
+> SP-006 API Security Boundary: Implementation candidate (Draft PR #12, not merged).

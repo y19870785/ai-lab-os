@@ -1,4 +1,11 @@
 ﻿
+## [Unreleased] ? SP-006 API Security Boundary (candidate)
+- Added centralized Bearer-token authentication
+- Added explicit CORS allowlist
+- New UNAUTHENTICATED ErrorCategory (HTTP 401)
+- 51 security-specific tests
+- See PR #12 for details
+
 ## [Unreleased]
 
 ### SP-005 Reminder & Scheduler Bridge（已合并，尚未发布）

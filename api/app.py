@@ -22,9 +22,10 @@ from core.errors import ErrorCategory, FailureInfo
 def create_app(settings: SystemSettings | None = None) -> FastAPI:
     """Create an API app; tests may inject isolated settings.
 
-    When called without explicit settings, defaults to auth-disabled for
-    uvicorn module-level discovery.  Callers that want auth must pass
-    settings with enable_api_auth=True and api_token set.
+    When settings are omitted, runtime settings are loaded from the
+    configured environment.  Authentication remains enabled by default
+    and requires a configured token unless explicitly disabled with
+    AI_LAB_API_AUTH_ENABLED=false.
     """
 
     @asynccontextmanager
@@ -43,8 +44,7 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
         settings
         or load_system_settings()
     )
-    # Default to auth-disabled when no explicit settings are provided
-    # Tests / production callers inject explicit settings.
+    # Runtime settings from environment; auth remains enabled by default.
     sec_cfg = ApiSecurityConfig.from_settings(
         auth_enabled=effective_settings.enable_api_auth,
         api_token=effective_settings.api_token,
