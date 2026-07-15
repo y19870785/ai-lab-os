@@ -1,27 +1,28 @@
 {
   "project": "AI-Lab",
-  "version": "v0.32.4",
-  "git_commit": "N/A (no git history)",
-  "git_branch": "master",
-  "development_status": "paused_for_review",
+  "version": "v0.33.0",
+  "source_baseline": "SP-003A merge baseline: 96198897f470b5b80c8b4f8380ef8baf4b852aa4",
+  "git_branch": "main",
+  "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
-  "python_version": "3.10.9",
+  "python_version": ">=3.11",
   "code_stats": {
     "python_files": 393,
     "total_lines": 26874,
     "test_files": 104
   },
   "test_summary": {
-    "passed": 712,
+    "passed": 820,
     "failed": 0,
     "skipped": 0,
-    "warnings": 26,
-    "real_provider_errors": 5
+    "warnings": 27,
+    "real_provider_errors": 0,
+    "environment": "Windows local Python 3.12; not a cross-platform CI result"
   },
   "real_provider": {
     "provider": "DeepSeek",
     "model": "deepseek-v4-flash",
-    "status": "Implemented. Historical Validation Passed. Current Freeze Validation BLOCKED BY ENVIRONMENT (SOCKS Proxy).",
+    "status": "Integrated. Local validation passed with the declared real extra and authorized local configuration; not a GitHub Actions result.",
     "api_base": "https://api.deepseek.com/v1"
   },
   "architecture_layers": [
@@ -50,10 +51,17 @@
     "Application": "applications/runtime.py",
     "CEO_Assistant": "applications/ceo_assistant/application.py"
   },
+  "module_status": {
+    "Knowledge": "Implemented / Disabled: reindex, chunk persistence, citation, and the real main path remain incomplete",
+    "Tool_Runtime": "Integrated: registry/executor and low-risk tools are wired; automatic tool calling and the complete MCP product loop remain incomplete",
+    "Scheduler": "Implemented / Disabled: Reminder/UserTask scheduling loop remains incomplete",
+    "Coordination": "Implemented / Disabled: not connected to the CEO Assistant main path",
+    "CEO_Assistant": "Integrated / Verified / Alpha"
+  },
   "open_technical_debt": [
     "TD-001: 部分测试辅助函数错误传入 id=None",
     "P1-1: API 无鉴权、CORS *",
-    "P1-2: Real Provider 测试不可靠 (SOCKS proxy)",
+    "P1-2: Real Provider 验证依赖授权的本地 Key、网络和 real extra",
     "P1-3: Docker 未经真实验证",
     "P1-4: Chroma 生命周期管理脆弱",
     "P1-5: start.bat 依赖清除代理",
@@ -69,6 +77,6 @@
     "Windows 编码工具链不稳定",
     "Docker 未实际部署测试"
   ],
-  "next_action": "independent_gpt56_architecture_review",
+  "next_action": "seal_v0.33.0_before_sp004",
   "freeze_date": "2026-07-14"
 }

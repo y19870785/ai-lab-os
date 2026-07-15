@@ -1,14 +1,14 @@
 ﻿# AI-Lab Project Status
 
-**Date:** 2026-07-14
-**Version:** v0.32.4
-**Status:** PAUSED — Awaiting Independent Architecture Review
+**Date:** 2026-07-15
+**Version:** v0.33.0
+**Status:** Architecture stabilization baseline
 
 ## Current Status
 
-项目已完成 v0.32.4 的全部开发和测试。十层基础架构 + CEO Assistant 处于 Alpha 可用状态。DeepSeek v4-flash 真实 LLM 已接入，CLI 交互式和 API 双链路均已验证通过。
+项目以 v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果。十层基础架构 + CEO Assistant 处于 Alpha 状态；版本唯一来源、Composition Root、失败语义和 DatabaseManager 连接所有权已经收敛。
 
-下一步动作：使用全新 Codex GPT-5.6 进行独立架构审查，审查完成前冻结所有功能开发。
+SP-004 尚未开始。Reminder/UserTask-Scheduler、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
 
 ## Key Metrics
 
@@ -16,32 +16,28 @@
 |---|---|
 | Python Files | 393 |
 | Code Lines | 26,874 |
-| Tests | 712 (0 failed) |
+| Tests | 820 passed, 27 warnings in 37.64s（v0.33.0 Windows 本地验证记录，非跨平台 CI） |
 | RFC | 15 |
 | ADR | 29 |
 | Architecture Layers | 11 |
-| Real Providers | 3 (DeepSeek, SentenceTransformer, Chroma) |
+| Real Provider Validation | DeepSeek 本地验证通过；SentenceTransformer / Chroma 为可选实现，默认未启用 |
 | Business Apps | 1 (CEO Assistant) |
 
 ## Module Status
 
-| Module | Completion | Status |
+| Module | Status | Current Boundary |
 |---|---|---|
-| Governance | 100% | Stable |
-| Core (EventBus, Config, Logging) | 100% | Stable |
-| Database | 100% | Stable |
-| Memory (4 types) | 100% | Stable |
-| Provider (protocols only) | 100% | Stable |
-| Knowledge | 100% | Stable |
-| Agent Runtime | 100% | Stable |
-| Tool Runtime + MCP | 100% | Stable |
-| Workflow Engine | 100% | Stable |
-| Scheduler | 100% | Stable |
-| Task Runtime | 100% | Stable |
-| Coordination (Multi-Agent) | 100% | Stable |
-| Application Runtime | 100% | Stable |
-| CEO Assistant | 80% | Alpha — CLI works, needs more product polish |
+| Governance | Implemented | 文档与实现仍需持续一致性审查 |
+| Core / Database / Memory | Integrated / Verified | 当前稳定化主链路 |
+| Provider / Agent Runtime | Integrated / Verified | DeepSeek 本地验证通过；依赖 `real` extra 与授权配置 |
+| Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
+| Tool Runtime + MCP | Integrated | Registry/Executor 已接入；自动 Tool Calling 和完整 MCP 产品闭环未完成 |
+| Workflow / Task Runtime | Integrated / Verified | 当前组合与失败语义已验证 |
+| Scheduler | Implemented / Disabled | Reminder/UserTask 闭环未完成 |
+| Coordination | Implemented / Disabled | 默认关闭，未接入 CEO Assistant 主链路 |
+| Application Runtime | Integrated / Verified | 只派发注册实例 |
+| CEO Assistant | Integrated / Verified / Alpha | CLI 与工作记录闭环可用，尚非生产级产品 |
 
 ## Next Milestone
 
-TBD — dependent on GPT-5.6 review outcome
+SP-004 尚未开始；进入下一产品阶段前先封存 v0.33.0 基线。
