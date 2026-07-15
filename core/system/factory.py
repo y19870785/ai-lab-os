@@ -46,6 +46,7 @@ from core.tools.registry import ToolRegistry
 from core.workflow.executor import WorkflowExecutor
 from core.workflow.registry import WorkflowRegistry
 from core.workflow.runtime import WorkflowRuntime
+from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 
 
 def _validate_provider_settings(settings: SystemSettings) -> None:
@@ -153,6 +154,14 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
     for memory_type, store in zip(MemoryType, memory_stores):
         memory_manager.register_store(memory_type, store)
 
+    user_task_repository = None
+    user_task_service = None
+    if settings.enable_user_tasks:
+        user_task_repository = SQLiteUserTaskRepository(
+            database_manager, settings.sqlite_dir / "tasks.db"
+        )
+        user_task_service = UserTaskService(user_task_repository, bus=event_bus)
+
     knowledge_manager = None
     if settings.enable_knowledge:
         knowledge_manager = KnowledgeManager(
@@ -229,6 +238,7 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         knowledge_manager=knowledge_manager,
         llm_provider=llm,
         embedding_provider=embedding,
+        user_task_service=user_task_service,
         config=ApplicationConfig(
             provider_mode=settings.provider_mode,
             default_model=settings.model,
@@ -267,6 +277,8 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         workflow_runtime=workflow_runtime,
         scheduler_runtime=scheduler_runtime,
         task_runtime=task_runtime,
+        user_task_repository=user_task_repository,
+        user_task_service=user_task_service,
         coordination_runtime=coordination_runtime,
         application_registry=application_registry,
         application_runtime=application_runtime,

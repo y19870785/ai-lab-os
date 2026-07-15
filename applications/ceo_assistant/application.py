@@ -11,15 +11,12 @@ AI-Lab 首个真实业务应用。支持：
 
 from __future__ import annotations
 import re
-import os
-import json
 import time
-import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from typing import Any
-import uuid
 
-from applications.models import ApplicationInfo, ApplicationManifest, ApplicationContext, ApplicationRequest, ApplicationResponse
+from applications.models import ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse
 from applications.config import ApplicationConfig
 from core.errors import (
     ErrorCategory,
@@ -27,6 +24,7 @@ from core.errors import (
     FailureInfo,
     failure_from_exception,
 )
+from core.memory.models import MemoryQuery, MemoryType
 
 
 class CEOAssistant:
@@ -42,6 +40,7 @@ class CEOAssistant:
         knowledge_manager=None,
         llm_provider=None,
         embedding_provider=None,
+        user_task_service=None,
         config: ApplicationConfig | None = None,
         bus=None,
     ):
@@ -49,6 +48,7 @@ class CEOAssistant:
         self._knowledge = knowledge_manager
         self._llm = llm_provider
         self._embedding = embedding_provider
+        self._user_tasks = user_task_service
         self._config = config or ApplicationConfig()
         self._bus = bus
 
@@ -286,94 +286,138 @@ class CEOAssistant:
     # ---- 2. 待办任务 ----
 
     async def _handle_task(self, request: ApplicationRequest) -> dict[str, Any]:
-        """处理任务创建/查询。"""
-        if self._memory is None:
-            raise RuntimeError("Memory service is not configured")
+        """Create or query canonical UserTasks."""
+        if self._user_tasks is None:
+            raise FailureException(FailureInfo(
+                code="user_tasks.not_configured",
+                category=ErrorCategory.NOT_CONFIGURED,
+                message="UserTask service is not configured",
+                component="user_tasks",
+                operation="ceo_assistant",
+                trace_id=request.workspace_key.trace_id,
+            ))
         user_input = request.user_input
 
-        # 查询已有任务
         if any(kw in user_input for kw in ["查看", "有什么", "列表", "查询", "当前任务", "待办列表"]):
-            if self._memory:
-                from core.memory.models import MemoryQuery, MemoryType
-                q = MemoryQuery(memory_type=MemoryType.DECISION, top_k=20)
-                tasks = await self._memory.retrieve_memory(q)
-                # Filter task entries
-                task_items = [t for t in tasks if t.content.get("type") == "task"]
-                if task_items:
-                    lines = ["[Tasks] 当前待办任务：", ""]
-                    for t in task_items:
-                        c = t.content
-                        priority = c.get("priority", "中")
-                        status = c.get("status", "待办")
-                        title = c.get("title", c.get("subject", ""))
-                        deadline = c.get("deadline", "")
-                        lines.append(f"[{priority}] {title} — {status}" + (f" | 截止: {deadline}" if deadline else ""))
-                    return {"answer": "\n".join(lines), "status": "ok"}
+            from core.user_tasks import UserTaskQuery, UserTaskStatus
+            tasks = await self._user_tasks.list(
+                UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=100),
+                trace_id=request.workspace_key.trace_id,
+            )
+            if not tasks:
                 return {"answer": "[Tasks] 当前没有待办任务。", "status": "ok"}
-            return {"answer": "[Tasks] 当前没有待办任务。(Mock)", "status": "ok"}
+            lines = ["[Tasks] 当前待办任务：", ""]
+            for task in tasks:
+                due = task.due_at.isoformat() if task.due_at else ""
+                lines.append(f"[{task.priority.value}] {task.title} — {task.status.value}"
+                             + (f" | 截止: {due}" if due else "") + f" | ID: {task.id}")
+            return {"answer": "\n".join(lines), "status": "ok"}
 
-        # 创建任务
-        task_info = {
-            "title": "",
-            "deadline": "",
-            "priority": "中",
-            "status": "待办",
-            "raw_text": user_input,
-        }
+        task_id_match = re.search(r"\but_[a-zA-Z0-9_]+\b", user_input)
+        if any(kw in user_input for kw in ["完成任务", "标记完成", "已完成"]):
+            if task_id_match is None:
+                raise ValueError("完成任务需要明确的 task ID")
+            task = await self._user_tasks.complete(
+                task_id_match.group(0), request.workspace_key.trace_id
+            )
+            return {"answer": f"[OK] 已完成任务：{task.title}", "status": "ok",
+                    "metadata": {"task_id": task.id}}
+        if "取消任务" in user_input:
+            if task_id_match is None:
+                raise ValueError("取消任务需要明确的 task ID")
+            task = await self._user_tasks.cancel(
+                task_id_match.group(0), request.workspace_key.trace_id
+            )
+            return {"answer": f"[OK] 已取消任务：{task.title}", "status": "ok",
+                    "metadata": {"task_id": task.id}}
 
-        # 提取截止时间
-        deadline_patterns = [
-            (r"明[天日](\w{1,3})午", "+1d"),
-            (r"今天(\w{1,3})午", "+0d"),
-            (r"(\d+)月(\d+)[日号]", ""),
-        ]
-        if "明天" in user_input:
-            tomorrow = datetime.now() + timedelta(days=1)
-            task_info["deadline"] = tomorrow.strftime("%Y-%m-%d")
-        elif "今天" in user_input:
-            task_info["deadline"] = datetime.now().strftime("%Y-%m-%d")
-
-        # 提取优先级
+        from core.user_tasks import UserTaskPriority
+        priority = UserTaskPriority.MEDIUM
         if any(kw in user_input for kw in ["紧急", "马上", "立刻", "尽快"]):
-            task_info["priority"] = "高"
+            priority = UserTaskPriority.HIGH
         elif any(kw in user_input for kw in ["有空", "空闲", "不急"]):
-            task_info["priority"] = "低"
+            priority = UserTaskPriority.LOW
 
-        # 提取标题
         title_match = re.search(r"(提醒我|记得|别忘了)(.+?)(?:[。，\.]|$)", user_input)
         if title_match:
-            task_info["title"] = title_match.group(2).strip()
+            title = title_match.group(2).strip()
         else:
-            clean = re.sub(r"(提醒我|创建任务|帮忙|帮|请)", "", user_input).strip()
-            task_info["title"] = clean[:80]
+            title = re.sub(r"(提醒我|创建任务|帮忙|帮|请)", "", user_input).strip()[:80]
 
-        # 写入 Decision Memory (任务存储)
-        if self._memory:
-            from core.memory.models import MemoryItem, MemoryType
-            item = MemoryItem(
-                memory_type=MemoryType.DECISION,
-                content={
-                    "type": "task",
-                    **task_info,
-                },
-                importance=0.7 if task_info["priority"] == "高" else 0.5,
-                metadata={
-                    "session_id": request.workspace_key.session_id,
-                    "agent_id": "ceo-assistant",
-                },
+        due_at = None
+        user_timezone = "Asia/Shanghai"
+        unparsed_due_expression = False
+        if "明天" in user_input or "今天" in user_input:
+            local_zone = ZoneInfo(user_timezone)
+            local_now = datetime.now(local_zone)
+            due_date = local_now.date() + timedelta(days=1 if "明天" in user_input else 0)
+            clock_match = re.search(
+                r"(上午|下午|晚上|中午)?\s*(\d{1,2})"
+                r"(?:[:：](\d{1,2})|点(?:(半)|(一刻)|(\d{1,2})分?)?)",
+                user_input,
             )
-            await self._memory.save_memory(
-                memory_type=item.memory_type,
-                content=item.content,
-                importance=item.importance,
-                metadata=item.metadata,
-            )
+            specific_time_requested = bool(re.search(
+                r"上午|下午|晚上|中午|\d{1,2}\s*(?:点|时)|\d{1,2}[:：]\d{1,2}",
+                user_input,
+            ))
+            if clock_match:
+                period, hour_text, colon_minute, half, quarter, point_minute = (
+                    clock_match.groups()
+                )
+                hour = int(hour_text)
+                minute = int(
+                    colon_minute or point_minute
+                    or (30 if half else 15 if quarter else 0)
+                )
+                trailing = user_input[clock_match.end():]
+                partial_time_suffix = re.match(
+                    r"(?:半|一刻|[二三四]刻|\d{1,2}(?:分|秒)|左右)",
+                    trailing,
+                )
+                valid = 0 <= minute <= 59 and partial_time_suffix is None
+                if period:
+                    valid = valid and 1 <= hour <= 12
+                    if valid and period in {"下午", "晚上"} and hour < 12:
+                        hour += 12
+                    elif valid and period == "上午" and hour == 12:
+                        hour = 0
+                    elif valid and period == "中午" and hour < 11:
+                        valid = False
+                else:
+                    valid = valid and 0 <= hour <= 23
+                if valid:
+                    due_at = datetime.combine(
+                        due_date, datetime.min.time().replace(hour=hour, minute=minute),
+                        tzinfo=local_zone,
+                    )
+                else:
+                    unparsed_due_expression = True
+            elif specific_time_requested:
+                unparsed_due_expression = True
+            else:
+                due_at = datetime.combine(
+                    due_date, datetime.max.time().replace(microsecond=0),
+                    tzinfo=local_zone,
+                )
+        elif any(marker in user_input for marker in ("后天", "下周", "周一", "周二", "周三",
+                                                     "周四", "周五", "周六", "周日")):
+            unparsed_due_expression = True
 
-        answer = f"[OK] 已创建任务：\n\n任务: {task_info['title']}\n优先级: {task_info['priority']}\n状态: {task_info['status']}"
-        if task_info["deadline"]:
-            answer += f"\n截止: {task_info['deadline']}"
-
-        return {"answer": answer, "status": "ok", "metadata": task_info}
+        task = await self._user_tasks.create(
+            title=title, description=user_input, priority=priority, due_at=due_at,
+            timezone=user_timezone, source="ceo_assistant",
+            session_id=request.workspace_key.session_id, agent_id="ceo-assistant",
+            trace_id=request.workspace_key.trace_id,
+        )
+        answer = (
+            f"[OK] 已创建任务：\n\n任务: {task.title}\n优先级: {task.priority.value}"
+            f"\n状态: {task.status.value}\nID: {task.id}"
+        )
+        if task.due_at:
+            answer += f"\n截止: {task.due_at.isoformat()}"
+        elif unparsed_due_expression:
+            answer += "\n截止: 未识别具体时间，任务已保存为无截止日期"
+        return {"answer": answer, "status": "ok", "metadata": task.model_dump(mode="json")}
 
     # ---- 3. 决策记录 ----
 
@@ -438,7 +482,7 @@ class CEOAssistant:
             answer_parts.append(f"理由: {decision_info['reason']}")
         if decision_info["alternatives"]:
             answer_parts.append(f"备选方案: {', '.join(decision_info['alternatives'])}")
-        answer_parts.append(f"状态: 待追踪结果")
+        answer_parts.append("状态: 待追踪结果")
 
         return {"answer": "\n".join(answer_parts), "status": "ok", "metadata": decision_info}
 
@@ -451,7 +495,6 @@ class CEOAssistant:
 
         if self._knowledge:
             try:
-                from core.knowledge.models import KnowledgeQuery
                 results = await self._knowledge.search(user_input, top_k=5)
                 if results:
                     answer_parts = ["[KB] 基于知识库检索：", ""]
@@ -502,18 +545,18 @@ class CEOAssistant:
 
         # 1. 待办任务
         tasks = []
-        if self._memory:
-            from core.memory.models import MemoryQuery, MemoryType
-            q = MemoryQuery(memory_type=MemoryType.DECISION, top_k=50)
-            results = await self._memory.retrieve_memory(q)
-            tasks = [r for r in results if r.content.get("type") == "task" and r.content.get("status") in ("待办", "进行中", "pending")]
+        if self._user_tasks is not None:
+            from core.user_tasks import UserTaskQuery, UserTaskStatus
+            tasks = await self._user_tasks.list(
+                UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=50),
+                trace_id=request.workspace_key.trace_id,
+            )
 
         if tasks:
             lines.append(f"待办任务 ({len(tasks)}):")
-            for t in tasks:
-                c = t.content
-                lines.append(f"  [{c.get('priority', '中')}] {c.get('title', '无标题')}" 
-                           + (f" — 截止: {c.get('deadline', '未设置')}" if c.get('deadline') else ""))
+            for task in tasks:
+                lines.append(f"  [{task.priority.value}] {task.title}"
+                             + (f" — 截止: {task.due_at.isoformat()}" if task.due_at else ""))
             lines.append("")
 
         # 2. 最近工作记录
@@ -545,10 +588,10 @@ class CEOAssistant:
         # 4. 建议优先处理
         if tasks:
             lines.append("建议优先处理:")
-            priority_order = {"高": 1, "中": 2, "低": 3}
-            sorted_tasks = sorted(tasks, key=lambda t: priority_order.get(t.content.get("priority", "中"), 2))[:3]
-            for i, t in enumerate(sorted_tasks):
-                lines.append(f"  {i+1}. {t.content.get('title', '')[:60]} ({t.content.get('priority', '中')}优先级)")
+            priority_order = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
+            sorted_tasks = sorted(tasks, key=lambda task: priority_order[task.priority.value])[:3]
+            for i, task in enumerate(sorted_tasks):
+                lines.append(f"  {i+1}. {task.title[:60]} ({task.priority.value}优先级)")
 
         if not tasks and not episodes and not decisions:
             lines.append("今日暂无工作记录和任务。")

@@ -18,6 +18,8 @@ from core.memory.models import MemoryType, MemoryQuery
 from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
 from core.memory.storage.sqlite_decision import SQLiteDecisionStore
 from core.memory.session import SessionMemory
+from core.database import DatabaseManager
+from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 
 
 class TestPersistence:
@@ -70,41 +72,33 @@ class TestPersistence:
         """任务在关闭重开后仍然存在。"""
         db_dir = str(tmp_path / "sqlite")
         os.makedirs(db_dir, exist_ok=True)
-        ds_path = os.path.join(db_dir, "decision.db")
+        task_path = os.path.join(db_dir, "tasks.db")
 
-        # 创建任务
         bus1 = get_bus()
         await bus1.start()
-        mem1 = MemoryManager(bus=bus1)
-        mem1.register_store(MemoryType.SESSION, SessionMemory(3600, bus=bus1))
-        ds1 = SQLiteDecisionStore(db_path=ds_path)
-        await ds1.initialize()
-        mem1.register_store(MemoryType.DECISION, ds1)
-
-        app1 = CEOAssistant(memory_manager=mem1)
+        manager1 = DatabaseManager(db_dir)
+        service1 = UserTaskService(SQLiteUserTaskRepository(manager1, task_path), bus=bus1)
+        await service1.initialize()
+        app1 = CEOAssistant(user_task_service=service1)
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="提醒我完成持久化测试任务",
         ))
         await bus1.stop()
-        await ds1.close()
+        await service1.close()
+        manager1.close_all()
 
-        # 重新打开
         bus2 = get_bus()
         await bus2.start()
-        mem2 = MemoryManager(bus=bus2)
-        mem2.register_store(MemoryType.SESSION, SessionMemory(3600, bus=bus2))
-        ds2 = SQLiteDecisionStore(db_path=ds_path)
-        await ds2.initialize()
-        mem2.register_store(MemoryType.DECISION, ds2)
-
-        q = MemoryQuery(memory_type=MemoryType.DECISION, top_k=20)
-        items = await mem2.retrieve_memory(q)
-        tasks = [i for i in items if i.content.get("type") == "task"]
+        manager2 = DatabaseManager(db_dir)
+        service2 = UserTaskService(SQLiteUserTaskRepository(manager2, task_path), bus=bus2)
+        await service2.initialize()
+        tasks = await service2.list()
         assert len(tasks) >= 1, f"任务持久化失败: {len(tasks)} 条"
 
         await bus2.stop()
-        await ds2.close()
+        await service2.close()
+        manager2.close_all()
 
     @pytest.mark.asyncio
     async def test_decision_persists(self, tmp_path):

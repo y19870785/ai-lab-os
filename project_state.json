@@ -12,7 +12,7 @@
     "test_files": 104
   },
   "test_summary": {
-    "passed": 820,
+    "passed": 841,
     "failed": 0,
     "skipped": 0,
     "warnings": 27,
@@ -47,6 +47,7 @@
     "Workflow": "core/workflow/runtime.py",
     "Scheduler": "core/scheduler/runtime.py",
     "Task": "core/task/runtime.py",
+    "UserTask": "core/user_tasks/service.py",
     "Coordination": "core/coordination/orchestrator.py",
     "Application": "applications/runtime.py",
     "CEO_Assistant": "applications/ceo_assistant/application.py"
@@ -56,7 +57,8 @@
     "Tool_Runtime": "Integrated: registry/executor and low-risk tools are wired; automatic tool calling and the complete MCP product loop remain incomplete",
     "Scheduler": "Implemented / Disabled: Reminder/UserTask scheduling loop remains incomplete",
     "Coordination": "Implemented / Disabled: not connected to the CEO Assistant main path",
-    "CEO_Assistant": "Integrated / Verified / Alpha"
+    "CEO_Assistant": "Integrated / Verified / Alpha",
+    "UserTask": "Implemented / Integrated: persistent tasks.db and truthful API; Reminder scheduler bridge not implemented"
   },
   "open_technical_debt": [
     "TD-001: 部分测试辅助函数错误传入 id=None",
@@ -77,6 +79,6 @@
     "Windows 编码工具链不稳定",
     "Docker 未实际部署测试"
   ],
-  "next_action": "seal_v0.33.0_before_sp004",
+  "next_action": "review_sp004_then_plan_sp005_reminder_bridge",
   "freeze_date": "2026-07-14"
 }

@@ -10,8 +10,8 @@
 | Version | v0.33.0 |
 | RFCs | 15 |
 | ADRs | 29 |
-| Tests | 820（Windows 本地验证） |
-| Test Pass Rate | 100% (820 passed, 0 failed；非跨平台 CI 结果) |
+| Tests | 847（SP-004 Windows 本地验证） |
+| Test Pass Rate | 100% (847 passed, 0 failed；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |
@@ -36,5 +36,6 @@
 - Freeze Date: 2026-07-14
 - Freeze Reason: Independent GPT-5.6 architecture review
 - Historical Tag: `v0.32.4-review-baseline`（保留，不重写）
-- Next Product Phase: SP-004 尚未开始
+- UserTask: Implemented / Integrated / locally verified
+- Next Stabilization: SP-005 Reminder/UserTask-Scheduler Bridge
 - Validation Source: 本地 pytest，不是 GitHub Actions

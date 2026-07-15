@@ -1,6 +1,9 @@
 ﻿"""API Models。"""
+from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Any
+
+from core.user_tasks import UserTaskPriority, UserTaskStatus
 
 class ChatRequest(BaseModel):
     user_input: str = ""
@@ -16,14 +19,42 @@ class ChatResponse(BaseModel):
     latency_ms: float = 0.0
 
 class TaskCreateRequest(BaseModel):
-    name: str = ""
-    workflow_names: list[str] = Field(default_factory=list)
-    variables: dict[str, Any] = Field(default_factory=dict)
+    title: str
+    description: str = ""
+    priority: UserTaskPriority = UserTaskPriority.MEDIUM
+    due_at: datetime | None = None
+    timezone: str = "UTC"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class TaskUpdateRequest(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    priority: UserTaskPriority | None = None
+    due_at: datetime | None = None
+    timezone: str | None = None
+    metadata: dict[str, Any] | None = None
+    revision: int | None = Field(default=None, ge=1)
 
 class TaskResponse(BaseModel):
-    task_id: str = ""
-    status: str = ""
-    result: dict[str, Any] = Field(default_factory=dict)
+    id: str
+    title: str
+    description: str = ""
+    status: UserTaskStatus
+    priority: UserTaskPriority
+    due_at: datetime | None = None
+    timezone: str
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+    cancelled_at: datetime | None = None
+    source: str
+    session_id: str = ""
+    agent_id: str = ""
+    trace_id: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    revision: int
+    overdue: bool = False
 
 class AppInfo(BaseModel):
     application_id: str = ""

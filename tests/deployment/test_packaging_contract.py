@@ -27,7 +27,13 @@ def test_dependency_extras_match_runtime_boundaries():
         "pydantic",
         "pyyaml",
         "python-dotenv",
+        "tzdata",
     }
+    assert any(
+        requirement.startswith("tzdata>=")
+        and "platform_system == 'Windows'" in requirement
+        for requirement in config["dependencies"]
+    )
     assert _names(extras["api"]) == {"fastapi", "uvicorn"}
     assert _names(extras["real"]) == {"openai"}
     assert _names(extras["knowledge"]) == {"chromadb", "sentence-transformers"}
