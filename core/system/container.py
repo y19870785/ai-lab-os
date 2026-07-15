@@ -28,6 +28,11 @@ from core.tools.protocol import ToolProtocol
 from core.tools.registry import ToolRegistry
 from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
+from core.reminders import (
+    ReminderSchedulerBridge,
+    ReminderService,
+    SQLiteReminderRepository,
+)
 from core.agents.models import AgentStatus
 from core.errors import RuntimeStatus
 from core.providers.models import ProviderStatus
@@ -57,6 +62,9 @@ class SystemContainer:
     task_runtime: TaskRuntime
     user_task_repository: SQLiteUserTaskRepository | None
     user_task_service: UserTaskService | None
+    reminder_repository: SQLiteReminderRepository | None
+    reminder_service: ReminderService | None
+    reminder_bridge: ReminderSchedulerBridge | None
     coordination_runtime: AgentOrchestrator | None
     application_registry: ApplicationRegistry
     application_runtime: ApplicationRuntime
@@ -94,6 +102,12 @@ class SystemContainer:
             else:
                 logger.info("user_tasks.disabled")
 
+            if self.reminder_service is not None:
+                await self.reminder_service.initialize()
+                logger.info("reminders.initialized")
+            else:
+                logger.info("reminders.disabled")
+
             if self.knowledge_manager is not None:
                 await self.knowledge_manager.initialize()
                 logger.info("knowledge.initialized")
@@ -113,10 +127,14 @@ class SystemContainer:
 
             if self.scheduler_runtime is not None:
                 await self.scheduler_runtime.initialize()
+                if self.reminder_bridge is not None:
+                    await self.reminder_bridge.initialize()
                 await self.scheduler_runtime.start()
                 logger.info("scheduler.started")
             else:
                 logger.info("scheduler.disabled")
+                if self.reminder_bridge is not None:
+                    await self.reminder_bridge.initialize()
 
             await self.task_runtime.initialize()
             if self.coordination_runtime is not None:
@@ -153,10 +171,12 @@ class SystemContainer:
         if self.coordination_runtime is not None:
             await close_component("coordination_runtime", self.coordination_runtime.shutdown)
         await close_component("task_runtime", self.task_runtime.shutdown)
-        if self.user_task_service is not None:
-            await close_component("user_task_service", self.user_task_service.close)
         if self.scheduler_runtime is not None:
             await close_component("scheduler_runtime", self.scheduler_runtime.shutdown)
+        if self.reminder_service is not None:
+            await close_component("reminder_service", self.reminder_service.close)
+        if self.user_task_service is not None:
+            await close_component("user_task_service", self.user_task_service.close)
         await close_component("workflow_runtime", self.workflow_runtime.shutdown)
         await close_component("agent_runtime", self.agent_runtime.shutdown)
 
@@ -223,6 +243,30 @@ class SystemContainer:
             if self.user_task_service is not None
             else {"status": RuntimeStatus.DISABLED.value}
         )
+        reminder_store_health = (
+            await self.reminder_service.health()
+            if self.reminder_service is not None
+            else {"status": RuntimeStatus.DISABLED.value}
+        )
+        reminder_bridge_health = (
+            await self.reminder_bridge.health()
+            if self.reminder_bridge is not None
+            else {"status": RuntimeStatus.DISABLED.value}
+        )
+        reminder_status = RuntimeStatus.DISABLED.value
+        if self.reminder_service is not None:
+            statuses = {
+                reminder_store_health["status"], reminder_bridge_health["status"]
+            }
+            reminder_status = (
+                RuntimeStatus.FAILED.value
+                if RuntimeStatus.FAILED.value in statuses
+                else RuntimeStatus.DEGRADED.value
+                if RuntimeStatus.DEGRADED.value in statuses
+                else RuntimeStatus.NOT_INITIALIZED.value
+                if RuntimeStatus.NOT_INITIALIZED.value in statuses
+                else RuntimeStatus.OK.value
+            )
         tool_count = len(self.tool_registry.list_names())
         initialized_tool_count = len(self._tool_instances)
         components: dict[str, dict[str, object]] = {
@@ -269,6 +313,11 @@ class SystemContainer:
                 if self.task_runtime.initialized else RuntimeStatus.NOT_INITIALIZED.value,
             },
             "user_tasks": user_task_health,
+            "reminders": {
+                "status": reminder_status,
+                "store": reminder_store_health,
+                "bridge": reminder_bridge_health,
+            },
             "coordination": {
                 "status": (
                     RuntimeStatus.DISABLED.value
@@ -298,6 +347,8 @@ class SystemContainer:
             critical.add("knowledge")
         if self.settings.enable_user_tasks:
             critical.add("user_tasks")
+        if self.settings.enable_reminders:
+            critical.add("reminders")
         top_status = RuntimeStatus.OK
         unavailable_statuses = {
             RuntimeStatus.FAILED.value,

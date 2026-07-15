@@ -19,4 +19,5 @@
 | Cron 仅支持 */N 格式 | v0.22.0 |
 | Event Trigger 未实现 | v0.22.0 |
 | Scheduler 单进程 | v0.50.0 |
+| SchedulerPersistence 仍独立持有 SQLite connection，尚未迁移 DatabaseManager | 后续独立稳定化任务 |
 | Mock Provider 替代真实 API | v0.25.0 |

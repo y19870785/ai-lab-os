@@ -6,7 +6,13 @@ v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Obser
 
 SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
 
-当前产品版本仍为 v0.33.0，SP-004 没有创建 v0.34.0 Tag 或 GitHub Release。该状态不代表 Reminder Trigger、ReminderOccurrence、UserTask-Scheduler Bridge、通知渠道、Scheduler One-shot 完整幂等投递、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 或 shutdown 全局请求闸门已经完成。
+当前产品版本仍为 v0.33.0。SP-005 Reminder & Scheduler Bridge 已形成未发布实现候选：Scheduler 通过数据库 CAS claim、持久化 JobRun 和 Action Handler 支持可靠 One-shot；Reminder/Occurrence 使用 `reminders.db`、唯一键和 Saga reconciliation。该候选尚未审查或合并，也不包含通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 或 shutdown 全局请求闸门。
+
+## Reminder 与 Scheduler Bridge（SP-005 候选）
+
+`core/reminders` 将 UserTask、Reminder、ReminderOccurrence 与 Scheduled Job 保持为四个独立概念。Scheduler 使用 SQLite 条件 UPDATE 获取唯一 claim；Handler 成功后 One-shot Job 原子进入 completed。Reminder Handler 在 `reminders.db` 单事务内提交 Reminder 与唯一 Occurrence，EventBus 在提交后发布。两个数据库之间不声称原子事务，而是通过 pending 状态、补偿和可重复 reconciliation 恢复。完整契约见 `docs/architecture/REMINDER_SCHEDULER_BRIDGE.md`。
+
+SP-005 候选的 Windows 隔离 Python 3.12 本地验证为 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果。
 
 ## UserTask 领域
 
@@ -105,7 +111,7 @@ flowchart TD
 | 组件 | 当前状态 | 边界 |
 |---|---|---|
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
-| Scheduler | Implemented / Disabled | Runtime 基础存在；Reminder/UserTask 闭环未完成 |
+| Scheduler / Reminder | Implementation candidate / Disabled by default | SP-005 候选待审查；通知投递未实现 |
 | Coordination | Implemented / Disabled | 默认关闭；CEO Assistant 主链路未接入 |
 | Tool Runtime | Integrated | Registry/Executor 与低风险工具已接入；自动 Tool Calling、完整 MCP 产品闭环未完成 |
 | CEO Assistant | Integrated / Verified / Alpha | CLI、API 工作记录和持久化已验证，不代表生产就绪 |

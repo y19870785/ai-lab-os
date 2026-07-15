@@ -8,6 +8,7 @@
 > SP-003 Merge PR：#5（Squash Merge / APPROVED）
 > SP-004 Status：Completed
 > SP-004 Merge PR：#8（Squash Merge / APPROVED）
+> SP-005 Status：Implementation candidate / Unreleased / Awaiting review
 
 ## 项目使命
 
@@ -15,7 +16,7 @@ AI-Lab 是面向个人 CEO / 经营者的 AI Operating System 基础设施。目
 
 ## 版本治理
 
-`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源。当前产品版本仍为 v0.33.0。SP-004 已将 Canonical UserTask 与真实 Task API 合并到 `main`，但没有创建 v0.34.0 Tag 或 GitHub Release；v0.34.0 仍是目标里程碑，Reminder & Scheduler Bridge 留给 SP-005。
+`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源。当前产品版本仍为 v0.33.0。SP-005 已形成 Reminder & Scheduler Bridge 实现候选，但尚未审查、合并、Tag 或 Release；不得把候选能力描述为 main 已完成能力。
 
 v0.33.0 基线在全新隔离 Python 3.12 环境中的最终 Windows 本地验证为 `820 passed, 27 warnings in 37.64s`；真实 DeepSeek 测试为 `5 passed in 8.37s`。这些统计不是跨平台 CI 或 GitHub Actions 结果。
 
@@ -69,7 +70,7 @@ SP-004 merged at: 2026-07-15T11:39:33Z
 | Tool Runtime | Integrated | Echo、Calculator 通过统一 ToolExecutor 注入；自动 Tool Calling 与完整 MCP 产品闭环未完成 |
 | Agent Runtime | Integrated | SP-002 已合并：结构化失败、ERROR/DEGRADED 生命周期与独立错误码 |
 | Workflow Runtime | Integrated | Registry 与 Executor 由 Composition Root 注入 |
-| Scheduler Runtime | Implemented / Disabled | 可显式启用；Reminder/UserTask 调度闭环未完成 |
+| Scheduler / Reminder | Implementation candidate / Disabled by default | CAS claim、Occurrence 幂等和 Saga 候选待审查 |
 | Execution TaskRuntime | Integrated | SP-002 已合并真实 Workflow retry、空计划失败与 fail-fast |
 | UserTask | Integrated / Verified | SP-004 已合并：正式领域、`tasks.db`、真实 API、CEO Assistant 接入和 Legacy importer |
 | Coordination | Implemented / Disabled | 默认关闭；不接入 CEO Assistant 主链路 |

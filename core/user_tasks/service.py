@@ -98,6 +98,22 @@ class UserTaskService:
         self._repository = repository
         self._bus = bus
         self._degraded = False
+        self._lifecycle_degraded = False
+        self._lifecycle_coordinator = None
+
+    def set_lifecycle_coordinator(self, coordinator) -> None:
+        """Composition Root hook for synchronous terminal-state coordination."""
+        self._lifecycle_coordinator = coordinator
+
+    async def _coordinate_terminal(self, task, trace_id: str) -> None:
+        if self._lifecycle_coordinator is None:
+            return
+        try:
+            await self._lifecycle_coordinator.after_user_task_terminal(task, trace_id)
+            self._lifecycle_degraded = False
+        except Exception:
+            self._lifecycle_degraded = True
+            raise
 
     async def initialize(self) -> None:
         try:
@@ -225,6 +241,7 @@ class UserTaskService:
     async def _transition(self, task_id: str, target: UserTaskStatus, trace_id: str) -> UserTask:
         current = await self.get(task_id, trace_id)
         if current.status == target:
+            await self._coordinate_terminal(current, trace_id)
             return current
         if current.status != UserTaskStatus.ACTIVE:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
@@ -235,10 +252,11 @@ class UserTaskService:
         try:
             result = await self._repository.update(current.model_copy(update=changes), current.revision)
             await self._publish(f"user_task.{target.value}", result.id, trace_id)
-            return result
         except Exception as exc:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
             self._raise(exc, target.value, trace_id)
+        await self._coordinate_terminal(result, trace_id)
+        return result
 
     async def complete(self, task_id: str, trace_id: str = "") -> UserTask:
         return await self._transition(task_id, UserTaskStatus.COMPLETED, trace_id)
@@ -378,6 +396,10 @@ class UserTaskService:
 
     async def health(self) -> dict[str, object]:
         health = await self._repository.health_check()
-        if health["status"] == "healthy" and self._degraded:
-            health = {"status": "degraded", "legacy_import_failures": True}
+        if health["status"] == "healthy" and (self._degraded or self._lifecycle_degraded):
+            health = {
+                "status": "degraded",
+                "legacy_import_failures": self._degraded,
+                "reminder_reconciliation_required": self._lifecycle_degraded,
+            }
         return health

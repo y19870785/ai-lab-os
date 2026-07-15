@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from core.scheduler.models import Job, ScheduleRequest, JobRun, Trigger
+from core.scheduler.models import Job, ScheduleRequest
 
 
 class SchedulerProtocol(ABC):
@@ -41,6 +41,11 @@ class SchedulerProtocol(ABC):
     @abstractmethod
     async def delete_job(self, job_id: str) -> bool:
         """删除任务"""
+        ...
+
+    @abstractmethod
+    async def cancel_job(self, job_id: str) -> bool:
+        """Cancel one not-yet-running job without deleting its audit state."""
         ...
 
     @abstractmethod

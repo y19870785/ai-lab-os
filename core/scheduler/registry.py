@@ -1,7 +1,7 @@
 ﻿"""SchedulerRegistry —— Job 注册与发现中心"""
 
 from __future__ import annotations
-from core.scheduler.models import Job, JobInfo
+from core.scheduler.models import Job
 from core.scheduler.exceptions import JobNotFoundError, JobAlreadyExistsError
 
 
@@ -22,6 +22,12 @@ class SchedulerRegistry:
     def unregister(self, job_id: str) -> bool:
         """移除一个 Job"""
         return self._jobs.pop(job_id, None) is not None
+
+    def replace(self, job: Job) -> None:
+        """Replace one already-known job with freshly persisted state."""
+        if job.info.id not in self._jobs:
+            raise JobNotFoundError(f"Job not found: {job.info.id}")
+        self._jobs[job.info.id] = job
 
     def get(self, job_id: str) -> Job:
         """获取 Job"""

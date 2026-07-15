@@ -30,6 +30,7 @@ from core.providers.registry import ProviderRegistry
 from core.providers.vector.chroma import ChromaVectorProvider
 from core.providers.vector.mock import MockVectorProvider
 from core.scheduler.config import SchedulerConfig
+from core.scheduler.handlers import ActionHandlerRegistry
 from core.scheduler.jobs import JobExecutor
 from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
@@ -47,6 +48,13 @@ from core.workflow.executor import WorkflowExecutor
 from core.workflow.registry import WorkflowRegistry
 from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
+from core.reminders import (
+    ReminderActionHandler,
+    ReminderSchedulerBridge,
+    ReminderService,
+    SQLiteReminderRepository,
+    UserTaskReminderLifecycleCoordinator,
+)
 
 
 def _validate_provider_settings(settings: SystemSettings) -> None:
@@ -162,6 +170,18 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         )
         user_task_service = UserTaskService(user_task_repository, bus=event_bus)
 
+    reminder_repository = None
+    reminder_service = None
+    if settings.enable_reminders:
+        if user_task_service is None:
+            raise ValueError("Reminders require UserTask service")
+        reminder_repository = SQLiteReminderRepository(
+            database_manager, settings.sqlite_dir / "reminders.db"
+        )
+        reminder_service = ReminderService(
+            reminder_repository, user_task_service, bus=event_bus
+        )
+
     knowledge_manager = None
     if settings.enable_knowledge:
         knowledge_manager = KnowledgeManager(
@@ -211,14 +231,35 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
     )
 
     scheduler_runtime = None
+    reminder_bridge = None
     if settings.enable_scheduler:
         scheduler_persistence = SchedulerPersistence(str(settings.sqlite_dir / "scheduler.db"))
+        action_handlers = ActionHandlerRegistry()
+        if reminder_repository is not None:
+            action_handlers.register(
+                "reminder", ReminderActionHandler(reminder_repository, bus=event_bus)
+            )
         scheduler_runtime = SchedulerRuntime(
             registry=SchedulerRegistry(),
-            executor=JobExecutor(workflow_runtime=workflow_runtime, bus=event_bus),
+            executor=JobExecutor(
+                workflow_runtime=workflow_runtime,
+                bus=event_bus,
+                handler_registry=action_handlers,
+            ),
             persistence=scheduler_persistence,
             config=SchedulerConfig(db_path=str(settings.sqlite_dir / "scheduler.db")),
             bus=event_bus,
+        )
+
+    if reminder_service is not None:
+        reminder_bridge = ReminderSchedulerBridge(
+            reminder_service,
+            reminder_repository,
+            scheduler_runtime,
+            user_task_service,
+        )
+        user_task_service.set_lifecycle_coordinator(
+            UserTaskReminderLifecycleCoordinator(reminder_bridge)
         )
 
     task_runtime = TaskRuntime(
@@ -279,6 +320,9 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         task_runtime=task_runtime,
         user_task_repository=user_task_repository,
         user_task_service=user_task_service,
+        reminder_repository=reminder_repository,
+        reminder_service=reminder_service,
+        reminder_bridge=reminder_bridge,
         coordination_runtime=coordination_runtime,
         application_registry=application_registry,
         application_runtime=application_runtime,

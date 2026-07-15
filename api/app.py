@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.middleware import context as ctx_mw
 from api.middleware import error_handler, tracing
 from api.routes import applications, brief, chat, decisions, health, knowledge
-from api.routes import tasks, work_logs, workflows
+from api.routes import reminders, tasks, work_logs, workflows
 from core import __version__
 from core.system import SystemSettings, create_system, load_system_settings
 from core.errors import ErrorCategory, FailureInfo
@@ -73,6 +73,7 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
         applications.router,
         chat.router,
         tasks.router,
+        reminders.router,
         workflows.router,
         work_logs.router,
         decisions.router,

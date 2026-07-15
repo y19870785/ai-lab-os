@@ -7,12 +7,12 @@
   "current_product": "CEO Assistant",
   "python_version": ">=3.11",
   "code_stats": {
-    "python_files": 393,
-    "total_lines": 26874,
-    "test_files": 104
+    "python_files": 446,
+    "total_lines": 29259,
+    "test_files": 128
   },
   "test_summary": {
-    "passed": 847,
+    "passed": 888,
     "failed": 0,
     "skipped": 0,
     "warnings": 27,
@@ -55,10 +55,11 @@
   "module_status": {
     "Knowledge": "Implemented / Disabled: reindex, chunk persistence, citation, and the real main path remain incomplete",
     "Tool_Runtime": "Integrated: registry/executor and low-risk tools are wired; automatic tool calling and the complete MCP product loop remain incomplete",
-    "Scheduler": "Implemented / Disabled: Reminder/UserTask scheduling loop remains incomplete",
+    "Scheduler": "Implementation candidate / Disabled by default: SP-005 adds SQLite CAS claim, terminal one-shot semantics, persistent JobRun, and Action Handlers; awaiting review",
     "Coordination": "Implemented / Disabled: not connected to the CEO Assistant main path",
     "CEO_Assistant": "Integrated / Verified / Alpha",
-    "UserTask": "Completed / Integrated / Verified: SP-004 merged persistent tasks.db, truthful API, CEO Assistant integration, and legacy importer; Reminder scheduler bridge not implemented"
+    "UserTask": "Completed / Integrated / Verified: SP-004 baseline; SP-005 Reminder lifecycle coordination is an unreleased candidate",
+    "Reminder": "Implementation candidate / Disabled by default: durable ReminderOccurrence and Saga reconciliation await review"
   },
   "open_technical_debt": [
     "TD-001: 部分测试辅助函数错误传入 id=None",
@@ -77,8 +78,10 @@
     "Real Provider 测试依赖本地环境",
     "Long-running 稳定性未验证",
     "Windows 编码工具链不稳定",
-    "Docker 未实际部署测试"
+    "Docker 未实际部署测试",
+    "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
+    "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "sp005_reminder_and_scheduler_bridge",
+  "next_action": "review_sp005_reminder_and_scheduler_bridge_candidate",
   "freeze_date": "2026-07-14"
 }

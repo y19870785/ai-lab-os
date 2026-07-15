@@ -1,7 +1,7 @@
 ﻿"""Scheduler 配置"""
 
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -17,3 +17,5 @@ class SchedulerConfig:
     failure_threshold: int = 3
     shutdown_timeout: float = 5.0
     cancel_running_jobs_on_shutdown: bool = True
+    claim_ttl_seconds: float = 30.0
+    retry_delay_seconds: float = 1.0

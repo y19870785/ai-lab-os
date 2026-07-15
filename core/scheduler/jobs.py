@@ -10,6 +10,7 @@ import time
 from datetime import datetime, timezone
 
 from core.scheduler.models import Job, JobRun, JobStatus, JobRunStatus
+from core.scheduler.handlers import ActionHandlerRegistry, WorkflowActionHandler
 from core.scheduler.exceptions import JobStateError
 from core.errors import (
     ErrorCategory,
@@ -24,43 +25,44 @@ logger = logging.getLogger("ai-lab.scheduler.jobs")
 class JobExecutor:
     """Job 执行器 —— 委托给 Workflow Runtime"""
 
-    def __init__(self, workflow_runtime=None, bus=None):
+    def __init__(self, workflow_runtime=None, bus=None, handler_registry=None):
         self._workflow_runtime = workflow_runtime
         self._bus = bus
         self._running: dict[str, asyncio.Task] = {}
+        self._handlers = handler_registry or ActionHandlerRegistry()
+        self._observability_error: str | None = None
+        if workflow_runtime is not None and not self._handlers.exists("workflow"):
+            self._handlers.register("workflow", WorkflowActionHandler(workflow_runtime))
 
-    async def execute(self, job: Job) -> JobRun:
+    async def execute(self, job: Job, run: JobRun | None = None) -> JobRun:
         """执行一次 Job"""
         if job.status == JobStatus.PAUSED:
             raise JobStateError(f"Job {job.info.name} is paused")
 
-        run = JobRun(job_id=job.info.id, job_name=job.info.name, status=JobRunStatus.RUNNING)
-        run.trace_id = run.id
+        run = run or JobRun(
+            job_id=job.info.id,
+            job_name=job.info.name,
+            status=JobRunStatus.RUNNING,
+            attempt=job.run_count + 1,
+            claim_token=job.claim_token or "",
+        )
+        run.trace_id = run.trace_id or job.trace_id or run.id
 
-        await self._publish("scheduler.job.started", job.info.id, job.info.name)
+        await self._publish(
+            "scheduler.job.started",
+            job.info.id,
+            job.info.name,
+            {"trace_id": run.trace_id},
+        )
 
         t0 = time.time()
         try:
-            if self._workflow_runtime:
-                from core.workflow.models import WorkflowRequest
-                req = WorkflowRequest(
-                    workflow_name=job.workflow_name,
-                    user_input=f"Scheduled: {job.info.name}",
-                    variables=job.workflow_variables,
-                    trace_id=run.id,
-                )
-                result = await asyncio.wait_for(
-                    self._workflow_runtime.run(req),
-                    timeout=job.timeout,
-                )
-                if result.status.value == "completed":
-                    run.status = JobRunStatus.SUCCESS
-                    run.result = result.outputs
-                else:
-                    message = "; ".join(result.errors) or "Workflow execution failed"
-                    raise JobStateError(message)
-            else:
-                raise JobStateError("WorkflowRuntime is not configured")
+            handler = self._handlers.get(job.action_type)
+            run.result = await asyncio.wait_for(
+                handler.execute(job, run),
+                timeout=job.timeout,
+            )
+            run.status = JobRunStatus.SUCCESS
 
         except asyncio.TimeoutError as exc:
             run.status = JobRunStatus.TIMEOUT
@@ -124,4 +126,16 @@ class JobExecutor:
             trace_id=str((extra or {}).get("trace_id", "")),
             extra=extra or {},
         )
-        await self._bus.publish(event.event_type, event)
+        try:
+            await self._bus.publish(event.event_type, event)
+            self._observability_error = None
+        except Exception:
+            self._observability_error = "event_publish_failed"
+            logger.warning(
+                "scheduler.job.event_publish_failed",
+                extra={"event_type": event_type, "job_id": job_id},
+            )
+
+    @property
+    def observability_degraded(self) -> bool:
+        return self._observability_error is not None

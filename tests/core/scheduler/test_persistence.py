@@ -1,8 +1,13 @@
-import pytest
-pytestmark = pytest.mark.asyncio(loop_scope="function")
 import os
+
+import pytest
+
 from core.scheduler.persistence import SchedulerPersistence
+from core.scheduler.exceptions import SchedulerPersistenceError
 from core.scheduler.models import Job, JobInfo, Trigger, TriggerType
+
+
+pytestmark = pytest.mark.asyncio(loop_scope="function")
 
 
 class TestSchedulerPersistence:
@@ -47,17 +52,18 @@ class TestSchedulerPersistence:
             if os.path.exists(self.DB_PATH):
                 os.remove(self.DB_PATH)
 
-    async def test_update_existing(self):
+    async def test_save_existing_rejects_unconditional_overwrite(self):
         p = SchedulerPersistence(self.DB_PATH)
         await p.initialize()
         try:
             job = Job(info=JobInfo(name="update-me"), workflow_name="wf1")
             await p.save_job(job)
             job.workflow_name = "wf2"
-            await p.save_job(job)
+            with pytest.raises(SchedulerPersistenceError):
+                await p.save_job(job)
             jobs = await p.load_jobs()
             assert len(jobs) == 1
-            assert jobs[0].workflow_name == "wf2"
+            assert jobs[0].workflow_name == "wf1"
         finally:
             await p.close()
             if os.path.exists(self.DB_PATH):

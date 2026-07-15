@@ -10,7 +10,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from core.errors import FailureInfo
 
 
@@ -18,6 +19,7 @@ from core.errors import FailureInfo
 
 class JobStatus(str, Enum):
     ACTIVE = "active"
+    RETRYING = "retrying"
     PAUSED = "paused"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -59,6 +61,24 @@ class Trigger(BaseModel):
     # 下次执行时间（运行时计算）
     next_run_at: datetime | None = None
 
+    @field_validator("timezone")
+    @classmethod
+    def validate_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, ValueError) as exc:
+            raise ValueError("timezone must be a valid IANA timezone") from exc
+        return value
+
+    @field_validator("run_at", "next_run_at")
+    @classmethod
+    def validate_datetime(cls, value: datetime | None) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("scheduler datetimes must include timezone information")
+        return value.astimezone(timezone.utc)
+
 
 # ---- Job ----
 
@@ -79,15 +99,23 @@ class Job(BaseModel):
     trigger: Trigger = Field(default_factory=Trigger)
     workflow_name: str = ""  # 关联的 Workflow
     workflow_variables: dict[str, Any] = Field(default_factory=dict)
+    action_type: str = "workflow"
+    action_payload: dict[str, Any] = Field(default_factory=dict)
+    trace_id: str = ""
     status: JobStatus = JobStatus.ACTIVE
     max_retries: int = 3
     timeout: int = 300  # 秒
-    max_concurrent: int = 1
+    # The durable claim model intentionally supports one active owner per Job.
+    max_concurrent: int = Field(default=1, ge=1, le=1)
     retry_count: int = 0
     run_count: int = 0
     last_run_at: datetime | None = None
     last_result: str = ""
     last_error: FailureInfo | None = None
+    claim_token: str | None = None
+    claim_expires_at: datetime | None = None
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    revision: int = Field(default=1, ge=1)
 
 
 class JobRun(BaseModel):
@@ -103,6 +131,8 @@ class JobRun(BaseModel):
     error: str | None = None
     trace_id: str = ""
     failure: FailureInfo | None = None
+    attempt: int = Field(default=1, ge=1)
+    claim_token: str = ""
 
 
 class ScheduleRequest(BaseModel):
@@ -115,3 +145,5 @@ class ScheduleRequest(BaseModel):
     agent_id: str = ""
     trace_id: str = ""
     metadata: dict[str, Any] = Field(default_factory=dict)
+    action_type: str = "workflow"
+    action_payload: dict[str, Any] = Field(default_factory=dict)

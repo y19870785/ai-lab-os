@@ -23,3 +23,11 @@ class TriggerError(SchedulerError):
 class SchedulerShutdownError(SchedulerError):
     """Scheduler 已关闭"""
     pass
+
+
+class SchedulerPersistenceError(SchedulerError):
+    """Scheduler state could not be persisted or decoded."""
+
+
+class JobClaimLostError(SchedulerError):
+    """A stale worker attempted to update a job owned by another claim."""

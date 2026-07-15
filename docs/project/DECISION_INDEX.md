@@ -21,6 +21,7 @@
 | RFC-013 | Task Runtime Architecture | Adopted |
 | RFC-013 (dup) | Multi-Agent Architecture | Adopted |
 | RFC-014 | Application Foundation | Adopted |
+| RFC-015 | Reminder Scheduler Bridge | Candidate |
 
 ## ADR 列表
 
@@ -56,5 +57,9 @@
 | ADR-026 | Application Context | Adopted |
 | ADR-027 | Workspace Isolation | Adopted |
 | ADR-028 | Unified Application Runtime | Adopted |
+| ADR-029 | Memory SQLite Connection Ownership | Adopted |
+| ADR-030 | Canonical UserTask Domain | Adopted |
+| ADR-031 | Scheduler Action Handler | Candidate |
+| ADR-032 | Reminder Effectively-Once Occurrence | Candidate |
 
-**总计：RFC 15 篇（含 1 篇编号重复），ADR 29 篇（含 2 篇编号重复）**
+**总计：RFC 文件 16 篇（含历史编号重复），ADR 文件 34 篇（含历史编号重复）**
