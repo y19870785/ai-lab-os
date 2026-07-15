@@ -1,7 +1,9 @@
 ﻿
 ## [Unreleased]
 
-### SP-005 Reminder & Scheduler Bridge（实现候选，未合并）
+### SP-005 Reminder & Scheduler Bridge（已合并，尚未发布）
+
+- PR #10 已通过审查并以 Squash Merge 合并到 `main`；审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。
 
 - Scheduler One-shot 成功后进入 completed 并清空 next_run；跨 Runtime 使用 SQLite CAS claim 和 token 校验。
 - 持久化 JobRun、claim expiry 与脱敏 FailureInfo；旧 Workflow Job 通过幂等 migration 保持兼容。
@@ -10,7 +12,7 @@
 - UserTask complete/cancel 同步协调未触发 Reminder；部分失败保留 pending_cancel，并允许同一终态请求再次补偿。
 - reminders.db 与 scheduler.db 使用显式 Saga 和 reconciliation，不宣称跨数据库事务或 exactly-once execution。
 - 产品版本保持 `0.33.0`；未创建 v0.34.0 Tag 或 GitHub Release。
-- Windows 隔离 Python 3.12 本地候选验证：`888 passed, 27 warnings in 45.19s`；不是 GitHub Actions 或跨平台 CI 结果。
+- Windows 隔离 Python 3.12 本地最终验证：`888 passed, 27 warnings in 45.19s`；不是 GitHub Actions 或跨平台 CI 结果。
 - 审查修复：Scheduler 管理操作改为数据库状态、revision 与 claim 条件写；EventBus post-commit 失败只降低 observability；过期 claim 遵守 retry delay；RUNNING Reminder Job 的 reschedule 返回 409 且不修改 Reminder。
 
 ### SP-004 UserTask
@@ -57,7 +59,7 @@
 
 ### 已知限制
 
-- Reminder/UserTask-Scheduler 闭环、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
+- Reminder 外部通知投递、Recurring Reminder、Inbox、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
 
 ---
 

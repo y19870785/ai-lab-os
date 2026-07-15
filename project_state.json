@@ -1,7 +1,7 @@
 {
   "project": "AI-Lab",
   "version": "v0.33.0",
-  "source_baseline": "SP-004 merge baseline: 10d1534049be2d526c930c513912dc661ac41728",
+  "source_baseline": "SP-005 merge baseline: 167b0d78f7713b1d5bfc85198c1461c7a35f63d3",
   "git_branch": "main",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
@@ -55,11 +55,11 @@
   "module_status": {
     "Knowledge": "Implemented / Disabled: reindex, chunk persistence, citation, and the real main path remain incomplete",
     "Tool_Runtime": "Integrated: registry/executor and low-risk tools are wired; automatic tool calling and the complete MCP product loop remain incomplete",
-    "Scheduler": "Implementation candidate / Disabled by default: SP-005 adds SQLite CAS claim, terminal one-shot semantics, persistent JobRun, and Action Handlers; awaiting review",
+    "Scheduler": "Integrated / Verified / Disabled by default: SP-005 adds SQLite CAS claim, terminal one-shot semantics, persistent JobRun, and Action Handlers",
     "Coordination": "Implemented / Disabled: not connected to the CEO Assistant main path",
     "CEO_Assistant": "Integrated / Verified / Alpha",
-    "UserTask": "Completed / Integrated / Verified: SP-004 baseline; SP-005 Reminder lifecycle coordination is an unreleased candidate",
-    "Reminder": "Implementation candidate / Disabled by default: durable ReminderOccurrence and Saga reconciliation await review"
+    "UserTask": "Completed / Integrated / Verified: SP-004 domain with SP-005 Reminder lifecycle coordination",
+    "Reminder": "Integrated / Verified / Disabled by default: durable ReminderOccurrence and Saga reconciliation merged in SP-005"
   },
   "open_technical_debt": [
     "TD-001: 部分测试辅助函数错误传入 id=None",
@@ -82,6 +82,6 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "review_sp005_reminder_and_scheduler_bridge_candidate",
+  "next_action": "define_next_stabilization_task_after_sp005",
   "freeze_date": "2026-07-14"
 }

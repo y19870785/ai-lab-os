@@ -21,9 +21,9 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 **SP-004：Canonical UserTask Domain 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。** 合并提交为 `10d1534049be2d526c930c513912dc661ac41728`，审查结论为 `APPROVED`。正式 UserTask 领域、`tasks.db` 持久化、真实 `/tasks` API、CEO Assistant 接入和显式 Legacy Decision Memory importer 已进入主分支。
 
-当前产品版本仍为 v0.33.0；SP-005 Reminder & Scheduler Bridge 已在独立分支形成实现候选，尚未审查、合并或发布。候选实现包含持久化 Reminder/Occurrence、SQLite CAS claim、One-shot terminal 语义、Action Handler、跨库 Saga/reconciliation、UserTask 终态联动和真实 Reminder API。外部通知渠道、Recurring Reminder、Inbox 与 UI 仍未实现。
+当前产品版本仍为 v0.33.0。SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查，并以 Squash Merge 合并到 `main`；合并提交为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，审查结论为 `APPROVED`，合并时间为 `2026-07-15T14:03:32Z`。持久化 Reminder/Occurrence、SQLite CAS claim、One-shot terminal 语义、Action Handler、跨库 Saga/reconciliation、UserTask 终态联动和真实 Reminder API 已进入主分支，但默认仍关闭。该能力属于 `post-v0.33.0 main`，尚未进入新的 Tag 或 Release；外部通知渠道、Recurring Reminder、Inbox 与 UI 仍未实现。
 
-SP-005 候选的 Windows 隔离 Python 3.12 本地验证为 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果。
+SP-005 的 Windows 隔离 Python 3.12 本地最终验证为 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果。
 
 ## 安装契约
 
@@ -97,7 +97,7 @@ python -m pip install -e ".[local]"
 | 2.1 - 2.8 | Core + Memory Implementation | ✅ |
 | 3.0 - 3.4 | Provider / Knowledge / Agent / Tool / MCP | Implemented；Knowledge 默认 Disabled，自动 Tool Calling 未完成 |
 | 4.0 | Workflow Engine | Integrated |
-| 4.1 / SP-005 | Scheduler + Reminder | Implementation candidate / Disabled by default；等待审查 |
+| 4.1 / SP-005 | Scheduler + Reminder | Integrated / Verified / Disabled by default；外部通知未实现 |
 | 4.2 | Task Runtime | Integrated |
 | 4.3 | Multi-Agent Coordination | Implemented / Disabled；未接入 CEO Assistant 主链路 |
 | 5.0 | Real LLM Integration + Application Layer | Integrated；CEO Assistant 为 Alpha |

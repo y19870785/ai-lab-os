@@ -14,17 +14,17 @@
 | Product 1.0-1.2 | v0.32.0 ~ v0.32.4 | 2026-07-13~14 | CEO Assistant MVP + DeepSeek + Interactive CLI |
 | Stabilization | v0.33.0 | 2026-07-15 | SP-001~SP-003 Composition Root、失败语义、数据库连接所有权与版本治理 |
 | SP-004 | v0.33.0（未新增 Release） | 2026-07-15 | Canonical UserTask、`tasks.db`、真实 Task API、CEO Assistant 接入与 Legacy importer |
-| SP-005 candidate | Unreleased（post-v0.33.0） | 2026-07-15 | Reminder/Occurrence、Scheduler CAS claim、Action Handler 与 Saga reconciliation，待审查 |
+| SP-005 | Unreleased（post-v0.33.0 main） | 2026-07-15 | Reminder/Occurrence、Scheduler CAS claim、Action Handler 与 Saga reconciliation；PR #10 已合并，默认关闭 |
 
 ## Current
 
 | Status | Action |
 |---|---|
-| **BASELINE** | v0.33.0 — SP-004 已通过 PR #8 合并；merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728` |
-| **CURRENT** | SP-005 — Reminder & Scheduler Bridge 实现候选，等待真实 Diff 审查 |
+| **BASELINE** | post-v0.33.0 main — SP-005 已通过 PR #10 合并；merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3` |
+| **CURRENT** | SP-005 已完成并封存；下一项稳定化工作等待独立任务书确认 |
 | **LIMITS** | 通知渠道、Recurring Reminder、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
 
-## Future (Tentative — Subject to Review Outcome)
+## Future (Tentative)
 
 | Version | Goal |
 |---|---|

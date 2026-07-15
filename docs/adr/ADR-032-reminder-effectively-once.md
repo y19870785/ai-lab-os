@@ -2,7 +2,7 @@
 
 ## 状态
 
-Accepted for SP-005 candidate
+Accepted / SP-005 merged via PR #10
 
 ## 决策
 

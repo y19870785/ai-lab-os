@@ -8,7 +8,7 @@
 > SP-003 Merge PR：#5（Squash Merge / APPROVED）
 > SP-004 Status：Completed
 > SP-004 Merge PR：#8（Squash Merge / APPROVED）
-> SP-005 Status：Implementation candidate / Unreleased / Awaiting review
+> SP-005 Status：Completed / Merged / Archived
 
 ## 项目使命
 
@@ -16,7 +16,7 @@ AI-Lab 是面向个人 CEO / 经营者的 AI Operating System 基础设施。目
 
 ## 版本治理
 
-`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源。当前产品版本仍为 v0.33.0。SP-005 已形成 Reminder & Scheduler Bridge 实现候选，但尚未审查、合并、Tag 或 Release；不得把候选能力描述为 main 已完成能力。
+`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源。当前产品版本仍为 v0.33.0。SP-005 已通过 PR #10 审查并以 Squash Merge 进入 `main`，但尚未进入新的 Tag 或 Release；Reminder 与 Scheduler 默认仍关闭。
 
 v0.33.0 基线在全新隔离 Python 3.12 环境中的最终 Windows 本地验证为 `820 passed, 27 warnings in 37.64s`；真实 DeepSeek 测试为 `5 passed in 8.37s`。这些统计不是跨平台 CI 或 GitHub Actions 结果。
 
@@ -43,9 +43,14 @@ SP-004 review: APPROVED
 SP-004 merge method: Squash Merge
 SP-004 merge baseline: 10d1534049be2d526c930c513912dc661ac41728
 SP-004 merged at: 2026-07-15T11:39:33Z
+SP-005 pull request: https://github.com/y19870785/ai-lab-os/pull/10
+SP-005 review: APPROVED
+SP-005 merge method: Squash Merge
+SP-005 merge baseline: 167b0d78f7713b1d5bfc85198c1461c7a35f63d3
+SP-005 merged at: 2026-07-15T14:03:32Z
 ```
 
-冻结标签保持不变。SP-001、SP-001A、SP-002、SP-003 与 SP-004 均已完成审查并进入 `main`。SP-004 经 PR #8 以 Squash Merge 合并，审查结论为 `APPROVED`；`10d1534049be2d526c930c513912dc661ac41728` 是 SP-004 合并基线，不是 PR Head。
+冻结标签保持不变。SP-001、SP-001A、SP-002、SP-003、SP-004 与 SP-005 均已完成审查并进入 `main`。SP-005 经 PR #10 以 Squash Merge 合并，审查结论为 `APPROVED`；`167b0d78f7713b1d5bfc85198c1461c7a35f63d3` 是 SP-005 合并基线，不是 PR Head。
 
 ## 状态词典
 
@@ -70,7 +75,7 @@ SP-004 merged at: 2026-07-15T11:39:33Z
 | Tool Runtime | Integrated | Echo、Calculator 通过统一 ToolExecutor 注入；自动 Tool Calling 与完整 MCP 产品闭环未完成 |
 | Agent Runtime | Integrated | SP-002 已合并：结构化失败、ERROR/DEGRADED 生命周期与独立错误码 |
 | Workflow Runtime | Integrated | Registry 与 Executor 由 Composition Root 注入 |
-| Scheduler / Reminder | Implementation candidate / Disabled by default | CAS claim、Occurrence 幂等和 Saga 候选待审查 |
+| Scheduler / Reminder | Integrated / Verified / Disabled by default | SP-005 已合并；CAS claim、Occurrence 幂等与 Saga 已验证，外部通知未实现 |
 | Execution TaskRuntime | Integrated | SP-002 已合并真实 Workflow retry、空计划失败与 fail-fast |
 | UserTask | Integrated / Verified | SP-004 已合并：正式领域、`tasks.db`、真实 API、CEO Assistant 接入和 Legacy importer |
 | Coordination | Implemented / Disabled | 默认关闭；不接入 CEO Assistant 主链路 |
@@ -107,13 +112,15 @@ Mock Provider: 仅显式 mock/test 模式
 
 SP-002 最终本地验证：专项故障注入 `28 passed in 1.56s`；受影响模块 `423 passed, 2 warnings in 11.62s`；全量测试 `768 passed, 26 warnings in 34.43s`。真实测试通过一次性清空测试子进程继承的 SOCKS 代理变量完成，未修改用户全局环境。合并时 GitHub 没有远端 CI checks，以上均为本地验证记录，不是 GitHub Actions 结果。
 
+SP-005 最终 Windows 本地验证为 `888 passed, 27 warnings in 45.19s`。该统计不是 GitHub Actions 或跨平台 CI 结果。
+
 ## 当前优先级
 
 1. SP-002 已完成并封存，统一失败契约作为后续稳定化工作的既有基线。
 2. SP-003 DatabaseManager Connection Ownership 已完成并封存，SP-003 merge baseline 为 `ce3655ff5f7a625da6b168058873dadfc2289b5f`。
 3. SP-004 Canonical UserTask Domain 已完成并封存，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`。
-4. 下一项稳定开发方向为 SP-005 Reminder & Scheduler Bridge，不在状态对账任务中提前实现。
-5. ReminderOccurrence、通知渠道、Scheduler One-shot 完整幂等投递、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
+4. SP-005 Reminder & Scheduler Bridge 已完成并封存；SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`。
+5. 外部通知渠道、Recurring Reminder、Inbox、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
 6. 在主链路稳定前不推进新的产品 Phase。
 
 ## SP-003 范围边界

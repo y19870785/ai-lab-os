@@ -1,4 +1,4 @@
-﻿# 架构状态 —— v0.22.0
+﻿# 架构状态 —— v0.33.0（post-release main）
 
 ## 当前十层架构
 
@@ -74,18 +74,6 @@ WorkflowRuntime
   └── EventBus Integration (9 种 Workflow 事件)
 ```
 
-## 各模块测试数量
+## 当前验证基线
 
-| Module | Tests |
-|--------|-------|
-| Core (Bus + DB + Logging) | 72 |
-| Memory (4 层 + Consolidation) | 121 |
-| Knowledge | 40 |
-| Provider | 54 |
-| Agent Runtime | 36 |
-| Tool Runtime | 64 |
-| Workflow | 51 |
-| Scheduler | 48 |
-| Task | 60 |
-| Integration (E2E + MCP) | 46 |
-| **Total** | **523** |
+SP-005 合并前的 Windows 本地完整验证为 `888 passed, 27 warnings in 45.19s`。该结果不是 GitHub Actions 或跨平台 CI 记录。Scheduler / Reminder 已集成并验证，但默认关闭；外部通知、Recurring Reminder 与 Inbox 尚未实现。
