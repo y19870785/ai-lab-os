@@ -34,4 +34,4 @@
 | v0.50.0 | 企业微信 / ERP / 报价系统接入 |
 | v1.0.0 | Production Release — 稳定运营 |
 
-> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12, not merged).
+> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).

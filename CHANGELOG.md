@@ -1,10 +1,11 @@
 ﻿
-## [Unreleased] ? SP-006 API Security Boundary (merged)
+## [Unreleased] -- SP-006 API Security Boundary
 - Added centralized Bearer-token authentication
 - Added explicit CORS allowlist
 - New UNAUTHENTICATED ErrorCategory (HTTP 401)
 - 51 security-specific tests
-- Squash Merged PR #12, review APPROVED
+- Merged through PR #12 on 2026-07-15; no new product Tag or Release
+- Review: APPROVED, Squash Merge
 
 ## [Unreleased]
 

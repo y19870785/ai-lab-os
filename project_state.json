@@ -1,7 +1,7 @@
 {
   "project": "AI-Lab",
   "version": "v0.33.0",
-  "source_baseline": "SP-005 merge baseline: 167b0d78f7713b1d5bfc85198c1461c7a35f63d3",
+  "source_baseline": "SP-006 merge baseline: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9",
   "git_branch": "main",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
@@ -82,8 +82,8 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "Plan SP-007 or next stabilization task",
+  "next_action": "Await ChatGPT review and merge of SP-006A before defining SP-007",
   "freeze_date": "2026-07-14",
-  "current_work": "SP-006 Completed (Merged): API Security Boundary integrated",
+  "current_work": "SP-006A post-merge reconciliation candidate",
   "merge_baseline": "2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9"
 }

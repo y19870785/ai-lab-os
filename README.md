@@ -153,4 +153,4 @@ AI-Lab/
 
 > 当前产品版本：`v0.33.0`。SP-004 已合并但未创建新 Tag 或 Release；v0.34.0 仍是目标里程碑。
 
-> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12, not merged).
+> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
