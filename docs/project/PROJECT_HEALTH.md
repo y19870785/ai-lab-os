@@ -49,4 +49,4 @@
 - Current Stabilization: 下一项工作等待独立任务书确认
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
-> SP-006 API Security Boundary: Implementation candidate (Draft PR #12, not merged).
+> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12, not merged).
