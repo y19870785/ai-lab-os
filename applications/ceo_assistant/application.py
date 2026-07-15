@@ -352,7 +352,8 @@ class CEOAssistant:
             local_now = datetime.now(local_zone)
             due_date = local_now.date() + timedelta(days=1 if "明天" in user_input else 0)
             clock_match = re.search(
-                r"(上午|下午|晚上|中午)?\s*(\d{1,2})(?:[:：](\d{1,2}))?\s*(?:点|时)",
+                r"(上午|下午|晚上|中午)?\s*(\d{1,2})"
+                r"(?:[:：](\d{1,2})|点(?:(半)|(一刻)|(\d{1,2})分?)?)",
                 user_input,
             )
             specific_time_requested = bool(re.search(
@@ -360,10 +361,20 @@ class CEOAssistant:
                 user_input,
             ))
             if clock_match:
-                period, hour_text, minute_text = clock_match.groups()
+                period, hour_text, colon_minute, half, quarter, point_minute = (
+                    clock_match.groups()
+                )
                 hour = int(hour_text)
-                minute = int(minute_text or 0)
-                valid = 0 <= minute <= 59
+                minute = int(
+                    colon_minute or point_minute
+                    or (30 if half else 15 if quarter else 0)
+                )
+                trailing = user_input[clock_match.end():]
+                partial_time_suffix = re.match(
+                    r"(?:半|一刻|[二三四]刻|\d{1,2}(?:分|秒)|左右)",
+                    trailing,
+                )
+                valid = 0 <= minute <= 59 and partial_time_suffix is None
                 if period:
                     valid = valid and 1 <= hour <= 12
                     if valid and period in {"下午", "晚上"} and hour < 12:

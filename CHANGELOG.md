@@ -9,9 +9,10 @@
 - 提供显式、幂等、非破坏的历史 Decision Memory 任务导入入口。
 - 审查修复为 Legacy importer 增加完整分页，并迁移 deadline、priority、status、session、agent 与 source。
 - `timezone` 改为 IANA 校验，`due_at` 保持 UTC；CEO Assistant 不再把无法识别的具体时间静默改为当日结束。
+- Legacy 终态时间不再由创建时间编造；半点、一刻和分钟表达采用完整匹配；列表时间筛选统一进入 FailureInfo 校验边界。
 - revision 强制大于等于 1；损坏持久化行统一归类为 Persistence Failure；metadata 递归拒绝敏感键。
 - Reminder Trigger 与 UserTask-Scheduler Bridge 留给 SP-005。
-- SP-004 Windows 本地完整验证：`841 passed, 27 warnings in 38.09s`；不是 GitHub Actions 结果。
+- SP-004 Windows 本地完整验证：`847 passed, 27 warnings in 38.81s`；不是 GitHub Actions 结果。
 
 ## [0.33.0] - 2026-07-15
 

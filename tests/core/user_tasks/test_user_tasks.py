@@ -45,6 +45,9 @@ def test_domain_preserves_timezone_for_utc_round_trip():
     task = UserTask(title="round trip", due_at=local_due, timezone="Asia/Shanghai")
     assert task.due_at == datetime(2026, 7, 16, 7, 30, tzinfo=timezone.utc)
     assert task.due_at_in_timezone().isoformat() == "2026-07-16T15:30:00+08:00"
+    query = UserTaskQuery(due_from=local_due, due_to=local_due)
+    assert query.due_from == datetime(2026, 7, 16, 7, 30, tzinfo=timezone.utc)
+    assert query.due_to == datetime(2026, 7, 16, 7, 30, tzinfo=timezone.utc)
 
 
 async def _service(path: Path):
@@ -252,9 +255,16 @@ async def test_legacy_import_is_filtered_non_destructive_and_idempotent(tmp_path
                 SimpleNamespace(id="legacy-task", content={
                     "type": "task", "title": "Imported", "priority": "高",
                     "status": "已完成", "deadline": "2026-07-16",
+                    "completed_at": "2026-07-16T10:30:00+08:00",
                 }, timestamp=datetime(2026, 7, 15, 9, 0), metadata={
                     "session_id": "legacy-session", "agent_id": "legacy-agent",
                     "source": "ceo_assistant", "timezone": "Asia/Shanghai",
+                }),
+                SimpleNamespace(id="legacy-cancelled", content={
+                    "type": "task", "title": "Cancelled without timestamp",
+                    "status": "已取消",
+                }, timestamp=datetime(2026, 7, 15, 11, 0), metadata={
+                    "timezone": "Asia/Shanghai",
                 }),
                 SimpleNamespace(id="legacy-decision", content={
                     "type": "decision", "chosen": "Keep original"
@@ -266,17 +276,24 @@ async def test_legacy_import_is_filtered_non_destructive_and_idempotent(tmp_path
 
     first = await service.import_legacy(LegacyMemory())
     second = await service.import_legacy(LegacyMemory())
-    assert first.model_dump() == {"imported": 1, "skipped": 1, "failed": 3}
-    assert second.imported == 0 and second.skipped == 2 and second.failed == 3
+    assert first.model_dump() == {"imported": 2, "skipped": 1, "failed": 3}
+    assert second.imported == 0 and second.skipped == 3 and second.failed == 3
     tasks = await service.list()
-    assert len(tasks) == 1 and tasks[0].legacy_source_id == "legacy-task"
-    imported = tasks[0]
+    assert len(tasks) == 2
+    by_legacy_id = {task.legacy_source_id: task for task in tasks}
+    imported = by_legacy_id["legacy-task"]
     assert imported.status == UserTaskStatus.COMPLETED
     assert imported.priority == UserTaskPriority.HIGH
     assert imported.due_at_in_timezone().isoformat() == "2026-07-16T23:59:59+08:00"
+    assert imported.completed_at.astimezone(
+        timezone(timedelta(hours=8))
+    ).isoformat() == "2026-07-16T10:30:00+08:00"
     assert imported.session_id == "legacy-session"
     assert imported.agent_id == "legacy-agent"
     assert imported.source == "ceo_assistant"
+    cancelled = by_legacy_id["legacy-cancelled"]
+    assert cancelled.status == UserTaskStatus.CANCELLED
+    assert cancelled.cancelled_at is None
     manager.close_all()
 
 

@@ -57,6 +57,38 @@ def test_user_task_api_validation_not_found_and_no_internal_leak(tmp_path):
         assert stale.status_code == 409
 
 
+def test_user_task_list_datetime_filters_use_validation_contract_and_utc(tmp_path):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        created = client.post("/tasks", json={
+            "title": "timezone query",
+            "due_at": "2026-07-16T15:00:00+08:00",
+            "timezone": "Asia/Shanghai",
+        })
+        assert created.status_code == 201
+
+        for field in ("due_from", "due_to"):
+            response = client.get("/tasks", params={field: "2026-07-16T12:00:00"})
+            assert response.status_code == 400
+            assert response.status_code < 500
+            body = response.json()
+            assert {
+                "status", "code", "message", "component", "retryable",
+                "trace_id", "details",
+            } <= body.keys()
+            assert body["status"] == "error"
+            assert body["component"] == "user_tasks"
+            assert body["retryable"] is False
+            assert "timezone" not in response.text.lower()
+
+        filtered = client.get("/tasks", params={
+            "due_from": "2026-07-16T14:00:00+08:00",
+            "due_to": "2026-07-16T16:00:00+08:00",
+        })
+        assert filtered.status_code == 200
+        assert [task["id"] for task in filtered.json()] == [created.json()["id"]]
+
+
 def test_user_task_api_database_failure_and_disabled_service_are_non_2xx(tmp_path):
     app = create_app(make_test_settings(tmp_path))
     with TestClient(app) as client:

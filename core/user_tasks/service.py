@@ -168,9 +168,31 @@ class UserTaskService:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
             self._raise(exc, "get", trace_id)
 
-    async def list(self, query: UserTaskQuery | None = None, trace_id: str = "") -> list[UserTask]:
+    async def list(
+        self,
+        query: UserTaskQuery | None = None,
+        trace_id: str = "",
+        *,
+        status: UserTaskStatus | None = None,
+        priority: UserTaskPriority | None = None,
+        due_from: datetime | None = None,
+        due_to: datetime | None = None,
+        overdue: bool | None = None,
+        limit: int | None = None,
+    ) -> list[UserTask]:
         try:
-            return await self._repository.list(query)
+            raw_filters = (status, priority, due_from, due_to, overdue, limit)
+            if query is not None and any(value is not None for value in raw_filters):
+                raise ValueError("query model and raw filters are mutually exclusive")
+            spec = query or UserTaskQuery(
+                status=status,
+                priority=priority,
+                due_from=due_from,
+                due_to=due_to,
+                overdue=overdue,
+                limit=100 if limit is None else limit,
+            )
+            return await self._repository.list(spec)
         except Exception as exc:
             await self._publish("user_task.failed", "query", trace_id, "failed")
             self._raise(exc, "list", trace_id)
@@ -295,6 +317,14 @@ class UserTaskService:
                     created_at = _legacy_datetime(
                         getattr(item, "timestamp", None), timezone_name
                     ) or utc_now()
+                    completed_at = _legacy_datetime(
+                        content.get("completed_at") or item_metadata.get("completed_at"),
+                        timezone_name,
+                    )
+                    cancelled_at = _legacy_datetime(
+                        content.get("cancelled_at") or item_metadata.get("cancelled_at"),
+                        timezone_name,
+                    )
                     task_id = "ut_legacy_" + hashlib.sha256(legacy_id.encode()).hexdigest()[:24]
                     await self.create(
                         task_id=task_id,
@@ -305,8 +335,12 @@ class UserTaskService:
                         timezone=timezone_name,
                         status=status,
                         created_at=created_at,
-                        completed_at=created_at if status == UserTaskStatus.COMPLETED else None,
-                        cancelled_at=created_at if status == UserTaskStatus.CANCELLED else None,
+                        completed_at=(
+                            completed_at if status == UserTaskStatus.COMPLETED else None
+                        ),
+                        cancelled_at=(
+                            cancelled_at if status == UserTaskStatus.CANCELLED else None
+                        ),
                         source=str(
                             content.get("source") or item_metadata.get("source")
                             or "legacy_decision_memory"

@@ -23,7 +23,7 @@ flowchart TD
 
 ## 时间与 metadata 契约
 
-`due_at` 是带时区的绝对时间，进入领域模型后统一转换并持久化为 UTC；`timezone` 必须是有效 IANA 时区，用于输入语义和展示转换。`due_at_in_timezone()` 可将 UTC 瞬间转换回用户时区。Windows 通过条件依赖 `tzdata` 保证 IANA 数据可用。metadata 对任意深度的字典和列表递归拒绝 `api_key`、`token`、`secret`、`password`、`authorization` 等敏感键。
+`due_at` 是带时区的绝对时间，进入领域模型后统一转换并持久化为 UTC；`timezone` 必须是有效 IANA 时区，用于输入语义和展示转换。`due_at_in_timezone()` 可将 UTC 瞬间转换回用户时区。列表 API 将原始 `due_from`/`due_to` 交给 Service 构造 `UserTaskQuery`，因此 naive datetime 会进入统一 Validation Failure 契约，aware datetime 则转换为 UTC 后查询。Windows 通过条件依赖 `tzdata` 保证 IANA 数据可用。metadata 对任意深度的字典和列表递归拒绝 `api_key`、`token`、`secret`、`password`、`authorization` 等敏感键。
 
 ## 生命周期
 
@@ -31,10 +31,10 @@ flowchart TD
 
 ## 历史兼容
 
-`UserTaskService.import_legacy()` 是显式、非破坏的迁移入口。它使用 `MemoryQuery.offset` 按 500 条分页直到耗尽，只读取 Decision Memory 中 `type=task` 的记录，并以旧记录 ID 生成稳定任务 ID。旧 `deadline` 的日期值按原 IANA 时区的当日 `23:59:59` 解释后转为 UTC；缺失时区的历史记录使用 `Asia/Shanghai`。priority/status 使用显式中英文映射，session、agent 和 source 从旧 content/metadata 保留。重复执行不会重复导入，原记录不删除、不修改。损坏记录计入失败并使 Health degraded，但不阻断正常记录。
+`UserTaskService.import_legacy()` 是显式、非破坏的迁移入口。它使用 `MemoryQuery.offset` 按 500 条分页直到耗尽，只读取 Decision Memory 中 `type=task` 的记录，并以旧记录 ID 生成稳定任务 ID。旧 `deadline` 的日期值按原 IANA 时区的当日 `23:59:59` 解释后转为 UTC；缺失时区的历史记录使用 `Asia/Shanghai`。priority/status 使用显式中英文映射，session、agent 和 source 从旧 content/metadata 保留。completed/cancelled 任务只迁移旧记录中真实存在的对应终态时间；缺失时保持 `None`，不得以创建时间编造。重复执行不会重复导入，原记录不删除、不修改。损坏记录计入失败并使 Health degraded，但不阻断正常记录。
 
 ## 已知限制
 
 - SP-004 不实现 Reminder Trigger 或 UserTask-Scheduler Bridge。
-- CEO Assistant 只解析“今天/明天”及阿拉伯数字具体时间；无法可靠识别的具体时间不会退化为当日结束，而是保存为无截止日期并明确提示。
+- CEO Assistant 只解析“今天/明天”及阿拉伯数字的整点、半点、一刻和分钟表达；匹配后仍有“三刻”、秒数等未消费时间片段时，保存为无截止日期并明确提示，不做部分匹配推断。
 - 当前并发控制是单记录 revision 乐观锁，不提供跨任务事务。

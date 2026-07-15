@@ -8,7 +8,7 @@ from api.dependencies import get_system
 from api.models import TaskCreateRequest, TaskResponse, TaskUpdateRequest
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.system.container import SystemContainer
-from core.user_tasks import UserTaskPriority, UserTaskQuery, UserTaskStatus
+from core.user_tasks import UserTaskPriority, UserTaskStatus
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -51,9 +51,13 @@ async def list_tasks(
     system: SystemContainer = Depends(get_system),
 ):
     tasks = await _service(system).list(
-        UserTaskQuery(status=status, priority=priority, due_from=due_from,
-                      due_to=due_to, overdue=overdue, limit=limit),
         trace_id=getattr(request.state, "trace_id", ""),
+        status=status,
+        priority=priority,
+        due_from=due_from,
+        due_to=due_to,
+        overdue=overdue,
+        limit=limit,
     )
     return [_response(task) for task in tasks]
 

@@ -88,17 +88,25 @@ class TestTasks:
         assert tomorrow in str(resp.metadata.get("due_at", "")), f"due_at 应为 {tomorrow}"
 
     @pytest.mark.asyncio
-    async def test_specific_time_is_parsed_without_end_of_day_fallback(self, app_with_decision):
+    @pytest.mark.parametrize(("expression", "expected_hour", "expected_minute"), [
+        ("3点", 15, 0),
+        ("3点半", 15, 30),
+        ("3点一刻", 15, 15),
+        ("3点45分", 15, 45),
+    ])
+    async def test_specific_time_is_fully_parsed(
+        self, app_with_decision, expression, expected_hour, expected_minute
+    ):
         from datetime import datetime, timedelta, timezone
 
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天下午3点跟进客户",
+            user_input=f"提醒我明天下午{expression}跟进客户",
         ))
         assert resp.status == "ok"
         due_at = datetime.fromisoformat(resp.metadata["due_at"])
         local_due = due_at.astimezone(timezone(timedelta(hours=8)))
-        assert (local_due.hour, local_due.minute) == (15, 0)
+        assert (local_due.hour, local_due.minute) == (expected_hour, expected_minute)
 
     @pytest.mark.asyncio
     async def test_task_priority_high(self, app_with_decision):
@@ -111,10 +119,17 @@ class TestTasks:
         assert resp.metadata.get("priority") == "high"
 
     @pytest.mark.asyncio
-    async def test_unparsed_deadline_is_explicit_and_not_fabricated(self, app_with_decision):
+    @pytest.mark.parametrize("expression", [
+        "明天下午完成报告",
+        "明天下午3点三刻完成报告",
+        "明天下午3点45分30秒完成报告",
+    ])
+    async def test_unparsed_deadline_is_explicit_and_not_fabricated(
+        self, app_with_decision, expression
+    ):
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天下午完成报告",
+            user_input=f"提醒我{expression}",
         ))
         assert resp.status == "ok"
         assert resp.metadata.get("due_at") is None

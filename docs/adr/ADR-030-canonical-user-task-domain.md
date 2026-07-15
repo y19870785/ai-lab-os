@@ -8,7 +8,7 @@ Accepted
 
 建立独立 `core/user_tasks` 作为唯一用户待办领域。UserTask 不复用 Workflow 的 Execution Task，也不继续把 Decision Memory 当作正式任务数据库。数据持久化到统一 SQLite 目录的 `tasks.db`，连接由 DatabaseManager 所有。
 
-历史 `type=task` Decision Memory 通过显式、分页、幂等、非破坏 importer 兼容；deadline、priority、status、session、agent 和 source 按明确规则迁移。`due_at` 统一存储 UTC，`timezone` 使用有效 IANA 标识。Reminder 与 Scheduler 桥梁留给 SP-005。
+历史 `type=task` Decision Memory 通过显式、分页、幂等、非破坏 importer 兼容；deadline、priority、status、session、agent 和 source 按明确规则迁移。终态时间只在旧记录提供真实 `completed_at`/`cancelled_at` 时迁移，缺失时保留未知，不使用创建时间替代。`due_at` 统一存储 UTC，`timezone` 使用有效 IANA 标识；列表查询时间同样在 Service 的领域校验边界内规范化。Reminder 与 Scheduler 桥梁留给 SP-005。
 
 ## 原因
 
