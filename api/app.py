@@ -46,7 +46,7 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
     # Default to auth-disabled when no explicit settings are provided
     # Tests / production callers inject explicit settings.
     sec_cfg = ApiSecurityConfig.from_settings(
-        auth_enabled=effective_settings.enable_api_auth if settings is not None else False,
+        auth_enabled=effective_settings.enable_api_auth,
         api_token=effective_settings.api_token,
         allowed_origins=list(effective_settings.api_allowed_origins),
         environment=effective_settings.environment,
@@ -116,4 +116,14 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
 
 
 
-app = create_app()  # module-level FastAPI instance for uvicorn discovery
+# Lazy module-level app: create on first access, not at import time.
+# Tests import from api.app for create_app(); uvicorn accesses api.app:app.
+_app_instance = None
+
+def __getattr__(name):
+    if name == "app":
+        global _app_instance
+        if _app_instance is None:
+            _app_instance = create_app()
+        return _app_instance
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

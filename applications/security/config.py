@@ -49,10 +49,26 @@ class ApiSecurityConfig:
                 raise ValueError(
                     f"Origin '{o}' contains query/fragment; only scheme+host+port allowed"
                 )
-            # Reconstruct canonical form
-            canonical = parsed.hostname
-            if parsed.port:
-                canonical = f"{parsed.hostname}:{parsed.port}"
+            # Reconstruct canonical form, preserving IPv6 brackets
+            host = parsed.hostname
+            if host is not None and ":" in host:
+                host = f"[{host}]"
+            # Access parsed.port safely -- it raises ValueError for >65535
+            port = None
+            try:
+                port = parsed.port
+            except ValueError:
+                raise ValueError(
+                    f"Origin '{o}' has invalid port"
+                ) from None
+            if port is not None and port not in range(1, 65536):
+                raise ValueError(
+                    f"Origin '{o}' has invalid port: {port}"
+                )
+            if port is not None:
+                canonical = f"{host}:{port}"
+            else:
+                canonical = host
             canonical = f"{parsed.scheme}://{canonical}"
             if canonical.lower() not in seen:
                 seen.add(canonical.lower())

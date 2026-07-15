@@ -4,6 +4,7 @@ from pathlib import Path
 import logging
 import tempfile
 import io
+import os
 
 import pytest
 from fastapi.testclient import TestClient
@@ -145,6 +146,88 @@ class TestAuthorizationEdgeCases:
             else:
                 resp = auth_client.get(path)
             assert resp.status_code == 401, f"{path} should require auth"
+
+
+
+class TestModuleLevelAppSecurity:
+    def test_module_app_with_auth_and_valid_token(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("AI_LAB_API_AUTH_ENABLED", "true")
+        monkeypatch.setenv("AI_LAB_API_TOKEN", "test-module-token")
+        monkeypatch.setenv("AI_LAB_DATA_DIR", str(tmp_path))
+        monkeypatch.setenv("AI_LAB_PROVIDER_MODE", "test")
+        monkeypatch.setenv("AI_LAB_ENABLE_USER_TASKS", "false")
+        from api.app import create_app
+        app = create_app()
+        assert app.state.api_security.auth_enabled is True
+        assert app.state.api_security.api_token == "test-module-token"
+
+    def test_module_app_with_auth_but_no_token_fails_fast(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("AI_LAB_API_AUTH_ENABLED", "true")
+        monkeypatch.setenv("AI_LAB_API_TOKEN", "")
+        monkeypatch.setenv("AI_LAB_DATA_DIR", str(tmp_path))
+        monkeypatch.setenv("AI_LAB_PROVIDER_MODE", "test")
+        from api.app import create_app
+        with pytest.raises(ValueError, match="API authentication is enabled"):
+            create_app()
+
+    def test_module_app_with_auth_explicitly_disabled(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("AI_LAB_API_AUTH_ENABLED", "false")
+        monkeypatch.setenv("AI_LAB_API_TOKEN", "")
+        monkeypatch.setenv("AI_LAB_DATA_DIR", str(tmp_path))
+        monkeypatch.setenv("AI_LAB_PROVIDER_MODE", "test")
+        monkeypatch.setenv("AI_LAB_ENABLE_USER_TASKS", "false")
+        from api.app import create_app
+        app = create_app()
+        assert app.state.api_security.auth_enabled is False
+
+
+class TestWwwAuthenticateScope:
+    def test_401_with_www_authenticate(self, auth_client):
+        resp = auth_client.get("/tasks")
+        assert resp.status_code == 401
+        assert "Bearer" in resp.headers.get("www-authenticate", "")
+
+    def test_401_always_has_www_authenticate(self, auth_client):
+        # 401 from missing auth must include WWW-Authenticate
+        resp = auth_client.get("/tasks")
+        assert resp.status_code == 401
+        assert "Bearer" in resp.headers.get("www-authenticate", "")
+        # 401 from invalid format must also include it
+        resp2 = auth_client.get("/tasks", headers={"Authorization": "Basic xyz"})
+        assert resp2.status_code == 401
+        assert "Bearer" in resp2.headers.get("www-authenticate", "")
+
+
+class TestOriginIpv6AndPort:
+    def test_ipv6_no_port(self):
+        from applications.security.config import ApiSecurityConfig
+        cfg = ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://[::1]"])
+        assert cfg.allowed_origins == ["http://[::1]"]
+
+    def test_ipv6_with_port(self):
+        from applications.security.config import ApiSecurityConfig
+        cfg = ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["https://[2001:db8::1]:443"])
+        assert cfg.allowed_origins == ["https://[2001:db8::1]:443"]
+
+    def test_invalid_port(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="invalid port"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://example.com:99999"])
+
+    def test_port_out_of_range(self):
+        from applications.security.config import ApiSecurityConfig
+        with pytest.raises(ValueError, match="invalid port"):
+            ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://example.com:0"])
+
+    def test_default_port_80_preserved(self):
+        from applications.security.config import ApiSecurityConfig
+        cfg = ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["http://example.com:80"])
+        assert cfg.allowed_origins == ["http://example.com:80"]
+
+    def test_default_port_443_preserved(self):
+        from applications.security.config import ApiSecurityConfig
+        cfg = ApiSecurityConfig.from_settings(auth_enabled=False, api_token="", allowed_origins=["https://example.com:443"])
+        assert cfg.allowed_origins == ["https://example.com:443"]
 
 
 class TestConfigErrors:

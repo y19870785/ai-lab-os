@@ -30,7 +30,7 @@ def make_error_response(failure: FailureInfo) -> JSONResponse:
         details={} if failure.category == ErrorCategory.INTERNAL else failure.details,
     )
     headers = {"X-Trace-ID": failure.trace_id}
-    if failure.category.value in ("unauthenticated", "permission_denied"):
+    if failure.category.value == "unauthenticated":
         headers["WWW-Authenticate"] = "Bearer"
     return JSONResponse(
         status_code=http_status_for_failure(failure),
