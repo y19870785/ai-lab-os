@@ -320,4 +320,10 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 > Accepted scope 绑定当前 `asyncio.Task` 身份：同一 Task 的下游调用可继续，普通 detached child 不继承 bypass；仅 Scheduler 可通过 `spawn_accepted_task()` 显式延续已经接受的 Job。FastAPI Runtime dependency 仍先经过 `get_system()`，Runtime 在真实执行点再次检查以关闭竞态窗口。
 
-> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。产品版本保持 `0.33.0`；没有新 Tag 或 Release。下一项稳定化任务尚未选择、无分支、无 PR、未启动。
+> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。产品版本保持 `0.33.0`；没有新 Tag 或 Release。
+
+## SP-009 Natural-Language Reminder Closure（Candidate）
+
+`CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是候选生产链。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释；持久化保持 UTC。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
+
+状态：**SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**。RFC-019、ADR-039、ADR-040 均为 Proposed；外部通知、Inbox、Recurring Reminder 和复杂自然语言日期明确延期。

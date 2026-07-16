@@ -83,3 +83,7 @@ SP-005 合并前的 Windows 本地完整验证为 `888 passed, 27 warnings in 45
 > SP-007 System Lifecycle Admission Gate 与 SP-008 Internal Work Admission Boundary 均已 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-008 通过 PR #16、Squash Commit `1858d4991379058948559cc96e2672df44e42b67` 将同一生命周期真相扩展到内部 Runtime、CEO Assistant、CLI 与 Scheduler producer，未在业务模块复制状态标志。
 
 SP-008 合并前 Windows 本地 Python 3.12 验证为 `977 passed, 27 warnings in 49.17s`，零失败、零错误；这是历史记录，不是 GitHub Actions 或跨平台 CI 结果。
+
+## SP-009 Candidate
+
+自然语言提醒闭环通过 Composition Root 注入 `TaskReminderIntentParser`、`Clock` 与 `NaturalLanguageReminderOrchestrator`，复用既有 Reminder Saga 和 Scheduler CAS/Occurrence 语义。站内聚合状态来自持久化组件。状态仅为 **SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**；RFC-019、ADR-039、ADR-040 仍为 Proposed。

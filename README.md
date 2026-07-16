@@ -159,4 +159,6 @@ AI-Lab/
 
 > SP-008 Internal Work Admission Boundary: **APPROVED / MERGED / RECONCILED / ARCHIVED**。PR #16 以 Approved Head `536d1563baaecf5d50eeefc93dfdb0dbbfe3c659` 通过审查，Squash Commit `1858d4991379058948559cc96e2672df44e42b67` 于 `2026-07-16T11:06:29Z` 进入 main。API 与内部入口共享同一生命周期真相；RFC-018 已 Adopted，ADR-037/038 已 Accepted。
 
-> SP-008 合并前 Windows 本地 Python 3.12 验证：`977 passed, 27 warnings in 49.17s`，零失败、零错误；该结果是历史本地记录，不是 GitHub Actions 或跨平台 CI 健康保证。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。下一项稳定化任务尚未选择、无分支、无 PR、未启动。
+> SP-008 合并前 Windows 本地 Python 3.12 验证：`977 passed, 27 warnings in 49.17s`，零失败、零错误；该结果是历史本地记录，不是 GitHub Actions 或跨平台 CI 健康保证。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
+
+> **SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**：候选实现将受支持的自然语言提醒接入真实 UserTask、Reminder、Scheduler Job、Occurrence 和站内状态查询。仅支持今天/明天的确定性时间子集；外部通知、Inbox、Recurring Reminder、复杂日期和 Web UI 仍未实现。

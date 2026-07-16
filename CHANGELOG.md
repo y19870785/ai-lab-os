@@ -1,6 +1,15 @@
 ﻿
 ## [Unreleased]
 
+### SP-009 Natural-Language Reminder Closure（Implementation Candidate）
+- Added a deterministic today/tomorrow reminder parser with injected clock and IANA timezone.
+- Wired CEO Assistant to the existing UserTask/Reminder/Scheduler Saga through a narrow orchestrator.
+- Added hashed request idempotency, aggregate persisted status API, and a Composition Root CLI status query.
+- Added real-lifespan SQLite restart, due-trigger, effectively-once, and failure-visibility tests.
+- Windows local Python 3.12 candidate validation: `998 passed, 27 warnings in 48.88s`; not a GitHub Actions or cross-platform CI result.
+- Status: Draft PR / Awaiting ChatGPT review / Not merged.
+- Product version remains `0.33.0`; no Tag or GitHub Release was created.
+
 ### SP-008 Internal Work Admission Boundary
 - Added one lifecycle-backed admission boundary for internal application work.
 - Added guarded direct CEO Assistant and Scheduler producer entrypoints.

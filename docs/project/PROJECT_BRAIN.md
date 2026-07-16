@@ -174,4 +174,12 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Open limits: no process-wide in-flight counter, drain timeout, forced cancellation, or multi-process coordination.
 - Governance: RFC-018 is Adopted; ADR-037 and ADR-038 are Accepted.
 - Product version remains `0.33.0`; no v0.34.0 Tag or GitHub Release exists.
-- Next stabilization task: not yet selected / no branch / no PR / not started.
+- Next selected product slice: SP-009 Natural-Language Reminder Closure with In-App Status.
+
+### SP-009: Natural-Language Reminder Closure
+- Status: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+- Base: `51fd6b38417840044f6ee1a1a699d13186762017`
+- Candidate outcome: supported natural-language input creates persisted UserTask, Reminder, Scheduler Job and one queryable ReminderOccurrence.
+- Truth boundary: status is aggregated from persisted services; LLM, logs and EventBus are not user-visible truth.
+- Deferred: external notification, Inbox, Recurring Reminder, complex dates, LLM time parsing, multi-user, Web UI and distributed Scheduler.
+- Governance: RFC-019, ADR-039 and ADR-040 remain Proposed until independent review and merge.
