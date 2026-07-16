@@ -1,7 +1,14 @@
 # RFC-017: System Lifecycle Admission Gate
 
 ## Status
-Proposed / SP-007 implementation candidate
+Adopted
+
+## Adoption Record
+Implemented by SP-007. Merged via PR #14.
+
+Merge Commit: `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
+
+Adoption Date: 2026-07-16
 
 ## Context
 SystemContainer currently uses boolean flags (_started, _starting, _stopped) to track lifecycle. New work can be admitted during shutdown, accessing partially closed components. There is no unified admission gate.
@@ -24,4 +31,4 @@ SP-007 admission scope is limited to FastAPI protected business routes through `
 
 Excluded from SP-007: direct `ApplicationRuntime` calls, direct `CEOAssistant` calls, and CLI entry points. These paths do not currently receive an injected admission callback and are not represented as covered by this RFC.
 
-SP-008 candidate — Internal Work Admission Boundary will define the canonical internal execution boundary and inject the lifecycle admission callback there without duplicating lifecycle flags in business modules.
+SP-008 — Internal Work Admission Boundary is Candidate / Not started / No branch / No PR. It will define the canonical internal execution boundary and inject the lifecycle admission callback there without duplicating lifecycle flags in business modules.

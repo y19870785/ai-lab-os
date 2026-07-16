@@ -1,7 +1,14 @@
 # ADR-035: System Lifecycle State Machine
 
 ## Status
-Proposed / SP-007 implementation candidate
+Accepted
+
+## Acceptance Record
+Implemented by SP-007 and merged via PR #14.
+
+Merge Commit: `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
+
+Accepted Date: 2026-07-16
 
 ## Scope
 The state machine is the source of truth for `SystemContainer` and FastAPI protected-route admission in SP-007. Direct application, CEO Assistant, and CLI execution admission is deferred to SP-008 candidate.

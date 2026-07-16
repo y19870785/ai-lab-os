@@ -155,4 +155,4 @@ AI-Lab/
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 本轮准入范围仅覆盖 FastAPI 受保护业务路由；ApplicationRuntime、CEO Assistant 与 CLI 的直接调用不在本轮覆盖范围，将由 SP-008 Internal Work Admission Boundary candidate 处理。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并时间为 `2026-07-16T10:08:47Z`，产品版本保持 `0.33.0`。准入范围仍仅为 FastAPI 受保护业务路由；直接 ApplicationRuntime、CEO Assistant 与 CLI 调用不在范围内。SP-008 Internal Work Admission Boundary: Candidate / Not started / No branch / No PR。

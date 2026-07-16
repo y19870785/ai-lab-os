@@ -1,5 +1,15 @@
 ﻿# 版本兼容性矩阵
 
+**Product Version:** `0.33.0`
+
+**Latest Release:** unchanged
+
+**SP-007:** merged into main through PR #14 (`ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`)
+
+**Release Tag:** none
+
+**GitHub Release:** none
+
 | Module | Version | Min AI-Lab | Dependencies |
 |--------|---------|------------|--------------|
 | Core (Bus) | 1.0 | v0.7.0 | - |
@@ -30,4 +40,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 本轮仅覆盖 FastAPI 受保护业务路由；内部工作准入为 SP-008 candidate。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED，已合并至 main，未进入新的正式 Release。内部工作准入为 SP-008 Internal Work Admission Boundary（Candidate / Not started / No branch / No PR）。

@@ -151,9 +151,12 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - UI: not implemented
 
 ### SP-007: System Lifecycle Admission Gate
-- Status: Implementation candidate
-- Draft PR: #14
-- Awaiting ChatGPT review, not merged
+- Status: APPROVED / MERGED / RECONCILED / ARCHIVED
+- Merge PR: #14
+- Approved Head: `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`
+- Squash Merge Commit: `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
+- Merged At: `2026-07-16T10:08:47Z`
+- Product Version: `0.33.0`
 - Admission scope: FastAPI protected business routes only.
 - Excluded: direct ApplicationRuntime calls, direct CEOAssistant calls, and CLI entrypoints.
-- Follow-up: SP-008 candidate — Internal Work Admission Boundary.
+- Follow-up: SP-008 Internal Work Admission Boundary — Candidate / Not started / No branch / No PR.

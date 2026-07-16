@@ -1,5 +1,15 @@
 ﻿
-## [Unreleased] -- SP-006 API Security Boundary
+## [Unreleased]
+
+### SP-007 System Lifecycle Admission Gate
+- Added the system lifecycle state machine and FastAPI protected-route admission gate.
+- Added single-flight graceful shutdown coordination.
+- Added structured lifecycle failure codes and draining `Retry-After` behavior.
+- Added lifecycle-aware health reporting.
+- Merged through PR #14 on 2026-07-16 as `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`; no new product Tag or Release was created.
+- Internal direct-call admission remains deferred to SP-008.
+
+### SP-006 API Security Boundary
 - Added centralized Bearer-token authentication
 - Added explicit CORS allowlist
 - New UNAUTHENTICATED ErrorCategory (HTTP 401)
@@ -332,4 +342,4 @@ python -m cli chat <娑堟伅>     # 澶氳疆瀵硅瘽
 
 </details>
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 范围限定为 FastAPI 受保护业务路由的生命周期准入；内部直调入口留给 SP-008 Internal Work Admission Boundary candidate。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并于 `2026-07-16T10:08:47Z`。版本仍为 `0.33.0`；内部直调入口留给 SP-008 Internal Work Admission Boundary（Candidate / Not started / No branch / No PR）。

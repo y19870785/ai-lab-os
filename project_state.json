@@ -1,7 +1,11 @@
 {
   "project": "AI-Lab",
   "version": "v0.33.0",
-  "source_baseline": "SP-006 merge baseline: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9",
+  "current_version": "0.33.0",
+  "source_baseline": "SP-007 merge baseline: ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
+  "main_commit": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
+  "latest_completed_sp": "SP-007",
+  "next_candidate_sp": "SP-008",
   "git_branch": "main",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
@@ -12,7 +16,7 @@
     "test_files": 128
   },
   "test_summary": {
-    "passed": 888,
+    "passed": 955,
     "failed": 0,
     "skipped": 0,
     "warnings": 27,
@@ -82,8 +86,15 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "Awaiting ChatGPT review of SP-007 PR #14; define SP-008 Internal Work Admission Boundary after SP-007 review",
+  "next_action": "SP-008 Internal Work Admission Boundary is a candidate; not started, with no branch or PR",
   "freeze_date": "2026-07-14",
-  "current_work": "SP-007 System Lifecycle Admission Gate: implementation candidate, Draft PR #14; scope is FastAPI protected business routes only; SP-008 candidate covers internal work admission",
-  "merge_baseline": "2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9"
+  "current_work": "SP-007A post-merge reconciliation candidate; SP-007 is archived and SP-008 remains not started",
+  "merge_baseline": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
+  "sp_007": {
+    "status": "archived",
+    "pr": 14,
+    "approved_head": "527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4",
+    "merge_commit": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
+    "merged_at": "2026-07-16T10:08:47Z"
+  }
 }

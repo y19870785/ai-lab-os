@@ -314,4 +314,4 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 - Protected routes require Depends(require_auth); health/metrics remain public
 - Status: Merged PR #12, APPROVED / Merged
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 准入 Gate 仅位于 FastAPI 受保护业务路由；直接 ApplicationRuntime、CEO Assistant 与 CLI 调用明确排除，后续由 SP-008 Internal Work Admission Boundary candidate 覆盖。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 以 Approved Head `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4` 合并，main Squash Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，时间为 `2026-07-16T10:08:47Z`，版本仍为 `0.33.0`。Gate 仅位于 FastAPI 受保护业务路由；直接 ApplicationRuntime、CEO Assistant 与 CLI 调用明确排除。SP-008 Internal Work Admission Boundary: Candidate / Not started / No branch / No PR。
