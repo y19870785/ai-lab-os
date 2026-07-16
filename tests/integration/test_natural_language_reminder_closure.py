@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -95,6 +96,107 @@ def test_task_only_does_not_require_reminder_components(tmp_path):
         assert response.status_code == 200
         assert response.json()["metadata"]["metadata"]["intent"] == "task"
         assert response.json()["metadata"]["due_at"] is None
+
+
+def test_two_reminders_without_idempotency_key_create_distinct_chains(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    app = create_app(_settings(tmp_path), clock=clock)
+    request = {"user_input": "明天下午3点提醒我联系张经理"}
+
+    with TestClient(app) as client:
+        first = client.post("/chat", json=request)
+        second = client.post("/chat", json=request)
+
+        assert first.status_code == 200
+        assert second.status_code == 200
+        first_metadata = first.json()["metadata"]
+        second_metadata = second.json()["metadata"]
+        assert first_metadata["reminder_status"] == "scheduled"
+        assert second_metadata["reminder_status"] == "scheduled"
+        assert first_metadata["task_id"] != second_metadata["task_id"]
+        assert first_metadata["reminder_id"] != second_metadata["reminder_id"]
+
+
+def test_generated_idempotency_key_is_never_empty(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    app = create_app(_settings(tmp_path), clock=clock)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/chat", json={"user_input": "明天下午3点提醒我联系张经理"}
+        )
+        assert response.status_code == 200
+        task_id = response.json()["metadata"]["task_id"]
+        task = client.get(f"/tasks/{task_id}").json()
+        key_hash = task["metadata"]["idempotency_hash"]
+        assert key_hash
+        assert key_hash != hashlib.sha256(b"").hexdigest()
+
+
+def test_explicit_idempotency_key_still_reuses_chain(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    app = create_app(_settings(tmp_path), clock=clock)
+    request = {"user_input": "明天下午3点提醒我联系张经理"}
+    headers = {"Idempotency-Key": "explicit-retry-key"}
+
+    with TestClient(app) as client:
+        first = client.post("/chat", json=request, headers=headers)
+        second = client.post("/chat", json=request, headers=headers)
+        assert first.status_code == 200
+        assert second.status_code == 200
+        assert first.json()["metadata"]["task_id"] == second.json()["metadata"]["task_id"]
+        assert first.json()["metadata"]["reminder_id"] == second.json()["metadata"]["reminder_id"]
+
+
+def test_task_with_time_does_not_create_reminder(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    app = create_app(_settings(tmp_path), clock=clock)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/chat", json={"user_input": "添加任务：明天下午3点联系张经理"}
+        )
+        assert response.status_code == 200
+        metadata = response.json()["metadata"]
+        assert metadata["due_at"] == "2026-07-17T07:00:00Z"
+        assert metadata["metadata"]["intent"] == "task"
+        assert client.get(f"/tasks/{metadata['id']}/reminders").json() == []
+        assert client.portal.call(app.state.system.scheduler_runtime.list_jobs) == []
+
+
+def test_reminder_with_time_creates_full_chain(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    app = create_app(_settings(tmp_path), clock=clock)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/chat", json={"user_input": "明天下午3点提醒我联系张经理"}
+        )
+        assert response.status_code == 200
+        metadata = response.json()["metadata"]
+        assert metadata["task_id"]
+        assert metadata["reminder_id"]
+        assert metadata["scheduler_job_id"]
+        assert metadata["reminder_status"] == "scheduled"
+
+
+def test_unsupported_task_time_does_not_claim_reminder_success(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    app = create_app(_settings(tmp_path), clock=clock)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/chat", json={"user_input": "添加任务：下周联系张经理"}
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["metadata"]["due_at"] is None
+        assert body["metadata"]["metadata"]["intent"] == "task"
+        assert body["metadata"]["metadata"]["time_unparsed"] is True
+        assert "时间未识别" in body["answer"]
+        assert "提醒已安排" not in body["answer"]
+        assert client.get(f"/tasks/{body['metadata']['id']}/reminders").json() == []
+        assert client.portal.call(app.state.system.scheduler_runtime.list_jobs) == []
 
 
 def test_api_rejects_unsupported_and_past_reminder_times(tmp_path):

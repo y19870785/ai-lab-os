@@ -30,11 +30,27 @@ def test_supported_reminder_phrases(parser, phrase, expected):
     assert parsed.timezone == "Asia/Shanghai"
 
 
-def test_task_only_intent_has_no_due_time(parser):
+def test_task_without_time_has_no_due_at(parser):
     parsed = parser.parse("添加任务：联系张经理")
     assert parsed.kind == "task"
     assert parsed.title == "联系张经理"
     assert parsed.due_at is None
+    assert parsed.time_unparsed is False
+
+
+def test_task_with_supported_time_persists_due_at(parser):
+    parsed = parser.parse("添加任务：明天下午3点联系张经理")
+    assert parsed.kind == "task"
+    assert parsed.title == "联系张经理"
+    assert parsed.due_at.isoformat() == "2026-07-17T07:00:00+00:00"
+    assert parsed.time_unparsed is False
+
+
+def test_unsupported_task_time_is_explicitly_degraded(parser):
+    parsed = parser.parse("添加任务：下周联系张经理")
+    assert parsed.kind == "task"
+    assert parsed.due_at is None
+    assert parsed.time_unparsed is True
 
 
 @pytest.mark.parametrize("phrase", [

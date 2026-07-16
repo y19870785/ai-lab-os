@@ -324,6 +324,6 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 ## SP-009 Natural-Language Reminder Closure（Candidate）
 
-`CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是候选生产链。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释；持久化保持 UTC。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
+`CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是候选生产链。Parser 将 intent kind 与可选 `due_at` 分开：task-only 可保存截止时间但不创建 Reminder/Job；Reminder 必须具有受支持的未来时间。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释，持久化保持 UTC。无显式幂等键的 API 请求生成独立请求键，显式键继续提供重试复用与冲突检测。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
 
 状态：**SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**。RFC-019、ADR-039、ADR-040 均为 Proposed；外部通知、Inbox、Recurring Reminder 和复杂自然语言日期明确延期。

@@ -28,6 +28,7 @@ class ParsedTaskIntent:
     title: str
     due_at: datetime | None
     timezone: str
+    time_unparsed: bool = False
 
 
 class TaskReminderIntentParser:
@@ -39,13 +40,15 @@ class TaskReminderIntentParser:
     def parse(self, text: str) -> ParsedTaskIntent:
         raw = text.strip()
         is_reminder = any(marker in raw for marker in _REMINDER_MARKERS)
-        if not is_reminder:
-            title = _TASK_PREFIX.sub("", raw).strip(" ，。:：")
-            return ParsedTaskIntent("task", title, None, self._timezone_name)
-
         match = _TIME_EXPRESSION.search(raw)
         if match is None or self._has_unsupported_time_suffix(raw, match.end()):
-            self._fail("reminder.time_unsupported", "Reminder time is not supported")
+            if is_reminder:
+                self._fail("reminder.time_unsupported", "Reminder time is not supported")
+            title = _TASK_PREFIX.sub("", raw).strip(" ，。:：")
+            return ParsedTaskIntent(
+                "task", title, None, self._timezone_name,
+                time_unparsed=self._contains_time_hint(raw),
+            )
 
         hour = int(match.group("hour"))
         minute = int(
@@ -55,7 +58,12 @@ class TaskReminderIntentParser:
         )
         period = match.group("period")
         if minute > 59 or (period and not 1 <= hour <= 12) or (not period and hour > 23):
-            self._fail("reminder.time_unsupported", "Reminder time is not supported")
+            if is_reminder:
+                self._fail("reminder.time_unsupported", "Reminder time is not supported")
+            title = _TASK_PREFIX.sub("", raw).strip(" ，。:：")
+            return ParsedTaskIntent(
+                "task", title, None, self._timezone_name, time_unparsed=True
+            )
         if period in {"下午", "晚上"} and hour < 12:
             hour += 12
         elif period == "上午" and hour == 12:
@@ -65,22 +73,37 @@ class TaskReminderIntentParser:
         day = local_now.date() + timedelta(days=match.group("day") == "明天")
         local_due = datetime.combine(day, time(hour, minute), tzinfo=self._zone)
         due_at = local_due.astimezone(timezone.utc)
-        if due_at <= self._clock.now().astimezone(timezone.utc):
+        if is_reminder and due_at <= self._clock.now().astimezone(timezone.utc):
             self._fail("reminder.time_in_past", "Reminder time must be in the future")
 
         title = raw[:match.start()] + raw[match.end():]
         for marker in _REMINDER_MARKERS:
             title = title.replace(marker, "")
-        title = title.strip(" ，。:：")
+        title = _TASK_PREFIX.sub("", title).strip(" ，。:：")
         if not title:
-            self._fail("reminder.title_missing", "Reminder title is required")
-        return ParsedTaskIntent("reminder", title, due_at, self._timezone_name)
+            self._fail(
+                "reminder.title_missing" if is_reminder else "user_tasks.title_missing",
+                "Reminder title is required" if is_reminder else "Task title is required",
+            )
+        return ParsedTaskIntent(
+            "reminder" if is_reminder else "task",
+            title,
+            due_at,
+            self._timezone_name,
+        )
 
     @staticmethod
     def _has_unsupported_time_suffix(text: str, end: int) -> bool:
         return re.match(
             r"\s*(?:[二三四]刻|\d{1,2}(?:分|秒)|刻|分|秒|左右)",
             text[end:],
+        ) is not None
+
+    @staticmethod
+    def _contains_time_hint(text: str) -> bool:
+        return re.search(
+            r"今天|明天|后天|下周|周[一二三四五六日天]|月底|过几天|有空|早上|上午|下午|晚上|\d{1,2}\s*(?:[:：点])",
+            text,
         ) is not None
 
     @staticmethod

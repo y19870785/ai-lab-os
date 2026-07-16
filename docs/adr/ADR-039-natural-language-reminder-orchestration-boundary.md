@@ -10,9 +10,9 @@ Natural-language Reminder creation spans UserTask, Reminder, and Scheduler persi
 
 ## Decision
 
-The Composition Root creates one `NaturalLanguageReminderOrchestrator` and injects it into CEO Assistant. A deterministic parser produces task/reminder intent and an aware UTC due time. The orchestrator creates/reuses the UserTask and delegates Reminder plus Scheduler Job creation to `ReminderSchedulerBridge`.
+The Composition Root creates one `NaturalLanguageReminderOrchestrator` and injects it into CEO Assistant. A deterministic parser produces task/reminder intent and an optional aware UTC due time as independent dimensions. A task may own `due_at` without owning a Reminder. Reminder intent requires a supported future `due_at`; the orchestrator then creates/reuses the UserTask and delegates Reminder plus Scheduler Job creation to `ReminderSchedulerBridge`.
 
-`Clock` and the configured IANA timezone are injected. Production uses `SystemClock`; tests use an explicit mutable clock. Idempotency uses a caller key whose hash, not raw value, is persisted. Bridge failure is returned as `FailureInfo` and recorded in UserTask metadata while the existing Reminder Saga remains the recovery authority.
+`Clock` and the configured IANA timezone are injected. Production uses `SystemClock`; tests use an explicit mutable clock. Explicit idempotency keys retain retry semantics; `/chat` generates a fresh non-empty key for each request that omits one. Only the key hash, not the raw value, is persisted. Bridge failure is returned as `FailureInfo` and recorded in UserTask metadata while the existing Reminder Saga remains the recovery authority.
 
 ## Consequences
 

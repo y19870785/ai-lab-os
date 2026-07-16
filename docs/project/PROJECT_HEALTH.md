@@ -10,8 +10,8 @@
 | Version | v0.33.0 |
 | RFCs | 20 |
 | ADRs | 41 |
-| Tests | 998（SP-009 candidate Windows 本地验证记录） |
-| Test Pass Rate | 100% (998 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
+| Tests | 1006（SP-009 candidate Windows 本地验证记录） |
+| Test Pass Rate | 100% (1006 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |

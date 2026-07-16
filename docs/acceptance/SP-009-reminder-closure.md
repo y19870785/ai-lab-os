@@ -44,6 +44,8 @@ $created.metadata | Format-List
 $reminderId = $created.metadata.reminder_id
 ```
 
+Task due dates and Reminder scheduling are separate. For example, `添加任务：明天下午3点联系张经理` creates a UserTask with `due_at`, but creates no Reminder or Scheduler Job. A Reminder phrase must contain a supported future time. Independent requests may omit `Idempotency-Key` and receive distinct chains; retries that must reuse a chain should send the same explicit key.
+
 The response must contain `task_id`, `reminder_id`, `scheduler_job_id`, `scheduled_for`, `timezone`, and `reminder_status=scheduled`.
 
 ## Query The In-App Status

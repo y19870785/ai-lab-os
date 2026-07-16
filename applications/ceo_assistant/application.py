@@ -12,6 +12,7 @@ AI-Lab 首个真实业务应用。支持：
 from __future__ import annotations
 import re
 import time
+import uuid
 from datetime import datetime
 from typing import Any
 
@@ -377,6 +378,11 @@ class CEOAssistant:
                     retryable=False,
                     trace_id=request.workspace_key.trace_id,
                 ))
+            idempotency_key = (
+                str(request.metadata.get("idempotency_key") or "").strip()
+                or request.workspace_key.trace_id.strip()
+                or uuid.uuid4().hex
+            )
             result = await self._reminder_orchestrator.create_for_task(
                 title=parsed.title,
                 due_at=parsed.due_at,
@@ -390,10 +396,7 @@ class CEOAssistant:
                     request.workspace_key.workspace_id,
                     request.workspace_key.namespace,
                 )),
-                idempotency_key=str(
-                    request.metadata.get("idempotency_key")
-                    or request.workspace_key.trace_id
-                ),
+                idempotency_key=idempotency_key,
             )
             metadata = result.model_dump(mode="json")
             metadata["intent"] = "reminder"
@@ -407,15 +410,18 @@ class CEOAssistant:
             }
 
         task = await self._user_tasks.create(
-            title=parsed.title, description=user_input, priority=priority, due_at=None,
+            title=parsed.title, description=user_input, priority=priority, due_at=parsed.due_at,
             timezone=parsed.timezone, source="ceo_assistant",
             session_id=request.workspace_key.session_id, agent_id="ceo-assistant",
             trace_id=request.workspace_key.trace_id,
-            metadata={"intent": "task"},
+            metadata={"intent": "task", "time_unparsed": parsed.time_unparsed},
         )
+        due_line = f"\n截止: {task.due_at.isoformat()}" if task.due_at else ""
+        if parsed.time_unparsed:
+            due_line = "\n截止: 时间未识别，任务已保存为无截止日期"
         answer = (
             f"[OK] 已创建任务：\n\n任务: {task.title}\n优先级: {task.priority.value}"
-            f"\n状态: {task.status.value}\nID: {task.id}"
+            f"\n状态: {task.status.value}{due_line}\nID: {task.id}"
         )
         return {"answer": answer, "status": "ok", "metadata": task.model_dump(mode="json")}
 

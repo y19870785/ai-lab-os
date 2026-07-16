@@ -6,7 +6,7 @@
 - Wired CEO Assistant to the existing UserTask/Reminder/Scheduler Saga through a narrow orchestrator.
 - Added hashed request idempotency, aggregate persisted status API, and a Composition Root CLI status query.
 - Added real-lifespan SQLite restart, due-trigger, effectively-once, and failure-visibility tests.
-- Windows local Python 3.12 candidate validation: `998 passed, 27 warnings in 48.88s`; not a GitHub Actions or cross-platform CI result.
+- Windows local Python 3.12 candidate validation: `1006 passed, 27 warnings in 50.02s`; not a GitHub Actions or cross-platform CI result.
 - Status: Draft PR / Awaiting ChatGPT review / Not merged.
 - Product version remains `0.33.0`; no Tag or GitHub Release was created.
 
