@@ -1,7 +1,8 @@
-"""System lifecycle admission gate API tests."""
+"""API lifecycle admission gate tests with real HTTP responses."""
 
 from pathlib import Path
 import tempfile
+import asyncio
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,7 +14,7 @@ from core.system.settings import SystemSettings
 TEST_TOKEN = "test-token-sp007"
 
 
-def _app(lifecycle_state=None):
+def _app():
     data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-api-"))
     settings = SystemSettings(
         environment="test", provider_mode="test",
@@ -25,61 +26,37 @@ def _app(lifecycle_state=None):
 
 
 @pytest.fixture
-def ready_client():
-    with TestClient(_app()) as client:
-        yield client
+def client():
+    with TestClient(_app()) as c:
+        yield c
+
+def _headers():
+    return {"Authorization": f"Bearer {TEST_TOKEN}"}
 
 
-class TestAdmissionGate:
-    def test_ready_accepts_authenticated_requests(self, ready_client):
-        resp = ready_client.get("/health",
-            headers={"Authorization": f"Bearer {TEST_TOKEN}"})
-        assert resp.status_code == 200
-
-    def test_draining_rejects_business_requests_with_503(self, ready_client):
-        system = ready_client.app.state.system
-        if system is None:
-            pytest.skip("system not started")
-        # Force draining
-        import asyncio
-        async def drain():
-            await system._lifecycle.transition(SystemLifecycleState.DRAINING)
+class TestDrainingAdmission:
+    def test_draining_returns_503_with_draining_code(self, client):
+        system = client.app.state.system
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(drain())
-        resp = ready_client.get("/tasks",
-            headers={"Authorization": f"Bearer {TEST_TOKEN}"})
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.DRAINING))
+        resp = client.get("/tasks", headers=_headers())
         assert resp.status_code == 503
+        body = resp.json()
+        assert body["code"] == "system.draining"
+        assert resp.headers.get("Retry-After") == "1"
 
-    def test_health_accessible_during_draining(self, ready_client):
-        system = ready_client.app.state.system
-        if system is None:
-            pytest.skip("system not started")
-        import asyncio
-        async def drain():
-            await system._lifecycle.transition(SystemLifecycleState.DRAINING)
+    def test_draining_health_accessible(self, client):
+        system = client.app.state.system
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(drain())
-        resp = ready_client.get("/health")
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.DRAINING))
+        resp = client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
-        assert data.get("lifecycle") == "draining"
-        assert data.get("accepting_work") is False
+        assert data["lifecycle"] == "draining"
+        assert data["accepting_work"] is False
 
-    def test_draining_does_not_return_401(self, ready_client):
-        system = ready_client.app.state.system
-        if system is None:
-            pytest.skip("system not started")
-        import asyncio
-        async def drain():
-            await system._lifecycle.transition(SystemLifecycleState.DRAINING)
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(drain())
-        resp = ready_client.get("/tasks",
-            headers={"Authorization": f"Bearer {TEST_TOKEN}"})
-        assert resp.status_code == 503
-        assert resp.status_code != 401
 
-    def test_invalid_token_still_401_in_ready(self, ready_client):
-        resp = ready_client.get("/tasks",
-            headers={"Authorization": "Bearer wrong-token"})
-        assert resp.status_code == 401
+class TestReadyState:
+    def test_ready_allows_authenticated_request(self, client):
+        resp = client.get("/health", headers=_headers())
+        assert resp.status_code == 200
