@@ -65,6 +65,20 @@ async def test_scheduler_lifecycle_is_owned_by_system(tmp_path: Path):
     assert await system.scheduler_runtime.health_check() is False
 
 
+async def test_reminder_orchestrator_is_production_wired(tmp_path: Path):
+    settings = make_test_settings(
+        tmp_path, enable_scheduler=True, enable_reminders=True
+    )
+    system = await create_system(settings)
+    await system.start()
+    try:
+        assert system.reminder_orchestrator is not None
+        assert system.ceo_assistant._reminder_orchestrator is system.reminder_orchestrator
+        assert system.ceo_assistant._task_intent_parser is not None
+    finally:
+        await system.shutdown()
+
+
 async def test_knowledge_can_be_explicitly_enabled(tmp_path: Path):
     system = await create_system(make_test_settings(tmp_path, enable_knowledge=True))
     await system.start()

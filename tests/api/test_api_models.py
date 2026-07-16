@@ -4,7 +4,7 @@ class TestAPIModels:
     def test_chat_request(self):
         from api.models import ChatRequest
         req = ChatRequest(user_input="Hello")
-        assert req.application_name == "alpha_assistant"
+        assert req.application_name == "ceo-assistant"
 
     def test_chat_response(self):
         from api.models import ChatResponse

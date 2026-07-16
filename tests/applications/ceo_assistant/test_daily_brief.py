@@ -12,6 +12,8 @@ import pytest, pytest_asyncio,  sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
+from core.clock import SystemClock
 from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
@@ -52,6 +54,7 @@ async def app_with_both(tmp_path):
     app = CEOAssistant(
         memory_manager=memory,
         user_task_service=task_service,
+        task_intent_parser=TaskReminderIntentParser("Asia/Shanghai", SystemClock()),
         admission=PERMISSIVE_TEST_ADMISSION,
     )
     yield app
@@ -82,7 +85,7 @@ class TestDailyBrief:
         # 创建任务
         await app_with_both.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我完成FDA报告",
+            user_input="添加任务：完成FDA报告",
         ))
 
         resp = await app_with_both._handle_brief(ApplicationRequest(
@@ -133,11 +136,11 @@ class TestDailyBrief:
         """高优先级任务应排在前面。"""
         await app_with_both._handle_task(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我紧急处理客户投诉",
+            user_input="添加任务：紧急处理客户投诉",
         ))
         await app_with_both._handle_task(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我有空整理文档",
+            user_input="添加任务：有空整理文档",
         ))
 
         resp = await app_with_both._handle_brief(ApplicationRequest(

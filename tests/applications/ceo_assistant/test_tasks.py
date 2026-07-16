@@ -15,6 +15,9 @@ import pytest_asyncio
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
+from core.clock import SystemClock
+from core.errors import FailureException
 from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
@@ -51,6 +54,7 @@ async def app_with_decision(tmp_path):
     app = CEOAssistant(
         memory_manager=memory,
         user_task_service=task_service,
+        task_intent_parser=TaskReminderIntentParser("Asia/Shanghai", SystemClock()),
         admission=PERMISSIVE_TEST_ADMISSION,
     )
     yield app
@@ -69,7 +73,7 @@ class TestTasks:
         """创建任务并验证不再存入 Decision Memory。"""
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天下午跟进FDA检测结果",
+            user_input="添加任务：跟进FDA检测结果",
         ))
         assert resp.status == "ok", f"状态出错: {resp.error}"
         assert "已创建任务" in resp.answer, f"回复应含任务确认: {resp.answer}"
@@ -80,45 +84,22 @@ class TestTasks:
                     if i.content.get("type") == "task"]
 
     @pytest.mark.asyncio
-    async def test_task_deadline_parsing(self, app_with_decision):
-        """截止时间应被正确解析。"""
+    async def test_task_only_does_not_create_deadline(self, app_with_decision):
+        """Task-only intent remains independent from Reminder scheduling."""
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天完成报告",
+            user_input="添加任务：完成报告",
         ))
         assert resp.status == "ok"
-        # deadline 应为明天
-        from datetime import datetime, timedelta
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-        assert tomorrow in str(resp.metadata.get("due_at", "")), f"due_at 应为 {tomorrow}"
-
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize(("expression", "expected_hour", "expected_minute"), [
-        ("3点", 15, 0),
-        ("3点半", 15, 30),
-        ("3点一刻", 15, 15),
-        ("3点45分", 15, 45),
-    ])
-    async def test_specific_time_is_fully_parsed(
-        self, app_with_decision, expression, expected_hour, expected_minute
-    ):
-        from datetime import datetime, timedelta, timezone
-
-        resp = await app_with_decision.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input=f"提醒我明天下午{expression}跟进客户",
-        ))
-        assert resp.status == "ok"
-        due_at = datetime.fromisoformat(resp.metadata["due_at"])
-        local_due = due_at.astimezone(timezone(timedelta(hours=8)))
-        assert (local_due.hour, local_due.minute) == (expected_hour, expected_minute)
+        assert resp.metadata["metadata"]["intent"] == "task"
+        assert resp.metadata["due_at"] is None
 
     @pytest.mark.asyncio
     async def test_task_priority_high(self, app_with_decision):
         """紧急关键词应触发高优先级。"""
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我紧急处理客户投诉",
+            user_input="添加任务：紧急处理客户投诉",
         ))
         assert resp.status == "ok"
         assert resp.metadata.get("priority") == "high"
@@ -132,20 +113,19 @@ class TestTasks:
     async def test_unparsed_deadline_is_explicit_and_not_fabricated(
         self, app_with_decision, expression
     ):
-        resp = await app_with_decision.run(ApplicationRequest(
-            application_name="ceo-assistant",
-            user_input=f"提醒我{expression}",
-        ))
-        assert resp.status == "ok"
-        assert resp.metadata.get("due_at") is None
-        assert "未识别" in resp.answer
+        with pytest.raises(FailureException) as exc_info:
+            await app_with_decision.run(ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input=f"提醒我{expression}",
+            ))
+        assert exc_info.value.failure.code == "reminder.time_unsupported"
 
     @pytest.mark.asyncio
     async def test_task_priority_default(self, app_with_decision):
         """无明确优先级时默认为中。"""
         resp = await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天开会",
+            user_input="添加任务：开会",
         ))
         assert resp.status == "ok"
         assert resp.metadata.get("priority") == "medium"
@@ -156,7 +136,7 @@ class TestTasks:
         # 先创建
         await app_with_decision.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我完成FDA报告",
+            user_input="添加任务：完成FDA报告",
         ))
         # 再查询
         resp = await app_with_decision.run(ApplicationRequest(
@@ -170,9 +150,9 @@ class TestTasks:
     async def test_task_multiple(self, app_with_decision):
         """多条任务均应存储。"""
         for text in [
-            "提醒我完成报告",
-            "提醒我明天开会",
-            "提醒我回复邮件",
+            "添加任务：完成报告",
+            "添加任务：明天开会",
+            "添加任务：回复邮件",
         ]:
             await app_with_decision.run(ApplicationRequest(
                 application_name="ceo-assistant", user_input=text,

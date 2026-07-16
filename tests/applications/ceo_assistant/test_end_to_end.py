@@ -7,6 +7,8 @@ import pytest, pytest_asyncio,  sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
+from core.clock import SystemClock
 from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
@@ -46,6 +48,7 @@ async def full_app(tmp_path):
     app = CEOAssistant(
         memory_manager=memory,
         user_task_service=task_service,
+        task_intent_parser=TaskReminderIntentParser("Asia/Shanghai", SystemClock()),
         admission=PERMISSIVE_TEST_ADMISSION,
     )
     yield app
@@ -82,7 +85,7 @@ class TestEndToEnd:
         # 创建任务
         await full_app.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天跟进FDA检测结果",
+            user_input="添加任务：跟进FDA检测结果",
         ))
 
         # 记录决策
@@ -116,7 +119,7 @@ class TestEndToEnd:
         # Turn 2: 创建任务
         resp2 = await full_app.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我明天交报告",
+            user_input="添加任务：交报告",
         ))
         assert resp2.status == "ok"
 
@@ -140,7 +143,7 @@ class TestEndToEnd:
         # task
         r2 = await full_app.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我完成路由测试",
+            user_input="添加任务：完成路由测试",
         ))
         assert r2.status == "ok"
 

@@ -11,6 +11,8 @@ import pytest, sys, os, asyncio
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
+from core.clock import SystemClock
 from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
@@ -80,10 +82,14 @@ class TestPersistence:
         manager1 = DatabaseManager(db_dir)
         service1 = UserTaskService(SQLiteUserTaskRepository(manager1, task_path), bus=bus1)
         await service1.initialize()
-        app1 = CEOAssistant(user_task_service=service1, admission=PERMISSIVE_TEST_ADMISSION)
+        app1 = CEOAssistant(
+            user_task_service=service1,
+            task_intent_parser=TaskReminderIntentParser("Asia/Shanghai", SystemClock()),
+            admission=PERMISSIVE_TEST_ADMISSION,
+        )
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
-            user_input="提醒我完成持久化测试任务",
+            user_input="添加任务：完成持久化测试任务",
         ))
         await bus1.stop()
         await service1.close()
