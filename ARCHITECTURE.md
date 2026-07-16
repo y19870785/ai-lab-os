@@ -312,4 +312,4 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 - Bearer-token auth with constant-time comparison (hmac.compare_digest)
 - CORS explicit allowlist (no wildcard when auth enabled)
 - Protected routes require Depends(require_auth); health/metrics remain public
-- Status: Draft PR #12, awaiting ChatGPT review
+- Status: Merged PR #12, APPROVED / Merged
