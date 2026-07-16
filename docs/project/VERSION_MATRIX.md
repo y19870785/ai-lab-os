@@ -4,7 +4,7 @@
 
 **Latest Release:** unchanged
 
-**SP-007:** merged into main through PR #14 (`ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`)
+**SP-008:** merged into main through PR #16 (`1858d4991379058948559cc96e2672df44e42b67`)
 
 **Release Tag:** none
 
@@ -40,4 +40,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED，已合并至 main，未进入新的正式 Release。SP-008 Internal Work Admission Boundary 为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged；不构成新产品版本或 Release。
+> SP-007 与 SP-008 均已 APPROVED / MERGED / RECONCILED / ARCHIVED 并进入 main，但尚未进入新的正式 Release。产品版本保持 `0.33.0`；Release Tag 与 GitHub Release 均为 none。下一项稳定化任务尚未选择、无分支、无 PR、未启动。

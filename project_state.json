@@ -2,11 +2,11 @@
   "project": "AI-Lab",
   "version": "v0.33.0",
   "current_version": "0.33.0",
-  "source_baseline": "SP-007A reconciliation baseline: bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
-  "main_commit": "bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
-  "latest_completed_sp": "SP-007",
-  "next_candidate_sp": "SP-008",
-  "git_branch": "feat/sp-008-internal-work-admission-boundary",
+  "source_baseline": "SP-008 merge baseline: 1858d4991379058948559cc96e2672df44e42b67",
+  "main_commit": "1858d4991379058948559cc96e2672df44e42b67",
+  "latest_completed_sp": "SP-008",
+  "next_candidate_sp": "not_selected",
+  "git_branch": "main",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
   "python_version": ">=3.11",
@@ -63,7 +63,8 @@
     "Coordination": "Implemented / Disabled: not connected to the CEO Assistant main path",
     "CEO_Assistant": "Integrated / Verified / Alpha",
     "UserTask": "Completed / Integrated / Verified: SP-004 domain with SP-005 Reminder lifecycle coordination",
-    "Reminder": "Integrated / Verified / Disabled by default: durable ReminderOccurrence and Saga reconciliation merged in SP-005"
+    "Reminder": "Integrated / Verified / Disabled by default: durable ReminderOccurrence and Saga reconciliation merged in SP-005",
+    "Internal_Admission": "Integrated / Verified: SP-008 shares one lifecycle gate across API, ApplicationRuntime, CEO Assistant, CLI, and Scheduler producer boundaries"
   },
   "open_technical_debt": [
     "TD-001: 部分测试辅助函数错误传入 id=None",
@@ -86,10 +87,10 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "Await ChatGPT review of the SP-008 Draft PR; do not merge before approval",
+  "next_action": "Next stabilization task: not yet selected; no branch, no PR, not started",
   "freeze_date": "2026-07-14",
-  "current_work": "SP-008 Internal Work Admission Boundary: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged",
-  "merge_baseline": "bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
+  "current_work": "SP-008 is archived; next stabilization task is not yet selected, with no branch or PR",
+  "merge_baseline": "1858d4991379058948559cc96e2672df44e42b67",
   "sp_007": {
     "status": "archived",
     "pr": 14,
@@ -98,10 +99,11 @@
     "merged_at": "2026-07-16T10:08:47Z"
   },
   "sp_008": {
-    "status": "implementation_candidate",
-    "branch": "feat/sp-008-internal-work-admission-boundary",
-    "review_status": "Draft PR / Awaiting ChatGPT review / Not merged",
-    "base_commit": "bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
+    "status": "archived",
+    "pr": 16,
+    "approved_head": "536d1563baaecf5d50eeefc93dfdb0dbbfe3c659",
+    "merge_commit": "1858d4991379058948559cc96e2672df44e42b67",
+    "merged_at": "2026-07-16T11:06:29Z",
     "product_version": "0.33.0"
   }
 }

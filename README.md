@@ -157,6 +157,6 @@ AI-Lab/
 
 > SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并时间为 `2026-07-16T10:08:47Z`，产品版本保持 `0.33.0`。
 
-> SP-008 Internal Work Admission Boundary: **implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**。候选实现将 SP-007 的同一生命周期准入语义接入 `ApplicationRuntime`、CEO Assistant 直接入口、CLI 业务路径与 Scheduler 新工作生产边界；已准入的 in-flight 工作不被主动取消。RFC-018、ADR-037 与 ADR-038 均保持 Proposed。
+> SP-008 Internal Work Admission Boundary: **APPROVED / MERGED / RECONCILED / ARCHIVED**。PR #16 以 Approved Head `536d1563baaecf5d50eeefc93dfdb0dbbfe3c659` 通过审查，Squash Commit `1858d4991379058948559cc96e2672df44e42b67` 于 `2026-07-16T11:06:29Z` 进入 main。API 与内部入口共享同一生命周期真相；RFC-018 已 Adopted，ADR-037/038 已 Accepted。
 
-> SP-008 Windows 本地 Python 3.12 候选验证：`977 passed, 27 warnings in 49.17s`，零失败、零错误；该结果不是 GitHub Actions 或跨平台 CI 记录。
+> SP-008 合并前 Windows 本地 Python 3.12 验证：`977 passed, 27 warnings in 49.17s`，零失败、零错误；该结果是历史本地记录，不是 GitHub Actions 或跨平台 CI 健康保证。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。下一项稳定化任务尚未选择、无分支、无 PR、未启动。
