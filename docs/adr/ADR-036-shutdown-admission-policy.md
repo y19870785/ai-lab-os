@@ -1,7 +1,14 @@
 # ADR-036: Shutdown Admission Policy
 
 ## Status
-Proposed / SP-007 implementation candidate
+Accepted
+
+## Acceptance Record
+Implemented by SP-007 and merged via PR #14.
+
+Merge Commit: `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
+
+Accepted Date: 2026-07-16
 
 ## Scope
 SP-007 rejects new work at FastAPI protected business routes only. Direct `ApplicationRuntime`, `CEOAssistant`, and CLI execution paths are explicitly excluded and are planned for SP-008 candidate.
