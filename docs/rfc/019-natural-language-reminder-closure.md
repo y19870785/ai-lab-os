@@ -2,7 +2,15 @@
 
 ## Status
 
-Proposed / SP-009 implementation candidate
+Adopted
+
+## Adoption Record
+
+- Implemented by SP-009
+- Merged via PR #19
+- Approved Head: `42697e2787d9d9e33f4a7b40c3dd0ea092dcf742`
+- Merge Commit: `b1274d066cbc01053144cba8d5654a5f8c8a21da`
+- Adoption Date: `2026-07-16`
 
 ## Context
 

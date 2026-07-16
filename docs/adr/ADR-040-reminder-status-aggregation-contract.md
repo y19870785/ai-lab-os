@@ -2,7 +2,14 @@
 
 ## Status
 
-Proposed / SP-009 implementation candidate
+Accepted
+
+## Acceptance Record
+
+- Accepted through SP-009
+- PR: #19
+- Merge Commit: `b1274d066cbc01053144cba8d5654a5f8c8a21da`
+- Accepted Date: `2026-07-16`
 
 ## Context
 

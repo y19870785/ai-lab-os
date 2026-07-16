@@ -322,8 +322,8 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 > 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。产品版本保持 `0.33.0`；没有新 Tag 或 Release。
 
-## SP-009 Natural-Language Reminder Closure（Candidate）
+## SP-009 Natural-Language Reminder Closure
 
-`CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是候选生产链。Parser 将 intent kind 与可选 `due_at` 分开：task-only 可保存截止时间但不创建 Reminder/Job；Reminder 必须具有受支持的未来时间。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释，持久化保持 UTC。无显式幂等键的 API 请求生成独立请求键，显式键继续提供重试复用与冲突检测。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
+`CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是已合并生产链。Parser 将 intent kind 与可选 `due_at` 分开：task-only 可保存截止时间但不创建 Reminder/Job；Reminder 必须具有受支持的未来时间。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释，持久化保持 UTC。无显式幂等键的 API 请求生成独立请求键，显式键继续提供重试复用与冲突检测。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
 
-状态：**SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**。RFC-019、ADR-039、ADR-040 均为 Proposed；外部通知、Inbox、Recurring Reminder 和复杂自然语言日期明确延期。
+状态：**SP-009 APPROVED / MERGED / RECONCILED / ARCHIVED**。PR #19 的 Approved Head 为 `42697e2787d9d9e33f4a7b40c3dd0ea092dcf742`，Squash Commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`，合并时间为 `2026-07-16T13:54:55Z`。RFC-019 已 Adopted，ADR-039 与 ADR-040 已 Accepted；外部通知、Inbox、Recurring Reminder 和复杂自然语言日期仍明确延期。

@@ -6,7 +6,7 @@
 
 **SP-008:** merged into main through PR #16 (`1858d4991379058948559cc96e2672df44e42b67`)
 
-**SP-009:** implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+**SP-009:** merged into main through PR #19 (`b1274d066cbc01053144cba8d5654a5f8c8a21da`)
 
 **Release Tag:** none
 
@@ -27,7 +27,7 @@
 | Task Runtime | 1.0 | v0.22.0 | Scheduler, Workflow |
 | UserTask | 1.0 | Unreleased（post-v0.33.0 main） | DatabaseManager, EventBus |
 | Reminder Bridge | 1.0 | Unreleased（post-v0.33.0 main） | UserTask, Scheduler, DatabaseManager |
-| Natural-Language Reminder Closure | Candidate | Unreleased（post-v0.33.0 branch） | CEO Assistant, UserTask, Reminder Bridge, Scheduler |
+| Natural-Language Reminder Closure | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, UserTask, Reminder Bridge, Scheduler |
 
 ## 升级说明
 
@@ -40,8 +40,8 @@
 - v0.21.0 → v0.22.0: Task Runtime 新增，Scheduler/Workflow 接口不变
 - post-v0.33.0 main（SP-004）: 新增 Canonical UserTask 与真实 Task API；尚未进入新的正式 Release，Reminder/Scheduler Bridge 留给 SP-005
 - post-v0.33.0 main（SP-005）: 新增 Reminder/Occurrence、Scheduler CAS claim 与 Saga reconciliation；已通过 PR #10 合并，尚未进入新的正式 Release
-- post-v0.33.0 branch（SP-009 candidate）: 候选自然语言提醒闭环与站内状态；Draft / Awaiting review / Not merged，尚未进入正式 Release
+- post-v0.33.0 main（SP-009）: 自然语言提醒闭环与站内状态已通过 PR #19 合并；尚未进入正式 Release
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 与 SP-008 均已 APPROVED / MERGED / RECONCILED / ARCHIVED 并进入 main，但尚未进入新的正式 Release。产品版本保持 `0.33.0`；Release Tag 与 GitHub Release 均为 none。下一项稳定化任务尚未选择、无分支、无 PR、未启动。
+> SP-007、SP-008 与 SP-009 均已 APPROVED / MERGED / RECONCILED / ARCHIVED 并进入 main，但尚未进入新的正式 Release。产品版本保持 `0.33.0`；Release Tag 与 GitHub Release 均为 none。下一任务尚未选择、无分支、无 PR、未启动。
