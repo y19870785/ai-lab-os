@@ -45,6 +45,46 @@ class ReminderStatusView(BaseModel):
     retryable: bool = False
 
 
+def aggregate_reminder_status(reminder, job, occurrence) -> str:
+    """Return the ADR-040 user-visible status shared by detail and inbox views."""
+    if reminder.status == ReminderStatus.CANCELLED:
+        return "cancelled"
+    if reminder.status == ReminderStatus.TRIGGERED or (
+        occurrence and occurrence.status == ReminderOccurrenceStatus.TRIGGERED
+    ):
+        return "triggered"
+    if job and job.status == JobStatus.RETRYING:
+        return "retrying"
+    if reminder.status == ReminderStatus.FAILED or (job and job.status == JobStatus.FAILED):
+        return "failed"
+    return "scheduled"
+
+
+def build_reminder_status_view(reminder, task, job, occurrence) -> ReminderStatusView:
+    failure = (
+        occurrence.failure if occurrence and occurrence.failure
+        else reminder.last_failure
+        or (job.last_error if job else None)
+    )
+    return ReminderStatusView(
+        status=aggregate_reminder_status(reminder, job, occurrence),
+        task_id=task.id,
+        task_title=task.title,
+        task_status=task.status.value,
+        reminder_id=reminder.id,
+        reminder_status=reminder.status.value,
+        scheduled_for=reminder.remind_at.astimezone(ZoneInfo(reminder.timezone)),
+        timezone=reminder.timezone,
+        scheduler_job_id=reminder.scheduler_job_id,
+        scheduler_status=job.status.value if job else None,
+        occurrence_id=occurrence.id if occurrence else None,
+        occurrence_status=occurrence.status.value if occurrence else None,
+        triggered_at=occurrence.triggered_at if occurrence else None,
+        last_failure=failure,
+        retryable=failure.retryable if failure else False,
+    )
+
+
 class NaturalLanguageReminderOrchestrator:
     COMPONENT = "reminder.orchestration"
 
@@ -69,6 +109,7 @@ class NaturalLanguageReminderOrchestrator:
         trace_id: str,
         workspace_scope: str,
         idempotency_key: str,
+        workspace: dict[str, str] | None = None,
     ) -> ReminderScheduleResult:
         key_hash = hashlib.sha256(idempotency_key.encode("utf-8")).hexdigest()
         task_id = "ut_nlr_" + hashlib.sha256(
@@ -85,6 +126,11 @@ class NaturalLanguageReminderOrchestrator:
                 session_id=session_id,
                 trace_id=trace_id,
                 workspace_scope=workspace_scope,
+                workspace=workspace or {
+                    "tenant_id": "default",
+                    "workspace_id": "default",
+                    "namespace": "default",
+                },
                 idempotency_key=idempotency_key,
             )
 
@@ -99,6 +145,7 @@ class NaturalLanguageReminderOrchestrator:
         session_id: str,
         trace_id: str,
         workspace_scope: str,
+        workspace: dict[str, str],
         idempotency_key: str,
     ) -> ReminderScheduleResult:
         key_hash = hashlib.sha256(idempotency_key.encode("utf-8")).hexdigest()
@@ -113,6 +160,7 @@ class NaturalLanguageReminderOrchestrator:
             "idempotency_hash": key_hash,
             "intent_hash": intent_hash,
             "scheduling_status": "pending",
+            "workspace": workspace,
         }
         try:
             task = await self._user_tasks.create(
@@ -212,28 +260,7 @@ class NaturalLanguageReminderOrchestrator:
         )
         occurrences = await self._reminders.list_occurrences(reminder.id, trace_id)
         occurrence = occurrences[-1] if occurrences else None
-        failure = (
-            occurrence.failure if occurrence and occurrence.failure
-            else reminder.last_failure
-            or (job.last_error if job else None)
-        )
-        return ReminderStatusView(
-            status=self._aggregate_status(reminder, job, occurrence),
-            task_id=task.id,
-            task_title=task.title,
-            task_status=task.status.value,
-            reminder_id=reminder.id,
-            reminder_status=reminder.status.value,
-            scheduled_for=reminder.remind_at.astimezone(ZoneInfo(reminder.timezone)),
-            timezone=reminder.timezone,
-            scheduler_job_id=reminder.scheduler_job_id,
-            scheduler_status=job.status.value if job else None,
-            occurrence_id=occurrence.id if occurrence else None,
-            occurrence_status=occurrence.status.value if occurrence else None,
-            triggered_at=occurrence.triggered_at if occurrence else None,
-            last_failure=failure,
-            retryable=failure.retryable if failure else False,
-        )
+        return build_reminder_status_view(reminder, task, job, occurrence)
 
     @staticmethod
     def _matching_reminder(reminders: list[Reminder], intent_hash: str) -> Reminder | None:
@@ -263,17 +290,3 @@ class NaturalLanguageReminderOrchestrator:
         await self._user_tasks.update(
             task.id, metadata=metadata, expected_revision=task.revision, trace_id=trace_id
         )
-
-    @staticmethod
-    def _aggregate_status(reminder, job, occurrence) -> str:
-        if reminder.status == ReminderStatus.CANCELLED:
-            return "cancelled"
-        if reminder.status == ReminderStatus.TRIGGERED or (
-            occurrence and occurrence.status == ReminderOccurrenceStatus.TRIGGERED
-        ):
-            return "triggered"
-        if job and job.status == JobStatus.RETRYING:
-            return "retrying"
-        if reminder.status == ReminderStatus.FAILED or (job and job.status == JobStatus.FAILED):
-            return "failed"
-        return "scheduled"

@@ -32,8 +32,17 @@ def _response(task) -> TaskResponse:
 @router.post("", response_model=TaskResponse, status_code=201)
 async def create_task(req: TaskCreateRequest, request: Request,
                       system: SystemContainer = Depends(get_system)):
+    data = req.model_dump()
+    data["metadata"] = {
+        **data["metadata"],
+        "workspace": {
+            "tenant_id": getattr(request.state, "tenant_id", "default"),
+            "workspace_id": getattr(request.state, "workspace_id", "default"),
+            "namespace": getattr(request.state, "namespace", "default"),
+        },
+    }
     task = await _service(system).create(
-        **req.model_dump(), source="api",
+        **data, source="api",
         trace_id=getattr(request.state, "trace_id", ""),
     )
     return _response(task)
@@ -73,9 +82,20 @@ async def get_task(task_id: str, request: Request,
 async def update_task(task_id: str, req: TaskUpdateRequest, request: Request,
                       system: SystemContainer = Depends(get_system)):
     changes = req.model_dump(exclude_unset=True)
+    service = _service(system)
+    if "metadata" in changes:
+        current = await service.get(task_id, getattr(request.state, "trace_id", ""))
+        changes["metadata"] = {
+            **(changes["metadata"] or {}),
+            "workspace": current.metadata.get("workspace", {
+                "tenant_id": "default",
+                "workspace_id": "default",
+                "namespace": "default",
+            }),
+        }
     if "revision" in changes:
         changes["expected_revision"] = changes.pop("revision")
-    task = await _service(system).update(
+    task = await service.update(
         task_id, **changes,
         trace_id=getattr(request.state, "trace_id", ""),
     )

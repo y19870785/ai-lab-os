@@ -179,6 +179,37 @@ class SQLiteReminderRepository:
         placeholders = ",".join("?" for _ in values)
         return await self._list(f"status IN ({placeholders})", values)
 
+    async def list_page(
+        self,
+        *,
+        remind_from: datetime | None = None,
+        remind_to: datetime | None = None,
+        limit: int,
+        offset: int,
+    ) -> list[Reminder]:
+        clauses: list[str] = []
+        params: list[object] = []
+        if remind_from is not None:
+            clauses.append("remind_at >= ?")
+            params.append(remind_from.astimezone(timezone.utc).isoformat())
+        if remind_to is not None:
+            clauses.append("remind_at < ?")
+            params.append(remind_to.astimezone(timezone.utc).isoformat())
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        try:
+            with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
+                rows = conn.execute(
+                    f"SELECT * FROM reminders {where} "
+                    "ORDER BY remind_at ASC, id ASC LIMIT ? OFFSET ?",
+                    (*params, limit, offset),
+                ).fetchall()
+            result = [self._reminder(row) for row in rows]
+            self._last_error = None
+            return result
+        except Exception as exc:
+            self._last_error = exc.__class__.__name__
+            raise ReminderPersistenceError("Reminder page query failed") from exc
+
     async def _list(self, where: str, params: tuple[object, ...]) -> list[Reminder]:
         try:
             with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:

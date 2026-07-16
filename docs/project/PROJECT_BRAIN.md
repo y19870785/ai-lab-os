@@ -9,6 +9,9 @@
 > SP-004 Status：Completed
 > SP-004 Merge PR：#8（Squash Merge / APPROVED）
 > SP-005 Status：Completed / Merged / Archived
+> SP-010 Status：implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+
+SP-010 候选范围是 Reminder Inbox 与本地 UTF-8 访问：列表查询复用 ADR-040 的持久化聚合状态，由 Composition Root 提供给 API、CLI 与 CEO Assistant。外部通知、Recurring Reminder、Web UI、用户身份与 RBAC 仍未实现。产品版本保持 `0.33.0`，无新 Tag 或 Release。
 
 ## 项目使命
 

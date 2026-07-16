@@ -4,6 +4,7 @@ import asyncio
 from cli.commands import health_cmd, chat_cmd, run_cmd, inspect_cmd
 from cli.commands import brief_cmd, log_cmd, task_cmd, decide_cmd, ask_cmd
 from cli.commands import reminder_status_cmd
+from cli.commands import reminders_cmd
 
 
 COMMANDS = {
@@ -17,6 +18,7 @@ COMMANDS = {
     "decide": decide_cmd.run,
     "ask": ask_cmd.run,
     "reminder-status": reminder_status_cmd.run,
+    "reminders": reminders_cmd.run,
     "ceo": "ceo",  # 特殊处理：交互式 CLI，不走单次命令模式
 }
 
@@ -39,6 +41,7 @@ def main():
         print("  health       系统健康检查")
         print("  inspect      系统状态")
         print("  reminder-status <ID>  查询站内提醒状态")
+        print("  reminders             查看站内提醒列表")
         print()
         print("Examples:")
         print('  python -m cli brief')

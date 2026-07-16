@@ -6,6 +6,8 @@
 
 ## Current Status
 
+SP-010 Reminder Inbox and User-Friendly Local Access 当前为 **implementation candidate**：Draft PR / Awaiting ChatGPT review / Not merged。候选实现复用 ADR-040，增加持久化 Inbox API、Composition Root CLI、确定性自然语言查询、workspace 隔离及 UTF-8 响应契约。它尚未合并，不得标记为 Completed、Integrated 或 Verified；产品版本保持 `0.33.0`，无新 Tag 或 Release。
+
 项目以 v0.33.0 汇总 SP-001 至 SP-003 的稳定化成果。十层基础架构 + CEO Assistant 处于 Alpha 状态；版本唯一来源、Composition Root、失败语义和 DatabaseManager 连接所有权已经收敛。
 
 SP-004 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。Canonical UserTask、`tasks.db`、真实 Task API、CEO Assistant 接入和 Legacy importer 已进入主分支。

@@ -129,6 +129,25 @@ class ReminderService:
         except Exception as exc:
             self._raise(exc, "list", trace_id)
 
+    async def list_page(
+        self,
+        *,
+        remind_from: datetime | None = None,
+        remind_to: datetime | None = None,
+        limit: int,
+        offset: int,
+        trace_id: str = "",
+    ) -> list[Reminder]:
+        try:
+            return await self._repository.list_page(
+                remind_from=remind_from,
+                remind_to=remind_to,
+                limit=limit,
+                offset=offset,
+            )
+        except Exception as exc:
+            self._raise(exc, "list", trace_id)
+
     async def list_occurrences(self, reminder_id: str, trace_id: str = ""):
         await self.get(reminder_id, trace_id)
         try:

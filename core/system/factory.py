@@ -56,6 +56,7 @@ from core.reminders import (
     ReminderActionHandler,
     NaturalLanguageReminderOrchestrator,
     ReminderSchedulerBridge,
+    ReminderInboxService,
     ReminderService,
     SQLiteReminderRepository,
     UserTaskReminderLifecycleCoordinator,
@@ -269,6 +270,7 @@ async def create_system(
         )
 
     reminder_orchestrator = None
+    reminder_inbox = None
     if reminder_service is not None:
         reminder_bridge = ReminderSchedulerBridge(
             reminder_service,
@@ -285,6 +287,13 @@ async def create_system(
                 reminder_service,
                 reminder_bridge,
                 scheduler_runtime,
+            )
+            reminder_inbox = ReminderInboxService(
+                user_task_service,
+                reminder_service,
+                scheduler_runtime,
+                clock,
+                settings.timezone_name,
             )
 
     task_runtime = TaskRuntime(
@@ -306,6 +315,7 @@ async def create_system(
         embedding_provider=embedding,
         user_task_service=user_task_service,
         reminder_orchestrator=reminder_orchestrator,
+        reminder_inbox=reminder_inbox,
         task_intent_parser=TaskReminderIntentParser(settings.timezone_name, clock),
         config=ApplicationConfig(
             provider_mode=settings.provider_mode,
@@ -353,6 +363,7 @@ async def create_system(
         reminder_service=reminder_service,
         reminder_bridge=reminder_bridge,
         reminder_orchestrator=reminder_orchestrator,
+        reminder_inbox=reminder_inbox,
         clock=clock,
         coordination_runtime=coordination_runtime,
         application_registry=application_registry,

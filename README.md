@@ -11,6 +11,8 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 当前目标产品基线为 **v0.33.0**。`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源，`core.__version__`、CLI 与 API 均从 package metadata 或该来源派生。
 
+> **SP-010 implementation candidate**：Reminder Inbox 与本地 UTF-8 访问正在 Draft PR 中实现，状态为 Awaiting ChatGPT review / Not merged。候选能力提供持久化列表 API、CLI 与确定性自然语言查询；不包含外部通知、Recurring Reminder 或 Web UI。产品版本仍为 `0.33.0`，未创建 Tag 或 Release。
+
 ## 架构
 
 **SP-001：Single Composition Root 已完成并合并。** CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该实现已通过架构审查与合并后复核，现为 `main` 的稳定化基线。

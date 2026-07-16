@@ -5,6 +5,7 @@ from __future__ import annotations
 from applications.models import ApplicationRequest, ApplicationResponse
 from core.system import create_system, load_system_settings
 from core.errors import ErrorCategory, FailureException, FailureInfo
+from core.workspace.models import WorkspaceKey
 
 
 async def execute_ceo_request(user_input: str) -> tuple[ApplicationResponse, str]:
@@ -40,5 +41,33 @@ async def query_reminder_status(reminder_id: str):
                 retryable=False,
             ))
         return await system.reminder_orchestrator.status(reminder_id)
+    finally:
+        await system.shutdown()
+
+
+async def query_reminder_inbox(
+    *, statuses=None, time_scope=None, limit: int = 20, offset: int = 0
+):
+    """Query the persisted Reminder inbox and always close the system."""
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        if system.reminder_inbox is None:
+            raise FailureException(FailureInfo(
+                code="reminder.inbox_unavailable",
+                category=ErrorCategory.UNAVAILABLE,
+                message="Reminder inbox is unavailable",
+                component="reminder.inbox",
+                operation="list",
+                retryable=False,
+            ))
+        return await system.reminder_inbox.list(
+            workspace_key=WorkspaceKey(),
+            statuses=statuses,
+            time_scope=time_scope,
+            limit=limit,
+            offset=offset,
+        )
     finally:
         await system.shutdown()

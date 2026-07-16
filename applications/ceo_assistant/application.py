@@ -43,6 +43,7 @@ class CEOAssistant:
         embedding_provider=None,
         user_task_service=None,
         reminder_orchestrator=None,
+        reminder_inbox=None,
         task_intent_parser=None,
         config: ApplicationConfig | None = None,
         bus=None,
@@ -55,6 +56,7 @@ class CEOAssistant:
         self._embedding = embedding_provider
         self._user_tasks = user_task_service
         self._reminder_orchestrator = reminder_orchestrator
+        self._reminder_inbox = reminder_inbox
         self._task_intent_parser = task_intent_parser
         self._config = config or ApplicationConfig()
         self._bus = bus
@@ -88,6 +90,9 @@ class CEOAssistant:
         3. 决策 > 任务 > 工作记录 优先级递减
         """
         text = user_input.lower().strip()
+
+        if "查看" in text and "提醒" in text:
+            return {"intent": "reminder_list", "confidence": 1.0}
 
         if any(marker in text for marker in ("提醒我", "记得", "别忘了")):
             return {"intent": "task", "confidence": 1.0}
@@ -148,6 +153,8 @@ class CEOAssistant:
             result = None
             if intent["intent"] == "work_log":
                 result = await self._handle_work_log(request)
+            elif intent["intent"] == "reminder_list":
+                result = await self._handle_reminder_list(request)
             elif intent["intent"] == "task":
                 result = await self._handle_task(request)
             elif intent["intent"] == "decision":
@@ -303,6 +310,56 @@ class CEOAssistant:
 
     # ---- 2. 待办任务 ----
 
+    async def _handle_reminder_list(self, request: ApplicationRequest) -> dict[str, Any]:
+        """Return a deterministic persisted Reminder inbox view."""
+        if self._reminder_inbox is None:
+            raise FailureException(FailureInfo(
+                code="reminder.inbox_unavailable",
+                category=ErrorCategory.UNAVAILABLE,
+                message="Reminder inbox is unavailable",
+                component="reminder.inbox",
+                operation="list_natural_language",
+                retryable=False,
+                trace_id=request.workspace_key.trace_id,
+            ))
+        from core.reminders import ReminderInboxStatus, ReminderInboxTimeScope
+
+        text = request.user_input.strip()
+        statuses = None
+        time_scope = None
+        if "待触发" in text:
+            statuses = {ReminderInboxStatus.SCHEDULED, ReminderInboxStatus.RETRYING}
+        elif "已触发" in text:
+            statuses = {ReminderInboxStatus.TRIGGERED}
+        elif "失败" in text:
+            statuses = {ReminderInboxStatus.FAILED}
+        if "今天" in text:
+            time_scope = ReminderInboxTimeScope.TODAY
+
+        page = await self._reminder_inbox.list(
+            workspace_key=request.workspace_key,
+            statuses=statuses,
+            time_scope=time_scope,
+            limit=20,
+            offset=0,
+            trace_id=request.workspace_key.trace_id,
+        )
+        if not page.items:
+            answer = "当前没有符合条件的提醒。"
+        else:
+            lines = ["提醒列表："]
+            for item in page.items:
+                lines.append(
+                    f"[{item.status.value}] {item.task_title} | "
+                    f"{item.scheduled_for.isoformat()} | ID: {item.reminder_id}"
+                )
+            answer = "\n".join(lines)
+        return {
+            "answer": answer,
+            "status": "ok",
+            "metadata": {"intent": "reminder_list", **page.model_dump(mode="json")},
+        }
+
     async def _handle_task(self, request: ApplicationRequest) -> dict[str, Any]:
         """Create or query canonical UserTasks."""
         if self._user_tasks is None:
@@ -396,6 +453,11 @@ class CEOAssistant:
                     request.workspace_key.workspace_id,
                     request.workspace_key.namespace,
                 )),
+                workspace={
+                    "tenant_id": request.workspace_key.tenant_id or "default",
+                    "workspace_id": request.workspace_key.workspace_id or "default",
+                    "namespace": request.workspace_key.namespace or "default",
+                },
                 idempotency_key=idempotency_key,
             )
             metadata = result.model_dump(mode="json")
@@ -414,7 +476,15 @@ class CEOAssistant:
             timezone=parsed.timezone, source="ceo_assistant",
             session_id=request.workspace_key.session_id, agent_id="ceo-assistant",
             trace_id=request.workspace_key.trace_id,
-            metadata={"intent": "task", "time_unparsed": parsed.time_unparsed},
+            metadata={
+                "intent": "task",
+                "time_unparsed": parsed.time_unparsed,
+                "workspace": {
+                    "tenant_id": request.workspace_key.tenant_id or "default",
+                    "workspace_id": request.workspace_key.workspace_id or "default",
+                    "namespace": request.workspace_key.namespace or "default",
+                },
+            },
         )
         due_line = f"\n截止: {task.due_at.isoformat()}" if task.due_at else ""
         if parsed.time_unparsed:

@@ -1,6 +1,6 @@
 """Truthful Reminder API backed by the shared SystemContainer."""
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
 from api.models import (
@@ -11,7 +11,13 @@ from api.models import (
 )
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.system.container import SystemContainer
-from core.reminders import ReminderStatusView
+from core.reminders import (
+    ReminderInboxPage,
+    ReminderInboxStatus,
+    ReminderInboxTimeScope,
+    ReminderStatusView,
+)
+from core.workspace.models import WorkspaceKey
 
 
 router = APIRouter(tags=["reminders"])
@@ -44,6 +50,44 @@ def _orchestrator(system: SystemContainer):
 
 def _trace(request: Request) -> str:
     return getattr(request.state, "trace_id", "")
+
+
+def _workspace(request: Request) -> WorkspaceKey:
+    return WorkspaceKey(
+        tenant_id=getattr(request.state, "tenant_id", "default"),
+        workspace_id=getattr(request.state, "workspace_id", "default"),
+        namespace=getattr(request.state, "namespace", "default"),
+        trace_id=_trace(request),
+    )
+
+
+@router.get("/reminders", response_model=ReminderInboxPage)
+async def list_reminders(
+    request: Request,
+    status: ReminderInboxStatus | None = None,
+    time_scope: ReminderInboxTimeScope | None = None,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    system: SystemContainer = Depends(get_system),
+):
+    if system.reminder_inbox is None:
+        raise FailureException(FailureInfo(
+            code="reminder.inbox_unavailable",
+            category=ErrorCategory.UNAVAILABLE,
+            message="Reminder inbox is unavailable",
+            component="reminder.inbox",
+            operation="list",
+            retryable=False,
+            trace_id=_trace(request),
+        ))
+    return await system.reminder_inbox.list(
+        workspace_key=_workspace(request),
+        statuses={status} if status else None,
+        time_scope=time_scope,
+        limit=limit,
+        offset=offset,
+        trace_id=_trace(request),
+    )
 
 
 def _response(reminder) -> ReminderResponse:

@@ -37,6 +37,7 @@ from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.reminders import (
     ReminderSchedulerBridge,
+    ReminderInboxService,
     NaturalLanguageReminderOrchestrator,
     ReminderService,
     SQLiteReminderRepository,
@@ -74,6 +75,7 @@ class SystemContainer:
     reminder_service: ReminderService | None
     reminder_bridge: ReminderSchedulerBridge | None
     reminder_orchestrator: NaturalLanguageReminderOrchestrator | None
+    reminder_inbox: ReminderInboxService | None
     clock: Clock
     coordination_runtime: AgentOrchestrator | None
     application_registry: ApplicationRegistry

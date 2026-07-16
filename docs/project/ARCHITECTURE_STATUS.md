@@ -1,5 +1,7 @@
 ﻿# 架构状态 —— v0.33.0（post-release main）
 
+> SP-010 Reminder Inbox 当前仅为 implementation candidate（Draft PR / Awaiting ChatGPT review / Not merged）。`ReminderInboxService` 候选设计复用 ADR-040 聚合并由 Composition Root 统一持有；RFC-020、ADR-041、ADR-042 均为 Proposed。
+
 ## 当前十层架构
 
 ```

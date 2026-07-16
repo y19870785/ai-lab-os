@@ -38,6 +38,7 @@ def make_error_response(failure: FailureInfo) -> JSONResponse:
         status_code=http_status_for_failure(failure),
         content=body.model_dump(mode="json"),
         headers=headers,
+        media_type="application/json; charset=utf-8",
     )
 
 

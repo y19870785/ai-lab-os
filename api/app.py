@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import context as ctx_mw
 from api.middleware import error_handler, tracing
+from api.responses import UTF8JSONResponse
 from api.routes import applications, brief, chat, decisions, health, knowledge
 from api.routes import reminders, tasks, work_logs, workflows
 from core import __version__
@@ -68,6 +69,7 @@ def create_app(
         version=__version__,
         description="AI-Lab Application Platform REST API - CEO Assistant",
         lifespan=lifespan,
+        default_response_class=UTF8JSONResponse,
     )
     api.state.api_security = sec_cfg
     api.state.authenticator = Authenticator(sec_cfg)

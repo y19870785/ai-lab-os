@@ -74,6 +74,8 @@ async def test_reminder_orchestrator_is_production_wired(tmp_path: Path):
     try:
         assert system.reminder_orchestrator is not None
         assert system.ceo_assistant._reminder_orchestrator is system.reminder_orchestrator
+        assert system.reminder_inbox is not None
+        assert system.ceo_assistant._reminder_inbox is system.reminder_inbox
         assert system.ceo_assistant._task_intent_parser is not None
     finally:
         await system.shutdown()

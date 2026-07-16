@@ -2,6 +2,10 @@
 
 **Last Updated:** 2026-07-16 | **Current Version:** v0.33.0
 
+## Current Candidate
+
+SP-010 Reminder Inbox and User-Friendly Local Access：implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。范围仅为持久化站内列表、API/CLI/确定性自然语言入口、workspace 隔离和 UTF-8 本地访问；外部通知、Recurring Reminder、Web UI 与通用搜索继续延期。
+
 ## Completed
 
 | Phase | Version | Date | Deliverable |

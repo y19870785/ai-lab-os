@@ -1,6 +1,15 @@
 ﻿
 ## [Unreleased]
 
+### SP-010 Reminder Inbox and User-Friendly Local Access (candidate)
+- Added a candidate persisted Reminder inbox shared by API, CLI, and deterministic CEO Assistant queries.
+- Added stable database paging, current-page `count`, `has_more`, status/time filters, and workspace isolation.
+- Added an explicit `application/json; charset=utf-8` local API contract.
+- RFC-020, ADR-041, and ADR-042 remain Proposed.
+- Windows local Python 3.12 candidate validation: `1013 passed, 27 warnings in 57.76s`; not a GitHub Actions or cross-platform CI result.
+- Status: SP-010 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged.
+- Product version remains `0.33.0`; no Tag or GitHub Release was created.
+
 ### SP-009 Natural-Language Reminder Closure
 - Added a deterministic today/tomorrow reminder parser with injected clock and IANA timezone.
 - Wired CEO Assistant to the existing UserTask/Reminder/Scheduler Saga through a narrow orchestrator.
