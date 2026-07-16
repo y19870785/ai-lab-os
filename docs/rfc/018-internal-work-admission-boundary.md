@@ -2,7 +2,15 @@
 
 ## Status
 
-Proposed / SP-008 implementation candidate
+Adopted
+
+## Adoption Record
+
+- Implemented by SP-008
+- Merged via PR #16
+- Approved Head: `536d1563baaecf5d50eeefc93dfdb0dbbfe3c659`
+- Merge Commit: `1858d4991379058948559cc96e2672df44e42b67`
+- Adoption Date: 2026-07-16
 
 ## Context
 
@@ -90,4 +98,4 @@ Tests cover all lifecycle states, complete `FailureInfo`, exact-once same-Task n
 
 ## Known Limitations
 
-There is still no in-flight counter, drain timeout, forced cancellation, distributed gate, or zero-downtime guarantee. Recovery and migration policy remains explicitly outside this work-admission boundary.
+There is still no process-wide in-flight counter, drain timeout, forced cancellation, multi-process admission coordination, or zero-downtime guarantee. `spawn_accepted_task()` remains limited to Scheduler-owned continuation. The Alpha Assistant prototype, recovery, and migration policy remain explicitly outside this work-admission boundary.

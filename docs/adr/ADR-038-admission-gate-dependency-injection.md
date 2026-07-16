@@ -2,7 +2,15 @@
 
 ## Status
 
-Proposed / SP-008 implementation candidate
+Accepted
+
+## Acceptance Record
+
+- Accepted through SP-008
+- PR: #16
+- Approved Head: `536d1563baaecf5d50eeefc93dfdb0dbbfe3c659`
+- Merge Commit: `1858d4991379058948559cc96e2672df44e42b67`
+- Accepted Date: 2026-07-16
 
 ## Context
 

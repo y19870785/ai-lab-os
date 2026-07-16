@@ -1,13 +1,16 @@
 ﻿
 ## [Unreleased]
 
-### SP-008 Internal Work Admission Boundary (implementation candidate)
-- Added one Composition Root-owned internal work admission gate for ApplicationRuntime, direct CEO Assistant calls, CLI business requests, and Scheduler dispatch.
-- Preserved accepted in-flight work through a task-local admission scope while rejecting new work after lifecycle draining begins.
-- Kept Task, Workflow, Agent, health, startup, shutdown, recovery, and migration paths outside repeated admission checks.
-- RFC-018, ADR-037, and ADR-038 remain Proposed.
-- Windows local Python 3.12 candidate validation: `977 passed, 27 warnings in 49.17s`; this is not a GitHub Actions result.
-- Status: Draft PR / Awaiting ChatGPT review / Not merged. Product version remains `0.33.0`; no Tag or Release was created.
+### SP-008 Internal Work Admission Boundary
+- Added one lifecycle-backed admission boundary for internal application work.
+- Added guarded direct CEO Assistant and Scheduler producer entrypoints.
+- Added task-owned accepted-work capability containment.
+- Prevented detached child tasks from carrying admission bypass.
+- Preserved explicitly accepted Scheduler job continuation through `spawn_accepted_task()`.
+- Preserved SP-007 FastAPI lifecycle and `FailureInfo` behavior.
+- Merged via PR #16 at commit `1858d4991379058948559cc96e2672df44e42b67` on 2026-07-16.
+- Windows local Python 3.12 merge validation record: `977 passed, 27 warnings in 49.17s`; this is not a GitHub Actions or cross-platform CI result.
+- Product version remains `0.33.0`. No Tag or GitHub Release was created.
 
 ### SP-007 System Lifecycle Admission Gate
 - Added the system lifecycle state machine and FastAPI protected-route admission gate.
@@ -15,7 +18,7 @@
 - Added structured lifecycle failure codes and draining `Retry-After` behavior.
 - Added lifecycle-aware health reporting.
 - Merged through PR #14 on 2026-07-16 as `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`; no new product Tag or Release was created.
-- Internal direct-call admission remains deferred to SP-008.
+- Internal direct-call admission was completed by SP-008.
 
 ### SP-006 API Security Boundary
 - Added centralized Bearer-token authentication
@@ -84,7 +87,7 @@
 
 ### 已知限制
 
-- Reminder 外部通知投递、Recurring Reminder、Inbox、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore 与 shutdown 全局请求闸门仍未完成。
+- Reminder 外部通知投递、Recurring Reminder、Inbox、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、Coordination 主链路、Database backup/restore、in-flight counting 与 drain timeout 仍未完成。
 
 ---
 
@@ -350,4 +353,4 @@ python -m cli chat <娑堟伅>     # 澶氳疆瀵硅瘽
 
 </details>
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并于 `2026-07-16T10:08:47Z`。版本仍为 `0.33.0`；SP-008 Internal Work Admission Boundary 为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. SP-008 Internal Work Admission Boundary: APPROVED / MERGED / RECONCILED / ARCHIVED，通过 PR #16 以 Squash Commit `1858d4991379058948559cc96e2672df44e42b67` 合并。版本仍为 `0.33.0`，下一项稳定化任务尚未选择。

@@ -6,7 +6,7 @@ v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Obser
 
 SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
 
-当前产品版本仍为 v0.33.0。SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。Scheduler 通过数据库 CAS claim、持久化 JobRun 和 Action Handler 支持可靠 One-shot；Reminder/Occurrence 使用 `reminders.db`、唯一键和 Saga reconciliation。该能力默认关闭，属于 `post-v0.33.0 main`，尚未进入新的 Tag 或 Release；通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore 和 shutdown 全局请求闸门仍未完成。
+当前产品版本仍为 v0.33.0。SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。Scheduler 通过数据库 CAS claim、持久化 JobRun 和 Action Handler 支持可靠 One-shot；Reminder/Occurrence 使用 `reminders.db`、唯一键和 Saga reconciliation。该能力默认关闭，属于 `post-v0.33.0 main`，尚未进入新的 Tag 或 Release；通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore、in-flight counting 和 drain timeout 仍未完成。
 
 ## Reminder 与 Scheduler Bridge（SP-005）
 
@@ -316,6 +316,8 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 > SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 以 Approved Head `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4` 合并，main Squash Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，时间为 `2026-07-16T10:08:47Z`，版本仍为 `0.33.0`。
 
-> SP-008 Internal Work Admission Boundary: **implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**。候选架构以 Composition Root 创建的单一 `WorkAdmissionGate` 覆盖 `ApplicationRuntime`、CEO Assistant、CLI 经 Runtime 的调用及 Scheduler producer；Task、Workflow 与 Agent 属于已准入工作的下游，不重复检查。
+> SP-008 Internal Work Admission Boundary: **APPROVED / MERGED / RECONCILED / ARCHIVED**。PR #16 以 Squash Commit `1858d4991379058948559cc96e2672df44e42b67` 合并。Composition Root 创建的单一 `WorkAdmissionGate` 覆盖 `ApplicationRuntime`、CEO Assistant、CLI 经 Runtime 的调用及 Scheduler producer；Task、Workflow 与 Agent 属于已准入工作的下游，不重复检查。
 
 > Accepted scope 绑定当前 `asyncio.Task` 身份：同一 Task 的下游调用可继续，普通 detached child 不继承 bypass；仅 Scheduler 可通过 `spawn_accepted_task()` 显式延续已经接受的 Job。FastAPI Runtime dependency 仍先经过 `get_system()`，Runtime 在真实执行点再次检查以关闭竞态窗口。
+
+> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。产品版本保持 `0.33.0`；没有新 Tag 或 Release。下一项稳定化任务尚未选择、无分支、无 PR、未启动。
