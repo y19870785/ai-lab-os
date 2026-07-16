@@ -8,8 +8,9 @@ from core.reminders import ReminderOccurrenceStatus, ReminderStatus
 
 class ChatRequest(BaseModel):
     user_input: str = ""
-    application_name: str = "alpha_assistant"
+    application_name: str = "ceo-assistant"
     session_id: str = ""
+    idempotency_key: str = ""
     stream: bool = False
 
 class ChatResponse(BaseModel):
@@ -18,6 +19,7 @@ class ChatResponse(BaseModel):
     mode: str = "mock"
     trace_id: str = ""
     latency_ms: float = 0.0
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 class TaskCreateRequest(BaseModel):
     title: str

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from applications.ceo_assistant.application import CEOAssistant
+from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
 from applications.config import ApplicationConfig
 from applications.registry import ApplicationRegistry
 from applications.runtime import ApplicationRuntime
@@ -10,6 +11,7 @@ from core.agents.config import AgentConfig
 from core.agents.models import AgentInfo
 from core.agents.runtime import DefaultAgentRuntime
 from core.bus.bus import MemoryBus
+from core.clock import Clock, SystemClock
 from core.coordination.orchestrator import AgentOrchestrator
 from core.database.manager import DatabaseManager
 from core.knowledge.manager import KnowledgeManager
@@ -52,6 +54,7 @@ from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.reminders import (
     ReminderActionHandler,
+    NaturalLanguageReminderOrchestrator,
     ReminderSchedulerBridge,
     ReminderService,
     SQLiteReminderRepository,
@@ -135,11 +138,16 @@ def _configure_providers(settings: SystemSettings):
     return registry, factory, llm, tuple(extras), embedding, vector
 
 
-async def create_system(settings: SystemSettings) -> SystemContainer:
+async def create_system(
+    settings: SystemSettings,
+    *,
+    clock: Clock | None = None,
+) -> SystemContainer:
     """Construct one dependency graph without starting any lifecycle twice."""
 
     lifecycle = LifecycleStateMachine()
     work_admission_gate = WorkAdmissionGate(lifecycle)
+    clock = clock or SystemClock()
     _validate_provider_settings(settings)
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     settings.sqlite_dir.mkdir(parents=True, exist_ok=True)
@@ -183,7 +191,7 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
             database_manager, settings.sqlite_dir / "reminders.db"
         )
         reminder_service = ReminderService(
-            reminder_repository, user_task_service, bus=event_bus
+            reminder_repository, user_task_service, bus=event_bus, clock=clock
         )
 
     knowledge_manager = None
@@ -251,11 +259,16 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
                 handler_registry=action_handlers,
             ),
             persistence=scheduler_persistence,
-            config=SchedulerConfig(db_path=str(settings.sqlite_dir / "scheduler.db")),
+            config=SchedulerConfig(
+                db_path=str(settings.sqlite_dir / "scheduler.db"),
+                tick_interval=settings.scheduler_tick_interval,
+            ),
             bus=event_bus,
+            clock=clock,
             admission=work_admission_gate,
         )
 
+    reminder_orchestrator = None
     if reminder_service is not None:
         reminder_bridge = ReminderSchedulerBridge(
             reminder_service,
@@ -266,6 +279,13 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         user_task_service.set_lifecycle_coordinator(
             UserTaskReminderLifecycleCoordinator(reminder_bridge)
         )
+        if scheduler_runtime is not None:
+            reminder_orchestrator = NaturalLanguageReminderOrchestrator(
+                user_task_service,
+                reminder_service,
+                reminder_bridge,
+                scheduler_runtime,
+            )
 
     task_runtime = TaskRuntime(
         manager=TaskManager(),
@@ -285,6 +305,8 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         llm_provider=llm,
         embedding_provider=embedding,
         user_task_service=user_task_service,
+        reminder_orchestrator=reminder_orchestrator,
+        task_intent_parser=TaskReminderIntentParser(settings.timezone_name, clock),
         config=ApplicationConfig(
             provider_mode=settings.provider_mode,
             default_model=settings.model,
@@ -330,6 +352,8 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         reminder_repository=reminder_repository,
         reminder_service=reminder_service,
         reminder_bridge=reminder_bridge,
+        reminder_orchestrator=reminder_orchestrator,
+        clock=clock,
         coordination_runtime=coordination_runtime,
         application_registry=application_registry,
         application_runtime=application_runtime,

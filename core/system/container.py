@@ -11,6 +11,7 @@ from applications.registry import ApplicationRegistry
 from applications.runtime import ApplicationRuntime
 from core.agents.runtime import DefaultAgentRuntime
 from core.bus.bus import MemoryBus
+from core.clock import Clock
 from core.coordination.orchestrator import AgentOrchestrator
 from core.database.manager import DatabaseManager
 from core.knowledge.manager import KnowledgeManager
@@ -36,6 +37,7 @@ from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.reminders import (
     ReminderSchedulerBridge,
+    NaturalLanguageReminderOrchestrator,
     ReminderService,
     SQLiteReminderRepository,
 )
@@ -71,6 +73,8 @@ class SystemContainer:
     reminder_repository: SQLiteReminderRepository | None
     reminder_service: ReminderService | None
     reminder_bridge: ReminderSchedulerBridge | None
+    reminder_orchestrator: NaturalLanguageReminderOrchestrator | None
+    clock: Clock
     coordination_runtime: AgentOrchestrator | None
     application_registry: ApplicationRegistry
     application_runtime: ApplicationRuntime

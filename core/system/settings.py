@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from core.provider_mode import detect_provider_mode
 
@@ -39,6 +40,8 @@ class SystemSettings:
     enable_user_tasks: bool = True
     enable_reminders: bool = False
     enable_api: bool = False
+    timezone_name: str = "Asia/Shanghai"
+    scheduler_tick_interval: float = 1.0
 
     enable_api_auth: bool = True
 
@@ -55,6 +58,12 @@ class SystemSettings:
         object.__setattr__(self, "sqlite_dir", Path(self.sqlite_dir).resolve())
         if self.chroma_dir is not None:
             object.__setattr__(self, "chroma_dir", Path(self.chroma_dir).resolve())
+        try:
+            ZoneInfo(self.timezone_name)
+        except (ZoneInfoNotFoundError, ValueError) as exc:
+            raise ValueError("timezone_name must be a valid IANA timezone") from exc
+        if self.scheduler_tick_interval <= 0:
+            raise ValueError("scheduler_tick_interval must be positive")
 
 
 def _load_dotenv_once(project_root: Path) -> None:
@@ -109,6 +118,8 @@ def load_system_settings(
         enable_user_tasks=_as_bool(os.getenv("AI_LAB_ENABLE_USER_TASKS"), True),
         enable_reminders=_as_bool(os.getenv("AI_LAB_ENABLE_REMINDERS"), False),
         enable_api=_as_bool(os.getenv("AI_LAB_ENABLE_API"), False),
+        timezone_name=os.getenv("AI_LAB_TIMEZONE", "Asia/Shanghai"),
+        scheduler_tick_interval=float(os.getenv("AI_LAB_SCHEDULER_TICK_INTERVAL", "1")),
 
         enable_api_auth=_as_bool(os.getenv("AI_LAB_API_AUTH_ENABLED"), True),
 
@@ -133,6 +144,8 @@ def make_test_settings(
     enable_scheduler: bool = False,
     enable_coordination: bool = False,
     enable_reminders: bool = False,
+    timezone_name: str = "Asia/Shanghai",
+    scheduler_tick_interval: float = 1.0,
 ) -> SystemSettings:
     """Build isolated settings that never touch the user's runtime data.
 
@@ -149,5 +162,7 @@ def make_test_settings(
         enable_scheduler=enable_scheduler,
         enable_coordination=enable_coordination,
         enable_reminders=enable_reminders,
+        timezone_name=timezone_name,
+        scheduler_tick_interval=scheduler_tick_interval,
         enable_api_auth=False,
     )

@@ -3,6 +3,7 @@ import sys
 import asyncio
 from cli.commands import health_cmd, chat_cmd, run_cmd, inspect_cmd
 from cli.commands import brief_cmd, log_cmd, task_cmd, decide_cmd, ask_cmd
+from cli.commands import reminder_status_cmd
 
 
 COMMANDS = {
@@ -15,6 +16,7 @@ COMMANDS = {
     "task": task_cmd.run,
     "decide": decide_cmd.run,
     "ask": ask_cmd.run,
+    "reminder-status": reminder_status_cmd.run,
     "ceo": "ceo",  # 特殊处理：交互式 CLI，不走单次命令模式
 }
 
@@ -36,6 +38,7 @@ def main():
         print("  chat <消息>   多轮对话")
         print("  health       系统健康检查")
         print("  inspect      系统状态")
+        print("  reminder-status <ID>  查询站内提醒状态")
         print()
         print("Examples:")
         print('  python -m cli brief')

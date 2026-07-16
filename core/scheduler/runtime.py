@@ -16,8 +16,9 @@ import asyncio
 import inspect
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
+from core.clock import Clock, SystemClock
 from core.scheduler.models import (
     Job, JobInfo, JobRun, JobRunStatus, JobStatus, TriggerType, ScheduleRequest,
 )
@@ -54,6 +55,7 @@ class SchedulerRuntime(SchedulerProtocol):
         persistence: SchedulerPersistence | None = None,
         config: SchedulerConfig | None = None,
         bus=None,
+        clock: Clock | None = None,
         *,
         admission: WorkAdmission,
     ):
@@ -62,6 +64,7 @@ class SchedulerRuntime(SchedulerProtocol):
         self._persistence = persistence
         self._config = config or SchedulerConfig()
         self._bus = bus
+        self._clock = clock or SystemClock()
         self._admission = admission
         self._tick_task: asyncio.Task | None = None
         self._running = False
@@ -79,7 +82,7 @@ class SchedulerRuntime(SchedulerProtocol):
         if self._persistence and self._config.persistence_enabled:
             await self._persistence.initialize()
             await self._persistence.release_expired_claims(
-                datetime.now(timezone.utc),
+                self._clock.now(),
                 retry_delay_seconds=self._config.retry_delay_seconds,
             )
             if self._config.auto_recover:
@@ -173,7 +176,7 @@ class SchedulerRuntime(SchedulerProtocol):
             raise JobStateError("Running Job cannot be paused")
         if self._persistence and self._config.persistence_enabled:
             changed = await self._persistence.pause_job(
-                job_id, job.revision, datetime.now(timezone.utc)
+                job_id, job.revision, self._clock.now()
             )
             if changed is None:
                 await self._sync_registry_from_persistence()
@@ -204,7 +207,7 @@ class SchedulerRuntime(SchedulerProtocol):
                 job_id,
                 job.revision,
                 next_run_at=next_run_at,
-                now=datetime.now(timezone.utc),
+                now=self._clock.now(),
             )
             if changed is None:
                 await self._sync_registry_from_persistence()
@@ -243,7 +246,7 @@ class SchedulerRuntime(SchedulerProtocol):
         if job is None:
             return False
         if self._persistence and self._config.persistence_enabled:
-            cancelled = await self._persistence.cancel_job(job_id, datetime.now(timezone.utc))
+            cancelled = await self._persistence.cancel_job(job_id, self._clock.now())
             await self._sync_registry_from_persistence()
             return cancelled
         if job.status not in (JobStatus.ACTIVE, JobStatus.RETRYING, JobStatus.PAUSED):
@@ -347,14 +350,14 @@ class SchedulerRuntime(SchedulerProtocol):
         while self._running:
             try:
                 await self._tick()
-                now = datetime.now(timezone.utc)
+                now = self._clock.now()
                 self._last_tick_at = now
                 self._last_successful_tick_at = now
                 self._consecutive_failures = 0
             except asyncio.CancelledError:
                 break
             except Exception as exc:
-                self._last_tick_at = datetime.now(timezone.utc)
+                self._last_tick_at = self._clock.now()
                 self._consecutive_failures += 1
                 self._last_error = failure_from_exception(
                     exc,
@@ -379,7 +382,7 @@ class SchedulerRuntime(SchedulerProtocol):
 
     async def _tick(self):
         """一次调度周期：检查所有 ACTIVE Job 是否应该触发"""
-        now = datetime.now(timezone.utc)
+        now = self._clock.now()
         if self._persistence and self._config.persistence_enabled:
             await self._persistence.release_expired_claims(
                 now, retry_delay_seconds=self._config.retry_delay_seconds
@@ -492,16 +495,16 @@ class SchedulerRuntime(SchedulerProtocol):
             # 计算下次触发时间
             if job.status == JobStatus.ACTIVE and job.trigger.trigger_type != TriggerType.MANUAL:
                 job.trigger.next_run_at = TriggerEngine.compute_next(
-                    job.trigger, datetime.now(timezone.utc)
+                    job.trigger, self._clock.now()
                 )
             elif job.status == JobStatus.RETRYING:
-                job.trigger.next_run_at = datetime.now(timezone.utc) + timedelta(
+                job.trigger.next_run_at = self._clock.now() + timedelta(
                     seconds=self._config.retry_delay_seconds
                 )
             else:
                 job.trigger.next_run_at = None
 
-            job.updated_at = datetime.now(timezone.utc)
+            job.updated_at = self._clock.now()
             job.claim_token = claim_token
 
         except asyncio.CancelledError:
@@ -536,7 +539,7 @@ class SchedulerRuntime(SchedulerProtocol):
             run.status = JobRunStatus.FAILED
             run.failure = job.last_error
             run.error = "Scheduler runtime failed"
-            run.finished_at = datetime.now(timezone.utc)
+            run.finished_at = self._clock.now()
             job.run_count += 1
             job.last_run_at = run.finished_at
             job.last_result = run.status.value
@@ -558,7 +561,7 @@ class SchedulerRuntime(SchedulerProtocol):
             renewed = await self._persistence.renew_claim(
                 job_id,
                 claim_token,
-                datetime.now(timezone.utc) + timedelta(
+                self._clock.now() + timedelta(
                     seconds=self._config.claim_ttl_seconds
                 ),
             )

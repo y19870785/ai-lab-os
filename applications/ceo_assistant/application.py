@@ -12,8 +12,8 @@ AI-Lab 首个真实业务应用。支持：
 from __future__ import annotations
 import re
 import time
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+import uuid
+from datetime import datetime
 from typing import Any
 
 from applications.models import ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse
@@ -42,6 +42,8 @@ class CEOAssistant:
         llm_provider=None,
         embedding_provider=None,
         user_task_service=None,
+        reminder_orchestrator=None,
+        task_intent_parser=None,
         config: ApplicationConfig | None = None,
         bus=None,
         *,
@@ -52,6 +54,8 @@ class CEOAssistant:
         self._llm = llm_provider
         self._embedding = embedding_provider
         self._user_tasks = user_task_service
+        self._reminder_orchestrator = reminder_orchestrator
+        self._task_intent_parser = task_intent_parser
         self._config = config or ApplicationConfig()
         self._bus = bus
         self._admission = admission
@@ -85,6 +89,11 @@ class CEOAssistant:
         """
         text = user_input.lower().strip()
 
+        if any(marker in text for marker in ("提醒我", "记得", "别忘了")):
+            return {"intent": "task", "confidence": 1.0}
+        if text.startswith(("记录:", "记录：", "记录 ", "log:", "log ")):
+            return {"intent": "work_log", "confidence": 1.0}
+
         # 规则匹配
         intent = "chat"  # 默认聊天
         confidence = 0.5
@@ -102,7 +111,7 @@ class CEOAssistant:
             confidence = 0.7
 
         # 任务
-        task_keywords = ["任务", "待办", "提醒我", "todo", "task", "截止", "完成", "取消任务", "暂停"]
+        task_keywords = ["任务", "待办", "提醒我", "todo", "task", "截止", "完成任务", "取消任务", "暂停"]
         if any(kw in text for kw in task_keywords) and intent == "chat":
             intent = "task"
             confidence = 0.8
@@ -115,7 +124,7 @@ class CEOAssistant:
 
         # 工作记录
         log_keywords = ["记录", "今天", "刚才", "完成了", "确认了", "收到了", "会议", "见了"]
-        if any(kw in text for kw in log_keywords):
+        if any(kw in text for kw in log_keywords) and intent == "chat":
             intent = "work_log"
             confidence = 0.7
 
@@ -347,85 +356,73 @@ class CEOAssistant:
         elif any(kw in user_input for kw in ["有空", "空闲", "不急"]):
             priority = UserTaskPriority.LOW
 
-        title_match = re.search(r"(提醒我|记得|别忘了)(.+?)(?:[。，\.]|$)", user_input)
-        if title_match:
-            title = title_match.group(2).strip()
-        else:
-            title = re.sub(r"(提醒我|创建任务|帮忙|帮|请)", "", user_input).strip()[:80]
-
-        due_at = None
-        user_timezone = "Asia/Shanghai"
-        unparsed_due_expression = False
-        if "明天" in user_input or "今天" in user_input:
-            local_zone = ZoneInfo(user_timezone)
-            local_now = datetime.now(local_zone)
-            due_date = local_now.date() + timedelta(days=1 if "明天" in user_input else 0)
-            clock_match = re.search(
-                r"(上午|下午|晚上|中午)?\s*(\d{1,2})"
-                r"(?:[:：](\d{1,2})|点(?:(半)|(一刻)|(\d{1,2})分?)?)",
-                user_input,
-            )
-            specific_time_requested = bool(re.search(
-                r"上午|下午|晚上|中午|\d{1,2}\s*(?:点|时)|\d{1,2}[:：]\d{1,2}",
-                user_input,
+        if self._task_intent_parser is None:
+            raise FailureException(FailureInfo(
+                code="reminder.intent.not_configured",
+                category=ErrorCategory.NOT_CONFIGURED,
+                message="Task intent parser is not configured",
+                component="reminder.intent",
+                operation="parse_time",
+                retryable=False,
+                trace_id=request.workspace_key.trace_id,
             ))
-            if clock_match:
-                period, hour_text, colon_minute, half, quarter, point_minute = (
-                    clock_match.groups()
-                )
-                hour = int(hour_text)
-                minute = int(
-                    colon_minute or point_minute
-                    or (30 if half else 15 if quarter else 0)
-                )
-                trailing = user_input[clock_match.end():]
-                partial_time_suffix = re.match(
-                    r"(?:半|一刻|[二三四]刻|\d{1,2}(?:分|秒)|左右)",
-                    trailing,
-                )
-                valid = 0 <= minute <= 59 and partial_time_suffix is None
-                if period:
-                    valid = valid and 1 <= hour <= 12
-                    if valid and period in {"下午", "晚上"} and hour < 12:
-                        hour += 12
-                    elif valid and period == "上午" and hour == 12:
-                        hour = 0
-                    elif valid and period == "中午" and hour < 11:
-                        valid = False
-                else:
-                    valid = valid and 0 <= hour <= 23
-                if valid:
-                    due_at = datetime.combine(
-                        due_date, datetime.min.time().replace(hour=hour, minute=minute),
-                        tzinfo=local_zone,
-                    )
-                else:
-                    unparsed_due_expression = True
-            elif specific_time_requested:
-                unparsed_due_expression = True
-            else:
-                due_at = datetime.combine(
-                    due_date, datetime.max.time().replace(microsecond=0),
-                    tzinfo=local_zone,
-                )
-        elif any(marker in user_input for marker in ("后天", "下周", "周一", "周二", "周三",
-                                                     "周四", "周五", "周六", "周日")):
-            unparsed_due_expression = True
+        parsed = self._task_intent_parser.parse(user_input)
+        if parsed.kind == "reminder":
+            if self._reminder_orchestrator is None:
+                raise FailureException(FailureInfo(
+                    code="reminder.unavailable",
+                    category=ErrorCategory.UNAVAILABLE,
+                    message="Reminder scheduling is unavailable",
+                    component="reminder.orchestration",
+                    operation="create_natural_language_reminder",
+                    retryable=False,
+                    trace_id=request.workspace_key.trace_id,
+                ))
+            idempotency_key = (
+                str(request.metadata.get("idempotency_key") or "").strip()
+                or request.workspace_key.trace_id.strip()
+                or uuid.uuid4().hex
+            )
+            result = await self._reminder_orchestrator.create_for_task(
+                title=parsed.title,
+                due_at=parsed.due_at,
+                timezone_name=parsed.timezone,
+                priority=priority,
+                description=user_input,
+                session_id=request.workspace_key.session_id,
+                trace_id=request.workspace_key.trace_id,
+                workspace_scope="|".join((
+                    request.workspace_key.tenant_id,
+                    request.workspace_key.workspace_id,
+                    request.workspace_key.namespace,
+                )),
+                idempotency_key=idempotency_key,
+            )
+            metadata = result.model_dump(mode="json")
+            metadata["intent"] = "reminder"
+            return {
+                "answer": (
+                    f"提醒已安排：{parsed.title}\n时间: {metadata['scheduled_for']}\n"
+                    f"Task ID: {result.task_id}\nReminder ID: {result.reminder_id}"
+                ),
+                "status": "ok",
+                "metadata": metadata,
+            }
 
         task = await self._user_tasks.create(
-            title=title, description=user_input, priority=priority, due_at=due_at,
-            timezone=user_timezone, source="ceo_assistant",
+            title=parsed.title, description=user_input, priority=priority, due_at=parsed.due_at,
+            timezone=parsed.timezone, source="ceo_assistant",
             session_id=request.workspace_key.session_id, agent_id="ceo-assistant",
             trace_id=request.workspace_key.trace_id,
+            metadata={"intent": "task", "time_unparsed": parsed.time_unparsed},
         )
+        due_line = f"\n截止: {task.due_at.isoformat()}" if task.due_at else ""
+        if parsed.time_unparsed:
+            due_line = "\n截止: 时间未识别，任务已保存为无截止日期"
         answer = (
             f"[OK] 已创建任务：\n\n任务: {task.title}\n优先级: {task.priority.value}"
-            f"\n状态: {task.status.value}\nID: {task.id}"
+            f"\n状态: {task.status.value}{due_line}\nID: {task.id}"
         )
-        if task.due_at:
-            answer += f"\n截止: {task.due_at.isoformat()}"
-        elif unparsed_due_expression:
-            answer += "\n截止: 未识别具体时间，任务已保存为无截止日期"
         return {"answer": answer, "status": "ok", "metadata": task.model_dump(mode="json")}
 
     # ---- 3. 决策记录 ----
