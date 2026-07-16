@@ -4,18 +4,18 @@
 Accepted
 
 ## Context
-The API previously used llow_origins=["*"], allowing any browser-based origin to access API endpoints. This is unsafe for browser-based integrations.
+The API previously used `allow_origins=["*"]`, allowing any browser-based origin to access API endpoints. This is unsafe for browser-based integrations.
 
 ## Decision
 Use an explicit, centrally-configured CORS allowlist.
 
 ### Policy
 1. Default: no origins allowed (implicit deny-all).
-2. Allowed origins are parsed from AI_LAB_API_ALLOWED_ORIGINS (comma-separated).
+2. Allowed origins are parsed from `AI_LAB_API_ALLOWED_ORIGINS` (comma-separated).
 3. Origins are normalized: deduplicated, whitespace-stripped, case-insensitive dedup.
-4. Wildcard * is rejected when authentication is enabled.
+4. Wildcard `*` is rejected when authentication is enabled.
 5. Non-browser callers (CLI, direct HTTP) are unaffected.
-6. CORS configuration is stored in ApiSecurityConfig alongside auth.
+6. CORS configuration is stored in `ApiSecurityConfig` alongside auth.
 
 ### Rationale
 - Browser-originated requests carry user sessions and cookies; wildcard CORS defeats same-origin constraints.
