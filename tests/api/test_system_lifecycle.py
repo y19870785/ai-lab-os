@@ -30,25 +30,24 @@ def client():
     with TestClient(_app()) as c:
         yield c
 
-def _headers():
-    return {"Authorization": f"Bearer {TEST_TOKEN}"}
+def _auth(): return {"Authorization": f"Bearer {TEST_TOKEN}"}
+
+def _set_state(client, state):
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(client.app.state.system._lifecycle.transition(state))
 
 
-class TestDrainingAdmission:
-    def test_draining_returns_503_with_draining_code(self, client):
-        system = client.app.state.system
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.DRAINING))
-        resp = client.get("/tasks", headers=_headers())
+class TestApiDraining:
+    def test_draining_503_with_code_and_retry_after(self, client):
+        _set_state(client, SystemLifecycleState.DRAINING)
+        resp = client.get("/tasks", headers=_auth())
         assert resp.status_code == 503
         body = resp.json()
         assert body["code"] == "system.draining"
         assert resp.headers.get("Retry-After") == "1"
 
     def test_draining_health_accessible(self, client):
-        system = client.app.state.system
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.DRAINING))
+        _set_state(client, SystemLifecycleState.DRAINING)
         resp = client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
@@ -56,7 +55,16 @@ class TestDrainingAdmission:
         assert data["accepting_work"] is False
 
 
-class TestReadyState:
-    def test_ready_allows_authenticated_request(self, client):
-        resp = client.get("/health", headers=_headers())
-        assert resp.status_code == 200
+class TestApiStopped:
+    def test_stopped_503(self, client):
+        _set_state(client, SystemLifecycleState.DRAINING)
+        _set_state(client, SystemLifecycleState.STOPPED)
+        resp = client.get("/tasks", headers=_auth())
+        assert resp.status_code == 503
+        assert resp.json()["code"] == "system.stopped"
+
+
+class TestApiSecurity:
+    def test_invalid_token_401_in_ready(self, client):
+        resp = client.get("/tasks", headers={"Authorization": "Bearer wrong"})
+        assert resp.status_code == 401

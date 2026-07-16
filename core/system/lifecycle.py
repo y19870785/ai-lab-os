@@ -29,7 +29,7 @@ _VALID_TRANSITIONS: dict[SystemLifecycleState, set[SystemLifecycleState]] = {
                                      SystemLifecycleState.DRAINING,
                                      SystemLifecycleState.FAILED},
     SystemLifecycleState.READY:    {SystemLifecycleState.DRAINING},
-    SystemLifecycleState.DRAINING: {SystemLifecycleState.STOPPED},
+    SystemLifecycleState.DRAINING: {SystemLifecycleState.STOPPED, SystemLifecycleState.FAILED},
     SystemLifecycleState.STOPPED:  set(),
     SystemLifecycleState.FAILED:   set(),
 }

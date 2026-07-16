@@ -217,6 +217,11 @@ class SystemContainer:
         for provider in reversed(self.providers):
             await close_component(f"provider:{provider.metadata().name}", provider.shutdown)
         await close_component("event_bus", self.event_bus.stop)
+        # Test hook: close injected blockers during shutdown
+        if hasattr(self, "_blocker") and hasattr(self._blocker, "close"):
+            await close_component("test_blocker", self._blocker.close)
+        if hasattr(self, "_failing") and hasattr(self._failing, "close"):
+            await close_component("test_failing", self._failing.close)
         await close_component("database_manager", self.database_manager.close_all)
 
         final_state = SystemLifecycleState.FAILED if self.shutdown_failures else SystemLifecycleState.STOPPED
