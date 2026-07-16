@@ -29,3 +29,5 @@
 - post-v0.33.0 main（SP-005）: 新增 Reminder/Occurrence、Scheduler CAS claim 与 Saga reconciliation；已通过 PR #10 合并，尚未进入新的正式 Release
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
+
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)

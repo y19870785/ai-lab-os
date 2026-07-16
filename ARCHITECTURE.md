@@ -313,3 +313,5 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 - CORS explicit allowlist (no wildcard when auth enabled)
 - Protected routes require Depends(require_auth); health/metrics remain public
 - Status: Merged PR #12, APPROVED / Merged
+
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)

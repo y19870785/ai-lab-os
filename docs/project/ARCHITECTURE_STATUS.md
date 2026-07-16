@@ -79,3 +79,5 @@ WorkflowRuntime
 SP-005 合并前的 Windows 本地完整验证为 `888 passed, 27 warnings in 45.19s`。该结果不是 GitHub Actions 或跨平台 CI 记录。Scheduler / Reminder 已集成并验证，但默认关闭；外部通知、Recurring Reminder 与 Inbox 尚未实现。
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
+
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)

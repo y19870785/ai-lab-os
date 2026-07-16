@@ -50,3 +50,5 @@
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
+
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)

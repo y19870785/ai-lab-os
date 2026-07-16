@@ -35,3 +35,5 @@
 | v1.0.0 | Production Release — 稳定运营 |
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
+
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)

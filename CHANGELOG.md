@@ -331,3 +331,5 @@ python -m cli chat <娑堟伅>     # 澶氳疆瀵硅瘽
 ## [0.1.0] 鈥?Core Layer 鏋舵瀯璁捐
 
 </details>
+
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)

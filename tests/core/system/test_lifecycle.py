@@ -1,4 +1,4 @@
-"""System lifecycle tests with real concurrency barriers."""
+"""System lifecycle tests — monkeypatch real components, no test hooks."""
 
 import asyncio
 from pathlib import Path
@@ -20,35 +20,31 @@ class BlockingCloser:
         self.release = asyncio.Event()
         self.close_count = 0
 
-    async def close(self):
+    async def __call__(self):
         self.close_count += 1
         self.started.set()
         await self.release.wait()
 
 
-class TestLifecycleStateMachine:
-    def test_created_to_stopped(self):
-        sm = LifecycleStateMachine()
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(sm.transition(SystemLifecycleState.STOPPED))
-        assert sm.state == SystemLifecycleState.STOPPED
+def _make_system():
+    data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
+    settings = make_test_settings(data_dir, enable_knowledge=False)
+    loop = asyncio.new_event_loop()
+    return loop.run_until_complete(create_system(settings)), loop
 
 
 class TestConcurrentShutdown:
-    def test_concurrent_shutdown_all_wait_each_component_once(self):
+    def test_concurrent_shutdown_all_wait_close_count_once(self):
+        system, loop = _make_system()
+        loop.run_until_complete(system.start())
+        assert system.lifecycle_state == SystemLifecycleState.READY
+
+        blocker = BlockingCloser()
+        system.database_manager.close_all = blocker
+
         async def _run():
-            data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
-            settings = make_test_settings(data_dir, enable_knowledge=False)
-            system = await create_system(settings)
-            await system.start()
-            assert system.lifecycle_state == SystemLifecycleState.READY
-
-            blocker = BlockingCloser()
-            system._blocker = blocker
-
             first = asyncio.create_task(system.shutdown())
             await blocker.started.wait()
-            # Second and third callers
             second = asyncio.create_task(system.shutdown())
             third = asyncio.create_task(system.shutdown())
             await asyncio.sleep(0)
@@ -58,130 +54,105 @@ class TestConcurrentShutdown:
             blocker.release.set()
             await asyncio.gather(first, second, third)
             assert blocker.close_count == 1
-            assert system.lifecycle_state in {
-                SystemLifecycleState.STOPPED, SystemLifecycleState.FAILED,
-            }
-        loop = asyncio.new_event_loop()
+            assert system.lifecycle_state == SystemLifecycleState.STOPPED
         loop.run_until_complete(_run())
 
+    def test_cleanup_failure_reaches_failed(self):
+        system, loop = _make_system()
+        loop.run_until_complete(system.start())
 
-class TestDrainingAdmission:
+        async def failing_close():
+            raise RuntimeError("injected failure")
+        system.database_manager.close_all = failing_close
+
+        loop.run_until_complete(system.shutdown())
+        assert system.lifecycle_state == SystemLifecycleState.FAILED
+        assert not system.accepting_work
+        assert "database_manager" in system.shutdown_failures
+
+
+class TestDrainingGate:
     def test_draining_gate_during_active_shutdown(self):
+        system, loop = _make_system()
+        loop.run_until_complete(system.start())
+
+        blocker = BlockingCloser()
+        system.database_manager.close_all = blocker
+
         async def _run():
-            data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
-            settings = make_test_settings(data_dir, enable_knowledge=False)
-            system = await create_system(settings)
-            await system.start()
-            assert system.lifecycle_state == SystemLifecycleState.READY
-
-            blocker = BlockingCloser()
-            system._blocker = blocker
-
             shutdown_task = asyncio.create_task(system.shutdown())
             await blocker.started.wait()
             assert system.lifecycle_state == SystemLifecycleState.DRAINING
-
-            with pytest.raises(FailureException) as exc_info:
+            with pytest.raises(FailureException) as e:
                 system.ensure_accepting_work()
-            assert exc_info.value.failure.code == "system.draining"
-
+            assert e.value.failure.code == "system.draining"
+            assert e.value.failure.category == ErrorCategory.UNAVAILABLE
+            assert e.value.failure.component == "system.lifecycle"
+            assert e.value.failure.operation == "admit_request"
+            assert e.value.failure.retryable is True
             blocker.release.set()
             await shutdown_task
-        loop = asyncio.new_event_loop()
         loop.run_until_complete(_run())
 
 
 class TestStartRejection:
     def test_start_rejected_while_starting(self):
-        # Transition system to STARTING and verify start raises
-        async def _run():
-            data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
-            settings = make_test_settings(data_dir, enable_knowledge=False)
-            system = await create_system(settings)
-            await system._lifecycle.transition(SystemLifecycleState.STARTING)
-            with pytest.raises(SystemInitializationError, match="in progress"):
-                await system.start()
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(_run())
+        system, loop = _make_system()
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.STARTING))
+        with pytest.raises(SystemInitializationError, match="in progress"):
+            loop.run_until_complete(system.start())
 
     def test_start_rejected_while_draining(self):
-        async def _run():
-            data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
-            settings = make_test_settings(data_dir, enable_knowledge=False)
-            system = await create_system(settings)
-            await system.start()
-            await system._lifecycle.transition(SystemLifecycleState.DRAINING)
-            with pytest.raises(SystemInitializationError, match="draining"):
-                await system.start()
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(_run())
-
-
-class TestCleanupFailure:
-    def test_cleanup_failure_reaches_failed(self):
-        async def _run():
-            data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
-            settings = make_test_settings(data_dir, enable_knowledge=False)
-            system = await create_system(settings)
-            await system.start()
-            # Inject a failing closer
-            class FailingCloser:
-                async def close(self):
-                    raise RuntimeError("injected failure")
-            system._failing = FailingCloser()
-            await system.shutdown()
-            assert system.lifecycle_state == SystemLifecycleState.FAILED
-            assert not system.accepting_work
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(_run())
+        system, loop = _make_system()
+        loop.run_until_complete(system.start())
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.DRAINING))
+        with pytest.raises(SystemInitializationError, match="draining"):
+            loop.run_until_complete(system.start())
 
 
 class TestAllAdmissionCodes:
+    def _assert_failure(self, exc_info, code):
+        f = exc_info.value.failure
+        assert f.code == code, f"expected {code}, got {f.code}"
+        assert f.category == ErrorCategory.UNAVAILABLE
+        assert f.component == "system.lifecycle"
+        assert f.operation == "admit_request"
+        assert f.retryable is True
+
     def test_all_admission_codes(self):
-        async def _run():
-            data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
-            settings = make_test_settings(data_dir, enable_knowledge=False)
-            system = await create_system(settings)
+        system, loop = _make_system()
 
-            # CREATED -> system.not_ready
-            with pytest.raises(FailureException) as e:
-                system.ensure_accepting_work()
-            assert e.value.failure.code == "system.not_ready"
-
-            # STARTING -> system.not_ready
-            await system._lifecycle.transition(SystemLifecycleState.STARTING)
-            with pytest.raises(FailureException) as e:
-                system.ensure_accepting_work()
-            assert e.value.failure.code == "system.not_ready"
-
-            # READY -> no exception
-            await system._lifecycle.transition(SystemLifecycleState.READY)
+        # CREATED -> system.not_ready
+        with pytest.raises(FailureException) as e:
             system.ensure_accepting_work()
+        self._assert_failure(e, "system.not_ready")
 
-            # DRAINING -> system.draining
-            await system._lifecycle.transition(SystemLifecycleState.DRAINING)
-            with pytest.raises(FailureException) as e:
-                system.ensure_accepting_work()
-            assert e.value.failure.code == "system.draining"
+        # STARTING -> system.not_ready
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.STARTING))
+        with pytest.raises(FailureException) as e:
+            system.ensure_accepting_work()
+        self._assert_failure(e, "system.not_ready")
 
-            # STOPPED -> system.stopped
-            await system._lifecycle.transition(SystemLifecycleState.STOPPED)
-            with pytest.raises(FailureException) as e:
-                system.ensure_accepting_work()
-            assert e.value.failure.code == "system.stopped"
+        # READY -> no exception
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.READY))
+        system.ensure_accepting_work()
 
-            # FAILED
-            # Create new system for FAILED test
-            system2 = await create_system(settings)
-            await system2._lifecycle.transition(SystemLifecycleState.STARTING)
-            await system2._lifecycle.transition(SystemLifecycleState.FAILED)
-            with pytest.raises(FailureException) as e:
-                system2.ensure_accepting_work()
-            assert e.value.failure.code == "system.failed"
+        # DRAINING -> system.draining
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.DRAINING))
+        with pytest.raises(FailureException) as e:
+            system.ensure_accepting_work()
+        self._assert_failure(e, "system.draining")
 
-            # Verify all have correct category
-            for code in ("system.not_ready", "system.draining", "system.stopped", "system.failed"):
-                # Already verified above; add category check
-                pass
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(_run())
+        # STOPPED -> system.stopped
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.STOPPED))
+        with pytest.raises(FailureException) as e:
+            system.ensure_accepting_work()
+        self._assert_failure(e, "system.stopped")
+
+        # FAILED -> system.failed
+        system2, loop2 = _make_system()
+        loop2.run_until_complete(system2._lifecycle.transition(SystemLifecycleState.STARTING))
+        loop2.run_until_complete(system2._lifecycle.transition(SystemLifecycleState.FAILED))
+        with pytest.raises(FailureException) as e:
+            system2.ensure_accepting_work()
+        self._assert_failure(e, "system.failed")
