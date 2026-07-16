@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 from dataclasses import dataclass, field
 
 from applications.ceo_assistant.application import CEOAssistant
@@ -20,7 +21,11 @@ from core.providers.factory import ProviderFactory
 from core.providers.llm.protocol import LLMProvider
 from core.providers.registry import ProviderRegistry
 from core.scheduler.runtime import SchedulerRuntime
-from core.system.exceptions import SystemInitializationError
+from core.errors import ErrorCategory, FailureException, FailureInfo
+from core.system.exceptions import SystemInitializationError, ServiceUnavailableError
+from core.system.lifecycle import (
+    LifecycleStateMachine, SystemLifecycleState, InvalidLifecycleTransitionError
+)
 from core.system.settings import SystemSettings
 from core.task.runtime import TaskRuntime
 from core.tools.executor import ToolExecutor
@@ -69,21 +74,24 @@ class SystemContainer:
     application_registry: ApplicationRegistry
     application_runtime: ApplicationRuntime
     ceo_assistant: CEOAssistant
-    _started: bool = field(default=False, init=False, repr=False)
-    _starting: bool = field(default=False, init=False, repr=False)
-    _stopped: bool = field(default=False, init=False, repr=False)
+    _lifecycle: LifecycleStateMachine = field(default_factory=LifecycleStateMachine, init=False, repr=False)
+    _shutdown_lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False, repr=False)
+    _shutdown_complete: asyncio.Event = field(default_factory=asyncio.Event, init=False, repr=False)
+    shutdown_failures: list[str] = field(default_factory=list, init=False, repr=False)
     _tool_instances: list[ToolProtocol] = field(default_factory=list, init=False, repr=False)
 
     async def start(self) -> None:
         """Start all configured services once; roll back on partial failure."""
 
-        if self._started:
+        if self._lifecycle.state in (SystemLifecycleState.READY, SystemLifecycleState.STARTING, SystemLifecycleState.DRAINING):
             return
-        if self._starting:
-            raise SystemInitializationError("System startup is already in progress")
+        if self._lifecycle.state != SystemLifecycleState.CREATED:
+            raise SystemInitializationError(
+                f"Cannot start from state {self._lifecycle.state.value}"
+            )
 
-        self._starting = True
-        logger.info("system.initializing")
+        await self._lifecycle.transition(SystemLifecycleState.STARTING)
+        logger.info("system.lifecycle.transition", extra={"from_state": "created", "to_state": "starting"})
         try:
             await self.event_bus.start()
             logger.info("event_bus.started")
@@ -142,20 +150,26 @@ class SystemContainer:
 
             await self.application_runtime.initialize()
             logger.info("applications.registered")
-            self._started = True
-            self._stopped = False
+            await self._lifecycle.transition(SystemLifecycleState.READY)
+            logger.info("system.lifecycle.transition", extra={"from_state": "starting", "to_state": "ready"})
             logger.info("system.ready")
         except Exception as exc:
             logger.exception("system.initialization.failed")
             await self.shutdown()
             raise SystemInitializationError(str(exc)) from exc
-        finally:
-            self._starting = False
 
     async def shutdown(self) -> None:
         """Stop resources in reverse order; every component gets a cleanup chance."""
 
-        if not self._started and not self._starting:
+        # Enter DRAINING immediately to reject new work
+        prev = await self._lifecycle.try_transition(SystemLifecycleState.DRAINING)
+        if prev is not None:
+            logger.info(
+                "system.lifecycle.transition",
+                extra={"from_state": prev.value, "to_state": "draining"},
+            )
+        if self._lifecycle.state in (SystemLifecycleState.STOPPED, SystemLifecycleState.FAILED):
+            self._shutdown_complete.set()
             return
         logger.info("system.shutdown.started")
 
@@ -167,6 +181,12 @@ class SystemContainer:
             except Exception:
                 logger.exception("system.shutdown.component_failed", extra={"component": name})
 
+        # Stop producers first
+        if self.scheduler_runtime is not None:
+            await close_component("scheduler_runtime", self.scheduler_runtime.shutdown)
+        if self.reminder_service is not None:
+            await close_component("reminder_service", self.reminder_service.close)
+        # Stop consumers
         await close_component("application_runtime", self.application_runtime.shutdown)
         if self.coordination_runtime is not None:
             await close_component("coordination_runtime", self.coordination_runtime.shutdown)
@@ -193,19 +213,32 @@ class SystemContainer:
         await close_component("event_bus", self.event_bus.stop)
         await close_component("database_manager", self.database_manager.close_all)
 
-        self._started = False
-        self._stopped = True
+        # Determine final state
+        final_state = SystemLifecycleState.FAILED if self.shutdown_failures else SystemLifecycleState.STOPPED
+        await self._lifecycle.transition(final_state)
+        logger.info(
+            "system.lifecycle.transition",
+            extra={"from_state": "draining", "to_state": final_state.value},
+        )
+        self._shutdown_complete.set()
         logger.info("system.shutdown.completed")
 
     async def health(self) -> dict[str, object]:
         """Aggregate actual component state without external network probes."""
 
-        if not self._started:
+        state = self._lifecycle.state
+        if state != SystemLifecycleState.READY:
+            status = {
+                SystemLifecycleState.CREATED: RuntimeStatus.NOT_INITIALIZED.value,
+                SystemLifecycleState.STARTING: RuntimeStatus.STARTING.value,
+                SystemLifecycleState.DRAINING: RuntimeStatus.DEGRADED.value,
+                SystemLifecycleState.STOPPED: RuntimeStatus.STOPPED.value,
+                SystemLifecycleState.FAILED: RuntimeStatus.FAILED.value,
+            }.get(state, RuntimeStatus.NOT_INITIALIZED.value)
             return {
-                "status": (
-                    RuntimeStatus.STOPPED.value
-                    if self._stopped else RuntimeStatus.NOT_INITIALIZED.value
-                ),
+                "status": status,
+                "lifecycle": state.value,
+                "accepting_work": False,
                 "provider_mode": self.settings.provider_mode,
                 "components": {},
             }
@@ -370,10 +403,29 @@ class SystemContainer:
 
         return {
             "status": top_status.value,
+            "lifecycle": self._lifecycle.state.value,
+            "accepting_work": self._lifecycle.accepting_work,
+            "shutdown_failures": list(self.shutdown_failures),
             "provider_mode": self.settings.provider_mode,
             "components": components,
         }
 
     @property
     def started(self) -> bool:
-        return self._started
+        return self._lifecycle.state == SystemLifecycleState.READY
+
+    @property
+    def lifecycle_state(self) -> SystemLifecycleState:
+        return self._lifecycle.state
+
+    @property
+    def accepting_work(self) -> bool:
+        return self._lifecycle.accepting_work
+
+    def ensure_accepting_work(self) -> None:
+        """Raise ServiceUnavailableError unless READY."""
+        if self._lifecycle.state != SystemLifecycleState.READY:
+            state = self._lifecycle.state
+            raise ServiceUnavailableError(
+                f"AI-Lab system is not accepting new work (state={state.value})"
+            )
