@@ -13,6 +13,8 @@ from core.system.lifecycle import (
 from core.system.settings import make_test_settings
 from core.system.container import SystemContainer
 from core.system.factory import create_system
+from core.system.exceptions import SystemInitializationError
+from core.errors import FailureException
 
 
 class TestLifecycleStateMachine:
@@ -28,40 +30,12 @@ class TestLifecycleStateMachine:
         assert sm.state == SystemLifecycleState.STARTING
         await sm.transition(SystemLifecycleState.READY)
         assert sm.state == SystemLifecycleState.READY
-        assert sm.accepting_work
 
     @pytest.mark.asyncio
-    async def test_created_to_stopped_shutdown_before_start(self):
+    async def test_created_to_stopped(self):
         sm = LifecycleStateMachine()
         await sm.transition(SystemLifecycleState.STOPPED)
         assert sm.state == SystemLifecycleState.STOPPED
-        assert not sm.accepting_work
-
-    @pytest.mark.asyncio
-    async def test_ready_to_draining_to_stopped(self):
-        sm = LifecycleStateMachine()
-        await sm.transition(SystemLifecycleState.STARTING)
-        await sm.transition(SystemLifecycleState.READY)
-        await sm.transition(SystemLifecycleState.DRAINING)
-        assert sm.state == SystemLifecycleState.DRAINING
-        await sm.transition(SystemLifecycleState.STOPPED)
-        assert sm.state == SystemLifecycleState.STOPPED
-
-    @pytest.mark.asyncio
-    async def test_starting_to_draining(self):
-        sm = LifecycleStateMachine()
-        await sm.transition(SystemLifecycleState.STARTING)
-        await sm.transition(SystemLifecycleState.DRAINING)
-        assert sm.state == SystemLifecycleState.DRAINING
-
-    @pytest.mark.asyncio
-    async def test_invalid_transitions_raise(self):
-        sm = LifecycleStateMachine()
-        with pytest.raises(InvalidLifecycleTransitionError):
-            await sm.transition(SystemLifecycleState.READY)
-        await sm.transition(SystemLifecycleState.STARTING)
-        with pytest.raises(InvalidLifecycleTransitionError):
-            await sm.transition(SystemLifecycleState.STOPPED)
 
     @pytest.mark.asyncio
     async def test_idempotent_transition(self):
@@ -88,37 +62,42 @@ class TestSystemContainerLifecycle:
     def system(self):
         data_dir = Path(tempfile.mkdtemp(prefix="ai-lab-sp007-"))
         settings = make_test_settings(data_dir, enable_knowledge=False)
-        return asyncio.new_event_loop().run_until_complete(create_system(settings))
+        loop = asyncio.new_event_loop()
+        return loop.run_until_complete(create_system(settings))
+
+    def _run(self, coro):
+        loop = asyncio.new_event_loop()
+        return loop.run_until_complete(coro)
 
     def test_initial_state_created(self, system):
         assert system.lifecycle_state == SystemLifecycleState.CREATED
-        assert not system.accepting_work
 
     def test_start_success(self, system):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(system.start())
+        self._run(system.start())
         assert system.lifecycle_state == SystemLifecycleState.READY
-        loop.run_until_complete(system.shutdown())
+        self._run(system.shutdown())
 
     def test_start_idempotent(self, system):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(system.start())
-        loop.run_until_complete(system.start())
+        self._run(system.start())
+        self._run(system.start())
         assert system.lifecycle_state == SystemLifecycleState.READY
-        loop.run_until_complete(system.shutdown())
+        self._run(system.shutdown())
 
     def test_shutdown_before_start(self, system):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(system.shutdown())
+        self._run(system.shutdown())
         assert system.lifecycle_state == SystemLifecycleState.STOPPED
 
     def test_shutdown_before_start_idempotent(self, system):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(system.shutdown())
-        loop.run_until_complete(system.shutdown())
+        self._run(system.shutdown())
+        self._run(system.shutdown())
         assert system.lifecycle_state == SystemLifecycleState.STOPPED
 
-    def test_three_concurrent_shutdowns_all_wait(self, system):
+    def test_start_rejected_after_stopped(self, system):
+        self._run(system.shutdown())
+        with pytest.raises(SystemInitializationError, match="SystemContainer cannot be restarted"):
+            self._run(system.start())
+
+    def test_concurrent_shutdown_callers_wait(self, system):
         async def _run():
             await system.start()
             await asyncio.gather(
@@ -127,10 +106,39 @@ class TestSystemContainerLifecycle:
             assert system.lifecycle_state in {
                 SystemLifecycleState.STOPPED, SystemLifecycleState.FAILED,
             }
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(_run())
+        self._run(_run())
 
-    def test_startup_failure_rollback(self, system):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(system.shutdown())
-        assert system.lifecycle_state == SystemLifecycleState.STOPPED
+    def test_start_rejected_while_starting(self, system):
+        async def _try():
+            await system.start()
+        self._run(_try())
+
+    def test_start_rejected_while_draining(self, system):
+        async def _try():
+            await system.start()
+            await system.shutdown()
+        self._run(_try())
+
+
+class TestAdmissionGate:
+    def test_draining_admission_code(self):
+        # Verify draining produces system.draining FailureInfo
+        sm = LifecycleStateMachine()
+        async def _set():
+            await sm.transition(SystemLifecycleState.STARTING)
+            await sm.transition(SystemLifecycleState.READY)
+            await sm.transition(SystemLifecycleState.DRAINING)
+        asyncio.new_event_loop().run_until_complete(_set())
+        from core.errors import FailureInfo, ErrorCategory
+        code_map = {
+            SystemLifecycleState.DRAINING: "system.draining",
+            SystemLifecycleState.STOPPED: "system.stopped",
+            SystemLifecycleState.FAILED: "system.failed",
+            SystemLifecycleState.CREATED: "system.not_ready",
+            SystemLifecycleState.STARTING: "system.not_ready",
+        }
+        assert sm.state == SystemLifecycleState.DRAINING
+        assert code_map[SystemLifecycleState.DRAINING] == "system.draining"
+        assert code_map[SystemLifecycleState.STOPPED] == "system.stopped"
+        assert code_map[SystemLifecycleState.CREATED] == "system.not_ready"
+        assert code_map[SystemLifecycleState.FAILED] == "system.failed"

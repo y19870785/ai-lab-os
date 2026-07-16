@@ -13,7 +13,6 @@ def get_system(request: Request) -> SystemContainer:
     system = getattr(request.app.state, "system", None)
     if system is None:
         raise ServiceUnavailableError("AI-Lab system is not initialized")
-    # Admission gate: reject new work unless READY
     system.ensure_accepting_work()
     return system
 
