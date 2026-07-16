@@ -3,6 +3,7 @@ pytestmark = pytest.mark.asyncio(loop_scope="function")
 import asyncio
 from datetime import datetime, timezone, timedelta
 from core.scheduler.runtime import SchedulerRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.jobs import JobExecutor
 from core.scheduler.models import (
@@ -19,6 +20,7 @@ class TestSchedulerEndToEnd:
             registry=SchedulerRegistry(),
             executor=JobExecutor(),
             config=SchedulerConfig(tick_interval=0.1, persistence_enabled=False),
+            admission=PERMISSIVE_TEST_ADMISSION,
         )
 
         # ??
@@ -49,6 +51,7 @@ class TestSchedulerEndToEnd:
             registry=SchedulerRegistry(),
             executor=JobExecutor(),
             config=SchedulerConfig(tick_interval=0.1, persistence_enabled=False),
+            admission=PERMISSIVE_TEST_ADMISSION,
         )
 
         # ????????? one-shot job?????
@@ -73,6 +76,7 @@ class TestSchedulerEndToEnd:
             registry=SchedulerRegistry(),
             executor=JobExecutor(),
             config=SchedulerConfig(tick_interval=0.1, persistence_enabled=False),
+            admission=PERMISSIVE_TEST_ADMISSION,
         )
 
         for i in range(5):
@@ -88,6 +92,7 @@ class TestSchedulerEndToEnd:
         config = SchedulerConfig(tick_interval=0.1, max_concurrent_jobs=1, persistence_enabled=False)
         rt = SchedulerRuntime(
             registry=SchedulerRegistry(), executor=JobExecutor(), config=config,
+            admission=PERMISSIVE_TEST_ADMISSION,
         )
 
         # ???? past one-shot jobs

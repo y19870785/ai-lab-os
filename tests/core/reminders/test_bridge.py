@@ -25,6 +25,7 @@ from core.scheduler.jobs import JobExecutor
 from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.runtime import SchedulerRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.scheduler.models import JobRun, JobRunStatus, JobStatus
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService, UserTaskStatus
 
@@ -53,6 +54,7 @@ async def _stack(tmp_path):
             claim_ttl_seconds=0.1,
             retry_delay_seconds=0.01,
         ),
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await scheduler.initialize()
     bridge = ReminderSchedulerBridge(reminders, reminder_repository, scheduler, tasks)

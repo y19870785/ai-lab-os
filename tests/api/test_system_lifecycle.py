@@ -3,11 +3,14 @@
 from pathlib import Path
 import tempfile
 import asyncio
+import ast
+import inspect
 
 import pytest
 from fastapi.testclient import TestClient
 
 from api.app import create_app
+from api.dependencies import get_runtime, get_system
 from core.system.lifecycle import SystemLifecycleState
 from core.system.settings import SystemSettings
 
@@ -89,3 +92,26 @@ class TestHealthStableStates:
         d = resp.json()
         assert d["lifecycle"] == "failed"
         assert d["accepting_work"] is False
+
+
+def test_business_routes_do_not_import_unguarded_runtime_or_system_resolvers():
+    routes_dir = Path(__file__).parents[2] / "api" / "routes"
+    public_modules = {"health.py", "metrics.py"}
+    forbidden = {"_get_system_unguarded", "_get_runtime_for_execute_only"}
+
+    for route in routes_dir.glob("*.py"):
+        if route.name in public_modules:
+            continue
+        tree = ast.parse(route.read_text(encoding="utf-8-sig"), filename=str(route))
+        imported = {
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module == "api.dependencies"
+            for alias in node.names
+        }
+        assert imported.isdisjoint(forbidden), route.name
+
+
+def test_runtime_dependency_is_guarded_by_get_system():
+    system_parameter = inspect.signature(get_runtime).parameters["system"]
+    assert system_parameter.default.dependency is get_system

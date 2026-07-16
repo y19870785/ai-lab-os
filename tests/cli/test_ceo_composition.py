@@ -4,7 +4,10 @@ from types import SimpleNamespace
 
 import pytest
 
+from core.errors import FailureException
 from core.system import make_test_settings
+from core.system.admission import WorkAdmissionGate
+from core.system.lifecycle import LifecycleStateMachine, SystemLifecycleState
 
 
 @pytest.mark.asyncio(loop_scope="function")
@@ -36,3 +39,46 @@ async def test_interactive_cli_uses_and_closes_system(monkeypatch, tmp_path):
 
     await ceo.run_ceo()
     assert calls == {"create": 1, "start": 1, "shutdown": 1}
+
+
+@pytest.mark.asyncio(loop_scope="function")
+async def test_one_shot_cli_inherits_application_runtime_admission(monkeypatch, tmp_path):
+    from cli import runtime as cli_runtime
+
+    lifecycle = LifecycleStateMachine()
+    await lifecycle.transition(SystemLifecycleState.STARTING)
+    await lifecycle.transition(SystemLifecycleState.READY)
+    await lifecycle.transition(SystemLifecycleState.DRAINING)
+    admission = WorkAdmissionGate(lifecycle)
+    calls = {"execute": 0, "shutdown": 0}
+
+    class GatedRuntime:
+        async def execute(self, request):
+            with admission.admit():
+                calls["execute"] += 1
+                return SimpleNamespace(status="ok")
+
+    class FakeSystem:
+        application_runtime = GatedRuntime()
+
+        async def start(self):
+            return None
+
+        async def shutdown(self):
+            calls["shutdown"] += 1
+
+    async def fake_create(settings):
+        return FakeSystem()
+
+    monkeypatch.setattr(
+        cli_runtime,
+        "load_system_settings",
+        lambda: make_test_settings(tmp_path),
+    )
+    monkeypatch.setattr(cli_runtime, "create_system", fake_create)
+
+    with pytest.raises(FailureException) as exc_info:
+        await cli_runtime.execute_ceo_request("status")
+
+    assert exc_info.value.failure.code == "system.draining"
+    assert calls == {"execute": 0, "shutdown": 1}

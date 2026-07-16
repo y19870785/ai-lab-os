@@ -19,6 +19,7 @@ from applications.config import ApplicationConfig
 from applications.exceptions import ApplicationNotRegisteredError
 from core.workspace.models import WorkspaceKey
 from core.errors import ErrorCategory, FailureException, FailureInfo
+from core.system.admission import WorkAdmission
 
 
 class ApplicationRuntime:
@@ -33,6 +34,8 @@ class ApplicationRuntime:
         memory_manager=None,
         config: ApplicationConfig | None = None,
         bus=None,
+        *,
+        admission: WorkAdmission,
     ):
         self._registry = registry or ApplicationRegistry()
         self._orchestrator = orchestrator
@@ -41,6 +44,7 @@ class ApplicationRuntime:
         self._memory = memory_manager
         self._config = config or ApplicationConfig()
         self._bus = bus
+        self._admission = admission
         self._initialized = False
         self._contexts: dict[str, ApplicationContext] = {}
 
@@ -79,6 +83,11 @@ class ApplicationRuntime:
 
     async def execute(self, request: ApplicationRequest) -> ApplicationResponse:
         """Dispatch only to a registered application instance."""
+        with self._admission.admit():
+            return await self._execute_accepted(request)
+
+    async def _execute_accepted(self, request: ApplicationRequest) -> ApplicationResponse:
+        """Dispatch work already accepted by this runtime boundary."""
         if not self._initialized:
             raise RuntimeError("ApplicationRuntime is not initialized")
 

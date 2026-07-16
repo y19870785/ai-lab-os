@@ -21,6 +21,7 @@ from core.scheduler.models import (
 from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.runtime import SchedulerRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.scheduler.handlers import ActionHandlerRegistry
 from core.scheduler.jobs import JobExecutor
 
@@ -102,6 +103,7 @@ async def _runtime(path, executor):
         executor=executor,
         persistence=persistence,
         config=_config(path),
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await runtime.initialize()
     return runtime
@@ -196,6 +198,7 @@ async def test_old_claim_cannot_overwrite_new_owner(tmp_path):
     runtime = SchedulerRuntime(
         persistence=persistence,
         config=_config(tmp_path / "scheduler.db"),
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await runtime.initialize()
     job = await runtime.schedule(ScheduleRequest(
@@ -240,7 +243,11 @@ async def test_job_run_and_sanitized_failure_survive_restart(tmp_path):
     path = tmp_path / "scheduler.db"
     persistence = SchedulerPersistence(str(path))
     await persistence.initialize()
-    runtime = SchedulerRuntime(persistence=persistence, config=_config(path))
+    runtime = SchedulerRuntime(
+        persistence=persistence,
+        config=_config(path),
+        admission=PERMISSIVE_TEST_ADMISSION,
+    )
     await runtime.initialize()
     job = await runtime.schedule(ScheduleRequest(
         job_name="failure-history",
@@ -511,6 +518,7 @@ async def test_scheduler_event_hook_failure_cannot_change_completed_result(
         persistence=SchedulerPersistence(str(path)),
         config=_config(path),
         bus=bus,
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await runtime.initialize()
     await runtime.start()
@@ -554,6 +562,7 @@ async def test_scheduler_failed_event_hook_cannot_block_claim_finalize(tmp_path)
         persistence=SchedulerPersistence(str(path)),
         config=_config(path),
         bus=bus,
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await runtime.initialize()
     job = await runtime.schedule(ScheduleRequest(
@@ -607,6 +616,7 @@ async def test_scheduler_started_and_terminal_events_share_job_run_trace(
         persistence=SchedulerPersistence(str(path)),
         config=_config(path),
         bus=bus,
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await runtime.initialize()
     trace_id = f"trace-request-{should_fail}"
@@ -645,6 +655,7 @@ async def test_different_jobs_execute_concurrently_without_global_serial_lock(tm
             db_path=str(path), persistence_enabled=True,
             max_concurrent_jobs=2, claim_ttl_seconds=1,
         ),
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await runtime.initialize()
     past = datetime.now(timezone.utc) - timedelta(seconds=1)

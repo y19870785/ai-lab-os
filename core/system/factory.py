@@ -36,7 +36,9 @@ from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.runtime import SchedulerRuntime
 from core.system.container import SystemContainer
+from core.system.admission import WorkAdmissionGate
 from core.system.exceptions import ProviderNotConfiguredError
+from core.system.lifecycle import LifecycleStateMachine
 from core.system.settings import SystemSettings
 from core.task.manager import TaskManager
 from core.task.runtime import TaskRuntime
@@ -136,6 +138,8 @@ def _configure_providers(settings: SystemSettings):
 async def create_system(settings: SystemSettings) -> SystemContainer:
     """Construct one dependency graph without starting any lifecycle twice."""
 
+    lifecycle = LifecycleStateMachine()
+    work_admission_gate = WorkAdmissionGate(lifecycle)
     _validate_provider_settings(settings)
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     settings.sqlite_dir.mkdir(parents=True, exist_ok=True)
@@ -249,6 +253,7 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
             persistence=scheduler_persistence,
             config=SchedulerConfig(db_path=str(settings.sqlite_dir / "scheduler.db")),
             bus=event_bus,
+            admission=work_admission_gate,
         )
 
     if reminder_service is not None:
@@ -285,6 +290,7 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
             default_model=settings.model,
         ),
         bus=event_bus,
+        admission=work_admission_gate,
     )
     application_registry.register(
         ceo_assistant.info,
@@ -299,6 +305,7 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         memory_manager=memory_manager,
         config=ApplicationConfig(provider_mode=settings.provider_mode),
         bus=event_bus,
+        admission=work_admission_gate,
     )
 
     return SystemContainer(
@@ -327,4 +334,6 @@ async def create_system(settings: SystemSettings) -> SystemContainer:
         application_registry=application_registry,
         application_runtime=application_runtime,
         ceo_assistant=ceo_assistant,
+        work_admission_gate=work_admission_gate,
+        _lifecycle=lifecycle,
     )

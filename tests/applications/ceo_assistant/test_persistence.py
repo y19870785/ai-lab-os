@@ -11,6 +11,7 @@ import pytest, sys, os, asyncio
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
 from core.memory.manager import MemoryManager
@@ -41,7 +42,7 @@ class TestPersistence:
         await es1.initialize()
         mem1.register_store(MemoryType.EPISODIC, es1)
 
-        app1 = CEOAssistant(memory_manager=mem1)
+        app1 = CEOAssistant(memory_manager=mem1, admission=PERMISSIVE_TEST_ADMISSION)
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="记录: 测试持久化数据",
@@ -79,7 +80,7 @@ class TestPersistence:
         manager1 = DatabaseManager(db_dir)
         service1 = UserTaskService(SQLiteUserTaskRepository(manager1, task_path), bus=bus1)
         await service1.initialize()
-        app1 = CEOAssistant(user_task_service=service1)
+        app1 = CEOAssistant(user_task_service=service1, admission=PERMISSIVE_TEST_ADMISSION)
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="提醒我完成持久化测试任务",
@@ -116,7 +117,7 @@ class TestPersistence:
         await ds1.initialize()
         mem1.register_store(MemoryType.DECISION, ds1)
 
-        app1 = CEOAssistant(memory_manager=mem1)
+        app1 = CEOAssistant(memory_manager=mem1, admission=PERMISSIVE_TEST_ADMISSION)
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="决定采用持久化方案A",
@@ -156,7 +157,7 @@ class TestPersistence:
         es1 = SQLiteEpisodicStore(db_path=os.path.join(db_dir1, "episodic.db"))
         await es1.initialize()
         mem1.register_store(MemoryType.EPISODIC, es1)
-        app1 = CEOAssistant(memory_manager=mem1)
+        app1 = CEOAssistant(memory_manager=mem1, admission=PERMISSIVE_TEST_ADMISSION)
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="记录: Workspace1的数据",

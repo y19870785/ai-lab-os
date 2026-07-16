@@ -314,4 +314,8 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 - Protected routes require Depends(require_auth); health/metrics remain public
 - Status: Merged PR #12, APPROVED / Merged
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 以 Approved Head `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4` 合并，main Squash Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，时间为 `2026-07-16T10:08:47Z`，版本仍为 `0.33.0`。Gate 仅位于 FastAPI 受保护业务路由；直接 ApplicationRuntime、CEO Assistant 与 CLI 调用明确排除。SP-008 Internal Work Admission Boundary: Candidate / Not started / No branch / No PR。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 以 Approved Head `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4` 合并，main Squash Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，时间为 `2026-07-16T10:08:47Z`，版本仍为 `0.33.0`。
+
+> SP-008 Internal Work Admission Boundary: **implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**。候选架构以 Composition Root 创建的单一 `WorkAdmissionGate` 覆盖 `ApplicationRuntime`、CEO Assistant、CLI 经 Runtime 的调用及 Scheduler producer；Task、Workflow 与 Agent 属于已准入工作的下游，不重复检查。
+
+> Accepted scope 绑定当前 `asyncio.Task` 身份：同一 Task 的下游调用可继续，普通 detached child 不继承 bypass；仅 Scheduler 可通过 `spawn_accepted_task()` 显式延续已经接受的 Job。FastAPI Runtime dependency 仍先经过 `get_system()`，Runtime 在真实执行点再次检查以关闭竞态窗口。

@@ -14,6 +14,7 @@ from core.scheduler.models import (
     TriggerType,
 )
 from core.scheduler.runtime import SchedulerRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
@@ -34,6 +35,7 @@ async def test_tick_failure_is_observable_in_health_log_and_event(monkeypatch, c
     runtime = SchedulerRuntime(
         config=SchedulerConfig(tick_interval=0.01, failure_threshold=2),
         bus=bus,
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     monkeypatch.setattr(runtime, "_tick", broken_tick)
     try:
@@ -85,7 +87,7 @@ async def _schedule_due_job(runtime):
 
 async def test_background_job_is_tracked_and_removed_after_completion():
     executor = BlockingJobExecutor()
-    runtime = SchedulerRuntime(executor=executor)
+    runtime = SchedulerRuntime(executor=executor, admission=PERMISSIVE_TEST_ADMISSION)
     await _schedule_due_job(runtime)
 
     await runtime._tick()
@@ -103,6 +105,7 @@ async def test_shutdown_cancels_and_collects_running_job_tasks():
     runtime = SchedulerRuntime(
         executor=executor,
         config=SchedulerConfig(cancel_running_jobs_on_shutdown=True, shutdown_timeout=0.2),
+        admission=PERMISSIVE_TEST_ADMISSION,
     )
     await _schedule_due_job(runtime)
     await runtime._tick()
@@ -116,7 +119,7 @@ async def test_shutdown_cancels_and_collects_running_job_tasks():
 
 async def test_job_executor_failure_result_has_failure_and_no_success_result():
     executor = JobExecutor(workflow_runtime=None)
-    runtime = SchedulerRuntime(executor=executor)
+    runtime = SchedulerRuntime(executor=executor, admission=PERMISSIVE_TEST_ADMISSION)
     job = await runtime.schedule(ScheduleRequest(
         job_name="missing-runtime",
         workflow_name="workflow",

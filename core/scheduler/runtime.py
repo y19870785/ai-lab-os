@@ -32,12 +32,13 @@ from core.scheduler.exceptions import (
     JobNotFoundError, JobAlreadyExistsError, JobStateError,
 )
 from core.errors import (
-    ErrorCategory,
+    ErrorCategory, FailureException,
     FailureInfo,
     RuntimeStatus,
     failure_event_payload,
     failure_from_exception,
 )
+from core.system.admission import WorkAdmission
 
 
 logger = logging.getLogger("ai-lab.scheduler.runtime")
@@ -53,12 +54,15 @@ class SchedulerRuntime(SchedulerProtocol):
         persistence: SchedulerPersistence | None = None,
         config: SchedulerConfig | None = None,
         bus=None,
+        *,
+        admission: WorkAdmission,
     ):
         self._registry = registry or SchedulerRegistry()
         self._executor = executor or JobExecutor()
         self._persistence = persistence
         self._config = config or SchedulerConfig()
         self._bus = bus
+        self._admission = admission
         self._tick_task: asyncio.Task | None = None
         self._running = False
         self._job_locks: dict[str, asyncio.Lock] = {}
@@ -389,50 +393,61 @@ class SchedulerRuntime(SchedulerProtocol):
         for job in active_jobs:
             if not TriggerEngine.should_fire(job.trigger, now):
                 continue
+            try:
+                with self._admission.admit():
+                    await self._dispatch_due_job(job, now)
+            except FailureException as exc:
+                if exc.failure.component == "system.lifecycle":
+                    return
+                raise
 
-            # 并发限制
-            running_count = sum(1 for j in self._registry.list() if j.status == JobStatus.RUNNING)
-            if running_count >= self._config.max_concurrent_jobs:
-                continue
+    async def _dispatch_due_job(self, job: Job, now: datetime) -> None:
+        """Claim and dispatch one due job after the outer admission check."""
+        running_count = sum(
+            1 for candidate in self._registry.list()
+            if candidate.status == JobStatus.RUNNING
+        )
+        if running_count >= self._config.max_concurrent_jobs:
+            return
 
-            claim_token = uuid.uuid4().hex
-            run_id = uuid.uuid4().hex[:12]
-            persisted_claim = bool(self._persistence and self._config.persistence_enabled)
-            if persisted_claim:
-                claimed = await self._persistence.claim_job(
-                    job.info.id,
-                    now=now,
-                    claim_token=claim_token,
-                    claim_expires_at=now + timedelta(seconds=self._config.claim_ttl_seconds),
-                    run_id=run_id,
-                )
-                if claimed is None:
-                    continue
-                job = claimed
-                self._registry.replace(job)
-            else:
-                job.status = JobStatus.RUNNING
-                job.claim_token = claim_token
-                job.claim_expires_at = now + timedelta(
-                    seconds=self._config.claim_ttl_seconds
-                )
-            run = JobRun(
-                id=run_id,
-                job_id=job.info.id,
-                job_name=job.info.name,
-                status=JobRunStatus.RUNNING,
-                started_at=now,
-                trace_id=job.trace_id or run_id,
-                attempt=job.run_count + 1,
+        claim_token = uuid.uuid4().hex
+        run_id = uuid.uuid4().hex[:12]
+        persisted_claim = bool(self._persistence and self._config.persistence_enabled)
+        if persisted_claim:
+            claimed = await self._persistence.claim_job(
+                job.info.id,
+                now=now,
                 claim_token=claim_token,
+                claim_expires_at=now + timedelta(seconds=self._config.claim_ttl_seconds),
+                run_id=run_id,
             )
-            task = asyncio.create_task(
-                self._run_job(job, run, claim_token, persisted_claim),
-                name=f"ai-lab-scheduler-job-{job.info.id}",
+            if claimed is None:
+                return
+            job = claimed
+            self._registry.replace(job)
+        else:
+            job.status = JobStatus.RUNNING
+            job.claim_token = claim_token
+            job.claim_expires_at = now + timedelta(
+                seconds=self._config.claim_ttl_seconds
             )
-            self._background_tasks.add(task)
-            task.add_done_callback(self._background_tasks.discard)
-            task.add_done_callback(self._observe_background_task)
+        run = JobRun(
+            id=run_id,
+            job_id=job.info.id,
+            job_name=job.info.name,
+            status=JobRunStatus.RUNNING,
+            started_at=now,
+            trace_id=job.trace_id or run_id,
+            attempt=job.run_count + 1,
+            claim_token=claim_token,
+        )
+        task = self._admission.spawn_accepted_task(
+            self._run_job(job, run, claim_token, persisted_claim),
+            name=f"ai-lab-scheduler-job-{job.info.id}",
+        )
+        self._background_tasks.add(task)
+        task.add_done_callback(self._background_tasks.discard)
+        task.add_done_callback(self._observe_background_task)
 
     async def _run_job(
         self, job: Job, run: JobRun, claim_token: str, persisted_claim: bool

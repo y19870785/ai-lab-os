@@ -36,4 +36,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED。PR #14 已以 Squash Commit `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee` 合并至 main；范围为 FastAPI 受保护业务路由。SP-008 Internal Work Admission Boundary: Candidate / Not started / No branch / No PR。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED。PR #14 已以 Squash Commit `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee` 合并至 main。SP-008 Internal Work Admission Boundary: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged；不在本候选中扩展产品功能。
