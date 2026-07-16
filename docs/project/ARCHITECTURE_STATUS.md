@@ -82,4 +82,4 @@ SP-005 合并前的 Windows 本地完整验证为 `888 passed, 27 warnings in 45
 
 > SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED。FastAPI 受保护业务路由的生命周期准入已进入 main（PR #14，Squash Commit `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`）。SP-008 Internal Work Admission Boundary: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged；候选使用单一注入 gate，不在业务模块复制生命周期标志。
 
-SP-008 候选的 Windows 本地 Python 3.12 验证为 `972 passed, 27 warnings in 61.68s`，零失败、零错误；不是 GitHub Actions 或跨平台 CI 结果。
+SP-008 候选的 Windows 本地 Python 3.12 验证为 `977 passed, 27 warnings in 49.17s`，零失败、零错误；不是 GitHub Actions 或跨平台 CI 结果。

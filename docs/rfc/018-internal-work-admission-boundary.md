@@ -47,15 +47,19 @@ The included boundaries are `ApplicationRuntime.execute()`, direct `CEOAssistant
 
 The Composition Root constructs one lifecycle and one gate before runtime construction. `ApplicationRuntime`, `CEOAssistant`, Scheduler, and `SystemContainer` receive that gate explicitly. Their constructors require the dependency, so production omission fails during construction. Standalone tests use an explicit test-only permissive admission object.
 
-`core.system` uses lazy public exports to avoid an import cycle between the narrow system contract and application modules.
+`core.system` uses lazy public exports to avoid the concrete `applications.runtime -> core.system.admission -> core.system.__init__` import cycle while preserving the existing public import surface. A regression test imports all five supported public symbols together.
 
 ## Accepted-work Semantics
 
-`WorkAdmissionGate.admit()` is a synchronous context manager backed by a task-local `ContextVar`. The outer call checks lifecycle once. Nested application or assistant calls inherit the accepted scope and do not re-read lifecycle. When an outer call passes in `READY`, a later transition to `DRAINING` does not reject that already accepted call.
+`WorkAdmissionGate.admit()` creates an accepted-work capability bound to the identity of the current `asyncio.Task`. Nested calls in that same Task reuse the scope and do not re-read lifecycle. When an outer call passes in `READY`, a later transition to `DRAINING` does not reject that already accepted same-work continuation.
+
+Context copying alone never grants admission. A normal `asyncio.create_task()` may copy the ContextVar value, but its Task identity does not match the scope owner, so any canonical entrypoint call is classified as new work and checks the current lifecycle again. A detached child that starts new work after its parent scope ends is therefore rejected during `DRAINING`.
+
+Scheduler is the narrow exception: after a due job is admitted and claimed, it uses `spawn_accepted_task()` to create the execution Task with a new capability explicitly owned by that Task. No other producer receives implicit child-task propagation.
 
 ## Scheduler and Reminder Boundary
 
-Scheduler checks admission before a due job is claimed or a background execution task is created. A lifecycle rejection ends that tick without claiming, persisting a run, invoking a handler, or publishing a work-started event. Reminder Bridge owns no background tick; API operations remain API-admitted and reminder handler execution inherits Scheduler admission.
+Scheduler checks admission before a due job is claimed or a background execution task is created. A lifecycle rejection ends that tick without claiming, persisting a run, invoking a handler, or publishing a work-started event. After admission, Scheduler alone uses `spawn_accepted_task()` for the owned job continuation. Reminder Bridge owns no background tick; API operations remain API-admitted and reminder handler execution runs inside the Scheduler-owned accepted task.
 
 ## Failure Propagation
 
@@ -78,9 +82,11 @@ All use category `unavailable`, component `system.lifecycle`, operation `admit_r
 
 SP-007 HTTP 503 behavior, `Retry-After: 1`, public health endpoints, API authentication, and CORS behavior remain unchanged. Product version remains `0.33.0`.
 
+FastAPI business routes resolve `ApplicationRuntime` through `get_system()`, which performs the API-level lifecycle check. `ApplicationRuntime.execute()` checks again at the actual work boundary, intentionally closing the dependency-to-execution race; once admitted, downstream same-Task calls reuse the capability. No business route may import an unguarded system or runtime resolver.
+
 ## Testing Strategy
 
-Tests cover all lifecycle states, complete `FailureInfo`, exact-once nested checking, side-effect-free rejection, accepted-work races, Scheduler dispatch rejection, real Composition Root identity wiring, API/security regression, lifecycle regression, and the full suite.
+Tests cover all lifecycle states, complete `FailureInfo`, exact-once same-Task nesting, detached child isolation, accepted in-flight completion, persisted Scheduler claim/run rejection, real Composition Root identity wiring, FastAPI resolver allowlisting, public `core.system` imports, API/security regression, lifecycle regression, and the full suite.
 
 ## Known Limitations
 

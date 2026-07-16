@@ -148,6 +148,72 @@ async def test_accepted_work_finishes_after_lifecycle_enters_draining():
     assert gate.lifecycle_checks == 1
 
 
+async def test_detached_child_cannot_start_new_work_after_parent_scope_ends():
+    lifecycle = await _lifecycle_at(SystemLifecycleState.READY)
+    gate = WorkAdmissionGate(lifecycle)
+    side_effects = 0
+    child_created = asyncio.Event()
+    release_child = asyncio.Event()
+    detached_task: asyncio.Task | None = None
+
+    class NewWorkApplication:
+        async def run(self, request):
+            nonlocal side_effects
+            side_effects += 1
+            return ApplicationResponse(answer="unexpected", mode="mock")
+
+    class OuterApplication:
+        def __init__(self) -> None:
+            self.runtime: ApplicationRuntime | None = None
+
+        async def run(self, request):
+            nonlocal detached_task
+
+            async def detached_new_work():
+                child_created.set()
+                await release_child.wait()
+                assert self.runtime is not None
+                return await self.runtime.execute(ApplicationRequest(
+                    application_name="new-work",
+                    user_input="must be readmitted",
+                ))
+
+            detached_task = asyncio.create_task(detached_new_work())
+            await child_created.wait()
+            return ApplicationResponse(answer="outer complete", mode="mock")
+
+    registry = ApplicationRegistry()
+    outer = OuterApplication()
+    registry.register(
+        ApplicationInfo(name="outer"),
+        ApplicationManifest(name="outer", entrypoint="outer"),
+        instance=outer,
+    )
+    registry.register(
+        ApplicationInfo(name="new-work"),
+        ApplicationManifest(name="new-work", entrypoint="new-work"),
+        instance=NewWorkApplication(),
+    )
+    runtime = ApplicationRuntime(registry=registry, admission=gate)
+    outer.runtime = runtime
+    await runtime.initialize()
+
+    response = await runtime.execute(ApplicationRequest(
+        application_name="outer",
+        user_input="create detached child",
+    ))
+    assert response.answer == "outer complete"
+    assert detached_task is not None
+
+    await lifecycle.transition(SystemLifecycleState.DRAINING)
+    release_child.set()
+    with pytest.raises(FailureException) as exc_info:
+        await detached_task
+
+    assert exc_info.value.failure.code == "system.draining"
+    assert side_effects == 0
+
+
 @pytest.mark.parametrize(
     ("state", "code"),
     [
@@ -233,6 +299,74 @@ async def test_scheduler_does_not_claim_or_dispatch_after_draining():
     assert executor.calls == 0
     assert job.run_count == 0
     assert not scheduler._background_tasks
+
+
+async def test_scheduler_does_not_claim_or_persist_run_after_draining():
+    lifecycle = await _lifecycle_at(SystemLifecycleState.READY)
+    gate = WorkAdmissionGate(lifecycle)
+    executor = CountingJobExecutor()
+
+    class RecordingPersistence:
+        def __init__(self) -> None:
+            self.jobs = []
+            self.claim_calls = 0
+            self.finalize_calls = 0
+
+        async def save_job(self, job):
+            self.jobs = [job]
+
+        async def release_expired_claims(self, now, *, retry_delay_seconds):
+            return 0
+
+        async def load_jobs(self):
+            return self.jobs
+
+        async def claim_job(self, *args, **kwargs):
+            self.claim_calls += 1
+            return None
+
+        async def finalize_claim(self, *args, **kwargs):
+            self.finalize_calls += 1
+
+    persistence = RecordingPersistence()
+    scheduler = SchedulerRuntime(
+        executor=executor,
+        persistence=persistence,
+        config=SchedulerConfig(persistence_enabled=True),
+        admission=gate,
+    )
+    await scheduler.schedule(ScheduleRequest(
+        job_name="blocked-persisted-job",
+        workflow_name="workflow",
+        trigger=Trigger(
+            trigger_type=TriggerType.ONE_SHOT,
+            run_at=datetime.now(timezone.utc) - timedelta(seconds=1),
+        ),
+    ))
+    await lifecycle.transition(SystemLifecycleState.DRAINING)
+
+    await scheduler._tick()
+
+    assert persistence.claim_calls == 0
+    assert persistence.finalize_calls == 0
+    assert executor.calls == 0
+    assert not scheduler._background_tasks
+
+
+async def test_core_system_public_imports_remain_available(tmp_path):
+    from core.system import (
+        SystemContainer,
+        SystemSettings,
+        create_system as public_create_system,
+        load_system_settings,
+        make_test_settings as public_make_test_settings,
+    )
+
+    assert SystemContainer.__name__ == "SystemContainer"
+    assert SystemSettings.__name__ == "SystemSettings"
+    assert callable(public_create_system)
+    assert callable(load_system_settings)
+    assert public_make_test_settings(tmp_path).environment == "test"
 
 
 async def test_factory_wires_one_gate_to_all_production_entrypoints(tmp_path):

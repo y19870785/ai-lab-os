@@ -441,7 +441,7 @@ class SchedulerRuntime(SchedulerProtocol):
             attempt=job.run_count + 1,
             claim_token=claim_token,
         )
-        task = asyncio.create_task(
+        task = self._admission.spawn_accepted_task(
             self._run_job(job, run, claim_token, persisted_claim),
             name=f"ai-lab-scheduler-job-{job.info.id}",
         )

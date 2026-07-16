@@ -6,7 +6,7 @@
 - Preserved accepted in-flight work through a task-local admission scope while rejecting new work after lifecycle draining begins.
 - Kept Task, Workflow, Agent, health, startup, shutdown, recovery, and migration paths outside repeated admission checks.
 - RFC-018, ADR-037, and ADR-038 remain Proposed.
-- Windows local Python 3.12 candidate validation: `972 passed, 27 warnings in 61.68s`; this is not a GitHub Actions result.
+- Windows local Python 3.12 candidate validation: `977 passed, 27 warnings in 49.17s`; this is not a GitHub Actions result.
 - Status: Draft PR / Awaiting ChatGPT review / Not merged. Product version remains `0.33.0`; no Tag or Release was created.
 
 ### SP-007 System Lifecycle Admission Gate

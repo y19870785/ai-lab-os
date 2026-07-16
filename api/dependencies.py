@@ -1,6 +1,6 @@
 """FastAPI dependencies backed by the lifespan-owned SystemContainer."""
 
-from fastapi import Request
+from fastapi import Depends, Request
 
 from applications.runtime import ApplicationRuntime
 from applications.security import Authenticator
@@ -22,9 +22,9 @@ def get_system(request: Request) -> SystemContainer:
     return system
 
 
-def get_runtime(request: Request) -> ApplicationRuntime:
-    """Resolve the canonical runtime; execute() owns application admission."""
-    return _get_system_unguarded(request).application_runtime
+def get_runtime(system: SystemContainer = Depends(get_system)) -> ApplicationRuntime:
+    """Resolve Runtime after API admission; execute() closes the race window."""
+    return system.application_runtime
 
 
 def require_auth(request: Request) -> None:
