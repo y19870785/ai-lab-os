@@ -15,6 +15,7 @@ from core.reminders import (
     ReminderInboxPage,
     ReminderInboxStatus,
     ReminderInboxTimeScope,
+    ReminderInboxView,
     ReminderStatusView,
 )
 from core.workspace.models import WorkspaceKey
@@ -35,17 +36,17 @@ def _services(system: SystemContainer):
     return system.reminder_service, system.reminder_bridge
 
 
-def _orchestrator(system: SystemContainer):
-    if system.reminder_orchestrator is None:
+def _management(system: SystemContainer):
+    if system.reminder_management is None:
         raise FailureException(FailureInfo(
-            code="reminder.unavailable",
+            code="reminder.management_unavailable",
             category=ErrorCategory.UNAVAILABLE,
-            message="Reminder status is unavailable",
-            component="reminder.orchestration",
-            operation="get_status",
+            message="Reminder management is unavailable",
+            component="reminder.management",
+            operation="resolve",
             retryable=False,
         ))
-    return system.reminder_orchestrator
+    return system.reminder_management
 
 
 def _trace(request: Request) -> str:
@@ -66,6 +67,7 @@ async def list_reminders(
     request: Request,
     status: ReminderInboxStatus | None = None,
     time_scope: ReminderInboxTimeScope | None = None,
+    view: ReminderInboxView | None = None,
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     system: SystemContainer = Depends(get_system),
@@ -84,6 +86,7 @@ async def list_reminders(
         workspace_key=_workspace(request),
         statuses={status} if status else None,
         time_scope=time_scope,
+        view=view,
         limit=limit,
         offset=offset,
         trace_id=_trace(request),
@@ -134,8 +137,12 @@ async def get_reminder(
     request: Request,
     system: SystemContainer = Depends(get_system),
 ):
-    service, _ = _services(system)
-    return _response(await service.get(reminder_id, _trace(request)))
+    resolution = await _management(system).resolve(
+        workspace_key=_workspace(request),
+        reminder_id=reminder_id,
+        trace_id=_trace(request),
+    )
+    return _response(resolution.reminder)
 
 
 @router.get("/reminders/{reminder_id}/status", response_model=ReminderStatusView)
@@ -144,35 +151,44 @@ async def get_reminder_status(
     request: Request,
     system: SystemContainer = Depends(get_system),
 ):
-    return await _orchestrator(system).status(reminder_id, _trace(request))
+    return await _management(system).status(
+        workspace_key=_workspace(request),
+        reminder_id=reminder_id,
+        trace_id=_trace(request),
+    )
 
 
-@router.patch("/reminders/{reminder_id}", response_model=ReminderResponse)
+@router.patch("/reminders/{reminder_id}", response_model=ReminderStatusView)
 async def reschedule_reminder(
     reminder_id: str,
     body: ReminderUpdateRequest,
     request: Request,
     system: SystemContainer = Depends(get_system),
 ):
-    _, bridge = _services(system)
-    reminder = await bridge.reschedule(
-        reminder_id,
-        remind_at=body.remind_at,
+    result = await _management(system).reschedule(
+        workspace_key=_workspace(request),
+        reminder_id=reminder_id,
+        remind_at=body.target_time,
         timezone_name=body.timezone,
         expected_revision=body.revision,
+        idempotency_key=request.headers.get("Idempotency-Key", ""),
         trace_id=_trace(request),
     )
-    return _response(reminder)
+    return result.current
 
 
-@router.delete("/reminders/{reminder_id}", response_model=ReminderResponse)
+@router.delete("/reminders/{reminder_id}", response_model=ReminderStatusView)
 async def cancel_reminder(
     reminder_id: str,
     request: Request,
     system: SystemContainer = Depends(get_system),
 ):
-    _, bridge = _services(system)
-    return _response(await bridge.cancel(reminder_id, _trace(request)))
+    result = await _management(system).cancel(
+        workspace_key=_workspace(request),
+        reminder_id=reminder_id,
+        trace_id=_trace(request),
+    )
+    return result.current
 
 
 @router.get(
@@ -184,6 +200,11 @@ async def list_reminder_occurrences(
     request: Request,
     system: SystemContainer = Depends(get_system),
 ):
+    await _management(system).status(
+        workspace_key=_workspace(request),
+        reminder_id=reminder_id,
+        trace_id=_trace(request),
+    )
     service, _ = _services(system)
     occurrences = await service.list_occurrences(reminder_id, _trace(request))
     return [ReminderOccurrenceResponse(**item.model_dump(exclude={"failure"})) for item in occurrences]

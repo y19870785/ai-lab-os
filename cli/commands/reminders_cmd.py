@@ -6,7 +6,7 @@ import argparse
 import json
 
 from cli.runtime import query_reminder_inbox
-from core.reminders import ReminderInboxStatus, ReminderInboxTimeScope
+from core.reminders import ReminderInboxStatus, ReminderInboxTimeScope, ReminderInboxView
 
 
 async def run(args: list[str]) -> None:
@@ -15,6 +15,7 @@ async def run(args: list[str]) -> None:
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument("--today", action="store_true")
     scope.add_argument("--upcoming", action="store_true")
+    scope.add_argument("--pending", action="store_true")
     parser.add_argument("--limit", type=int, default=20, choices=range(1, 101))
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--json", action="store_true", dest="as_json")
@@ -28,9 +29,11 @@ async def run(args: list[str]) -> None:
         else ReminderInboxTimeScope.UPCOMING if options.upcoming
         else None
     )
+    view = ReminderInboxView.PENDING if options.pending else None
     page = await query_reminder_inbox(
         statuses={status} if status else None,
         time_scope=time_scope,
+        view=view,
         limit=options.limit,
         offset=options.offset,
     )

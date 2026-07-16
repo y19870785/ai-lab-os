@@ -27,6 +27,10 @@ class ReminderInboxTimeScope(str, Enum):
     UPCOMING = "upcoming"
 
 
+class ReminderInboxView(str, Enum):
+    PENDING = "pending"
+
+
 class ReminderInboxItem(BaseModel):
     reminder_id: str
     task_id: str
@@ -101,10 +105,14 @@ class ReminderInboxService:
         workspace_key: WorkspaceKey,
         statuses: set[ReminderInboxStatus] | None = None,
         time_scope: ReminderInboxTimeScope | None = None,
+        view: ReminderInboxView | None = None,
         limit: int = 20,
         offset: int = 0,
         trace_id: str = "",
     ) -> ReminderInboxPage:
+        if view == ReminderInboxView.PENDING:
+            statuses = {ReminderInboxStatus.SCHEDULED, ReminderInboxStatus.RETRYING}
+            time_scope = ReminderInboxTimeScope.UPCOMING
         remind_from, remind_to = self._time_bounds(time_scope)
         scan_offset = 0
         matching_seen = 0
@@ -131,8 +139,8 @@ class ReminderInboxService:
                 )
                 occurrences = await self._reminders.list_occurrences(reminder.id, trace_id)
                 occurrence = occurrences[-1] if occurrences else None
-                view = build_reminder_status_view(reminder, task, job, occurrence)
-                item_status = ReminderInboxStatus(view.status)
+                status_view = build_reminder_status_view(reminder, task, job, occurrence)
+                item_status = ReminderInboxStatus(status_view.status)
                 if statuses and item_status not in statuses:
                     continue
                 if matching_seen < offset:
@@ -140,18 +148,20 @@ class ReminderInboxService:
                     continue
                 matching_seen += 1
                 items.append(ReminderInboxItem(
-                    reminder_id=view.reminder_id,
-                    task_id=view.task_id,
-                    task_title=view.task_title,
+                    reminder_id=status_view.reminder_id,
+                    task_id=status_view.task_id,
+                    task_title=status_view.task_title,
                     status=item_status,
-                    scheduled_for=view.scheduled_for,
-                    timezone=view.timezone,
-                    scheduler_job_id=view.scheduler_job_id,
-                    scheduler_status=view.scheduler_status,
-                    occurrence_id=view.occurrence_id,
-                    occurrence_status=view.occurrence_status,
-                    triggered_at=view.triggered_at,
-                    last_failure_code=view.last_failure.code if view.last_failure else None,
+                    scheduled_for=status_view.scheduled_for,
+                    timezone=status_view.timezone,
+                    scheduler_job_id=status_view.scheduler_job_id,
+                    scheduler_status=status_view.scheduler_status,
+                    occurrence_id=status_view.occurrence_id,
+                    occurrence_status=status_view.occurrence_status,
+                    triggered_at=status_view.triggered_at,
+                    last_failure_code=(
+                        status_view.last_failure.code if status_view.last_failure else None
+                    ),
                 ))
                 if len(items) > limit:
                     break
@@ -169,6 +179,7 @@ class ReminderInboxService:
             filter={
                 "statuses": sorted(status.value for status in statuses) if statuses else [],
                 "time_scope": time_scope.value if time_scope else None,
+                "view": view.value if view else None,
             },
         )
 

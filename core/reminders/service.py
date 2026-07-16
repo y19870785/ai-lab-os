@@ -201,6 +201,7 @@ class ReminderService:
         timezone_name: str,
         expected_revision: int | None,
         trace_id: str,
+        management_metadata: dict[str, str] | None = None,
     ) -> Reminder:
         reminder = await self.get(reminder_id, trace_id)
         if reminder.status in {ReminderStatus.TRIGGERED, ReminderStatus.CANCELLED}:
@@ -218,6 +219,9 @@ class ReminderService:
                 reminder_id=reminder_id,
             )
         try:
+            metadata = dict(reminder.metadata)
+            if management_metadata is not None:
+                metadata["management_reschedule"] = management_metadata
             candidate = Reminder.model_validate({
                 **reminder.model_dump(),
                 "remind_at": remind_at,
@@ -225,6 +229,7 @@ class ReminderService:
                 "status": ReminderStatus.PENDING_RESCHEDULE,
                 "last_failure": None,
                 "trace_id": trace_id or reminder.trace_id,
+                "metadata": metadata,
             })
             if candidate.remind_at <= self._clock.now():
                 raise ValueError("remind_at must be in the future")

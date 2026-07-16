@@ -44,6 +44,7 @@ class CEOAssistant:
         user_task_service=None,
         reminder_orchestrator=None,
         reminder_inbox=None,
+        reminder_management=None,
         task_intent_parser=None,
         config: ApplicationConfig | None = None,
         bus=None,
@@ -57,6 +58,7 @@ class CEOAssistant:
         self._user_tasks = user_task_service
         self._reminder_orchestrator = reminder_orchestrator
         self._reminder_inbox = reminder_inbox
+        self._reminder_management = reminder_management
         self._task_intent_parser = task_intent_parser
         self._config = config or ApplicationConfig()
         self._bus = bus
@@ -91,7 +93,17 @@ class CEOAssistant:
         """
         text = user_input.lower().strip()
 
-        if "查看" in text and "提醒" in text:
+        if "提醒" in text and text.startswith("取消"):
+            return {"intent": "reminder_cancel", "confidence": 1.0}
+        if "提醒" in text and any(marker in text for marker in ("改到", "延后到")):
+            return {"intent": "reminder_reschedule", "confidence": 1.0}
+        if text.startswith(("查看提醒", "查看这条提醒")) and not any(
+            marker in text for marker in ("我的提醒", "待触发", "待处理", "今天", "已触发", "失败")
+        ):
+            return {"intent": "reminder_detail", "confidence": 1.0}
+        if "提醒" in text and any(
+            marker in text for marker in ("查看", "接下来有什么")
+        ):
             return {"intent": "reminder_list", "confidence": 1.0}
 
         if any(marker in text for marker in ("提醒我", "记得", "别忘了")):
@@ -155,6 +167,12 @@ class CEOAssistant:
                 result = await self._handle_work_log(request)
             elif intent["intent"] == "reminder_list":
                 result = await self._handle_reminder_list(request)
+            elif intent["intent"] == "reminder_detail":
+                result = await self._handle_reminder_detail(request)
+            elif intent["intent"] == "reminder_cancel":
+                result = await self._handle_reminder_cancel(request)
+            elif intent["intent"] == "reminder_reschedule":
+                result = await self._handle_reminder_reschedule(request)
             elif intent["intent"] == "task":
                 result = await self._handle_task(request)
             elif intent["intent"] == "decision":
@@ -167,7 +185,7 @@ class CEOAssistant:
                 result = await self._handle_chat(request)
 
             answer = result.get("answer", "")
-            if mode == "mock":
+            if mode == "mock" and not result.get("_deterministic", False):
                 answer = f"[MOCK MODE] {answer}\n\n(Set OPENAI_API_KEY to use real LLM)"
 
             return ApplicationResponse(
@@ -322,13 +340,18 @@ class CEOAssistant:
                 retryable=False,
                 trace_id=request.workspace_key.trace_id,
             ))
-        from core.reminders import ReminderInboxStatus, ReminderInboxTimeScope
+        from core.reminders import (
+            ReminderInboxStatus,
+            ReminderInboxTimeScope,
+            ReminderInboxView,
+        )
 
         text = request.user_input.strip()
         statuses = None
         time_scope = None
-        if "待触发" in text:
-            statuses = {ReminderInboxStatus.SCHEDULED, ReminderInboxStatus.RETRYING}
+        view = None
+        if any(marker in text for marker in ("待触发", "待处理", "接下来有什么", "我的提醒")):
+            view = ReminderInboxView.PENDING
         elif "已触发" in text:
             statuses = {ReminderInboxStatus.TRIGGERED}
         elif "失败" in text:
@@ -340,6 +363,7 @@ class CEOAssistant:
             workspace_key=request.workspace_key,
             statuses=statuses,
             time_scope=time_scope,
+            view=view,
             limit=20,
             offset=0,
             trace_id=request.workspace_key.trace_id,
@@ -354,10 +378,126 @@ class CEOAssistant:
                     f"{item.scheduled_for.isoformat()} | ID: {item.reminder_id}"
                 )
             answer = "\n".join(lines)
+        if "我的提醒" in text:
+            all_items = await self._reminder_inbox.list(
+                workspace_key=request.workspace_key,
+                limit=100,
+                offset=0,
+                trace_id=request.workspace_key.trace_id,
+            )
+            triggered = sum(item.status == ReminderInboxStatus.TRIGGERED for item in all_items.items)
+            cancelled = sum(item.status == ReminderInboxStatus.CANCELLED for item in all_items.items)
+            if triggered or cancelled:
+                answer += f"\n另有 {triggered} 条已触发、{cancelled} 条已取消提醒。"
         return {
             "answer": answer,
             "status": "ok",
             "metadata": {"intent": "reminder_list", **page.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    def _require_reminder_management(self, request: ApplicationRequest):
+        if self._reminder_management is None:
+            raise FailureException(FailureInfo(
+                code="reminder.management_unavailable",
+                category=ErrorCategory.UNAVAILABLE,
+                message="Reminder management is unavailable",
+                component="reminder.management",
+                operation="resolve",
+                retryable=False,
+                trace_id=request.workspace_key.trace_id,
+            ))
+        return self._reminder_management
+
+    @staticmethod
+    def _reminder_target(text: str) -> tuple[str | None, str | None]:
+        reminder_id = re.search(r"\brem_[A-Za-z0-9]+\b", text)
+        if reminder_id:
+            return reminder_id.group(0), None
+        title = text
+        for marker in (
+            "查看这条提醒", "查看提醒", "取消这条提醒", "取消提醒",
+            "把提醒", "将提醒", "取消", "的提醒",
+        ):
+            title = title.replace(marker, " ")
+        title = re.split(r"改到|延后到", title, maxsplit=1)[0].strip(" ，。:：")
+        title = re.sub(r"^(?:把|将)\s*", "", title)
+        return None, title or None
+
+    async def _handle_reminder_detail(self, request: ApplicationRequest) -> dict[str, Any]:
+        reminder_id, title_query = self._reminder_target(request.user_input)
+        view = await self._require_reminder_management(request).status(
+            workspace_key=request.workspace_key,
+            reminder_id=reminder_id,
+            title_query=title_query,
+            trace_id=request.workspace_key.trace_id,
+        )
+        return {
+            "answer": (
+                f"提醒详情：\n{view.task_title}\n状态：{view.status}\n"
+                f"时间：{view.scheduled_for.isoformat()}\nReminder ID：{view.reminder_id}"
+            ),
+            "status": "ok",
+            "metadata": {"intent": "reminder_detail", **view.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_reminder_cancel(self, request: ApplicationRequest) -> dict[str, Any]:
+        reminder_id, title_query = self._reminder_target(request.user_input)
+        result = await self._require_reminder_management(request).cancel(
+            workspace_key=request.workspace_key,
+            reminder_id=reminder_id,
+            title_query=title_query,
+            trace_id=request.workspace_key.trace_id,
+        )
+        current = result.current
+        return {
+            "answer": (
+                f"提醒已取消：\n{current.task_title}\n"
+                f"原定时间：{result.previous_scheduled_for.isoformat()}\n"
+                f"Reminder ID：{current.reminder_id}"
+            ),
+            "status": "ok",
+            "metadata": {"intent": "reminder_cancel", **result.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_reminder_reschedule(self, request: ApplicationRequest) -> dict[str, Any]:
+        marker = "延后到" if "延后到" in request.user_input else "改到"
+        target_text, time_text = request.user_input.split(marker, 1)
+        reminder_id, title_query = self._reminder_target(target_text)
+        if self._task_intent_parser is None:
+            raise FailureException(FailureInfo(
+                code="reminder.intent.not_configured",
+                category=ErrorCategory.NOT_CONFIGURED,
+                message="Reminder time parser is not configured",
+                component="reminder.intent",
+                operation="parse_time",
+                retryable=False,
+                trace_id=request.workspace_key.trace_id,
+            ))
+        parsed = self._task_intent_parser.parse(f"{time_text.strip()} 提醒我 临时事项")
+        idempotency_key = str(request.metadata.get("idempotency_key") or "").strip()
+        result = await self._require_reminder_management(request).reschedule(
+            workspace_key=request.workspace_key,
+            reminder_id=reminder_id,
+            title_query=title_query,
+            remind_at=parsed.due_at,
+            timezone_name=parsed.timezone,
+            idempotency_key=idempotency_key,
+            trace_id=request.workspace_key.trace_id,
+        )
+        current = result.current
+        return {
+            "answer": (
+                f"提醒已改期：\n{current.task_title}\n"
+                f"原时间：{result.previous_scheduled_for.isoformat()}\n"
+                f"新时间：{current.scheduled_for.isoformat()}\n"
+                f"Reminder ID：{current.reminder_id}"
+            ),
+            "status": "ok",
+            "metadata": {"intent": "reminder_reschedule", **result.model_dump(mode="json")},
+            "_deterministic": True,
         }
 
     async def _handle_task(self, request: ApplicationRequest) -> dict[str, Any]:
@@ -469,6 +609,7 @@ class CEOAssistant:
                 ),
                 "status": "ok",
                 "metadata": metadata,
+                "_deterministic": True,
             }
 
         task = await self._user_tasks.create(

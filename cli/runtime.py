@@ -31,7 +31,7 @@ async def query_reminder_status(reminder_id: str):
     system = await create_system(settings)
     await system.start()
     try:
-        if system.reminder_orchestrator is None:
+        if system.reminder_management is None:
             raise FailureException(FailureInfo(
                 code="reminder.unavailable",
                 category=ErrorCategory.UNAVAILABLE,
@@ -40,13 +40,15 @@ async def query_reminder_status(reminder_id: str):
                 operation="get_status",
                 retryable=False,
             ))
-        return await system.reminder_orchestrator.status(reminder_id)
+        return await system.reminder_management.status(
+            workspace_key=WorkspaceKey(), reminder_id=reminder_id
+        )
     finally:
         await system.shutdown()
 
 
 async def query_reminder_inbox(
-    *, statuses=None, time_scope=None, limit: int = 20, offset: int = 0
+    *, statuses=None, time_scope=None, view=None, limit: int = 20, offset: int = 0
 ):
     """Query the persisted Reminder inbox and always close the system."""
     settings = load_system_settings()
@@ -66,8 +68,55 @@ async def query_reminder_inbox(
             workspace_key=WorkspaceKey(),
             statuses=statuses,
             time_scope=time_scope,
+            view=view,
             limit=limit,
             offset=offset,
+        )
+    finally:
+        await system.shutdown()
+
+
+async def cancel_reminder(reminder_id: str):
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        if system.reminder_management is None:
+            raise FailureException(FailureInfo(
+                code="reminder.management_unavailable",
+                category=ErrorCategory.UNAVAILABLE,
+                message="Reminder management is unavailable",
+                component="reminder.management",
+                operation="cancel",
+            ))
+        return await system.reminder_management.cancel(
+            workspace_key=WorkspaceKey(), reminder_id=reminder_id
+        )
+    finally:
+        await system.shutdown()
+
+
+async def reschedule_reminder(
+    reminder_id: str, *, scheduled_for, timezone_name: str, idempotency_key: str = ""
+):
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        if system.reminder_management is None:
+            raise FailureException(FailureInfo(
+                code="reminder.management_unavailable",
+                category=ErrorCategory.UNAVAILABLE,
+                message="Reminder management is unavailable",
+                component="reminder.management",
+                operation="reschedule",
+            ))
+        return await system.reminder_management.reschedule(
+            workspace_key=WorkspaceKey(),
+            reminder_id=reminder_id,
+            remind_at=scheduled_for,
+            timezone_name=timezone_name,
+            idempotency_key=idempotency_key,
         )
     finally:
         await system.shutdown()
