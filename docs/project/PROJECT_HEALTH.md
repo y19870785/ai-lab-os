@@ -8,9 +8,9 @@
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| RFCs | 20 |
-| ADRs | 41 |
-| Tests | 1006（SP-009 candidate Windows 本地验证记录） |
+| RFCs | 21 |
+| ADRs | 43 |
+| Tests | 1006（SP-009 合并前 Windows 本地验证历史记录） |
 | Test Pass Rate | 100% (1006 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
@@ -46,11 +46,13 @@
 - SP-005 Merge PR: #10（Squash Merge / APPROVED）
 - SP-005 Merge Baseline: `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`
 - SP-005 Merged At: `2026-07-15T14:03:32Z`
-- Current Work: SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+- Current Work: 无；SP-009 已 APPROVED / MERGED / RECONCILED / ARCHIVED，下一任务尚未选择
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
 > SP-007 System Lifecycle Admission Gate 与 SP-008 Internal Work Admission Boundary 均已 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-008 通过 PR #16 以 Squash Commit `1858d4991379058948559cc96e2672df44e42b67` 进入 main。`977 passed, 27 warnings, 0 failed, 0 errors` 是 Windows 本地 Python 3.12 历史合并验证，不是 GitHub Actions 或跨平台 CI 保证。
 
-> Open limits：无进程级 in-flight counter、drain timeout、强制取消或分布式/多进程 admission coordination。SP-009 候选不包含外部通知、Inbox、Recurring Reminder、复杂日期解析或 Web UI。
+> SP-009 合并前验证：Windows 本地 Python 3.12 `1006 passed, 27 warnings, 0 failed, 0 errors`；不是 GitHub Actions 或跨平台 CI 保证。API startup smoke、CLI persisted status smoke、restart persistence 与 occurrence effectively-once 均为 PASS。
+
+> Open limits：无进程级 in-flight counter、drain timeout、强制取消或分布式/多进程 admission coordination。SP-009 不包含外部通知、Inbox、Recurring Reminder、复杂日期解析或 Web UI。

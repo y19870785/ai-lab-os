@@ -161,4 +161,4 @@ AI-Lab/
 
 > SP-008 合并前 Windows 本地 Python 3.12 验证：`977 passed, 27 warnings in 49.17s`，零失败、零错误；该结果是历史本地记录，不是 GitHub Actions 或跨平台 CI 健康保证。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
 
-> **SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**：候选实现将受支持的自然语言提醒接入真实 UserTask、Reminder、Scheduler Job、Occurrence 和站内状态查询。Task 的截止时间与 Reminder 调度是独立概念：任务可持有 `due_at` 而不创建 Reminder；Reminder 意图必须包含受支持的未来时间。无显式幂等键的 `/chat` 请求会各自生成非空请求键。仅支持今天/明天的确定性时间子集；外部通知、Inbox、Recurring Reminder、复杂日期和 Web UI 仍未实现。
+> **SP-009：APPROVED / MERGED / RECONCILED / ARCHIVED。** PR #19 以 Squash Merge 合入 `main`，merge commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`。受支持的自然语言提醒已接入真实 UserTask、Reminder、Scheduler Job、Occurrence 和站内状态查询，成为首个用户可验收的持久化产品切片。Task 的截止时间与 Reminder 调度仍是独立概念；仅支持今天/明天的确定性时间子集，外部通知、Inbox、Recurring Reminder、复杂日期和 Web UI 尚未实现。产品版本保持 `0.33.0`，未创建 Tag 或 Release。

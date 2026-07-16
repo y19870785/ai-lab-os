@@ -20,8 +20,8 @@
 
 | Status | Action |
 |---|---|
-| **BASELINE** | post-v0.33.0 main — SR-001 assessment baseline `51fd6b38417840044f6ee1a1a699d13186762017` |
-| **CURRENT** | SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged |
+| **BASELINE** | post-v0.33.0 main — SP-009 merge baseline `b1274d066cbc01053144cba8d5654a5f8c8a21da` |
+| **CURRENT** | SP-009 APPROVED / MERGED / RECONCILED / ARCHIVED；下一任务未选择、无分支、无 PR、未启动 |
 | **LIMITS** | 通知渠道、Recurring Reminder、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
 
 ## Future (Tentative)
@@ -36,4 +36,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 与 SP-008 均已 APPROVED / MERGED / RECONCILED / ARCHIVED。SR-001 选择 Natural-Language Reminder Closure 为首个可验收产品切片；SP-009 仅为候选，尚未合并。
+> SP-007、SP-008 与 SP-009 均已 APPROVED / MERGED / RECONCILED / ARCHIVED。SR-001 选择的 Natural-Language Reminder Closure 已由 SP-009 通过 PR #19 合并，成为首个用户可验收的持久化产品切片。

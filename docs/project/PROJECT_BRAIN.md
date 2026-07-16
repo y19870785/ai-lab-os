@@ -174,12 +174,20 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Open limits: no process-wide in-flight counter, drain timeout, forced cancellation, or multi-process coordination.
 - Governance: RFC-018 is Adopted; ADR-037 and ADR-038 are Accepted.
 - Product version remains `0.33.0`; no v0.34.0 Tag or GitHub Release exists.
-- Next selected product slice: SP-009 Natural-Language Reminder Closure with In-App Status.
+- Latest completed product slice: SP-009 Natural-Language Reminder Closure with In-App Status.
 
 ### SP-009: Natural-Language Reminder Closure
-- Status: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
-- Base: `51fd6b38417840044f6ee1a1a699d13186762017`
-- Candidate outcome: supported natural-language input creates persisted UserTask, Reminder, Scheduler Job and one queryable ReminderOccurrence.
+- Status: APPROVED / MERGED / RECONCILED / ARCHIVED
+- PR: #19
+- Approved Head: `42697e2787d9d9e33f4a7b40c3dd0ea092dcf742`
+- Squash Commit / main baseline: `b1274d066cbc01053144cba8d5654a5f8c8a21da`
+- Merged At: `2026-07-16T13:54:55Z`
+- Product outcome: supported natural-language input creates persisted UserTask, Reminder, durable Scheduler Job and one queryable ReminderOccurrence.
+- Persistence: scheduled state survives restart; due execution produces exactly one ReminderOccurrence.
+- User visibility: API and CLI query the same persisted scheduled, retrying, failed, triggered or cancelled state.
+- Task boundary: Task `due_at` does not imply Reminder scheduling. Unsupported Task time may create a no-deadline Task with an explicit warning; unsupported Reminder time fails closed.
+- Idempotency: explicit keys provide retry reuse and conflict protection; requests without explicit keys create independent reminder chains.
 - Truth boundary: status is aggregated from persisted services; LLM, logs and EventBus are not user-visible truth.
 - Deferred: external notification, Inbox, Recurring Reminder, complex dates, LLM time parsing, multi-user, Web UI and distributed Scheduler.
-- Governance: RFC-019, ADR-039 and ADR-040 remain Proposed until independent review and merge.
+- Governance: RFC-019 is Adopted; ADR-039 and ADR-040 are Accepted.
+- Next task: not selected; no branch, no PR, not started.

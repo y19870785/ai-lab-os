@@ -2,10 +2,10 @@
   "project": "AI-Lab",
   "version": "v0.33.0",
   "current_version": "0.33.0",
-  "source_baseline": "SR-001 assessment baseline: 51fd6b38417840044f6ee1a1a699d13186762017",
-  "main_commit": "51fd6b38417840044f6ee1a1a699d13186762017",
-  "latest_completed_sp": "SP-008",
-  "next_candidate_sp": "SP-009",
+  "source_baseline": "SP-009 merge baseline: b1274d066cbc01053144cba8d5654a5f8c8a21da",
+  "main_commit": "b1274d066cbc01053144cba8d5654a5f8c8a21da",
+  "latest_completed_sp": "SP-009",
+  "next_candidate_sp": null,
   "git_branch": "main",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
@@ -21,7 +21,7 @@
     "skipped": 0,
     "warnings": 27,
     "real_provider_errors": 0,
-    "environment": "SP-009 candidate, Windows local Python 3.12; not a GitHub Actions or cross-platform CI result"
+    "environment": "SP-009 pre-merge validation, Windows local Python 3.12; not a GitHub Actions or cross-platform CI result"
   },
   "real_provider": {
     "provider": "DeepSeek",
@@ -65,7 +65,7 @@
     "UserTask": "Completed / Integrated / Verified: SP-004 domain with SP-005 Reminder lifecycle coordination",
     "Reminder": "Integrated / Verified / Disabled by default: durable ReminderOccurrence and Saga reconciliation merged in SP-005",
     "Internal_Admission": "Integrated / Verified: SP-008 shares one lifecycle gate across API, ApplicationRuntime, CEO Assistant, CLI, and Scheduler producer boundaries",
-    "Natural_Language_Reminder": "SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged"
+    "Natural_Language_Reminder": "Completed / Integrated / Verified: SP-009 user-testable persistent reminder closure"
   },
   "open_technical_debt": [
     "TD-001: 部分测试辅助函数错误传入 id=None",
@@ -88,10 +88,10 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "Await ChatGPT review of the SP-009 implementation candidate; do not merge",
+  "next_action": "Next task not selected; no branch, no PR, not started",
   "freeze_date": "2026-07-14",
-  "current_work": "SP-009 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged",
-  "merge_baseline": "1858d4991379058948559cc96e2672df44e42b67",
+  "current_work": "None; SP-009 is archived and the next task is not selected",
+  "merge_baseline": "b1274d066cbc01053144cba8d5654a5f8c8a21da",
   "sp_007": {
     "status": "archived",
     "pr": 14,
@@ -108,10 +108,14 @@
     "product_version": "0.33.0"
   },
   "sp_009": {
-    "status": "implementation_candidate",
+    "status": "archived",
     "base_commit": "51fd6b38417840044f6ee1a1a699d13186762017",
-    "review": "awaiting_chatgpt_review",
-    "merge_status": "not_merged",
+    "pr": 19,
+    "approved_head": "42697e2787d9d9e33f4a7b40c3dd0ea092dcf742",
+    "merge_commit": "b1274d066cbc01053144cba8d5654a5f8c8a21da",
+    "merged_at": "2026-07-16T13:54:55Z",
+    "review": "approved",
+    "merge_status": "squash_merged",
     "product_version": "0.33.0",
     "tag_or_release": "none"
   }
