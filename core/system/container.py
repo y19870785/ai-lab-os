@@ -21,8 +21,8 @@ from core.providers.factory import ProviderFactory
 from core.providers.llm.protocol import LLMProvider
 from core.providers.registry import ProviderRegistry
 from core.scheduler.runtime import SchedulerRuntime
-from core.errors import ErrorCategory, FailureException, FailureInfo
-from core.system.exceptions import SystemInitializationError, ServiceUnavailableError
+from core.errors import ErrorCategory, FailureException, FailureInfo, RuntimeStatus
+from core.system.exceptions import SystemInitializationError
 from core.system.lifecycle import (
     LifecycleStateMachine, SystemLifecycleState, InvalidLifecycleTransitionError
 )
@@ -79,6 +79,19 @@ class SystemContainer:
     _shutdown_complete: asyncio.Event = field(default_factory=asyncio.Event, init=False, repr=False)
     shutdown_failures: list[str] = field(default_factory=list, init=False, repr=False)
     _tool_instances: list[ToolProtocol] = field(default_factory=list, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        # Ensure default factories run (dataclass may skip init=False fields)
+        if not hasattr(self, "_lifecycle") or self._lifecycle is None:
+            object.__setattr__(self, "_lifecycle", LifecycleStateMachine())
+        if not hasattr(self, "_shutdown_lock") or self._shutdown_lock is None:
+            object.__setattr__(self, "_shutdown_lock", asyncio.Lock())
+        if not hasattr(self, "_shutdown_complete") or self._shutdown_complete is None:
+            object.__setattr__(self, "_shutdown_complete", asyncio.Event())
+        if not hasattr(self, "shutdown_failures") or self.shutdown_failures is None:
+            object.__setattr__(self, "shutdown_failures", [])
+        if not hasattr(self, "_tool_instances") or self._tool_instances is None:
+            object.__setattr__(self, "_tool_instances", [])
 
     async def start(self) -> None:
         """Start all configured services once; roll back on partial failure."""
@@ -226,6 +239,8 @@ class SystemContainer:
     async def health(self) -> dict[str, object]:
         """Aggregate actual component state without external network probes."""
 
+        if not hasattr(self, "_lifecycle") or self._lifecycle is None:
+            return {"status": "not_initialized", "lifecycle": "created", "accepting_work": False, "provider_mode": "unknown", "components": {}, "shutdown_failures": []}
         state = self._lifecycle.state
         if state != SystemLifecycleState.READY:
             status = {
@@ -410,16 +425,31 @@ class SystemContainer:
             "components": components,
         }
 
+    # Compatibility shim for factory that still references _shutting_down
+    @property
+    def _shutting_down(self) -> bool:
+        return False
+
+    @_shutting_down.setter
+    def _shutting_down(self, value: bool) -> None:
+        pass  # no-op for backward compat
+
     @property
     def started(self) -> bool:
+        if not hasattr(self, "_lifecycle") or self._lifecycle is None:
+            return False
         return self._lifecycle.state == SystemLifecycleState.READY
 
     @property
     def lifecycle_state(self) -> SystemLifecycleState:
+        if not hasattr(self, "_lifecycle") or self._lifecycle is None:
+            return SystemLifecycleState.CREATED
         return self._lifecycle.state
 
     @property
     def accepting_work(self) -> bool:
+        if not hasattr(self, "_lifecycle") or self._lifecycle is None:
+            return False
         return self._lifecycle.accepting_work
 
     def ensure_accepting_work(self) -> None:
