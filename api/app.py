@@ -12,6 +12,7 @@ from api.middleware import error_handler, tracing
 from api.routes import applications, brief, chat, decisions, health, knowledge
 from api.routes import reminders, tasks, work_logs, workflows
 from core import __version__
+from core.clock import Clock
 from core.system import SystemSettings, create_system, load_system_settings
 from applications.security import ApiSecurityConfig, Authenticator
 from core.errors import ErrorCategory, FailureInfo
@@ -19,7 +20,11 @@ from core.errors import ErrorCategory, FailureInfo
 
 
 
-def create_app(settings: SystemSettings | None = None) -> FastAPI:
+def create_app(
+    settings: SystemSettings | None = None,
+    *,
+    clock: Clock | None = None,
+) -> FastAPI:
     """Create an API app; tests may inject isolated settings.
 
     When settings are omitted, runtime settings are loaded from the
@@ -31,7 +36,7 @@ def create_app(settings: SystemSettings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         effective_settings = settings or load_system_settings()
-        system = await create_system(effective_settings)
+        system = await create_system(effective_settings, clock=clock)
         await system.start()
         app.state.system = system
         try:

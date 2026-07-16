@@ -11,17 +11,25 @@ from core.reminders.models import (
     ReminderStatus,
 )
 from core.reminders.repository import SQLiteReminderRepository
+from core.reminders.orchestration import (
+    NaturalLanguageReminderOrchestrator,
+    ReminderScheduleResult,
+    ReminderStatusView,
+)
 from core.reminders.service import ReminderService
 
 __all__ = [
     "ReconciliationResult",
     "Reminder",
     "ReminderActionHandler",
+    "NaturalLanguageReminderOrchestrator",
     "ReminderOccurrence",
     "ReminderOccurrenceStatus",
     "ReminderSchedulerBridge",
     "ReminderService",
     "ReminderStatus",
+    "ReminderScheduleResult",
+    "ReminderStatusView",
     "SQLiteReminderRepository",
     "UserTaskReminderLifecycleCoordinator",
 ]

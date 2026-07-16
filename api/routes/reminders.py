@@ -11,6 +11,7 @@ from api.models import (
 )
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.system.container import SystemContainer
+from core.reminders import ReminderStatusView
 
 
 router = APIRouter(tags=["reminders"])
@@ -26,6 +27,19 @@ def _services(system: SystemContainer):
             operation="resolve",
         ))
     return system.reminder_service, system.reminder_bridge
+
+
+def _orchestrator(system: SystemContainer):
+    if system.reminder_orchestrator is None:
+        raise FailureException(FailureInfo(
+            code="reminder.unavailable",
+            category=ErrorCategory.UNAVAILABLE,
+            message="Reminder status is unavailable",
+            component="reminder.orchestration",
+            operation="get_status",
+            retryable=False,
+        ))
+    return system.reminder_orchestrator
 
 
 def _trace(request: Request) -> str:
@@ -78,6 +92,15 @@ async def get_reminder(
 ):
     service, _ = _services(system)
     return _response(await service.get(reminder_id, _trace(request)))
+
+
+@router.get("/reminders/{reminder_id}/status", response_model=ReminderStatusView)
+async def get_reminder_status(
+    reminder_id: str,
+    request: Request,
+    system: SystemContainer = Depends(get_system),
+):
+    return await _orchestrator(system).status(reminder_id, _trace(request))
 
 
 @router.patch("/reminders/{reminder_id}", response_model=ReminderResponse)

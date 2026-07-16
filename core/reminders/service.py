@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from pydantic import ValidationError
 
+from core.clock import Clock, SystemClock
 from core.errors import (
     ErrorCategory,
     FailureException,
@@ -30,10 +31,11 @@ _LOGGER = logging.getLogger(__name__)
 class ReminderService:
     COMPONENT = "reminders"
 
-    def __init__(self, repository, user_task_service, bus=None) -> None:
+    def __init__(self, repository, user_task_service, bus=None, clock: Clock | None = None) -> None:
         self._repository = repository
         self._user_tasks = user_task_service
         self._bus = bus
+        self._clock = clock or SystemClock()
 
     async def initialize(self) -> None:
         try:
@@ -106,7 +108,7 @@ class ReminderService:
                 trace_id=trace_id,
                 metadata=metadata or {},
             )
-            if reminder.remind_at <= datetime.now(timezone.utc):
+            if reminder.remind_at <= self._clock.now():
                 raise ValueError("remind_at must be in the future")
             result = await self._repository.create(reminder)
             await self._publish("reminder.created", result)
@@ -205,7 +207,7 @@ class ReminderService:
                 "last_failure": None,
                 "trace_id": trace_id or reminder.trace_id,
             })
-            if candidate.remind_at <= datetime.now(timezone.utc):
+            if candidate.remind_at <= self._clock.now():
                 raise ValueError("remind_at must be in the future")
             return await self._repository.update(candidate, reminder.revision)
         except Exception as exc:
