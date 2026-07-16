@@ -8,11 +8,11 @@
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| SP-010 candidate tests | 1013 passed, 27 warnings in 57.76s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
-| RFCs | 22（RFC-020 为 Proposed candidate） |
-| ADRs | 45（ADR-041/042 为 Proposed candidate） |
-| Tests | 1006（SP-009 合并前 Windows 本地验证历史记录） |
-| Test Pass Rate | 100% (1006 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
+| SP-010 pre-merge tests | 1013 passed, 27 warnings in 57.76s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
+| RFCs | 22 |
+| ADRs | 45 |
+| Tests | 1013（SP-010 合并前 Windows 本地验证历史记录） |
+| Test Pass Rate | 100% (1013 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |
@@ -29,7 +29,7 @@
 | UserTask | Integrated / Verified | SP-004 已合并；正式领域、`tasks.db`、真实 API、CEO Assistant 接入和 Legacy importer 已验证 |
 | Knowledge | Implemented / Disabled | 默认不启动；Reindex、Chunk Persistence、Citation 和真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | Registry/Executor 和低风险工具已接入；自动 Tool Calling 与完整 MCP 产品闭环未完成 |
-| Scheduler / Reminder | Integrated / Verified / Disabled by default | CAS claim、Occurrence 幂等与 Saga 已合并；通知渠道未实现 |
+| Scheduler / Reminder | Integrated / Verified / Disabled by default | Inbox、CAS claim、Occurrence 幂等与 Saga 已合并；通知渠道未实现 |
 | Coordination | Implemented / Disabled | 默认关闭；CEO Assistant 主链路未接入 |
 | Application / CEO Assistant | Integrated / Verified / Alpha | CLI、API 工作记录和持久化已验证；尚非生产级产品 |
 
@@ -47,7 +47,7 @@
 - SP-005 Merge PR: #10（Squash Merge / APPROVED）
 - SP-005 Merge Baseline: `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`
 - SP-005 Merged At: `2026-07-15T14:03:32Z`
-- Current Work: 无；SP-009 已 APPROVED / MERGED / RECONCILED / ARCHIVED，下一任务尚未选择
+- Current Work: 无；SP-010 已 APPROVED / MERGED / RECONCILED / ARCHIVED，下一任务尚未选择
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
@@ -56,4 +56,6 @@
 
 > SP-009 合并前验证：Windows 本地 Python 3.12 `1006 passed, 27 warnings, 0 failed, 0 errors`；不是 GitHub Actions 或跨平台 CI 保证。API startup smoke、CLI persisted status smoke、restart persistence 与 occurrence effectively-once 均为 PASS。
 
-> Open limits：无进程级 in-flight counter、drain timeout、强制取消或分布式/多进程 admission coordination。SP-009 不包含外部通知、Inbox、Recurring Reminder、复杂日期解析或 Web UI。
+> SP-010 合并前验证：Reminder `18 passed`；API `86 passed, 1 warning`；CLI `17 passed`；CEO Assistant `66 passed`；Integration `112 passed, 1 warning`；compileall、workspace 隔离、只读自然语言查询与 PowerShell 5.1 UTF-8 smoke 均为 PASS。完整本地结果为 `1013 passed, 27 warnings, 0 failed, 0 errors`，不是 GitHub Actions 或跨平台 CI 保证。
+
+> Open limits：无进程级 in-flight counter、drain timeout、强制取消或分布式/多进程 admission coordination。外部通知、Recurring Reminder、复杂日期解析与 Web UI 仍未实现；跨 SQLite Inbox 聚合不是快照事务，深度稀疏过滤仍是性能观察点。

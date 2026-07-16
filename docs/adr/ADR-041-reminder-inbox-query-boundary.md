@@ -2,7 +2,15 @@
 
 ## Status
 
-Proposed / SP-010 implementation candidate
+Accepted
+
+## Acceptance Record
+
+- Accepted through SP-010
+- PR: #21
+- Approved Head: `2719793102b4318f4b98162f4b288710fe4b44f8`
+- Merge Commit: `af437afc32dcb17da68d600d6840ec94c8cbe681`
+- Accepted Date: `2026-07-16`
 
 ## Context
 
@@ -13,6 +21,8 @@ Proposed / SP-010 implementation candidate
 Composition Root 创建唯一 `ReminderInboxService`。该服务通过 Reminder Repository 的稳定 SQL 分页读取候选记录，用关联 UserTask 校验 workspace，然后复用 ADR-040 的共享聚合函数读取 Scheduler Job 与最新 Occurrence。
 
 Repository 排序固定为 `remind_at ASC, id ASC`。Service 采用固定 100 条扫描批次，只保留 `limit + 1` 个匹配项，以此计算 `has_more`。API、CLI 与 CEO Assistant 共用同一服务和 `ReminderInboxPage`，不得各自拼接状态。
+
+Inbox 是只读查询边界，不创建 UserTask、Reminder 或 Scheduler Job。CEO Assistant 只消费共享 Service，不直接查询 Reminder Repository。
 
 ## Consequences
 

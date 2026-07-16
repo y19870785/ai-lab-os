@@ -2,7 +2,15 @@
 
 ## Status
 
-Proposed / SP-010 implementation candidate
+Accepted
+
+## Acceptance Record
+
+- Accepted through SP-010
+- PR: #21
+- Approved Head: `2719793102b4318f4b98162f4b288710fe4b44f8`
+- Merge Commit: `af437afc32dcb17da68d600d6840ec94c8cbe681`
+- Accepted Date: `2026-07-16`
 
 ## Context
 

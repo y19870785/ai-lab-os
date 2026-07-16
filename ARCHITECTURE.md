@@ -8,7 +8,7 @@ SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge
 
 当前产品版本仍为 v0.33.0。SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。Scheduler 通过数据库 CAS claim、持久化 JobRun 和 Action Handler 支持可靠 One-shot；Reminder/Occurrence 使用 `reminders.db`、唯一键和 Saga reconciliation。该能力默认关闭，属于 `post-v0.33.0 main`，尚未进入新的 Tag 或 Release；通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore、in-flight counting 和 drain timeout 仍未完成。
 
-SP-010 是 **implementation candidate / Draft / Awaiting ChatGPT review / Not merged**。候选架构由 Composition Root 持有唯一 `ReminderInboxService`，通过 SQLite 稳定分页、UserTask workspace metadata 与 ADR-040 聚合状态，为 API、CLI 和 CEO Assistant 提供同一只读列表边界。它不修改 Reminder/Scheduler Schema，也不扩展到通知投递或 UI。
+SP-010 Reminder Inbox 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root 持有唯一 `ReminderInboxService`，通过 SQLite 稳定分页、UserTask workspace metadata 与 ADR-040 聚合状态，为 API、CLI 和 CEO Assistant 提供同一只读列表边界。该跨 SQLite 聚合不是快照事务，深度稀疏过滤仍是性能观察点；它不扩展到通知投递或 UI。
 
 ## Reminder 与 Scheduler Bridge（SP-005）
 

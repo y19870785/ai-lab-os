@@ -2,7 +2,15 @@
 
 ## Status
 
-Proposed / SP-010 implementation candidate
+Adopted
+
+## Adoption Record
+
+- Implemented by SP-010
+- Merged via PR #21
+- Approved Head: `2719793102b4318f4b98162f4b288710fe4b44f8`
+- Merge Commit: `af437afc32dcb17da68d600d6840ec94c8cbe681`
+- Adoption Date: `2026-07-16`
 
 ## Context
 
@@ -38,4 +46,4 @@ API JSON 成功与失败响应显式声明 `application/json; charset=utf-8`，J
 
 ## Known Limitations
 
-本轮不实现 Web UI、外部通知、Recurring Reminder、全文搜索、跨 workspace 管理视图、用户身份、RBAC、分布式查询或 Reminder Inbox 推送。SP-010 在合并前仅为 Draft candidate。
+SP-010 不实现 Web UI、外部通知、Recurring Reminder、全文搜索、跨 workspace 管理视图、用户身份、RBAC、分布式查询或 Reminder Inbox 推送。跨 SQLite 聚合不是快照事务；深度稀疏过滤的成本可能随记录量增长。
