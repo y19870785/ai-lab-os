@@ -51,4 +51,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 当前准入边界仅为 FastAPI 受保护业务路由；内部调用边界留给 SP-008 candidate。

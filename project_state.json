@@ -82,8 +82,8 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "Awaiting ChatGPT review of SP-007 PR #14",
+  "next_action": "Awaiting ChatGPT review of SP-007 PR #14; define SP-008 Internal Work Admission Boundary after SP-007 review",
   "freeze_date": "2026-07-14",
-  "current_work": "SP-007 System Lifecycle Admission Gate: implementation candidate, Draft PR #14",
+  "current_work": "SP-007 System Lifecycle Admission Gate: implementation candidate, Draft PR #14; scope is FastAPI protected business routes only; SP-008 candidate covers internal work admission",
   "merge_baseline": "2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9"
 }

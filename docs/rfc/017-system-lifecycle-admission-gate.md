@@ -9,7 +9,7 @@ SystemContainer currently uses boolean flags (_started, _starting, _stopped) to 
 ## Decision
 1. Replace boolean flags with a canonical SystemLifecycleState enum
 2. Add ensure_accepting_work() that raises FailureException unless READY
-3. FastAPI dependencies and internal entry points use the same gate
+3. FastAPI protected business-route dependencies use the gate
 4. Health endpoints bypass the gate via unguarded access
 5. CREATED state can shut down directly to STOPPED (no component cleanup)
 
@@ -19,5 +19,9 @@ SystemContainer currently uses boolean flags (_started, _starting, _stopped) to 
 - Concurrent shutdown is idempotent via _shutdown_task
 - RESTART is not supported: STOPPED -> STARTING is forbidden
 
-## Internal Entry Points
-CEOAssistant and ApplicationRuntime execute through the FastAPI dependency chain, which calls get_system() -> ensure_accepting_work(). CLI entry points are covered by the Composition Root. No separate lifecycle flags are duplicated in business modules.
+## Admission Scope
+SP-007 admission scope is limited to FastAPI protected business routes through `get_system()` and `ensure_accepting_work()`.
+
+Excluded from SP-007: direct `ApplicationRuntime` calls, direct `CEOAssistant` calls, and CLI entry points. These paths do not currently receive an injected admission callback and are not represented as covered by this RFC.
+
+SP-008 candidate — Internal Work Admission Boundary will define the canonical internal execution boundary and inject the lifecycle admission callback there without duplicating lifecycle flags in business modules.

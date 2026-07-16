@@ -71,3 +71,5 @@
 | RFC-017 | System Lifecycle Admission Gate | Proposed (SP-007 candidate) | 2026-07-16 |
 | ADR-035 | System Lifecycle State Machine | Proposed (SP-007 candidate) | 2026-07-16 |
 | ADR-036 | Shutdown Admission Policy | Proposed (SP-007 candidate) | 2026-07-16 |
+
+> SP-007 implementation candidate，Draft PR #14，Awaiting ChatGPT review，not merged。该候选仅覆盖 FastAPI 受保护业务路由；SP-008 candidate 将定义内部工作准入边界。

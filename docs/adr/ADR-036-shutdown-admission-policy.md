@@ -3,6 +3,9 @@
 ## Status
 Proposed / SP-007 implementation candidate
 
+## Scope
+SP-007 rejects new work at FastAPI protected business routes only. Direct `ApplicationRuntime`, `CEOAssistant`, and CLI execution paths are explicitly excluded and are planned for SP-008 candidate.
+
 ## Context
 During shutdown, new work must be rejected before components are closed.
 

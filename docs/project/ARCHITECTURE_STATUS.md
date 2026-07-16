@@ -80,4 +80,4 @@ SP-005 合并前的 Windows 本地完整验证为 `888 passed, 27 warnings in 45
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). FastAPI 受保护业务路由已纳入候选准入边界；内部执行入口属于 SP-008 candidate。

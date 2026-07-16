@@ -3,6 +3,9 @@
 ## Status
 Proposed / SP-007 implementation candidate
 
+## Scope
+The state machine is the source of truth for `SystemContainer` and FastAPI protected-route admission in SP-007. Direct application, CEO Assistant, and CLI execution admission is deferred to SP-008 candidate.
+
 ## Context
 The system needs a single source of truth for its operational state.
 

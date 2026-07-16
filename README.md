@@ -155,4 +155,4 @@ AI-Lab/
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 本轮准入范围仅覆盖 FastAPI 受保护业务路由；ApplicationRuntime、CEO Assistant 与 CLI 的直接调用不在本轮覆盖范围，将由 SP-008 Internal Work Admission Boundary candidate 处理。

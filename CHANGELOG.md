@@ -332,4 +332,4 @@ python -m cli chat <娑堟伅>     # 澶氳疆瀵硅瘽
 
 </details>
 
-> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, not merged)
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 范围限定为 FastAPI 受保护业务路由的生命周期准入；内部直调入口留给 SP-008 Internal Work Admission Boundary candidate。
