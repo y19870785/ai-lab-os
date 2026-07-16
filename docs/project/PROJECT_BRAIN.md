@@ -149,3 +149,11 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Automatic Tool Calling: not implemented
 - Coordination main path: not implemented
 - UI: not implemented
+
+### SP-007: System Lifecycle Admission Gate
+- Status: Implementation candidate
+- Draft PR: #14
+- Awaiting ChatGPT review, not merged
+- Admission scope: FastAPI protected business routes only.
+- Excluded: direct ApplicationRuntime calls, direct CEOAssistant calls, and CLI entrypoints.
+- Follow-up: SP-008 candidate — Internal Work Admission Boundary.

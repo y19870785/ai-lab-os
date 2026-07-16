@@ -32,6 +32,8 @@ def make_error_response(failure: FailureInfo) -> JSONResponse:
     headers = {"X-Trace-ID": failure.trace_id}
     if failure.category.value == "unauthenticated":
         headers["WWW-Authenticate"] = "Bearer"
+    if failure.code.startswith("system.draining"):
+        headers["Retry-After"] = "1"
     return JSONResponse(
         status_code=http_status_for_failure(failure),
         content=body.model_dump(mode="json"),

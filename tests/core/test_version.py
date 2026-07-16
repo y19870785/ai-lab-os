@@ -63,11 +63,16 @@ def test_app_config_and_api_use_runtime_version():
 
 
 def test_health_route_uses_runtime_version():
+    from types import SimpleNamespace
     class HealthySystem:
+        lifecycle_state = "ready"
+        accepting_work = True
         async def health(self):
-            return {"status": "healthy", "components": {}}
+            return {"status": "healthy", "components": {}, "lifecycle": "ready", "accepting_work": True}
 
-    result = asyncio.run(health_check(HealthySystem()))
+    system = HealthySystem()
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(system=system)))
+    result = asyncio.run(health_check(request))
     assert result["version"] == core.__version__
 
 

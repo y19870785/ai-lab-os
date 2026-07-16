@@ -313,3 +313,5 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 - CORS explicit allowlist (no wildcard when auth enabled)
 - Protected routes require Depends(require_auth); health/metrics remain public
 - Status: Merged PR #12, APPROVED / Merged
+
+> SP-007 System Lifecycle Admission Gate: Implementation candidate (Draft PR #14, Awaiting ChatGPT review, not merged). 准入 Gate 仅位于 FastAPI 受保护业务路由；直接 ApplicationRuntime、CEO Assistant 与 CLI 调用明确排除，后续由 SP-008 Internal Work Admission Boundary candidate 覆盖。

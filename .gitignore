@@ -63,5 +63,11 @@ runtime/
 # Dev temp files
 _fix_test.py
 _p27_*.b64
-_phase23_writer.py.venv_312/
+_phase23_writer.py
 
+
+# Virtual environments
+.venv/
+.venv*/
+venv/
+env/
