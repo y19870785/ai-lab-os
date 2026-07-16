@@ -9,9 +9,9 @@
 > SP-004 Status：Completed
 > SP-004 Merge PR：#8（Squash Merge / APPROVED）
 > SP-005 Status：Completed / Merged / Archived
-> SP-010 Status：implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+> SP-010 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
 
-SP-010 候选范围是 Reminder Inbox 与本地 UTF-8 访问：列表查询复用 ADR-040 的持久化聚合状态，由 Composition Root 提供给 API、CLI 与 CEO Assistant。外部通知、Recurring Reminder、Web UI、用户身份与 RBAC 仍未实现。产品版本保持 `0.33.0`，无新 Tag 或 Release。
+SP-010 Reminder Inbox 已通过 PR #21 以 Squash Merge 进入 `main`。列表查询复用 ADR-040 的持久化聚合状态，由 Composition Root 提供给 API、CLI 与 CEO Assistant；自然语言列表查询是只读操作。外部通知、Recurring Reminder、Web UI、用户身份与 RBAC 仍未实现。产品版本保持 `0.33.0`，无新 Tag 或 Release。
 
 ## 项目使命
 
@@ -51,6 +51,12 @@ SP-005 review: APPROVED
 SP-005 merge method: Squash Merge
 SP-005 merge baseline: 167b0d78f7713b1d5bfc85198c1461c7a35f63d3
 SP-005 merged at: 2026-07-15T14:03:32Z
+SP-010 pull request: https://github.com/y19870785/ai-lab-os/pull/21
+SP-010 review: APPROVED
+SP-010 merge method: Squash Merge
+SP-010 approved head: 2719793102b4318f4b98162f4b288710fe4b44f8
+SP-010 merge baseline: af437afc32dcb17da68d600d6840ec94c8cbe681
+SP-010 merged at: 2026-07-16T16:18:28Z
 ```
 
 冻结标签保持不变。SP-001、SP-001A、SP-002、SP-003、SP-004 与 SP-005 均已完成审查并进入 `main`。SP-005 经 PR #10 以 Squash Merge 合并，审查结论为 `APPROVED`；`167b0d78f7713b1d5bfc85198c1461c7a35f63d3` 是 SP-005 合并基线，不是 PR Head。
@@ -191,6 +197,24 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Task boundary: Task `due_at` does not imply Reminder scheduling. Unsupported Task time may create a no-deadline Task with an explicit warning; unsupported Reminder time fails closed.
 - Idempotency: explicit keys provide retry reuse and conflict protection; requests without explicit keys create independent reminder chains.
 - Truth boundary: status is aggregated from persisted services; LLM, logs and EventBus are not user-visible truth.
-- Deferred: external notification, Inbox, Recurring Reminder, complex dates, LLM time parsing, multi-user, Web UI and distributed Scheduler.
+- Deferred: external notification, Recurring Reminder, complex dates, LLM time parsing, multi-user, Web UI and distributed Scheduler.
 - Governance: RFC-019 is Adopted; ADR-039 and ADR-040 are Accepted.
+- Follow-up completed: SP-010 Reminder Inbox is APPROVED / MERGED / RECONCILED / ARCHIVED.
+
+### SP-010: Reminder Inbox and User-Friendly Local Access
+- Status: APPROVED / MERGED / RECONCILED / ARCHIVED
+- PR: #21
+- Approved Head: `2719793102b4318f4b98162f4b288710fe4b44f8`
+- Squash Commit / merge baseline: `af437afc32dcb17da68d600d6840ec94c8cbe681`
+- Merged At: `2026-07-16T16:18:28Z`
+- Product outcome: users can browse persisted reminders without retaining a Reminder ID, using API, CLI or read-only natural-language queries.
+- Query contract: filters include status, date range, today and upcoming; pagination is bounded and ordered by `remind_at` then ID.
+- Status truth: detail and list views share ADR-040 aggregation and expose `scheduled`, `retrying`, `triggered`, `failed` or `cancelled`.
+- Workspace boundary: ownership is server-controlled through UserTask metadata; legacy records without ownership metadata belong only to the default workspace, and ordinary PATCH cannot transfer ownership.
+- Local access: API JSON declares UTF-8 and Windows PowerShell 5.1 Chinese output was manually verified during SP-010 implementation.
+- Storage trade-off: Inbox is a bounded cross-SQLite aggregation, not a single-database snapshot; sparse filters and deep offsets remain a future performance observation.
+- Validation: Windows local Python 3.12 recorded `1013 passed, 27 warnings in 57.76s`; this is not a GitHub Actions or cross-platform CI result.
+- Acceptance: implementation is merged; the post-merge manual product acceptance remains pending.
+- Deferred: external notification delivery, Recurring Reminder, Web UI, user identity, RBAC and strong multi-tenant isolation.
+- Governance: RFC-020 is Adopted; ADR-041 and ADR-042 are Accepted.
 - Next task: not selected; no branch, no PR, not started.

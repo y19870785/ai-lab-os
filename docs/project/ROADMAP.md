@@ -2,9 +2,9 @@
 
 **Last Updated:** 2026-07-16 | **Current Version:** v0.33.0
 
-## Current Candidate
+## Latest Archived Work
 
-SP-010 Reminder Inbox and User-Friendly Local Access：implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。范围仅为持久化站内列表、API/CLI/确定性自然语言入口、workspace 隔离和 UTF-8 本地访问；外部通知、Recurring Reminder、Web UI 与通用搜索继续延期。
+SP-010 Reminder Inbox and User-Friendly Local Access：APPROVED / MERGED / RECONCILED / ARCHIVED。PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并。实现已进入 main，手工产品验收待用户执行；下一任务尚未选择、无分支、无 PR、未启动。
 
 ## Completed
 
@@ -19,13 +19,14 @@ SP-010 Reminder Inbox and User-Friendly Local Access：implementation candidate 
 | Stabilization | v0.33.0 | 2026-07-15 | SP-001~SP-003 Composition Root、失败语义、数据库连接所有权与版本治理 |
 | SP-004 | v0.33.0（未新增 Release） | 2026-07-15 | Canonical UserTask、`tasks.db`、真实 Task API、CEO Assistant 接入与 Legacy importer |
 | SP-005 | Unreleased（post-v0.33.0 main） | 2026-07-15 | Reminder/Occurrence、Scheduler CAS claim、Action Handler 与 Saga reconciliation；PR #10 已合并，默认关闭 |
+| SP-010 | Unreleased（post-v0.33.0 main） | 2026-07-16 | 持久化 Reminder Inbox、API/CLI/自然语言查询、workspace 过滤与 UTF-8 本地访问；PR #21 已合并 |
 
 ## Current
 
 | Status | Action |
 |---|---|
-| **BASELINE** | post-v0.33.0 main — SP-009 merge baseline `b1274d066cbc01053144cba8d5654a5f8c8a21da` |
-| **CURRENT** | SP-009 APPROVED / MERGED / RECONCILED / ARCHIVED；下一任务未选择、无分支、无 PR、未启动 |
+| **BASELINE** | post-v0.33.0 main — SP-010 merge baseline `af437afc32dcb17da68d600d6840ec94c8cbe681` |
+| **CURRENT** | SP-010 APPROVED / MERGED / RECONCILED / ARCHIVED；下一任务未选择、无分支、无 PR、未启动 |
 | **LIMITS** | 通知渠道、Recurring Reminder、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
 
 ## Future (Tentative)

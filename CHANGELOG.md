@@ -1,13 +1,17 @@
 ﻿
 ## [Unreleased]
 
-### SP-010 Reminder Inbox and User-Friendly Local Access (candidate)
-- Added a candidate persisted Reminder inbox shared by API, CLI, and deterministic CEO Assistant queries.
+### SP-010 Reminder Inbox
+- Added a persistent Reminder inbox shared by API, CLI, and deterministic CEO Assistant queries.
+- Added `GET /reminders` with status, today, upcoming, pagination, and stable ordering.
+- Added `python -m cli reminders` with human-readable and JSON output.
 - Added stable database paging, current-page `count`, `has_more`, status/time filters, and workspace isolation.
 - Added an explicit `application/json; charset=utf-8` local API contract.
-- RFC-020, ADR-041, and ADR-042 remain Proposed.
-- Windows local Python 3.12 candidate validation: `1013 passed, 27 warnings in 57.76s`; not a GitHub Actions or cross-platform CI result.
-- Status: SP-010 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged.
+- Reused ADR-040 status aggregation across detail and list views.
+- RFC-020 is Adopted; ADR-041 and ADR-042 are Accepted.
+- Windows local Python 3.12 pre-merge validation: `1013 passed, 27 warnings in 57.76s`; not a GitHub Actions or cross-platform CI result.
+- Merged through PR #21 at `af437afc32dcb17da68d600d6840ec94c8cbe681` on 2026-07-16.
+- Status: APPROVED / MERGED / RECONCILED / ARCHIVED.
 - Product version remains `0.33.0`; no Tag or GitHub Release was created.
 
 ### SP-009 Natural-Language Reminder Closure
