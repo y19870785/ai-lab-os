@@ -8,8 +8,9 @@
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| RFCs | 21 |
-| ADRs | 43 |
+| SP-010 candidate tests | 1013 passed, 27 warnings in 57.76s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
+| RFCs | 22（RFC-020 为 Proposed candidate） |
+| ADRs | 45（ADR-041/042 为 Proposed candidate） |
 | Tests | 1006（SP-009 合并前 Windows 本地验证历史记录） |
 | Test Pass Rate | 100% (1006 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |

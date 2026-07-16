@@ -8,6 +8,12 @@
 
 **SP-009:** merged into main through PR #19 (`b1274d066cbc01053144cba8d5654a5f8c8a21da`)
 
+**SP-010:** Unreleased implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+
+| Capability | Contract | Minimum AI-Lab baseline |
+|---|---|---|
+| Reminder Inbox | RFC-020 / ADR-041 / ADR-042 candidate | Unreleased (`post-v0.33.0` branch only) |
+
 **Release Tag:** none
 
 **GitHub Release:** none

@@ -80,4 +80,10 @@
 | ADR-039 | Natural-Language Reminder Orchestration Boundary | Accepted | 2026-07-16 |
 | ADR-040 | Reminder Status Aggregation Contract | Accepted | 2026-07-16 |
 
+| RFC-020 | Reminder Inbox and User-Friendly Local Access | Proposed / SP-010 implementation candidate |
+| ADR-041 | Reminder Inbox Query Boundary | Proposed / SP-010 implementation candidate |
+| ADR-042 | Reminder List Status Consistency | Proposed / SP-010 implementation candidate |
+
+> SP-010：Draft PR / Awaiting ChatGPT review / Not merged。上述决策尚未 Adopted 或 Accepted。
+
 > SP-007、SP-008 与 SP-009 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-009 通过 PR #19 以 Squash Commit `b1274d066cbc01053144cba8d5654a5f8c8a21da` 合并；下一任务尚未选择、无分支、无 PR、未启动。
