@@ -155,4 +155,8 @@ AI-Lab/
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并时间为 `2026-07-16T10:08:47Z`，产品版本保持 `0.33.0`。准入范围仍仅为 FastAPI 受保护业务路由；直接 ApplicationRuntime、CEO Assistant 与 CLI 调用不在范围内。SP-008 Internal Work Admission Boundary: Candidate / Not started / No branch / No PR。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并时间为 `2026-07-16T10:08:47Z`，产品版本保持 `0.33.0`。
+
+> SP-008 Internal Work Admission Boundary: **implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged**。候选实现将 SP-007 的同一生命周期准入语义接入 `ApplicationRuntime`、CEO Assistant 直接入口、CLI 业务路径与 Scheduler 新工作生产边界；已准入的 in-flight 工作不被主动取消。RFC-018、ADR-037 与 ADR-038 均保持 Proposed。
+
+> SP-008 Windows 本地 Python 3.12 候选验证：`972 passed, 27 warnings in 61.68s`，零失败、零错误；该结果不是 GitHub Actions 或跨平台 CI 记录。

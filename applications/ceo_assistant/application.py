@@ -25,6 +25,7 @@ from core.errors import (
     failure_from_exception,
 )
 from core.memory.models import MemoryQuery, MemoryType
+from core.system.admission import WorkAdmission
 
 
 class CEOAssistant:
@@ -43,6 +44,8 @@ class CEOAssistant:
         user_task_service=None,
         config: ApplicationConfig | None = None,
         bus=None,
+        *,
+        admission: WorkAdmission,
     ):
         self._memory = memory_manager
         self._knowledge = knowledge_manager
@@ -51,6 +54,7 @@ class CEOAssistant:
         self._user_tasks = user_task_service
         self._config = config or ApplicationConfig()
         self._bus = bus
+        self._admission = admission
 
         # 应用信息
         self.info = ApplicationInfo(
@@ -120,6 +124,11 @@ class CEOAssistant:
     # ---- 主执行入口 ----
 
     async def run(self, request: ApplicationRequest) -> ApplicationResponse:
+        """Execute a new request through the shared admission boundary."""
+        with self._admission.admit():
+            return await self._run_accepted(request)
+
+    async def _run_accepted(self, request: ApplicationRequest) -> ApplicationResponse:
         """执行业务请求。"""
         t0 = time.time()
 

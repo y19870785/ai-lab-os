@@ -3,6 +3,7 @@ pytestmark = pytest.mark.asyncio(loop_scope="function")
 import asyncio
 from datetime import datetime, timezone, timedelta
 from core.scheduler.runtime import SchedulerRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.jobs import JobExecutor
 from core.scheduler.models import (
@@ -23,6 +24,7 @@ class TestSchedulerRuntime:
         executor = JobExecutor()
         return SchedulerRuntime(
             registry=registry, executor=executor, config=config,
+            admission=PERMISSIVE_TEST_ADMISSION,
         )
 
     async def test_schedule_manual_job(self):

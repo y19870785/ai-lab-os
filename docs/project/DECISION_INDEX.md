@@ -62,7 +62,7 @@
 | ADR-031 | Scheduler Action Handler | Adopted |
 | ADR-032 | Reminder Effectively-Once Occurrence | Adopted |
 
-**总计：RFC 文件 16 篇（含历史编号重复），ADR 文件 34 篇（含历史编号重复）**
+**总计：RFC 文件 17 篇（含历史编号重复），ADR 文件 36 篇（含历史编号重复）**
 
 | ADR-033 | API Authentication Mechanism | Accepted | 2026-07-15 |
 | ADR-034 | CORS Allowlist Policy | Accepted | 2026-07-15 |
@@ -72,4 +72,8 @@
 | ADR-035 | System Lifecycle State Machine | Accepted | 2026-07-16 |
 | ADR-036 | Shutdown Admission Policy | Accepted | 2026-07-16 |
 
-> SP-007: APPROVED / MERGED / RECONCILED / ARCHIVED。PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`。SP-008 Internal Work Admission Boundary: Candidate / Not started / No branch / No PR。
+| RFC-018 | Internal Work Admission Boundary | Proposed / SP-008 implementation candidate | 2026-07-16 |
+| ADR-037 | Canonical Internal Work Entrypoint | Proposed / SP-008 implementation candidate | 2026-07-16 |
+| ADR-038 | Admission Gate Dependency Injection | Proposed / SP-008 implementation candidate | 2026-07-16 |
+
+> SP-007: APPROVED / MERGED / RECONCILED / ARCHIVED。PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`。SP-008: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。

@@ -9,12 +9,13 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 
 
 @pytest.fixture
 def app():
     """创建不含依赖的 CEOAssistant 用于纯逻辑测试。"""
-    return CEOAssistant()
+    return CEOAssistant(admission=PERMISSIVE_TEST_ADMISSION)
 
 
 class TestIntentRouter:

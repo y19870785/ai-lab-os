@@ -1,6 +1,6 @@
 """FastAPI dependencies backed by the lifespan-owned SystemContainer."""
 
-from fastapi import Depends, Request
+from fastapi import Request
 
 from applications.runtime import ApplicationRuntime
 from applications.security import Authenticator
@@ -9,16 +9,22 @@ from core.system.container import SystemContainer
 from core.system.exceptions import ServiceUnavailableError
 
 
-def get_system(request: Request) -> SystemContainer:
+def _get_system_unguarded(request: Request) -> SystemContainer:
     system = getattr(request.app.state, "system", None)
     if system is None:
         raise ServiceUnavailableError("AI-Lab system is not initialized")
+    return system
+
+
+def get_system(request: Request) -> SystemContainer:
+    system = _get_system_unguarded(request)
     system.ensure_accepting_work()
     return system
 
 
-def get_runtime(system: SystemContainer = Depends(get_system)) -> ApplicationRuntime:
-    return system.application_runtime
+def get_runtime(request: Request) -> ApplicationRuntime:
+    """Resolve the canonical runtime; execute() owns application admission."""
+    return _get_system_unguarded(request).application_runtime
 
 
 def require_auth(request: Request) -> None:

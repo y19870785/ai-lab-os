@@ -159,4 +159,13 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Product Version: `0.33.0`
 - Admission scope: FastAPI protected business routes only.
 - Excluded: direct ApplicationRuntime calls, direct CEOAssistant calls, and CLI entrypoints.
-- Follow-up: SP-008 Internal Work Admission Boundary — Candidate / Not started / No branch / No PR.
+- Follow-up implemented as candidate: SP-008 Internal Work Admission Boundary — Draft PR / Awaiting ChatGPT review / Not merged.
+
+### SP-008: Internal Work Admission Boundary
+- Status: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+- Base: SP-007A reconciliation main `bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd`
+- Candidate scope: ApplicationRuntime, direct CEO Assistant calls, CLI business requests through ApplicationRuntime, and Scheduler new-work dispatch.
+- Shared truth: Composition Root injects one lifecycle-backed `WorkAdmissionGate`; business modules do not own lifecycle flags.
+- Accepted in-flight work may finish after DRAINING; Task, Workflow, Agent, health, recovery, startup, and shutdown are not repeatedly gated.
+- Governance: RFC-018, ADR-037, and ADR-038 remain Proposed until review and merge.
+- Product version remains `0.33.0`; no v0.34.0 Tag or GitHub Release exists.

@@ -1,6 +1,14 @@
 ﻿
 ## [Unreleased]
 
+### SP-008 Internal Work Admission Boundary (implementation candidate)
+- Added one Composition Root-owned internal work admission gate for ApplicationRuntime, direct CEO Assistant calls, CLI business requests, and Scheduler dispatch.
+- Preserved accepted in-flight work through a task-local admission scope while rejecting new work after lifecycle draining begins.
+- Kept Task, Workflow, Agent, health, startup, shutdown, recovery, and migration paths outside repeated admission checks.
+- RFC-018, ADR-037, and ADR-038 remain Proposed.
+- Windows local Python 3.12 candidate validation: `972 passed, 27 warnings in 61.68s`; this is not a GitHub Actions result.
+- Status: Draft PR / Awaiting ChatGPT review / Not merged. Product version remains `0.33.0`; no Tag or Release was created.
+
 ### SP-007 System Lifecycle Admission Gate
 - Added the system lifecycle state machine and FastAPI protected-route admission gate.
 - Added single-flight graceful shutdown coordination.
@@ -342,4 +350,4 @@ python -m cli chat <娑堟伅>     # 澶氳疆瀵硅瘽
 
 </details>
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并于 `2026-07-16T10:08:47Z`。版本仍为 `0.33.0`；内部直调入口留给 SP-008 Internal Work Admission Boundary（Candidate / Not started / No branch / No PR）。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并于 `2026-07-16T10:08:47Z`。版本仍为 `0.33.0`；SP-008 Internal Work Admission Boundary 为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。

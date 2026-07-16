@@ -10,6 +10,7 @@ from applications.models import (
     ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse,
 )
 from applications.runtime import ApplicationRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
 
@@ -25,7 +26,10 @@ class FailingApplication:
 
 
 async def make_runtime(instance=None, name="test"):
-    runtime = ApplicationRuntime(config=ApplicationConfig(provider_mode="mock"))
+    runtime = ApplicationRuntime(
+        config=ApplicationConfig(provider_mode="mock"),
+        admission=PERMISSIVE_TEST_ADMISSION,
+    )
     await runtime.initialize()
     info = ApplicationInfo(name=name)
     await runtime.register_application(
@@ -53,7 +57,7 @@ class TestFaultInjection:
         await runtime.shutdown()
 
     async def test_invalid_app_name_is_rejected(self):
-        runtime = ApplicationRuntime()
+        runtime = ApplicationRuntime(admission=PERMISSIVE_TEST_ADMISSION)
         await runtime.initialize()
         for name in ["", "   ", "!@#$"]:
             with pytest.raises(ApplicationNotRegisteredError):

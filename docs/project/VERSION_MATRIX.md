@@ -40,4 +40,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED，已合并至 main，未进入新的正式 Release。内部工作准入为 SP-008 Internal Work Admission Boundary（Candidate / Not started / No branch / No PR）。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED，已合并至 main，未进入新的正式 Release。SP-008 Internal Work Admission Boundary 为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged；不构成新产品版本或 Release。

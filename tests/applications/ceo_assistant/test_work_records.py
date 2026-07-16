@@ -14,6 +14,7 @@ import sys, os, asyncio
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.bus.bus import get_bus
 from core.memory.manager import MemoryManager
 from core.memory.models import MemoryType, MemoryQuery
@@ -39,7 +40,7 @@ async def app_with_memory(tmp_path):
     await es.initialize()
     memory.register_store(MemoryType.EPISODIC, es)
 
-    app = CEOAssistant(memory_manager=memory)
+    app = CEOAssistant(memory_manager=memory, admission=PERMISSIVE_TEST_ADMISSION)
     yield app
 
     await bus.stop()
@@ -52,21 +53,21 @@ class TestWorkRecords:
     @pytest.mark.asyncio
     async def test_extract_person(self):
         """验证人物提取。"""
-        app = CEOAssistant()
+        app = CEOAssistant(admission=PERMISSIVE_TEST_ADMISSION)
         result = await app._extract_work_entities("今天和张经理确认了蜂蜡检测方案")
         assert result["target"] == "张经理", f"应提取张经理，实际: {result['target']}"
 
     @pytest.mark.asyncio
     async def test_extract_status(self):
         """验证状态提取。"""
-        app = CEOAssistant()
+        app = CEOAssistant(admission=PERMISSIVE_TEST_ADMISSION)
         result = await app._extract_work_entities("等待客户回复蜂蜡报价")
         assert "等待客户回复" in result["status"], f"应提取状态，实际: {result['status']}"
 
     @pytest.mark.asyncio
     async def test_extract_tags(self):
         """验证标签提取。"""
-        app = CEOAssistant()
+        app = CEOAssistant(admission=PERMISSIVE_TEST_ADMISSION)
         result = await app._extract_work_entities("蜂蜡面包袋FDA检测方案确认")
         assert "蜂蜡" in result["tags"], f"应包含蜂蜡标签"
         assert "检测" in result["tags"], f"应包含检测标签"
@@ -74,7 +75,7 @@ class TestWorkRecords:
     @pytest.mark.asyncio
     async def test_extract_empty_input(self):
         """空输入不会崩溃。"""
-        app = CEOAssistant()
+        app = CEOAssistant(admission=PERMISSIVE_TEST_ADMISSION)
         result = await app._extract_work_entities("")
         assert isinstance(result, dict)
         assert result["tags"] == []
@@ -82,7 +83,7 @@ class TestWorkRecords:
     @pytest.mark.asyncio
     async def test_extract_long_input(self):
         """超长输入不会崩溃。"""
-        app = CEOAssistant()
+        app = CEOAssistant(admission=PERMISSIVE_TEST_ADMISSION)
         long_text = "测试" * 500
         result = await app._extract_work_entities(long_text)
         assert isinstance(result, dict)

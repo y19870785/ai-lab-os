@@ -21,7 +21,8 @@ from core.providers.factory import ProviderFactory
 from core.providers.llm.protocol import LLMProvider
 from core.providers.registry import ProviderRegistry
 from core.scheduler.runtime import SchedulerRuntime
-from core.errors import ErrorCategory, FailureException, FailureInfo, RuntimeStatus
+from core.errors import RuntimeStatus
+from core.system.admission import WorkAdmissionGate
 from core.system.exceptions import SystemInitializationError
 from core.system.lifecycle import (
     LifecycleStateMachine, SystemLifecycleState, InvalidLifecycleTransitionError
@@ -74,7 +75,8 @@ class SystemContainer:
     application_registry: ApplicationRegistry
     application_runtime: ApplicationRuntime
     ceo_assistant: CEOAssistant
-    _lifecycle: LifecycleStateMachine = field(default_factory=LifecycleStateMachine, init=False, repr=False)
+    work_admission_gate: WorkAdmissionGate = field(repr=False)
+    _lifecycle: LifecycleStateMachine = field(repr=False)
     _shutdown_task: asyncio.Task | None = field(default=None, init=False, repr=False)
     shutdown_failures: list[str] = field(default_factory=list, init=False, repr=False)
     _tool_instances: list[ToolProtocol] = field(default_factory=list, init=False, repr=False)
@@ -420,26 +422,8 @@ class SystemContainer:
         return self._lifecycle.accepting_work
 
     def ensure_accepting_work(self) -> None:
-        """Raise FailureException unless READY."""
-        state = self._lifecycle.state
-        if state == SystemLifecycleState.READY:
-            return
-        code_map = {
-            SystemLifecycleState.CREATED: "system.not_ready",
-            SystemLifecycleState.STARTING: "system.not_ready",
-            SystemLifecycleState.DRAINING: "system.draining",
-            SystemLifecycleState.STOPPED: "system.stopped",
-            SystemLifecycleState.FAILED: "system.failed",
-        }
-        code = code_map.get(state, "system.not_ready")
-        raise FailureException(FailureInfo(
-            code=code,
-            category=ErrorCategory.UNAVAILABLE,
-            message=f"AI-Lab system is not accepting new work (state={state.value})",
-            component="system.lifecycle",
-            operation="admit_request",
-            retryable=True,
-        ))
+        """Delegate to the process-wide internal work admission gate."""
+        self.work_admission_gate.ensure_accepting_work()
 
     @property
     def started(self) -> bool:

@@ -2,21 +2,21 @@
   "project": "AI-Lab",
   "version": "v0.33.0",
   "current_version": "0.33.0",
-  "source_baseline": "SP-007 merge baseline: ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
-  "main_commit": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
+  "source_baseline": "SP-007A reconciliation baseline: bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
+  "main_commit": "bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
   "latest_completed_sp": "SP-007",
   "next_candidate_sp": "SP-008",
-  "git_branch": "main",
+  "git_branch": "feat/sp-008-internal-work-admission-boundary",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
   "python_version": ">=3.11",
   "code_stats": {
-    "python_files": 446,
+    "python_files": 456,
     "total_lines": 29259,
-    "test_files": 128
+    "test_files": 133
   },
   "test_summary": {
-    "passed": 955,
+    "passed": 972,
     "failed": 0,
     "skipped": 0,
     "warnings": 27,
@@ -86,15 +86,22 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "SP-008 Internal Work Admission Boundary is a candidate; not started, with no branch or PR",
+  "next_action": "Await ChatGPT review of the SP-008 Draft PR; do not merge before approval",
   "freeze_date": "2026-07-14",
-  "current_work": "SP-007A post-merge reconciliation candidate; SP-007 is archived and SP-008 remains not started",
-  "merge_baseline": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
+  "current_work": "SP-008 Internal Work Admission Boundary: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged",
+  "merge_baseline": "bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
   "sp_007": {
     "status": "archived",
     "pr": 14,
     "approved_head": "527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4",
     "merge_commit": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
     "merged_at": "2026-07-16T10:08:47Z"
+  },
+  "sp_008": {
+    "status": "implementation_candidate",
+    "branch": "feat/sp-008-internal-work-admission-boundary",
+    "review_status": "Draft PR / Awaiting ChatGPT review / Not merged",
+    "base_commit": "bbc7ba3dc6597e73267e25d6a5a06a59b63eb5bd",
+    "product_version": "0.33.0"
   }
 }

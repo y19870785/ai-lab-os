@@ -11,6 +11,7 @@ import pytest, pytest_asyncio,  sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
 from core.memory.manager import MemoryManager
@@ -36,7 +37,7 @@ async def app_with_decision(tmp_path):
     await ds.initialize()
     memory.register_store(MemoryType.DECISION, ds)
 
-    app = CEOAssistant(memory_manager=memory)
+    app = CEOAssistant(memory_manager=memory, admission=PERMISSIVE_TEST_ADMISSION)
     yield app
 
     await bus.stop()

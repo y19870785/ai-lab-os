@@ -3,6 +3,7 @@ import pytest
 pytestmark = pytest.mark.asyncio(loop_scope="function")
 
 from applications.runtime import ApplicationRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import (
     ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse,
 )
@@ -16,7 +17,7 @@ class _ExplicitMockRuntime:
 class TestAlphaIntegration:
 
     async def test_alpha_app_registration(self):
-        rt = ApplicationRuntime()
+        rt = ApplicationRuntime(admission=PERMISSIVE_TEST_ADMISSION)
         await rt.initialize()
         info = ApplicationInfo(name="alpha_assistant", version="1.0.0")
         manifest = ApplicationManifest(
@@ -29,7 +30,7 @@ class TestAlphaIntegration:
         await rt.shutdown()
 
     async def test_alpha_execution_mock(self):
-        rt = ApplicationRuntime()
+        rt = ApplicationRuntime(admission=PERMISSIVE_TEST_ADMISSION)
         await rt.initialize()
         info = ApplicationInfo(name="alpha_assistant")
         manifest = ApplicationManifest(name="alpha_assistant", entrypoint="alpha")
@@ -42,7 +43,7 @@ class TestAlphaIntegration:
         await rt.shutdown()
 
     async def test_alpha_multiple_requests(self):
-        rt = ApplicationRuntime()
+        rt = ApplicationRuntime(admission=PERMISSIVE_TEST_ADMISSION)
         await rt.initialize()
         info = ApplicationInfo(name="alpha_assistant")
         manifest = ApplicationManifest(name="alpha_assistant", entrypoint="alpha")

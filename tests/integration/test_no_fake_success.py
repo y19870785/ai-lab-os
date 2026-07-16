@@ -5,6 +5,7 @@ import pytest
 from applications.exceptions import ApplicationNotRegisteredError
 from applications.models import ApplicationRequest
 from applications.runtime import ApplicationRuntime
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.agents.executor import AgentExecutor
 from core.agents.models import AgentInfo, AgentRequest
 from core.scheduler.jobs import JobExecutor
@@ -16,7 +17,7 @@ pytestmark = pytest.mark.asyncio(loop_scope="function")
 
 
 async def test_unregistered_application_fails_explicitly():
-    runtime = ApplicationRuntime()
+    runtime = ApplicationRuntime(admission=PERMISSIVE_TEST_ADMISSION)
     await runtime.initialize()
     with pytest.raises(ApplicationNotRegisteredError):
         await runtime.execute(ApplicationRequest(application_name="missing", user_input="hello"))

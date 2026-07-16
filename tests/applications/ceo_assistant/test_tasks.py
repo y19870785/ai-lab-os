@@ -15,6 +15,7 @@ import pytest_asyncio
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
 from core.memory.manager import MemoryManager
@@ -47,7 +48,11 @@ async def app_with_decision(tmp_path):
     task_repo = SQLiteUserTaskRepository(db_manager, os.path.join(db_dir, "tasks.db"))
     task_service = UserTaskService(task_repo, bus=bus)
     await task_service.initialize()
-    app = CEOAssistant(memory_manager=memory, user_task_service=task_service)
+    app = CEOAssistant(
+        memory_manager=memory,
+        user_task_service=task_service,
+        admission=PERMISSIVE_TEST_ADMISSION,
+    )
     yield app
 
     await bus.stop()

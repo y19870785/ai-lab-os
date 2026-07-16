@@ -8,10 +8,10 @@
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| RFCs | 16 |
-| ADRs | 34 |
-| Tests | 888（SP-005 Windows 本地最终验证） |
-| Test Pass Rate | 100% (888 passed, 0 failed；非跨平台 CI 结果) |
+| RFCs | 17 |
+| ADRs | 36 |
+| Tests | 972（SP-008 Windows 本地候选验证） |
+| Test Pass Rate | 100% (972 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |
@@ -51,4 +51,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED，PR #14 已于 `2026-07-16T10:08:47Z` 以 Squash Commit `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee` 进入 main。当前准入边界仍仅为 FastAPI 受保护业务路由；SP-008 Internal Work Admission Boundary: Candidate / Not started / No branch / No PR。
+> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED，PR #14 已于 `2026-07-16T10:08:47Z` 以 Squash Commit `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee` 进入 main。SP-008 Internal Work Admission Boundary: implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged；内部 Runtime、CEO Assistant、CLI 与 Scheduler producer 的准入覆盖仍待真实 Diff 审查。
