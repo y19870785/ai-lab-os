@@ -22,7 +22,13 @@ async def chat(
     app_req = ApplicationRequest(
         application_name=req.application_name,
         user_input=req.user_input,
-        workspace_key=WorkspaceKey(session_id=req.session_id, trace_id=trace_id),
+        workspace_key=WorkspaceKey(
+            tenant_id=getattr(request.state, "tenant_id", "default"),
+            workspace_id=getattr(request.state, "workspace_id", "default"),
+            namespace=getattr(request.state, "namespace", "default"),
+            session_id=req.session_id,
+            trace_id=trace_id,
+        ),
         metadata={"idempotency_key": request_key},
     )
     resp = await runtime.execute(app_req)
