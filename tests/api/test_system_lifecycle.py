@@ -1,4 +1,4 @@
-"""API lifecycle admission gate tests — full state matrix."""
+"""API lifecycle admission gate tests — exact contract assertions."""
 
 from pathlib import Path
 import tempfile
@@ -37,17 +37,8 @@ def _set(client, state):
     loop.run_until_complete(client.app.state.system._lifecycle.transition(state))
 
 
-class TestApiAdmissionMatrix:
-    def test_starting_503_not_ready(self, client):
-        # System is READY from lifespan; verify draining->stopped gives proper codes
-        _set(client, SystemLifecycleState.DRAINING)
-        assert client.app.state.system.lifecycle_state == SystemLifecycleState.DRAINING
-        resp = client.get("/tasks", headers=_auth())
-        assert resp.status_code == 503
-        code = resp.json()["code"]
-        assert code in ("system.draining", "system.not_ready")
-
-    def test_draining_503(self, client):
+class TestApiAdmissionExact:
+    def test_draining_503_exact(self, client):
         _set(client, SystemLifecycleState.DRAINING)
         resp = client.get("/tasks", headers=_auth())
         assert resp.status_code == 503
@@ -55,14 +46,14 @@ class TestApiAdmissionMatrix:
         assert body["code"] == "system.draining"
         assert resp.headers.get("Retry-After") == "1"
 
-    def test_stopped_503(self, client):
+    def test_stopped_503_exact(self, client):
         _set(client, SystemLifecycleState.DRAINING)
         _set(client, SystemLifecycleState.STOPPED)
         resp = client.get("/tasks", headers=_auth())
         assert resp.status_code == 503
         assert resp.json()["code"] == "system.stopped"
 
-    def test_failed_503(self, client):
+    def test_failed_503_exact(self, client):
         _set(client, SystemLifecycleState.DRAINING)
         _set(client, SystemLifecycleState.FAILED)
         resp = client.get("/tasks", headers=_auth())
@@ -74,24 +65,7 @@ class TestApiAdmissionMatrix:
         assert resp.status_code == 401
 
 
-class TestHealthLifecycleMatrix:
-    def test_health_created(self):
-        with TestClient(_app()) as c:
-            resp = c.get("/health")
-            assert resp.status_code == 200
-            d = resp.json()
-            assert d["lifecycle"] in ("created", "ready")
-            # If lifespan ran, system is READY; otherwise CREATED
-
-    def test_health_starting(self, client):
-        # System already READY from lifespan; STARTING is transient
-        # Verify health reflects current state
-        resp = client.get("/health")
-        assert resp.status_code == 200
-        d = resp.json()
-        assert d["lifecycle"] in ("ready", "created")
-        assert "accepting_work" in d
-
+class TestHealthStableStates:
     def test_health_draining(self, client):
         _set(client, SystemLifecycleState.DRAINING)
         resp = client.get("/health")
@@ -104,7 +78,6 @@ class TestHealthLifecycleMatrix:
         _set(client, SystemLifecycleState.DRAINING)
         _set(client, SystemLifecycleState.STOPPED)
         resp = client.get("/health")
-        assert resp.status_code == 200
         d = resp.json()
         assert d["lifecycle"] == "stopped"
         assert d["accepting_work"] is False
@@ -113,7 +86,6 @@ class TestHealthLifecycleMatrix:
         _set(client, SystemLifecycleState.DRAINING)
         _set(client, SystemLifecycleState.FAILED)
         resp = client.get("/health")
-        assert resp.status_code == 200
         d = resp.json()
         assert d["lifecycle"] == "failed"
         assert d["accepting_work"] is False

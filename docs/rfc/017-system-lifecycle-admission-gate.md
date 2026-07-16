@@ -18,3 +18,6 @@ SystemContainer currently uses boolean flags (_started, _starting, _stopped) to 
 - Draining responses include Retry-After: 1
 - Concurrent shutdown is idempotent via _shutdown_task
 - RESTART is not supported: STOPPED -> STARTING is forbidden
+
+## Internal Entry Points
+CEOAssistant and ApplicationRuntime execute through the FastAPI dependency chain, which calls get_system() -> ensure_accepting_work(). CLI entry points are covered by the Composition Root. No separate lifecycle flags are duplicated in business modules.

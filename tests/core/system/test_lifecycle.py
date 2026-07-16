@@ -156,3 +156,26 @@ class TestAllAdmissionCodes:
         with pytest.raises(FailureException) as e:
             system2.ensure_accepting_work()
         self._assert_failure(e, "system.failed")
+
+
+class TestHealthExactStates:
+    def test_health_created(self):
+        system, loop = _make_system()
+        health = loop.run_until_complete(system.health())
+        assert health["lifecycle"] == "created"
+        assert health["accepting_work"] is False
+
+    def test_health_starting(self):
+        system, loop = _make_system()
+        loop.run_until_complete(system._lifecycle.transition(SystemLifecycleState.STARTING))
+        health = loop.run_until_complete(system.health())
+        assert health["lifecycle"] == "starting"
+        assert health["accepting_work"] is False
+
+    def test_health_ready(self):
+        system, loop = _make_system()
+        loop.run_until_complete(system.start())
+        health = loop.run_until_complete(system.health())
+        assert health["lifecycle"] == "ready"
+        assert health["accepting_work"] is True
+        loop.run_until_complete(system.shutdown())
