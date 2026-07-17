@@ -6,7 +6,7 @@
 
 SP-010 Reminder Inbox and User-Friendly Local Access：APPROVED / MERGED / RECONCILED / ARCHIVED。PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，后续手工产品验收已 PASSED 7 / 7。
 
-SP-010 后续用户验收已 PASSED 7 / 7（Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`）。SP-011 Reminder Management Closure 已通过 PR #23 合并并完成治理对账；手工验收记录为 Reminder Core PASSED、自然语言 Reminder UX CONDITIONALLY PASSED。SP-012 当前为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。
+SP-010 后续用户验收已 PASSED 7 / 7（Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`）。SP-011 Reminder Management Closure 已通过 PR #23 合并并完成治理对账；手工验收记录为 Reminder Core PASSED、自然语言 Reminder UX CONDITIONALLY PASSED。SP-012 当前为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 
 ## Completed
 
@@ -29,7 +29,7 @@ SP-010 后续用户验收已 PASSED 7 / 7（Baseline `0ad1f26ef1712f54f4bf478a70
 | Status | Action |
 |---|---|
 | **BASELINE** | post-v0.33.0 main — SP-011 merge baseline `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` |
-| **CURRENT** | SP-012 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged |
+| **CURRENT** | SP-012 APPROVED / MERGED / RECONCILED / ARCHIVED |
 | **LIMITS** | 通知渠道、Recurring Reminder、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
 
 ## Future (Tentative)

@@ -11,7 +11,7 @@
 > SP-005 Status：Completed / Merged / Archived
 > SP-010 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
 > SP-011 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
-> SP-012 Status：implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+> SP-012 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
 
 SP-010 Reminder Inbox 已通过 PR #21 以 Squash Merge 进入 `main`。列表查询复用 ADR-040 的持久化聚合状态，由 Composition Root 提供给 API、CLI 与 CEO Assistant；自然语言列表查询是只读操作。外部通知、Recurring Reminder、Web UI、用户身份与 RBAC 仍未实现。产品版本保持 `0.33.0`，无新 Tag 或 Release。
 
@@ -234,13 +234,15 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Acceptance: implementation is merged; the post-merge manual product acceptance remains pending.
 - Deferred: external notification delivery, Recurring Reminder, Web UI, user identity, RBAC and strong multi-tenant isolation.
 - Governance: RFC-020 is Adopted; ADR-041 and ADR-042 are Accepted.
-- Follow-up: SP-012 is an implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged.
+- Follow-up: SP-012 manual product acceptance pending; next task not selected. APPROVED / MERGED / RECONCILED / ARCHIVED.
 
-### SP-011 Manual Acceptance And SP-012 Candidate
+### SP-011 Manual Acceptance And SP-012 Closure
 - SP-011 Reminder Core: PASSED.
 - SP-011 Natural-language Reminder UX: CONDITIONALLY PASSED.
 - Blocking finding: read-only questions such as “今天都有什么事？” and “今天都有哪些提醒？” may create Work Log writes before LLM invocation.
-- SP-012 candidate rule: read on ambiguity; write only on an explicit command or clear completed-action wording.
-- SP-012 candidate response boundary: stable Reminder machine codes with centralized Chinese actionable guidance.
-- Governance: RFC-022 and ADR-046/047/048 are Proposed; Draft PR / Awaiting ChatGPT review / Not merged.
+- SP-012 merged rule: read on ambiguity; write only on an explicit command or clear completed-action wording.
+- SP-012 merged response boundary: stable Reminder machine codes with centralized Chinese actionable guidance.
+- SP-012: APPROVED / MERGED / RECONCILED / ARCHIVED (PR #25, `d550ab8`).
+- Governance: RFC-022 Adopted; ADR-046/047/048 Accepted.
+- SP-012 manual product acceptance: Pending.
 - Product version remains `0.33.0`; no `v0.34.0` Tag or GitHub Release exists.

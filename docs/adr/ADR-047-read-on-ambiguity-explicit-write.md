@@ -1,6 +1,8 @@
 # ADR-047：Read On Ambiguity And Explicit Write Commands
 
-状态：Proposed / SP-012 implementation candidate
+状态：Accepted
+
+**Accepted by:** SP-012 · PR [#25](https://github.com/y19870785/ai-lab-os/pull/25) · Merge Commit `d550ab8757b50e4d12587d5e71a0058089bd3821`
 
 ## Decision
 
