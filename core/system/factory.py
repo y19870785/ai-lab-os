@@ -52,6 +52,7 @@ from core.workflow.executor import WorkflowExecutor
 from core.workflow.registry import WorkflowRegistry
 from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
+from core.agenda import DailyAgendaService
 from core.reminders import (
     ReminderActionHandler,
     NaturalLanguageReminderOrchestrator,
@@ -273,6 +274,7 @@ async def create_system(
     reminder_orchestrator = None
     reminder_inbox = None
     reminder_management = None
+    daily_agenda = None
     if reminder_service is not None:
         reminder_bridge = ReminderSchedulerBridge(
             reminder_service,
@@ -326,6 +328,7 @@ async def create_system(
         reminder_orchestrator=reminder_orchestrator,
         reminder_inbox=reminder_inbox,
         reminder_management=reminder_management,
+        daily_agenda=daily_agenda,
         task_intent_parser=TaskReminderIntentParser(settings.timezone_name, clock),
         config=ApplicationConfig(
             provider_mode=settings.provider_mode,
@@ -334,6 +337,15 @@ async def create_system(
         bus=event_bus,
         admission=work_admission_gate,
     )
+
+    if reminder_inbox is not None:
+        daily_agenda = DailyAgendaService(
+            user_tasks=user_task_service,
+            reminder_inbox=reminder_inbox,
+            memory_manager=memory_manager,
+            timezone_name=settings.timezone_name,
+            clock=clock,
+        )
     application_registry.register(
         ceo_assistant.info,
         ceo_assistant.manifest,
@@ -349,6 +361,15 @@ async def create_system(
         bus=event_bus,
         admission=work_admission_gate,
     )
+
+    if reminder_inbox is not None:
+        daily_agenda = DailyAgendaService(
+            user_tasks=user_task_service,
+            reminder_inbox=reminder_inbox,
+            memory_manager=memory_manager,
+            timezone_name=settings.timezone_name,
+            clock=clock,
+        )
 
     return SystemContainer(
         settings=settings,
@@ -375,6 +396,7 @@ async def create_system(
         reminder_orchestrator=reminder_orchestrator,
         reminder_inbox=reminder_inbox,
         reminder_management=reminder_management,
+        daily_agenda=daily_agenda,
         clock=clock,
         coordination_runtime=coordination_runtime,
         application_registry=application_registry,

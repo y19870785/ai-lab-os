@@ -95,6 +95,16 @@ def decide_intent(user_input: str) -> IntentDecision:
 
     if _is_reminder_list_query(text):
         return IntentDecision("reminder_list", 1.0, IntentEffect.READ)
+
+    daily_agenda_markers = (
+        "今天有什么安排", "今天的日程", "查看今天安排",
+        "接下来三个小时有什么安排", "未来三小时有什么要做的",
+        "未来三小时有什么", "接下来有什么事",
+        "有哪些需要注意的事项", "有哪些失败的提醒", "有没有逾期任务",
+        "今天已经完成了什么", "今天做了哪些事", "查看今天的完成记录",
+    )
+    if any(marker in text for marker in daily_agenda_markers):
+        return IntentDecision("daily_agenda", 1.0, IntentEffect.READ)
     if text.startswith(("查看提醒", "查看这条提醒")):
         return IntentDecision("reminder_detail", 1.0, IntentEffect.READ)
 

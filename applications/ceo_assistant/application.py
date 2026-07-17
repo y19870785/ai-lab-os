@@ -51,6 +51,7 @@ class CEOAssistant:
         reminder_orchestrator=None,
         reminder_inbox=None,
         reminder_management=None,
+        daily_agenda=None,
         task_intent_parser=None,
         config: ApplicationConfig | None = None,
         bus=None,
@@ -65,6 +66,7 @@ class CEOAssistant:
         self._reminder_orchestrator = reminder_orchestrator
         self._reminder_inbox = reminder_inbox
         self._reminder_management = reminder_management
+        self._daily_agenda = daily_agenda
         self._task_intent_parser = task_intent_parser
         self._config = config or ApplicationConfig()
         self._bus = bus
@@ -137,6 +139,8 @@ class CEOAssistant:
                 result = await self._handle_reminder_cancel(request)
             elif decision.intent == "reminder_reschedule":
                 result = await self._handle_reminder_reschedule(request)
+            elif decision.intent == "daily_agenda":
+                result = await self._handle_daily_agenda(request)
             elif decision.intent == "task":
                 result = await self._handle_task(request)
             elif decision.intent == "decision":
@@ -877,3 +881,38 @@ class CEOAssistant:
 
     def _detect_mode(self) -> str:
         return self._config.provider_mode
+    async def _handle_daily_agenda(self, request):
+        if self._daily_agenda is None:
+            raise FailureException(FailureInfo(
+                code="agenda.unavailable", category=ErrorCategory.UNAVAILABLE,
+                message="Daily agenda is unavailable", component="agenda",
+                operation="list_natural_language", retryable=False,
+                trace_id=request.workspace_key.trace_id,
+            ))
+        text = request.user_input.strip()
+        view = "today"
+        if any(m in text for m in ("接下来三个小时", "未来三小时", "接下来有什么事")):
+            view = "next"
+        elif any(m in text for m in ("需要注意", "失败的提醒", "逾期任务")):
+            view = "attention"
+        elif any(m in text for m in ("已经完成", "做了哪些事", "完成记录")):
+            view = "completed"
+        page = await self._daily_agenda.list(
+            workspace_key=request.workspace_key, view=view, limit=50,
+            trace_id=request.workspace_key.trace_id,
+        )
+        if not page.items:
+            return {"answer": "\u5f53\u524d\u6ca1\u6709\u7b26\u5408\u6761\u4ef6\u7684\u65e5\u7a0b\u5b89\u6392\u3002", "status": "ok", "metadata": {"intent": "daily_agenda", "view": view}, "_deterministic": True}
+        lines = ["\u65e5\u7a0b\u6982\u89c8\uff1a", ""]
+        for item in page.items:
+            time_str = ""
+            if item.scheduled_for:
+                t = item.scheduled_for.isoformat()
+                time_str = f"{t} \u2014 "
+            elif item.due_at:
+                t = item.due_at.isoformat()
+                time_str = f"\u622a\u6b62 {t} \u2014 "
+            source_label = {"reminder": "\u63d0\u9192", "user_task": "\u4efb\u52a1", "work_log": "\u5de5\u4f5c\u8bb0\u5f55"}.get(item.source.value, item.source.value)
+            lines.append(f"{time_str}{item.title}  [{source_label} / {item.status}]")
+        summary = f"\u5171 {page.count} \u9879" + ("\uff0c\u663e\u793a\u90e8\u5206" if page.has_more else "")
+        return {"answer": "\n".join(lines) + f"\n\n({summary})", "status": "ok", "metadata": {"intent": "daily_agenda", **page.model_dump(mode="json")}, "_deterministic": True}
