@@ -18,8 +18,8 @@ def _run_agenda(args_str, tmp_path, extra_env=None):
         env.pop(k, None)
     if extra_env:
         env.update(extra_env)
-    venv_python = str(Path(__file__).parent.parent.parent / ".venv_312" / "Scripts" / "python.exe")
-    cmd = [venv_python, "-m", "cli", "agenda"] + args_str.split()
+    python_executable = sys.executable
+    cmd = [python_executable, "-m", "cli", "agenda"] + args_str.split()
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env=env,
                           encoding="utf-8", cwd=str(Path(__file__).parent.parent.parent))
     return proc

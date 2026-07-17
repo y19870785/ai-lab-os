@@ -1,4 +1,4 @@
-﻿"""AI-Lab CLI —— 命令行入口。"""
+"""AI-Lab CLI —— 命令行入口。"""
 import sys
 import asyncio
 from cli.commands import agenda_cmd, health_cmd, chat_cmd, run_cmd, inspect_cmd
@@ -20,7 +20,7 @@ COMMANDS = {
     "decide": decide_cmd.run,
     "ask": ask_cmd.run,
     "reminder-status": reminder_status_cmd.run,
-    "agenda": agenda_cmd.agenda,
+    "agenda": agenda_cmd.run,
     "reminders": reminders_cmd.run,
     "reminder-cancel": reminder_cancel_cmd.run,
     "reminder-reschedule": reminder_reschedule_cmd.run,

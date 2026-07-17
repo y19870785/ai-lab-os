@@ -4,6 +4,10 @@ from fastapi.testclient import TestClient
 from api.app import create_app
 from core.system import make_test_settings
 from tests.helpers.clock import MutableClock
+from applications.ceo_assistant.intent import IntentDecision, IntentEffect
+from applications.ceo_assistant.application import CEOAssistant
+from applications.ceo_assistant.intent import IntentDecision, IntentEffect
+from applications.ceo_assistant.application import CEOAssistant
 
 
 def _settings(path):
@@ -67,3 +71,39 @@ def test_sp_012_reminder_query_still_reminder_list(tmp_path):
         assert meta["intent"] == "reminder_list"
         assert meta["effect"] == "read"
         assert before == after
+
+
+def test_effect_contract_daily_agenda_accepts_read():
+    decision = IntentDecision(intent="daily_agenda", effect=IntentEffect.READ, confidence=1.0)
+    CEOAssistant._assert_effect_contract(decision)
+
+def test_effect_contract_daily_agenda_rejects_write():
+    decision = IntentDecision(intent="daily_agenda", effect=IntentEffect.WRITE, confidence=1.0)
+    try:
+        CEOAssistant._assert_effect_contract(decision)
+        rejected = False
+    except RuntimeError:
+        rejected = True
+    assert rejected, "daily_agenda + WRITE must be rejected"
+
+def test_effect_contract_reminder_list_still_read():
+    decision = IntentDecision(intent="reminder_list", effect=IntentEffect.READ, confidence=1.0)
+    CEOAssistant._assert_effect_contract(decision)
+
+
+def test_effect_contract_daily_agenda_accepts_read():
+    decision = IntentDecision(intent="daily_agenda", effect=IntentEffect.READ, confidence=1.0)
+    CEOAssistant._assert_effect_contract(decision)
+
+def test_effect_contract_daily_agenda_rejects_write():
+    decision = IntentDecision(intent="daily_agenda", effect=IntentEffect.WRITE, confidence=1.0)
+    try:
+        CEOAssistant._assert_effect_contract(decision)
+        rejected = False
+    except RuntimeError:
+        rejected = True
+    assert rejected, "daily_agenda + WRITE must be rejected"
+
+def test_effect_contract_reminder_list_still_read():
+    decision = IntentDecision(intent="reminder_list", effect=IntentEffect.READ, confidence=1.0)
+    CEOAssistant._assert_effect_contract(decision)

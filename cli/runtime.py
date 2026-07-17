@@ -120,3 +120,31 @@ async def reschedule_reminder(
         )
     finally:
         await system.shutdown()
+
+async def query_daily_agenda(
+    *, view: str = "today", window_hours=None, limit: int = 50, offset: int = 0
+):
+    """Query the Daily Agenda read model and always close the system."""
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        if system.daily_agenda is None:
+            raise FailureException(FailureInfo(
+                code="agenda.unavailable",
+                category=ErrorCategory.UNAVAILABLE,
+                message="Daily agenda is unavailable",
+                component="agenda.service",
+                operation="list",
+                retryable=False,
+            ))
+        return await system.daily_agenda.list(
+            workspace_key=None,
+            view=view,
+            window_hours=window_hours,
+            limit=limit,
+            offset=offset,
+            trace_id="cli",
+        )
+    finally:
+        await system.shutdown()

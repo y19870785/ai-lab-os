@@ -105,6 +105,7 @@ class CEOAssistant:
         allowed = {
             "reminder_list": {IntentEffect.READ},
             "reminder_detail": {IntentEffect.READ},
+            "daily_agenda": {IntentEffect.READ},
             "reminder_cancel": {IntentEffect.WRITE},
             "reminder_reschedule": {IntentEffect.WRITE},
             "work_log": {IntentEffect.WRITE},
