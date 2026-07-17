@@ -85,12 +85,12 @@ class DailyAgendaService:
 
     async def _reminder_today(self, wk, tid, ts, te):
         from core.reminders.inbox import ReminderInboxTimeScope
-        page = await self._reminder_inbox.list(workspace_key=wk, time_scope=ReminderInboxTimeScope.TODAY, limit=300, offset=0, trace_id=tid)
+        page = await self._reminder_inbox.list(workspace_key=wk, time_scope=ReminderInboxTimeScope.TODAY, limit=100, offset=0, trace_id=tid)
         return [_ri(it, _reminder_kind(it.status.value)) for it in page.items if it.status.value != "cancelled"]
 
     async def _reminder_actions(self, wk, tid, ws, we):
         from core.reminders.inbox import ReminderInboxStatus
-        page = await self._reminder_inbox.list(workspace_key=wk, statuses={ReminderInboxStatus.SCHEDULED, ReminderInboxStatus.RETRYING}, limit=300, offset=0, trace_id=tid)
+        page = await self._reminder_inbox.list(workspace_key=wk, statuses={ReminderInboxStatus.SCHEDULED, ReminderInboxStatus.RETRYING}, limit=100, offset=0, trace_id=tid)
         return [_ri(it, AgendaItemKind.ACTION) for it in page.items if it.scheduled_for and ws <= it.scheduled_for < we]
 
     async def _reminder_attention(self, wk, tid, _now):
@@ -104,7 +104,7 @@ class DailyAgendaService:
         return [_ri(it, AgendaItemKind.COMPLETED) for it in page.items if it.triggered_at and ts <= it.triggered_at < te]
 
     async def _reminder_all(self, wk, tid):
-        page = await self._reminder_inbox.list(workspace_key=wk, limit=300, offset=0, trace_id=tid)
+        page = await self._reminder_inbox.list(workspace_key=wk, limit=100, offset=0, trace_id=tid)
         return [_ri(it, _reminder_kind(it.status.value)) for it in page.items]
 
     async def _user_task_actions(self, wk, tid, ws, we, require_due):

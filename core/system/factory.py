@@ -338,14 +338,6 @@ async def create_system(
         admission=work_admission_gate,
     )
 
-    if reminder_inbox is not None:
-        daily_agenda = DailyAgendaService(
-            user_tasks=user_task_service,
-            reminder_inbox=reminder_inbox,
-            memory_manager=memory_manager,
-            timezone_name=settings.timezone_name,
-            clock=clock,
-        )
     application_registry.register(
         ceo_assistant.info,
         ceo_assistant.manifest,
