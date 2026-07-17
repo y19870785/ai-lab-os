@@ -8,7 +8,7 @@
 
 SP-011 Reminder Management and Inbox Experience Closure 已通过 PR #23 以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 合并，状态为 **APPROVED / MERGED / RECONCILED / ARCHIVED**。Composition Root-owned `ReminderManagementService` 已统一详情、取消、改期、workspace 校验、标题歧义与幂等语义，并加入 actionable pending Inbox、确定性响应分离和 CLI UTF-8 边界。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。
 
-SP-011 手工验收现已记录为：Reminder Core **PASSED**，Natural-language Reminder UX **CONDITIONALLY PASSED**。阻断发现是只读提醒问句可能创建 Work Log 写入。SP-012 为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged；RFC-022 与 ADR-046/047/048 均保持 Proposed。
+SP-011 手工验收现已记录为：Reminder Core **PASSED**，Natural-language Reminder UX **CONDITIONALLY PASSED**。阻断发现是只读提醒问句可能创建 Work Log 写入。SP-012 为 APPROVED / MERGED / RECONCILED / ARCHIVED；RFC-022 与 ADR-046/047/048 均保持 Proposed。
 
 SP-010 用户验收：**PASSED 7 / 7**；Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`。
 

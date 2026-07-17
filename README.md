@@ -167,4 +167,4 @@ AI-Lab/
 
 > **SP-009：APPROVED / MERGED / RECONCILED / ARCHIVED。** PR #19 以 Squash Merge 合入 `main`，merge commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`。受支持的自然语言提醒已接入真实 UserTask、Reminder、Scheduler Job、Occurrence 和站内状态查询，成为首个用户可验收的持久化产品切片。Task 的截止时间与 Reminder 调度仍是独立概念；仅支持今天/明天的确定性时间子集，外部通知、Inbox、Recurring Reminder、复杂日期和 Web UI 尚未实现。产品版本保持 `0.33.0`，未创建 Tag 或 Release。
 
-> **SP-012 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。** 候选实现将 Reminder 查询优先于 Work Log 写入，使用显式 `read/write/chat` effect，并为缺少目标及不支持时间提供中文可操作提示。SP-011 手工验收结论为 Reminder Core PASSED、自然语言 Reminder UX CONDITIONALLY PASSED；本候选尚未进入 main，产品版本仍为 `0.33.0`。
+> **SP-012 Intent Safety and Reminder Query UX** 已通过 PR #25 审查并以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。确定性 `read/write/chat` effect 合同、只读 Reminder 查询优先、显式 Work Log 写边界与中文可操作错误引导已进入 main。SP-011 手工验收结论为 Reminder Core PASSED、自然语言 Reminder UX CONDITIONALLY PASSED；SP-012 手工产品验收待执行。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。

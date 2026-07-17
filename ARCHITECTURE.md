@@ -10,7 +10,7 @@ SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge
 
 SP-010 Reminder Inbox 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root 持有唯一 `ReminderInboxService`，通过 SQLite 稳定分页、UserTask workspace metadata 与 ADR-040 聚合状态，为 API、CLI 和 CEO Assistant 提供同一只读列表边界。该跨 SQLite 聚合不是快照事务，深度稀疏过滤仍是性能观察点；它不扩展到通知投递或 UI。
 
-SP-012 当前仅为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。候选边界在 CEO Assistant 应用层引入 `IntentDecision` 的 `read/write/chat` effect：Reminder 查询先于 Work Log 写规则，CLI 将原始输入交给同一 canonical 决策，集中 Presenter 在不改变 FailureInfo 机器码的前提下提供中文操作提示。它不是 LLM 分类器或通用权限系统。
+**SP-012：APPROVED / MERGED / RECONCILED / ARCHIVED。** 已通过 PR #25 以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 main。引入不可变 `IntentDecision` 显式区分 `read/write/chat`，Reminder 查询先于 Work Log 写规则，CLI 将原始输入交给同一 canonical 决策，集中 `ReminderUserErrorPresenter` 在不改变 FailureInfo 机器码的前提下提供中文操作提示。不是 LLM 分类器或通用权限系统；手工产品验收待执行。RFC-022 已 Adopted，ADR-046/047/048 已 Accepted。
 
 SP-011 Reminder Management Closure 已通过 PR #23 以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root 持有唯一 `ReminderManagementService`，继续委托现有 `ReminderSchedulerBridge` Saga 完成取消和改期，不建立第二套持久化协调。API、CLI 与 CEO Assistant 共享 workspace 校验、终态规则、标题歧义、幂等和失败语义；确定性 Reminder 响应与 LLM Provider 装配分离。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。Reminder 与 Scheduler 仍是独立持久化边界，不声称跨数据库原子事务。
 

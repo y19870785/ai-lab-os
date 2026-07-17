@@ -4,7 +4,7 @@
 
 > SP-011 Reminder Management Closure 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root-owned `ReminderManagementService` 复用现有 Bridge Saga，并将确定性 Reminder 响应与 Provider 提示分离。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。跨数据库原子事务、外部通知、Recurring Reminder 与 Web UI 仍未实现。
 
-> SP-012 为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。候选实现仅收紧 CEO Assistant 与 CLI 的确定性意图边界：查询采用显式 `read` effect，写入要求明确命令或已发生动作，Reminder FailureInfo 由应用层集中呈现中文文案。RFC-022 与 ADR-046/047/048 均为 Proposed。
+> SP-012 为 APPROVED / MERGED / RECONCILED / ARCHIVED。候选实现仅收紧 CEO Assistant 与 CLI 的确定性意图边界：查询采用显式 `read` effect，写入要求明确命令或已发生动作，Reminder FailureInfo 由应用层集中呈现中文文案。RFC-022 与 ADR-046/047/048 均为 Proposed。
 
 ## 当前十层架构
 

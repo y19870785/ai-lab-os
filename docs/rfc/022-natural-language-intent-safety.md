@@ -1,6 +1,16 @@
 # RFC-022：Natural-Language Intent Safety
 
-状态：Proposed / SP-012 implementation candidate
+状态：Adopted
+
+**Adoption Record**
+
+| 字段 | 值 |
+|---|---|
+| SP | SP-012 |
+| PR | [#25](https://github.com/y19870785/ai-lab-os/pull/25) |
+| Approved Head | `ef9747a47648d382c89362e7265ba1eb3b17bf63` |
+| Merge Commit | `d550ab8757b50e4d12587d5e71a0058089bd3821` |
+| Merged At | `2026-07-17T10:12:19Z` |
 
 ## Problem Statement
 

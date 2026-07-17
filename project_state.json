@@ -2,11 +2,11 @@
   "project": "AI-Lab",
   "version": "v0.33.0",
   "current_version": "0.33.0",
-  "source_baseline": "SP-011 merge baseline: 5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
-  "main_commit": "5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
-  "latest_completed_sp": "SP-011",
-  "next_candidate_sp": "SP-012",
-  "git_branch": "fix/sp-012-intent-safety-reminder-query-ux",
+  "source_baseline": "SP-012 merge baseline: d550ab8757b50e4d12587d5e71a0058089bd3821",
+  "main_commit": "d550ab8757b50e4d12587d5e71a0058089bd3821",
+  "latest_completed_sp": "SP-012",
+  "next_candidate_sp": null,
+  "git_branch": "main",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
   "python_version": ">=3.11",
@@ -90,10 +90,10 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "Await ChatGPT review of the SP-012 Draft PR; do not merge",
+  "next_action": "SP-012 manual product acceptance pending; next task not selected",
   "freeze_date": "2026-07-14",
-  "current_work": "SP-012 implementation candidate; Draft PR; awaiting ChatGPT review; not merged",
-  "merge_baseline": "5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
+  "current_work": "None; SP-012 is archived and the next task is not selected",
+  "merge_baseline": "d550ab8757b50e4d12587d5e71a0058089bd3821",
   "sp_007": {
     "status": "archived",
     "pr": 14,
@@ -150,12 +150,17 @@
     "acceptance_finding": "Read-only reminder questions may create work-log writes"
   },
   "sp_012": {
-    "status": "implementation_candidate",
+    "status": "archived",
     "base_commit": "5df080ac4e33f7019d84ad11b421329dc8020e2c",
-    "branch": "fix/sp-012-intent-safety-reminder-query-ux",
-    "review": "awaiting_chatgpt_review",
-    "merge_status": "not_merged",
+    "pr": 25,
+    "approved_head": "ef9747a47648d382c89362e7265ba1eb3b17bf63",
+    "merge_commit": "d550ab8757b50e4d12587d5e71a0058089bd3821",
+    "merged_at": "2026-07-17T10:12:19Z",
+    "review": "approved",
+    "merge_status": "squash_merged",
+    "reconciled": true,
     "product_version": "0.33.0",
-    "tag_or_release": "none"
+    "tag_or_release": "none",
+    "manual_product_acceptance": "pending"
   }
 }
