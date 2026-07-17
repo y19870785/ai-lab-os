@@ -20,6 +20,7 @@ COMMANDS = {
     "decide": decide_cmd.run,
     "ask": ask_cmd.run,
     "reminder-status": reminder_status_cmd.run,
+    "agenda": agenda_cmd.agenda,
     "reminders": reminders_cmd.run,
     "reminder-cancel": reminder_cancel_cmd.run,
     "reminder-reschedule": reminder_reschedule_cmd.run,
