@@ -275,6 +275,15 @@ async def create_system(
     reminder_inbox = None
     reminder_management = None
     daily_agenda = None
+    if reminder_inbox is not None:
+        daily_agenda = DailyAgendaService(
+            user_tasks=user_task_service,
+            reminder_inbox=reminder_inbox,
+            memory_manager=memory_manager,
+            timezone_name=settings.timezone_name,
+            clock=clock,
+        )
+
     if reminder_service is not None:
         reminder_bridge = ReminderSchedulerBridge(
             reminder_service,
@@ -353,15 +362,6 @@ async def create_system(
         bus=event_bus,
         admission=work_admission_gate,
     )
-
-    if reminder_inbox is not None:
-        daily_agenda = DailyAgendaService(
-            user_tasks=user_task_service,
-            reminder_inbox=reminder_inbox,
-            memory_manager=memory_manager,
-            timezone_name=settings.timezone_name,
-            clock=clock,
-        )
 
     return SystemContainer(
         settings=settings,
