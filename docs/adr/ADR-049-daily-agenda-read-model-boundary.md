@@ -1,6 +1,6 @@
 # ADR-049：Daily Agenda Read Model Boundary
 
-Status: Proposed / SP-013 implementation candidate
+Status: Accepted
 
 ## Decision
 `DailyAgendaService` reads from existing ReminderInboxService, UserTaskService, and MemoryManager without introducing a new truth source or agenda-specific database.

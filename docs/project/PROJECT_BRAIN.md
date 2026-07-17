@@ -246,3 +246,25 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Governance: RFC-022 Adopted; ADR-046/047/048 Accepted.
 - SP-012 manual product acceptance: Pending.
 - Product version remains `0.33.0`; no `v0.34.0` Tag or GitHub Release exists.
+### SP-013: Daily Agenda Read Model
+- Status: APPROVED / MERGED / RECONCILED / AWAITING_MANUAL_ACCEPTANCE
+- PR: #27 (Squash Merge)
+- Approved head: 2fb683b853b854b23597f53c950cbf4923a68087
+- Merge commit: 67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1
+- Merged at: 2026-07-17T18:30:11Z
+- Product: unified read-only Daily Agenda (Reminder+UserTask+WorkLog) with today/next/attention/completed/all views
+- Entrypoints: GET /agenda, python -m cli agenda, CEO Assistant daily_agenda/read
+- Governance: RFC-023 Adopted; ADR-049/050/051 Accepted
+- Default suite: 1100 passed, 0 failed, 0 errors
+- Manual product acceptance: PENDING
+- Product version: 0.33.0; no Tag or Release
+### SP-013: Daily Agenda Read Model
+- Status: APPROVED / MERGED / RECONCILED / AWAITING_MANUAL_ACCEPTANCE
+- PR: #27 (Squash Merge)
+- Merge commit: 67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1
+- Merged at: 2026-07-17T18:30:11Z
+- Product: unified read-only Daily Agenda with today/next/attention/completed/all views
+- Entrypoints: GET /agenda, CLI, CEO Assistant daily_agenda/read
+- Governance: RFC-023 Adopted; ADR-049/050/051 Accepted
+- Default suite: 1100 passed, 0 failed, 0 errors
+- Manual product acceptance: PENDING

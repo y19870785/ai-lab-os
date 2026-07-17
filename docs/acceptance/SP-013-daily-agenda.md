@@ -2,6 +2,46 @@
 
 Status: SP-013 implementation candidate / Awaiting ChatGPT review / Not merged
 
+## Acceptance Status
+
+Automated acceptance:
+PASSED
+
+Code review:
+APPROVED
+
+Merge:
+COMPLETED
+
+Manual product acceptance:
+PENDING
+
+## Merge Info
+
+- PR: #27
+- Merge commit: 67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1
+- Merged at: 2026-07-17T18:30:11Z
+- Merge method: Squash Merge
+- Product version: 0.33.0
+- Tag: absent
+- Release: absent
+
+## Default Suite
+
+```
+python -m pytest -m "not real" -q
+
+1100 passed
+0 failed
+0 errors
+```
+
+## Real Provider Suite
+
+Not part of default merge gate.
+Local environment missing optional openai dependency.
+5 import-time errors.
+
 ## Environment
 - Mock Provider
 - Temporary data directory

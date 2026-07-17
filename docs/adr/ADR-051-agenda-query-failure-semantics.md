@@ -1,6 +1,6 @@
 # ADR-051：Agenda Query Failure Semantics
 
-Status: Proposed / SP-013 implementation candidate
+Status: Accepted
 
 ## Decision
 Each source (Reminder, UserTask, Work Log) is queried independently. If any source throws, `agenda.query_failed` is returned with `failed_source`, `source_code`, and `source_category` in the details. No partial results are returned.
