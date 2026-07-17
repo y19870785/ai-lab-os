@@ -201,7 +201,10 @@ class DailyAgendaService:
     async def _safe(source: str, fn, failures: list[str]):
         try:
             return await fn()
-        except Exception:
+        except Exception as exc:
+            from core.errors import FailureException
+            if isinstance(exc, FailureException):
+                raise
             failures.append(source)
             return []
 
