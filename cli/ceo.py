@@ -23,6 +23,7 @@ except Exception:
 from core.provider_mode import get_provider_info
 from core import __version__
 from core.system import create_system, load_system_settings
+from applications.ceo_assistant.intent import decide_intent
 
 
 HELP_TEXT = """
@@ -44,32 +45,8 @@ HELP_TEXT = """
 
 
 def _detect_intent(text: str) -> str:
-    """基于关键词规则识别用户意图。"""
-    text_lower = text.lower().strip()
-    if text_lower.startswith("/"):
-        return "command"
-
-    brief_kw = ["简报", "今日总结", "今天做了什么", "今天的工作", "今日概览", "daily brief", "工作概览"]
-    if any(kw in text_lower for kw in brief_kw):
-        return "brief"
-
-    decision_kw = ["决定", "决策", "选择", "采用", "确认使用", "不先做", "放弃"]
-    if any(kw in text_lower for kw in decision_kw):
-        return "decision"
-
-    task_kw = ["任务", "待办", "提醒我", "todo", "task", "截止", "cancel task"]
-    if any(kw in text_lower for kw in task_kw):
-        return "task"
-
-    knowledge_kw = ["什么是", "解释", "法规", "标准", "规定", "文档", "查询", "查找"]
-    if any(kw in text_lower for kw in knowledge_kw):
-        return "knowledge"
-
-    log_kw = ["记录", "今天", "刚才", "完成了", "确认了", "收到了", "会议", "见了"]
-    if any(kw in text_lower for kw in log_kw):
-        return "work_log"
-
-    return "chat"
+    """Expose the canonical deterministic decision for CLI compatibility tests."""
+    return "command" if text.lstrip().startswith("/") else decide_intent(text).intent
 
 
 async def _handle_command(runtime, cmd: str, args: str):
@@ -168,18 +145,10 @@ async def run_ceo():
                     print(result)
                 continue
 
-            # 意图路由
-            intent = _detect_intent(user_input)
             from applications.models import ApplicationRequest
-            prefix_map = {
-                "work_log": "记录: ", "task": "任务: ",
-                "decision": "决策: ", "knowledge": "知识: ",
-                "brief": "", "chat": "",
-            }
-            prefix = prefix_map.get(intent, "")
             req = ApplicationRequest(
                 application_name="ceo-assistant",
-                user_input=f"{prefix}{user_input}",
+                user_input=user_input,
             )
             try:
                 resp = await runtime.execute(req)

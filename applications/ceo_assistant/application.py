@@ -18,6 +18,12 @@ from typing import Any
 
 from applications.models import ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse
 from applications.config import ApplicationConfig
+from applications.ceo_assistant.intent import (
+    IntentDecision,
+    IntentEffect,
+    decide_intent,
+)
+from applications.ceo_assistant.reminder_errors import ReminderUserErrorPresenter
 from core.errors import (
     ErrorCategory,
     FailureException,
@@ -83,69 +89,26 @@ class CEOAssistant:
 
     # ---- 意图识别 ----
 
-    async def _detect_intent(self, user_input: str) -> dict[str, Any]:
-        """识别用户意图，决定走哪个处理器。
+    async def _detect_intent(self, user_input: str) -> IntentDecision:
+        """Return the deterministic decision used by every CEO Assistant entrypoint."""
+        return decide_intent(user_input)
 
-        使用规则 + LLM 混合策略：
-        1. 先做关键词规则匹配（快速路径）
-        2. 无法确定时使用 LLM 意图分类
-        3. 决策 > 任务 > 工作记录 优先级递减
-        """
-        text = user_input.lower().strip()
-
-        if "提醒" in text and text.startswith("取消"):
-            return {"intent": "reminder_cancel", "confidence": 1.0}
-        if "提醒" in text and any(marker in text for marker in ("改到", "延后到")):
-            return {"intent": "reminder_reschedule", "confidence": 1.0}
-        if text.startswith(("查看提醒", "查看这条提醒")) and not any(
-            marker in text for marker in ("我的提醒", "待触发", "待处理", "今天", "已触发", "失败")
-        ):
-            return {"intent": "reminder_detail", "confidence": 1.0}
-        if "提醒" in text and any(
-            marker in text for marker in ("查看", "接下来有什么")
-        ):
-            return {"intent": "reminder_list", "confidence": 1.0}
-
-        if any(marker in text for marker in ("提醒我", "记得", "别忘了")):
-            return {"intent": "task", "confidence": 1.0}
-        if text.startswith(("记录:", "记录：", "记录 ", "log:", "log ")):
-            return {"intent": "work_log", "confidence": 1.0}
-
-        # 规则匹配
-        intent = "chat"  # 默认聊天
-        confidence = 0.5
-
-        # 简报
-        brief_keywords = ["简报", "今日总结", "今天做了什么", "今天的工作", "今日概览", "daily brief", "工作概览"]
-        if any(kw in text for kw in brief_keywords):
-            intent = "brief"
-            confidence = 0.9
-
-        # 决策（必须在任务之前，因为两者关键词有重叠）
-        decision_keywords = ["决定", "决策", "选择", "采用", "确认使用", "不先做", "放弃"]
-        if any(kw in text for kw in decision_keywords):
-            intent = "decision"
-            confidence = 0.7
-
-        # 任务
-        task_keywords = ["任务", "待办", "提醒我", "todo", "task", "截止", "完成任务", "取消任务", "暂停"]
-        if any(kw in text for kw in task_keywords) and intent == "chat":
-            intent = "task"
-            confidence = 0.8
-
-        # 知识问答
-        knowledge_keywords = ["什么是", "解释", "法规", "标准", "规定", "文档", "查询", "查找", "怎么"]
-        if any(kw in text for kw in knowledge_keywords):
-            intent = "knowledge"
-            confidence = 0.7
-
-        # 工作记录
-        log_keywords = ["记录", "今天", "刚才", "完成了", "确认了", "收到了", "会议", "见了"]
-        if any(kw in text for kw in log_keywords) and intent == "chat":
-            intent = "work_log"
-            confidence = 0.7
-
-        return {"intent": intent, "confidence": confidence}
+    @staticmethod
+    def _assert_effect_contract(decision: IntentDecision) -> None:
+        allowed = {
+            "reminder_list": {IntentEffect.READ},
+            "reminder_detail": {IntentEffect.READ},
+            "reminder_cancel": {IntentEffect.WRITE},
+            "reminder_reschedule": {IntentEffect.WRITE},
+            "work_log": {IntentEffect.WRITE},
+            "decision": {IntentEffect.WRITE},
+            "brief": {IntentEffect.READ},
+            "knowledge": {IntentEffect.READ},
+            "task": {IntentEffect.READ, IntentEffect.WRITE},
+            "chat": {IntentEffect.CHAT},
+        }
+        if decision.effect not in allowed.get(decision.intent, set()):
+            raise RuntimeError("Intent effect contract is invalid")
 
     # ---- 主执行入口 ----
 
@@ -159,27 +122,28 @@ class CEOAssistant:
         t0 = time.time()
 
         try:
-            intent = await self._detect_intent(request.user_input)
+            decision = await self._detect_intent(request.user_input)
+            self._assert_effect_contract(decision)
             mode = request.metadata.get("provider_mode", self._detect_mode())
 
             result = None
-            if intent["intent"] == "work_log":
+            if decision.intent == "work_log":
                 result = await self._handle_work_log(request)
-            elif intent["intent"] == "reminder_list":
+            elif decision.intent == "reminder_list":
                 result = await self._handle_reminder_list(request)
-            elif intent["intent"] == "reminder_detail":
+            elif decision.intent == "reminder_detail":
                 result = await self._handle_reminder_detail(request)
-            elif intent["intent"] == "reminder_cancel":
+            elif decision.intent == "reminder_cancel":
                 result = await self._handle_reminder_cancel(request)
-            elif intent["intent"] == "reminder_reschedule":
+            elif decision.intent == "reminder_reschedule":
                 result = await self._handle_reminder_reschedule(request)
-            elif intent["intent"] == "task":
+            elif decision.intent == "task":
                 result = await self._handle_task(request)
-            elif intent["intent"] == "decision":
+            elif decision.intent == "decision":
                 result = await self._handle_decision(request)
-            elif intent["intent"] == "knowledge":
+            elif decision.intent == "knowledge":
                 result = await self._handle_knowledge_qa(request)
-            elif intent["intent"] == "brief":
+            elif decision.intent == "brief":
                 result = await self._handle_brief(request)
             else:
                 result = await self._handle_chat(request)
@@ -187,6 +151,9 @@ class CEOAssistant:
             answer = result.get("answer", "")
             if mode == "mock" and not result.get("_deterministic", False):
                 answer = f"[MOCK MODE] {answer}\n\n(Set OPENAI_API_KEY to use real LLM)"
+            metadata = dict(result.get("metadata", {}))
+            metadata.setdefault("intent", decision.intent)
+            metadata.setdefault("effect", decision.effect.value)
 
             return ApplicationResponse(
                 application_id=self.info.application_id,
@@ -197,10 +164,10 @@ class CEOAssistant:
                 latency_ms=(time.time() - t0) * 1000,
                 trace_id=request.workspace_key.trace_id,
                 mode=mode,
-                metadata=result.get("metadata", {}),
+                metadata=metadata,
             )
-        except FailureException:
-            raise
+        except FailureException as exc:
+            raise FailureException(ReminderUserErrorPresenter.present(exc.failure)) from exc
         except Exception as exc:
             failure = failure_from_exception(
                 exc,
@@ -350,7 +317,9 @@ class CEOAssistant:
         statuses = None
         time_scope = None
         view = None
-        if any(marker in text for marker in ("待触发", "待处理", "接下来有什么", "我的提醒")):
+        if any(marker in text for marker in (
+            "待触发", "待处理", "接下来有什么", "还有什么", "有什么要做", "我的提醒",
+        )):
             view = ReminderInboxView.PENDING
         elif "已触发" in text:
             statuses = {ReminderInboxStatus.TRIGGERED}
@@ -426,6 +395,10 @@ class CEOAssistant:
 
     async def _handle_reminder_detail(self, request: ApplicationRequest) -> dict[str, Any]:
         reminder_id, title_query = self._reminder_target(request.user_input)
+        if reminder_id is None and title_query is None:
+            raise FailureException(ReminderUserErrorPresenter.target_required(
+                action="查看", trace_id=request.workspace_key.trace_id,
+            ))
         view = await self._require_reminder_management(request).status(
             workspace_key=request.workspace_key,
             reminder_id=reminder_id,
@@ -444,6 +417,10 @@ class CEOAssistant:
 
     async def _handle_reminder_cancel(self, request: ApplicationRequest) -> dict[str, Any]:
         reminder_id, title_query = self._reminder_target(request.user_input)
+        if reminder_id is None and title_query is None:
+            raise FailureException(ReminderUserErrorPresenter.target_required(
+                action="取消", trace_id=request.workspace_key.trace_id,
+            ))
         result = await self._require_reminder_management(request).cancel(
             workspace_key=request.workspace_key,
             reminder_id=reminder_id,
@@ -463,9 +440,22 @@ class CEOAssistant:
         }
 
     async def _handle_reminder_reschedule(self, request: ApplicationRequest) -> dict[str, Any]:
-        marker = "延后到" if "延后到" in request.user_input else "改到"
-        target_text, time_text = request.user_input.split(marker, 1)
+        marker = next(
+            (candidate for candidate in ("延后到", "改到", "改期") if candidate in request.user_input),
+            None,
+        )
+        target_text, time_text = (
+            request.user_input.split(marker, 1) if marker else (request.user_input, "")
+        )
         reminder_id, title_query = self._reminder_target(target_text)
+        if reminder_id is None and title_query is None:
+            raise FailureException(ReminderUserErrorPresenter.target_required(
+                action="改期", trace_id=request.workspace_key.trace_id,
+            ))
+        if not time_text.strip():
+            raise FailureException(ReminderUserErrorPresenter.time_required(
+                trace_id=request.workspace_key.trace_id,
+            ))
         if self._task_intent_parser is None:
             raise FailureException(FailureInfo(
                 code="reminder.intent.not_configured",
