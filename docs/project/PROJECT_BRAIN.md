@@ -242,5 +242,7 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Blocking finding: read-only questions such as “今天都有什么事？” and “今天都有哪些提醒？” may create Work Log writes before LLM invocation.
 - SP-012 merged rule: read on ambiguity; write only on an explicit command or clear completed-action wording.
 - SP-012 merged response boundary: stable Reminder machine codes with centralized Chinese actionable guidance.
-- SP-012: APPROVED / MERGED / RECONCILED / ARCHIVED (PR #25, `d550ab8`).`n- Governance: RFC-022 Adopted; ADR-046/047/048 Accepted.`n- SP-012 manual product acceptance: Pending.
+- SP-012: APPROVED / MERGED / RECONCILED / ARCHIVED (PR #25, `d550ab8`).
+- Governance: RFC-022 Adopted; ADR-046/047/048 Accepted.
+- SP-012 manual product acceptance: Pending.
 - Product version remains `0.33.0`; no `v0.34.0` Tag or GitHub Release exists.
