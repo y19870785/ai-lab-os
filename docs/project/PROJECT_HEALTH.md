@@ -1,19 +1,19 @@
 ﻿# AI-Lab Project Health
 
-**Last Updated:** 2026-07-16
+**Last Updated:** 2026-07-17
 **Current Version:** v0.33.0
 
 ## Summary
 
-> SP-011 为 implementation candidate（Draft PR / Awaiting ChatGPT review / Not merged）。管理协调、pending Inbox、确定性响应与 CLI UTF-8 的候选验证不改变当前 main 健康基线。SP-010 用户验收为 PASSED 7 / 7，Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`。
+> SP-011 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。管理协调、pending Inbox、确定性响应与 CLI UTF-8 已进入 main；手工产品验收待执行。SP-010 用户验收为 PASSED 7 / 7，Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`。
 
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| SP-011 candidate tests | 1026 passed, 27 warnings in 58.15s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
-| RFCs | 23（含 RFC-021 Proposed candidate） |
-| ADRs | 48（含 ADR-043/044/045 Proposed candidates） |
-| Tests | 1026（SP-011 candidate Windows 本地验证记录） |
+| SP-011 pre-merge tests | 1026 passed, 27 warnings in 58.15s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
+| RFCs | 23（RFC-021 已 Adopted） |
+| ADRs | 48（ADR-043/044/045 已 Accepted） |
+| Tests | 1026（SP-011 合并前 Windows 本地验证记录） |
 | Test Pass Rate | 100% (1026 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
@@ -35,6 +35,25 @@
 | Coordination | Implemented / Disabled | 默认关闭；CEO Assistant 主链路未接入 |
 | Application / CEO Assistant | Integrated / Verified / Alpha | CLI、API 工作记录和持久化已验证；尚非生产级产品 |
 
+## SP-011 Verification Record
+
+以下均为合并前 Windows 本地 Python 3.12 验证记录，不是 GitHub Actions 或跨平台持续 CI 保证：
+
+- Full local tests: 1026 passed, 27 warnings, 0 failed, 0 errors
+- Reminder Core: 24 passed
+- API: 91 passed, 1 warning
+- CLI: 18 passed
+- CEO Assistant: 66 passed
+- Integration: 113 passed, 1 warning
+- compileall: PASS
+- API startup smoke: PASS
+- CLI startup smoke: PASS
+- Windows subprocess UTF-8 capture: PASS
+- Cancellation occurrence test: PASS
+- Reschedule restart/effectively-once test: PASS
+- Workspace and ambiguity tests: PASS
+- Deterministic response separation tests: PASS
+
 ## Freeze Info
 
 - Freeze Date: 2026-07-14
@@ -49,7 +68,7 @@
 - SP-005 Merge PR: #10（Squash Merge / APPROVED）
 - SP-005 Merge Baseline: `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`
 - SP-005 Merged At: `2026-07-15T14:03:32Z`
-- Current Work: 无；SP-010 已 APPROVED / MERGED / RECONCILED / ARCHIVED，下一任务尚未选择
+- Current Work: 无；SP-011 已 APPROVED / MERGED / RECONCILED / ARCHIVED，手工产品验收待执行，下一任务尚未选择
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).

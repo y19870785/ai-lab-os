@@ -13,7 +13,7 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 > **SP-010 Reminder Inbox** 已通过 PR #21 审查并以 Squash Merge 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。用户可通过 API、CLI 与确定性自然语言查询浏览持久化提醒；外部通知、Recurring Reminder 与 Web UI 仍未实现。产品版本保持 `0.33.0`，未创建新 Tag 或 Release。
 
-> **SP-011 Reminder Management Closure** 是 implementation candidate：统一管理服务为 API、CLI 与 CEO Assistant 提供详情、取消、改期、歧义解析和 workspace 校验；`view=pending` 表示 scheduled/retrying 且尚未到期；确定性 Reminder 响应不再附带 LLM/Mock 噪音；CLI 自主管理 UTF-8 输出边界。Draft PR / Awaiting ChatGPT review / Not merged。RFC-021 与 ADR-043/044/045 均为 Proposed，产品版本仍为 `0.33.0`。
+> **SP-011 Reminder Management Closure** 已通过 PR #23 审查并以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。统一管理服务为 API、CLI 与 CEO Assistant 提供详情、取消、改期、歧义解析和 workspace 校验；`view=pending` 表示未来 scheduled/retrying；确定性 Reminder 响应不附带 LLM/Mock 噪音；CLI 自主管理 UTF-8 输出边界。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release；手工产品验收待执行。
 
 ## 架构
 

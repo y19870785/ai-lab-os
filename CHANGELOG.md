@@ -1,14 +1,15 @@
 ﻿
 ## [Unreleased]
 
-### SP-011 Reminder Management Closure (implementation candidate)
+### SP-011 Reminder Management Closure
 - Added a shared Reminder management boundary for status, cancellation, rescheduling, workspace checks, and fail-closed title resolution.
 - Added actionable `view=pending`, CLI management commands, deterministic response separation, and UTF-8 CLI output handling.
 - Reused the existing Reminder/Scheduler Saga, including queryable partial failures and hashed reschedule idempotency metadata.
-- Added real Composition Root, FastAPI lifespan, SQLite restart, effectively-once, and subprocess UTF-8 candidate tests.
-- Windows local Python 3.12 candidate validation: `1026 passed, 27 warnings in 58.15s`; not a GitHub Actions or cross-platform CI result.
-- RFC-021 and ADR-043/044/045 remain Proposed.
-- Status: Draft PR / Awaiting ChatGPT review / Not merged.
+- Added real Composition Root, FastAPI lifespan, SQLite restart, effectively-once, and subprocess UTF-8 tests.
+- Windows local Python 3.12 pre-merge validation: `1026 passed, 27 warnings in 58.15s`; not a GitHub Actions or cross-platform CI result.
+- RFC-021 is Adopted; ADR-043/044/045 are Accepted.
+- Merged through PR #23 at `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` on 2026-07-17.
+- Status: APPROVED / MERGED / RECONCILED / ARCHIVED.
 - Product version remains `0.33.0`; no Tag or GitHub Release was created.
 
 ### SP-010 Reminder Inbox

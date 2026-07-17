@@ -6,18 +6,18 @@
 
 **SP-008:** merged into main through PR #16 (`1858d4991379058948559cc96e2672df44e42b67`)
 
-**SP-009:** merged into main through PR #19 (`b1274d066cbc01053144cba8d5654a5f8c8a21da`)
+**SP-009:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #19 (`b1274d066cbc01053144cba8d5654a5f8c8a21da`)
 
 **SP-010:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #21 (`af437afc32dcb17da68d600d6840ec94c8cbe681`)
 
-**SP-011:** implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+**SP-011:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #23 (`5c4b442b2b5c7f934ac381020ba8b310976d5d3a`)
 
-**Main Baseline:** `af437afc32dcb17da68d600d6840ec94c8cbe681`
+**Main Baseline:** `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`
 
 | Capability | Contract | Minimum AI-Lab baseline |
 |---|---|---|
 | Reminder Inbox | RFC-020 Adopted / ADR-041 and ADR-042 Accepted | Unreleased (`post-v0.33.0` main) |
-| Reminder Management | RFC-021 and ADR-043/044/045 Proposed | Candidate branch only; not released or merged |
+| Reminder Management | RFC-021 Adopted / ADR-043/044/045 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #23 |
 
 **Release Tag:** none
 

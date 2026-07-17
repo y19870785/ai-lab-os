@@ -1,8 +1,16 @@
 # RFC-021: Reminder Management Closure
 
-**Status:** Proposed / SP-011 implementation candidate
+**Status:** Adopted
 **Scope:** Reminder management, actionable inbox semantics, deterministic responses, and local CLI output
-**Merge status:** Draft PR / Awaiting ChatGPT review / Not merged
+**Merge status:** Implemented by SP-011 and merged through PR #23
+
+## Adoption Record
+
+- Implemented by SP-011
+- Merged via PR #23
+- Approved Head: `beb99115dd273a9fe55e86d21e65f714e7f7f52f`
+- Merge Commit: `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`
+- Adoption Date: 2026-07-17
 
 ## Context
 

@@ -10,11 +10,24 @@
 > SP-004 Merge PR：#8（Squash Merge / APPROVED）
 > SP-005 Status：Completed / Merged / Archived
 > SP-010 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
-> SP-011 Status：implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+> SP-011 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
 
 SP-010 Reminder Inbox 已通过 PR #21 以 Squash Merge 进入 `main`。列表查询复用 ADR-040 的持久化聚合状态，由 Composition Root 提供给 API、CLI 与 CEO Assistant；自然语言列表查询是只读操作。外部通知、Recurring Reminder、Web UI、用户身份与 RBAC 仍未实现。产品版本保持 `0.33.0`，无新 Tag 或 Release。
 
-SP-010 用户验收已 PASSED 7 / 7，Baseline 为 `0ad1f26ef1712f54f4bf478a70a46e0e50260950`。SP-011 候选在其上收口 Reminder 管理与入口体验：共享管理服务、pending Inbox、确定性响应分离和 CLI UTF-8。RFC-021 与 ADR-043/044/045 均为 Proposed；候选尚未合并，不得标记 Completed、Integrated 或 Verified。
+SP-010 用户验收已 PASSED 7 / 7，Baseline 为 `0ad1f26ef1712f54f4bf478a70a46e0e50260950`。SP-011 已通过 PR #23 以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 合并：共享管理服务、pending Inbox、确定性响应分离和 CLI UTF-8 已进入 main。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted；SP-011 手工产品验收待执行。
+
+### SP-011 永久产品事实
+
+- Reminder 支持创建、查找、详情、取消和改期；API、CLI 与 CEO Assistant 共享 `ReminderManagementService`。
+- 精确 Reminder ID 强制 workspace 归属校验；唯一标题可解析，歧义标题 fail closed。
+- 取消幂等；已取消提醒不触发，也不创建 ReminderOccurrence。
+- 改期复用现有 Scheduler Job；旧时间不触发，新时间 effectively once，且重启后保持。
+- failed Reminder 可通过改期恢复 scheduled；旧失败码保留在管理审计 metadata。
+- 改期幂等只保存 SHA-256 摘要；同键同目标复用，同键不同目标返回 `reminder.idempotency_conflict`。
+- Pending Inbox 仅含未来 scheduled/retrying；显式 cancelled + upcoming 查询仍可用。
+- 确定性 Reminder 响应不显示 Mock/LLM 配置提示；普通 Mock LLM Chat 合同不变。
+- CLI 仅在流支持时配置 UTF-8，不改变 Windows 系统编码。
+- Workspace 隔离仍是 metadata-based logical isolation；身份、RBAC、强多租户、跨数据库事务、Web UI、外部通知与 Recurring Reminder 均未实现。
 
 ## 项目使命
 

@@ -2,7 +2,7 @@
 
 > SP-010 Reminder Inbox 已通过 PR #21 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。`ReminderInboxService` 复用 ADR-040 聚合并由 Composition Root 统一持有；RFC-020 已 Adopted，ADR-041/042 已 Accepted。跨 SQLite 聚合不是快照事务。
 
-> SP-011 Reminder Management Closure 当前为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。候选边界增加 Composition Root-owned `ReminderManagementService`，复用现有 Bridge Saga，并将确定性 Reminder 响应与 Provider 提示分离。RFC-021 与 ADR-043/044/045 均为 Proposed。
+> SP-011 Reminder Management Closure 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root-owned `ReminderManagementService` 复用现有 Bridge Saga，并将确定性 Reminder 响应与 Provider 提示分离。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。跨数据库原子事务、外部通知、Recurring Reminder 与 Web UI 仍未实现。
 
 ## 当前十层架构
 
