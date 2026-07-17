@@ -62,7 +62,7 @@
 | ADR-031 | Scheduler Action Handler | Adopted |
 | ADR-032 | Reminder Effectively-Once Occurrence | Adopted |
 
-**总计：RFC 文件 22 篇（含历史编号重复），ADR 文件 45 篇（含历史编号重复）**
+**总计：RFC 文件 23 篇（含历史编号重复，RFC-021 为 Proposed），ADR 文件 48 篇（含历史编号重复，ADR-043/044/045 为 Proposed）**
 
 | ADR-033 | API Authentication Mechanism | Accepted | 2026-07-15 |
 | ADR-034 | CORS Allowlist Policy | Accepted | 2026-07-15 |
@@ -84,6 +84,11 @@
 | ADR-041 | Reminder Inbox Query Boundary | Accepted | 2026-07-16 |
 | ADR-042 | Reminder List Status Consistency | Accepted | 2026-07-16 |
 
+| RFC-021 | Reminder Management Closure | Proposed / SP-011 implementation candidate | 2026-07-17 |
+| ADR-043 | Reminder Management Coordination Boundary | Proposed / SP-011 implementation candidate | 2026-07-17 |
+| ADR-044 | Deterministic Response Provider Separation | Proposed / SP-011 implementation candidate | 2026-07-17 |
+| ADR-045 | Actionable Reminder Inbox Semantics | Proposed / SP-011 implementation candidate | 2026-07-17 |
+
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 
-> SP-007、SP-008、SP-009 与 SP-010 均为 APPROVED / MERGED / RECONCILED / ARCHIVED；下一任务尚未选择、无分支、无 PR、未启动。
+> SP-007、SP-008、SP-009 与 SP-010 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 是 Draft PR / Awaiting ChatGPT review / Not merged 的 implementation candidate。

@@ -10,11 +10,14 @@
 
 **SP-010:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #21 (`af437afc32dcb17da68d600d6840ec94c8cbe681`)
 
+**SP-011:** implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+
 **Main Baseline:** `af437afc32dcb17da68d600d6840ec94c8cbe681`
 
 | Capability | Contract | Minimum AI-Lab baseline |
 |---|---|---|
 | Reminder Inbox | RFC-020 Adopted / ADR-041 and ADR-042 Accepted | Unreleased (`post-v0.33.0` main) |
+| Reminder Management | RFC-021 and ADR-043/044/045 Proposed | Candidate branch only; not released or merged |
 
 **Release Tag:** none
 

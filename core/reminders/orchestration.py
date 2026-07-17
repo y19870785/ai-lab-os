@@ -43,6 +43,7 @@ class ReminderStatusView(BaseModel):
     triggered_at: datetime | None = None
     last_failure: FailureInfo | None = None
     retryable: bool = False
+    revision: int
 
 
 def aggregate_reminder_status(reminder, job, occurrence) -> str:
@@ -53,6 +54,11 @@ def aggregate_reminder_status(reminder, job, occurrence) -> str:
         occurrence and occurrence.status == ReminderOccurrenceStatus.TRIGGERED
     ):
         return "triggered"
+    if reminder.status in {
+        ReminderStatus.PENDING_CANCEL,
+        ReminderStatus.PENDING_RESCHEDULE,
+    } and reminder.last_failure is not None:
+        return "failed"
     if job and job.status == JobStatus.RETRYING:
         return "retrying"
     if reminder.status == ReminderStatus.FAILED or (job and job.status == JobStatus.FAILED):
@@ -82,6 +88,7 @@ def build_reminder_status_view(reminder, task, job, occurrence) -> ReminderStatu
         triggered_at=occurrence.triggered_at if occurrence else None,
         last_failure=failure,
         retryable=failure.retryable if failure else False,
+        revision=reminder.revision,
     )
 
 

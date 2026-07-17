@@ -24,6 +24,12 @@ from core.reminders.inbox import (
     ReminderInboxService,
     ReminderInboxStatus,
     ReminderInboxTimeScope,
+    ReminderInboxView,
+)
+from core.reminders.management import (
+    ReminderManagementResult,
+    ReminderManagementService,
+    ReminderResolution,
 )
 from core.reminders.service import ReminderService
 
@@ -37,6 +43,10 @@ __all__ = [
     "ReminderInboxService",
     "ReminderInboxStatus",
     "ReminderInboxTimeScope",
+    "ReminderInboxView",
+    "ReminderManagementResult",
+    "ReminderManagementService",
+    "ReminderResolution",
     "ReminderOccurrence",
     "ReminderOccurrenceStatus",
     "ReminderSchedulerBridge",

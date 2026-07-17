@@ -149,7 +149,7 @@ def test_running_reminder_job_reschedule_returns_409_without_state_change(tmp_pa
         })
         stored = client.get(f"/reminders/{created['id']}").json()
         assert response.status_code == 409
-        assert response.json()["code"] == "reminders.bridge.reschedule_failed"
+        assert response.json()["code"] == "reminder.rescheduling_failed"
         assert response.json()["retryable"] is False
         assert stored["status"] == "scheduled"
         assert stored["remind_at"] == created["remind_at"]

@@ -38,6 +38,7 @@ from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.reminders import (
     ReminderSchedulerBridge,
     ReminderInboxService,
+    ReminderManagementService,
     NaturalLanguageReminderOrchestrator,
     ReminderService,
     SQLiteReminderRepository,
@@ -76,6 +77,7 @@ class SystemContainer:
     reminder_bridge: ReminderSchedulerBridge | None
     reminder_orchestrator: NaturalLanguageReminderOrchestrator | None
     reminder_inbox: ReminderInboxService | None
+    reminder_management: ReminderManagementService | None
     clock: Clock
     coordination_runtime: AgentOrchestrator | None
     application_registry: ApplicationRegistry

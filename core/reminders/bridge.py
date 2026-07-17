@@ -181,6 +181,7 @@ class ReminderSchedulerBridge:
         timezone_name: str,
         expected_revision: int | None,
         trace_id: str,
+        management_metadata: dict[str, str] | None = None,
     ) -> Reminder:
         self._require_scheduler()
         current = await self._service.get(reminder_id, trace_id)
@@ -198,6 +199,7 @@ class ReminderSchedulerBridge:
             timezone_name=timezone_name,
             expected_revision=expected_revision,
             trace_id=trace_id,
+            management_metadata=management_metadata,
         )
         try:
             changed = False

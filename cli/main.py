@@ -5,6 +5,8 @@ from cli.commands import health_cmd, chat_cmd, run_cmd, inspect_cmd
 from cli.commands import brief_cmd, log_cmd, task_cmd, decide_cmd, ask_cmd
 from cli.commands import reminder_status_cmd
 from cli.commands import reminders_cmd
+from cli.commands import reminder_cancel_cmd, reminder_reschedule_cmd
+from core.errors import FailureException
 
 
 COMMANDS = {
@@ -19,11 +21,17 @@ COMMANDS = {
     "ask": ask_cmd.run,
     "reminder-status": reminder_status_cmd.run,
     "reminders": reminders_cmd.run,
+    "reminder-cancel": reminder_cancel_cmd.run,
+    "reminder-reschedule": reminder_reschedule_cmd.run,
     "ceo": "ceo",  # 特殊处理：交互式 CLI，不走单次命令模式
 }
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="replace")
     if len(sys.argv) < 2:
         print("AI-Lab CLI - CEO Assistant")
         print("=" * 40)
@@ -42,6 +50,8 @@ def main():
         print("  inspect      系统状态")
         print("  reminder-status <ID>  查询站内提醒状态")
         print("  reminders             查看站内提醒列表")
+        print("  reminder-cancel <ID>  取消提醒")
+        print("  reminder-reschedule <ID> --scheduled-for <ISO>  改期提醒")
         print()
         print("Examples:")
         print('  python -m cli brief')
@@ -63,10 +73,14 @@ def main():
         sys.exit(1)
 
     handler = COMMANDS[cmd]
-    if asyncio.iscoroutinefunction(handler):
-        asyncio.run(handler(args))
-    else:
-        handler(args)
+    try:
+        if asyncio.iscoroutinefunction(handler):
+            asyncio.run(handler(args))
+        else:
+            handler(args)
+    except FailureException as exc:
+        print(f"{exc.failure.code}: {exc.failure.message}", file=sys.stderr)
+        raise SystemExit(2) from None
 
 
 if __name__ == "__main__":

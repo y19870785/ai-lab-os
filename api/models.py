@@ -1,6 +1,6 @@
 ﻿"""API Models。"""
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Any
 
 from core.user_tasks import UserTaskPriority, UserTaskStatus
@@ -67,9 +67,25 @@ class ReminderCreateRequest(BaseModel):
 
 
 class ReminderUpdateRequest(BaseModel):
-    remind_at: datetime
+    scheduled_for: datetime | None = None
+    remind_at: datetime | None = None
     timezone: str
     revision: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def require_one_schedule(self):
+        if self.scheduled_for is None and self.remind_at is None:
+            raise ValueError("scheduled_for is required")
+        if self.scheduled_for is not None and self.remind_at is not None:
+            raise ValueError("scheduled_for and remind_at are mutually exclusive")
+        return self
+
+    @property
+    def target_time(self) -> datetime:
+        if self.scheduled_for is not None:
+            return self.scheduled_for
+        assert self.remind_at is not None
+        return self.remind_at
 
 
 class ReminderResponse(BaseModel):

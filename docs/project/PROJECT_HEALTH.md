@@ -5,14 +5,16 @@
 
 ## Summary
 
+> SP-011 为 implementation candidate（Draft PR / Awaiting ChatGPT review / Not merged）。管理协调、pending Inbox、确定性响应与 CLI UTF-8 的候选验证不改变当前 main 健康基线。SP-010 用户验收为 PASSED 7 / 7，Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`。
+
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| SP-010 pre-merge tests | 1013 passed, 27 warnings in 57.76s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
-| RFCs | 22 |
-| ADRs | 45 |
-| Tests | 1013（SP-010 合并前 Windows 本地验证历史记录） |
-| Test Pass Rate | 100% (1013 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
+| SP-011 candidate tests | 1026 passed, 27 warnings in 58.15s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
+| RFCs | 23（含 RFC-021 Proposed candidate） |
+| ADRs | 48（含 ADR-043/044/045 Proposed candidates） |
+| Tests | 1026（SP-011 candidate Windows 本地验证记录） |
+| Test Pass Rate | 100% (1026 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
 | Technical Debt (Open) | 7 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |

@@ -88,7 +88,8 @@ def test_reminder_inbox_status_filter_and_natural_language_query_are_read_only(t
         all_query = client.post("/chat", json={"user_input": "查看我的提醒"}).json()
         assert today_query["metadata"]["filter"]["time_scope"] == "today"
         assert failed_query["metadata"]["filter"]["statuses"] == ["failed"]
-        assert all_query["metadata"]["filter"]["statuses"] == []
+        assert all_query["metadata"]["filter"]["statuses"] == ["retrying", "scheduled"]
+        assert all_query["metadata"]["filter"]["view"] == "pending"
         assert client.get("/reminders").json()["count"] == before
 
         reminder = client.portal.call(
