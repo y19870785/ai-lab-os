@@ -204,8 +204,10 @@ class DailyAgendaService:
         except Exception as exc:
             from core.errors import FailureException
             if isinstance(exc, FailureException):
-                raise
-            failures.append(source)
+                f = exc.failure
+                failures.append({"source": source, "code": f.code, "category": f.category.value})
+            else:
+                failures.append(source)
             return []
 
 

@@ -17,7 +17,7 @@ def test_daily_agenda_integration_all_views_no_side_effects(tmp_path):
         base_counts = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])
         for view in ["today", "next", "attention", "completed", "all"]:
             resp = client.get(f"/agenda?view={view}")
-            assert resp.status_code in (200, 503)
+            assert resp.status_code == 200
             assert resp.json()["view"] == view
             after = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])
             assert base_counts == after
@@ -44,7 +44,19 @@ def test_sp_012_reminder_query_still_works(tmp_path):
         before = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])
         resp = client.post("/chat", json={"user_input": "今天都有什么事？"})
         after = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])
-        assert resp.status_code in (200, 503)
+        assert resp.status_code == 200
         assert resp.json()["metadata"]["intent"] == "reminder_list"
         assert resp.json()["metadata"]["effect"] == "read"
         assert before == after
+
+def test_reminder_baseline_then_agenda_same_context(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
+    with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
+        # Baseline: Reminder API should work
+        rem_resp = client.get("/reminders?limit=100")
+        assert rem_resp.status_code == 200, f"Reminder baseline failed: {rem_resp.json()}"
+        # Then Agenda should also work
+        ag_resp = client.get("/agenda")
+        body = ag_resp.json()
+        assert ag_resp.status_code == 200, f"Agenda failed after Reminder OK: {body}"
+        assert "view" in body

@@ -13,7 +13,7 @@ def test_agenda_default_today_utf8_json(tmp_path):
     clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         resp = client.get("/agenda")
-        assert resp.status_code in (200, 503)
+        assert resp.status_code == 200
         assert "application/json" in resp.headers["content-type"]
         assert "charset=utf-8" in resp.headers["content-type"].lower()
         body = resp.json()
@@ -29,7 +29,7 @@ def test_agenda_today_with_tasks_and_reminders(tmp_path):
         before = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])
         resp = client.get("/agenda")
         after = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])
-        assert resp.status_code in (200, 503)
+        assert resp.status_code == 200
         assert before == after
 
 
@@ -37,7 +37,7 @@ def test_agenda_view_next(tmp_path):
     clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         resp = client.get("/agenda?view=next&window_hours=3")
-        assert resp.status_code in (200, 503)
+        assert resp.status_code == 200
         assert resp.json()["view"] == "next"
 
 
