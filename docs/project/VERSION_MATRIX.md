@@ -10,6 +10,8 @@
 
 **SP-010:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #21 (`af437afc32dcb17da68d600d6840ec94c8cbe681`)
 
+**SP-012:** Unreleased implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
+
 **SP-011:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #23 (`5c4b442b2b5c7f934ac381020ba8b310976d5d3a`)
 
 **Main Baseline:** `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`
@@ -39,6 +41,7 @@
 | UserTask | 1.0 | Unreleased（post-v0.33.0 main） | DatabaseManager, EventBus |
 | Reminder Bridge | 1.0 | Unreleased（post-v0.33.0 main） | UserTask, Scheduler, DatabaseManager |
 | Natural-Language Reminder Closure | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, UserTask, Reminder Bridge, Scheduler |
+| Intent Safety and Reminder Query UX | Candidate | Unreleased（SP-012 branch only） | CEO Assistant, Reminder Inbox, FailureInfo |
 
 ## 升级说明
 
@@ -56,4 +59,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007、SP-008、SP-009 与 SP-010 均已 APPROVED / MERGED / RECONCILED / ARCHIVED 并进入 main，但尚未进入新的正式 Release。产品版本保持 `0.33.0`；Release Tag 与 GitHub Release 均为 none。下一任务尚未选择、无分支、无 PR、未启动。
+> SP-007 至 SP-011 均已 APPROVED / MERGED / RECONCILED / ARCHIVED 并进入 main，但尚未进入新的正式 Release。SP-012 仅为 Draft implementation candidate，未进入 main。产品版本保持 `0.33.0`；Release Tag 与 GitHub Release 均为 none。

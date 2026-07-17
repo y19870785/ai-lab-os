@@ -1,6 +1,14 @@
 ﻿
 ## [Unreleased]
 
+### SP-012 Intent Safety and Reminder Query UX (Implementation Candidate)
+- Added a proposed deterministic `read/write/chat` intent-effect contract and read-first Reminder query aliases.
+- Restricted Work Log creation to explicit commands or clear completed-action language.
+- Added proposed Chinese actionable presentation for missing targets and unsupported Reminder time expressions.
+- Added real FastAPI, Composition Root, SQLite, Reminder Inbox and Memory no-side-effect tests.
+- Status: Draft PR / Awaiting ChatGPT review / Not merged.
+- Product version remains `0.33.0`; no Tag or GitHub Release was created.
+
 ### SP-011 Reminder Management Closure
 - Added a shared Reminder management boundary for status, cancellation, rescheduling, workspace checks, and fail-closed title resolution.
 - Added actionable `view=pending`, CLI management commands, deterministic response separation, and UTF-8 CLI output handling.

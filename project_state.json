@@ -5,8 +5,8 @@
   "source_baseline": "SP-011 merge baseline: 5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
   "main_commit": "5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
   "latest_completed_sp": "SP-011",
-  "next_candidate_sp": null,
-  "git_branch": "main",
+  "next_candidate_sp": "SP-012",
+  "git_branch": "fix/sp-012-intent-safety-reminder-query-ux",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
   "python_version": ">=3.11",
@@ -90,9 +90,9 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "Next task not selected; no branch, no PR, not started",
+  "next_action": "Await ChatGPT review of the SP-012 Draft PR; do not merge",
   "freeze_date": "2026-07-14",
-  "current_work": "None; SP-011 is archived and the next task is not selected",
+  "current_work": "SP-012 implementation candidate; Draft PR; awaiting ChatGPT review; not merged",
   "merge_baseline": "5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
   "sp_007": {
     "status": "archived",
@@ -146,6 +146,16 @@
     "merge_status": "squash_merged",
     "product_version": "0.33.0",
     "tag_or_release": "none",
-    "manual_product_acceptance": "pending"
+    "manual_product_acceptance": "Reminder Core PASSED; Natural-language Reminder UX CONDITIONALLY PASSED",
+    "acceptance_finding": "Read-only reminder questions may create work-log writes"
+  },
+  "sp_012": {
+    "status": "implementation_candidate",
+    "base_commit": "5df080ac4e33f7019d84ad11b421329dc8020e2c",
+    "branch": "fix/sp-012-intent-safety-reminder-query-ux",
+    "review": "awaiting_chatgpt_review",
+    "merge_status": "not_merged",
+    "product_version": "0.33.0",
+    "tag_or_release": "none"
   }
 }

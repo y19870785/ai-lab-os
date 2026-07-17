@@ -5,7 +5,9 @@
 
 ## Summary
 
-> SP-011 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。管理协调、pending Inbox、确定性响应与 CLI UTF-8 已进入 main；手工产品验收待执行。SP-010 用户验收为 PASSED 7 / 7，Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`。
+> SP-011 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。管理协调、pending Inbox、确定性响应与 CLI UTF-8 已进入 main。手工验收为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED。SP-010 用户验收为 PASSED 7 / 7。
+
+> SP-011 手工验收：Reminder Core PASSED；Natural-language Reminder UX CONDITIONALLY PASSED。只读提醒问句误写 Work Log 是已确认产品问题。SP-012 当前为 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged；本地候选测试不构成 GitHub Actions 或跨平台 CI 保证。
 
 | Metric | Value |
 |---|---|
@@ -68,7 +70,7 @@
 - SP-005 Merge PR: #10（Squash Merge / APPROVED）
 - SP-005 Merge Baseline: `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`
 - SP-005 Merged At: `2026-07-15T14:03:32Z`
-- Current Work: 无；SP-011 已 APPROVED / MERGED / RECONCILED / ARCHIVED，手工产品验收待执行，下一任务尚未选择
+- Current Work: SP-012 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
