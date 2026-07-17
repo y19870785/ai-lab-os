@@ -3,10 +3,10 @@
   "version": "v0.33.0",
   "current_version": "0.33.0",
   "source_baseline": "SP-012 merge baseline: d550ab8757b50e4d12587d5e71a0058089bd3821",
-  "main_commit": "d550ab8757b50e4d12587d5e71a0058089bd3821",
+  "main_commit": "85b8798",
   "latest_completed_sp": "SP-012",
-  "next_candidate_sp": null,
-  "git_branch": "main",
+  "next_candidate_sp": "SP-013",
+  "git_branch": "feat/sp-013-daily-agenda-read-model",
   "development_status": "architecture_stabilization",
   "current_product": "CEO Assistant",
   "python_version": ">=3.11",
@@ -90,10 +90,10 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "SP-012 manual product acceptance pending; next task not selected",
+  "next_action": "Await ChatGPT review of SP-013 Draft PR; do not merge",
   "freeze_date": "2026-07-14",
-  "current_work": "None; SP-012 is archived and the next task is not selected",
-  "merge_baseline": "d550ab8757b50e4d12587d5e71a0058089bd3821",
+  "current_work": "SP-013 implementation candidate; Draft PR; awaiting ChatGPT review; not merged",
+  "merge_baseline": "85b8798",
   "sp_007": {
     "status": "archived",
     "pr": 14,
@@ -162,5 +162,14 @@
     "product_version": "0.33.0",
     "tag_or_release": "none",
     "manual_product_acceptance": "pending"
+  },
+  "sp_013": {
+    "status": "implementation_candidate",
+    "base_commit": "72c58c6cd90b86864e918e29685946a44be09b93",
+    "branch": "feat/sp-013-daily-agenda-read-model",
+    "review": "awaiting_chatgpt_review",
+    "merge_status": "not_merged",
+    "product_version": "0.33.0",
+    "tag_or_release": "none"
   }
 }
