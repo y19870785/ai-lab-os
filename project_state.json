@@ -1,9 +1,9 @@
-﻿{
+{
   "project": "AI-Lab",
   "version": "v0.33.0",
   "current_version": "0.33.0",
-  "source_baseline": "SP-012 merge baseline: d550ab8757b50e4d12587d5e71a0058089bd3821",
-  "main_commit": "85b8798",
+  "source_baseline": "SP-013 merge baseline: 67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1",
+  "main_commit": "67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1",
   "latest_completed_sp": "SP-012",
   "next_candidate_sp": "SP-014",
   "git_branch": "main",
@@ -90,10 +90,10 @@
     "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
     "Reminder external notification delivery is not implemented"
   ],
-  "next_action": "SP-013 merged; manual product acceptance pending; SP-013A reconciliation in progress",
+  "next_action": "SP-013 manual product acceptance pending; SP-013A reconciliation PR #28 in review; SP-014 blocked until SP-013 manual acceptance passes",
   "freeze_date": "2026-07-17",
   "current_work": "SP-013 merged; SP-013A post-merge reconciliation in progress; manual product acceptance pending",
-  "merge_baseline": "85b8798",
+  "merge_baseline": "67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1",
   "sp_007": {
     "status": "archived",
     "pr": 14,
@@ -164,6 +164,16 @@
     "manual_product_acceptance": "pending"
   },
   "sp_013": {
-    "status": "merged","pr": 27,"approved_head": "2fb683b853b854b23597f53c950cbf4923a68087","merge_commit": "67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1","merged_at": "2026-07-17T18:30:11Z","review": "approved","merge_status": "squash_merged","product_version": "0.33.0","tag_or_release": "none","manual_product_acceptance": "pending"
-  }
+    "status": "merged",
+    "pr": 27,
+    "approved_head": "2fb683b853b854b23597f53c950cbf4923a68087",
+    "merge_commit": "67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1",
+    "merged_at": "2026-07-17T18:30:11Z",
+    "review": "approved",
+    "merge_status": "squash_merged",
+    "product_version": "0.33.0",
+    "tag_or_release": "none",
+    "manual_product_acceptance": "pending"
+  },
+  "latest_merged_sp": "SP-013"
 }
