@@ -67,11 +67,6 @@ class CEOAssistant:
         self._reminder_inbox = reminder_inbox
         self._reminder_management = reminder_management
         self._daily_agenda = daily_agenda
-
-    @property
-    def daily_agenda(self):
-        """The injected DailyAgendaService instance, or None."""
-        return self._daily_agenda
         self._task_intent_parser = task_intent_parser
         self._config = config or ApplicationConfig()
         self._bus = bus
@@ -93,6 +88,11 @@ class CEOAssistant:
             required_providers=["openai", "chroma"],
             required_permissions=["memory:read", "memory:write", "knowledge:read", "knowledge:write"],
         )
+
+    @property
+    def daily_agenda(self):
+        """The injected DailyAgendaService instance, or None."""
+        return self._daily_agenda
 
     # ---- 意图识别 ----
 
