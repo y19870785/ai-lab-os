@@ -1,7 +1,15 @@
 # ADR-043: Reminder Management Coordination Boundary
 
-**Status:** Proposed / SP-011 implementation candidate
+**Status:** Accepted
 **Date:** 2026-07-17
+
+## Acceptance Record
+
+- Accepted through SP-011
+- PR #23
+- Approved Head: `beb99115dd273a9fe55e86d21e65f714e7f7f52f`
+- Merge Commit: `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`
+- Accepted Date: 2026-07-17
 
 ## Context
 

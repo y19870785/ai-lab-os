@@ -1,5 +1,8 @@
 # SP-011 Reminder Management 手工验收
 
+**Implementation status:** Merged through PR #23.
+**Manual product acceptance:** Pending.
+
 本验收使用本地 Mock Provider、真实 FastAPI lifespan、真实 Composition Root、真实 SQLite 与 Scheduler。它不会调用真实 LLM，也不会修改系统编码。
 
 ## 1. PowerShell 环境
