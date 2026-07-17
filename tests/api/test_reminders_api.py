@@ -1,6 +1,7 @@
-import asyncio
+﻿import asyncio
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
+from core.time_utils import parse_iso_timestamp
 
 from fastapi.testclient import TestClient
 
@@ -133,7 +134,7 @@ def test_running_reminder_job_reschedule_returns_409_without_state_change(tmp_pa
         }).json()
         system = client.app.state.system
         job = asyncio.run(system.scheduler_runtime.get_job(created["scheduler_job_id"]))
-        claim_now = datetime.fromisoformat(created["remind_at"]) + timedelta(seconds=1)
+        claim_now = parse_iso_timestamp(created["remind_at"]) + timedelta(seconds=1)
         asyncio.run(system.scheduler_runtime._persistence.claim_job(
             job.info.id,
             now=claim_now,

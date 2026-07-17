@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta, timezone
+from core.time_utils import parse_iso_timestamp
 
 from fastapi.testclient import TestClient
 
@@ -50,7 +51,7 @@ def test_cancel_and_reschedule_survive_restart_and_trigger_effectively_once(tmp_
         )
         assert cancel_response.status_code == patch_response.status_code == 200
         assert patch_response.json()["scheduler_job_id"] == rescheduled["scheduler_job_id"]
-        assert datetime.fromisoformat(rescheduled["scheduled_for"]) == old_due
+        assert parse_iso_timestamp(rescheduled["scheduled_for"]) == old_due
 
     with TestClient(create_app(settings, clock=clock)) as restarted:
         cancel_status = restarted.get(
@@ -60,7 +61,7 @@ def test_cancel_and_reschedule_survive_restart_and_trigger_effectively_once(tmp_
             f"/reminders/{rescheduled['reminder_id']}/status"
         ).json()
         assert cancel_status["status"] == "cancelled"
-        assert datetime.fromisoformat(changed_status["scheduled_for"]) == new_due
+        assert parse_iso_timestamp(changed_status["scheduled_for"]) == new_due
 
         clock.advance(timedelta(hours=1, minutes=30))
         restarted.portal.call(_tick_and_settle, restarted.app.state.system)
