@@ -40,6 +40,12 @@ def test_intent_work_log():
     assert _detect_intent("今天见了张经理讨论蜂蜡方案") == "work_log"
 
 
+def test_reminder_queries_do_not_become_work_logs():
+    from cli.ceo import _detect_intent
+    for text in ["今天都有什么事？", "今天都有哪些提醒？", "我今天有什么要做的？"]:
+        assert _detect_intent(text) == "reminder_list"
+
+
 def test_intent_command():
     from cli.ceo import _detect_intent
     assert _detect_intent("/help") == "command"

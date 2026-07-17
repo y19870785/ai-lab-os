@@ -13,7 +13,7 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 > **SP-010 Reminder Inbox** 已通过 PR #21 审查并以 Squash Merge 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。用户可通过 API、CLI 与确定性自然语言查询浏览持久化提醒；外部通知、Recurring Reminder 与 Web UI 仍未实现。产品版本保持 `0.33.0`，未创建新 Tag 或 Release。
 
-> **SP-011 Reminder Management Closure** 已通过 PR #23 审查并以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。统一管理服务为 API、CLI 与 CEO Assistant 提供详情、取消、改期、歧义解析和 workspace 校验；`view=pending` 表示未来 scheduled/retrying；确定性 Reminder 响应不附带 LLM/Mock 噪音；CLI 自主管理 UTF-8 输出边界。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release；手工产品验收待执行。
+> **SP-011 Reminder Management Closure** 已通过 PR #23 审查并以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。统一管理服务为 API、CLI 与 CEO Assistant 提供详情、取消、改期、歧义解析和 workspace 校验；`view=pending` 表示未来 scheduled/retrying；确定性 Reminder 响应不附带 LLM/Mock 噪音；CLI 自主管理 UTF-8 输出边界。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED。
 
 ## 架构
 
@@ -166,3 +166,5 @@ AI-Lab/
 > SP-008 合并前 Windows 本地 Python 3.12 验证：`977 passed, 27 warnings in 49.17s`，零失败、零错误；该结果是历史本地记录，不是 GitHub Actions 或跨平台 CI 健康保证。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
 
 > **SP-009：APPROVED / MERGED / RECONCILED / ARCHIVED。** PR #19 以 Squash Merge 合入 `main`，merge commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`。受支持的自然语言提醒已接入真实 UserTask、Reminder、Scheduler Job、Occurrence 和站内状态查询，成为首个用户可验收的持久化产品切片。Task 的截止时间与 Reminder 调度仍是独立概念；仅支持今天/明天的确定性时间子集，外部通知、Inbox、Recurring Reminder、复杂日期和 Web UI 尚未实现。产品版本保持 `0.33.0`，未创建 Tag 或 Release。
+
+> **SP-012 implementation candidate / Draft PR / Awaiting ChatGPT review / Not merged。** 候选实现将 Reminder 查询优先于 Work Log 写入，使用显式 `read/write/chat` effect，并为缺少目标及不支持时间提供中文可操作提示。SP-011 手工验收结论为 Reminder Core PASSED、自然语言 Reminder UX CONDITIONALLY PASSED；本候选尚未进入 main，产品版本仍为 `0.33.0`。
