@@ -1,6 +1,6 @@
 # RFC-023：Daily Agenda Read Model
 
-Status: Proposed / SP-013 implementation candidate
+Status: Accepted
 
 ## Problem
 Users need a unified view of today's tasks, reminders, and completed work without querying multiple endpoints.
