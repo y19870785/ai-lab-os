@@ -5,6 +5,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from core.errors import ErrorCategory, FailureInfo
 from core.memory.models import MemoryQuery, MemoryType
@@ -135,6 +136,8 @@ async def _seed_workspace_agenda(path):
     await system.start()
     try:
         now = datetime.now(timezone.utc).replace(microsecond=0)
+        business_timezone = ZoneInfo("Asia/Shanghai")
+        business_date = now.astimezone(business_timezone).date()
 
         async def task(title, *, due_at=None, workspace="default"):
             return await system.user_task_service.create(
@@ -187,7 +190,7 @@ async def _seed_workspace_agenda(path):
             MemoryType.EPISODIC,
             {
                 "type": "work_log",
-                "date": now.astimezone().date().isoformat(),
+                "date": business_date.isoformat(),
                 "subject": "today log",
                 "metadata": {"workspace_id": "default"},
             },
@@ -196,7 +199,7 @@ async def _seed_workspace_agenda(path):
             MemoryType.EPISODIC,
             {
                 "type": "work_log",
-                "date": (now.astimezone().date() - timedelta(days=1)).isoformat(),
+                "date": (business_date - timedelta(days=1)).isoformat(),
                 "subject": "yesterday log",
                 "metadata": {"workspace_id": "default"},
             },
@@ -205,7 +208,7 @@ async def _seed_workspace_agenda(path):
             MemoryType.EPISODIC,
             {
                 "type": "work_log",
-                "date": now.astimezone().date().isoformat(),
+                "date": business_date.isoformat(),
                 "subject": "foreign log",
                 "metadata": {"workspace_id": "foreign"},
             },
