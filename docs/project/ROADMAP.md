@@ -4,6 +4,8 @@
 
 ## Latest Archived Work
 
+SP-014 Unified Inbox：APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED。PR #32 与 SP-014B PR #33 已进入 `main`，ACC-014 A～L 全部 PASSED。SP-015 仅为 UNBLOCKED_FOR_PLANNING / NOT_STARTED。
+
 SP-013 Daily Agenda：APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。Feature、post-merge reconciliation 与 SP-013B CLI workspace 修复均已进入 `main`；A～H 隔离验收全部 PASSED。CI-001 已建立 GitHub Pull Request / `main` push / manual Quality Gate。
 
 SP-010 Reminder Inbox and User-Friendly Local Access：APPROVED / MERGED / RECONCILED / ARCHIVED。PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，后续手工产品验收已 PASSED 7 / 7。
@@ -27,14 +29,16 @@ SP-010 后续用户验收已 PASSED 7 / 7（Baseline `0ad1f26ef1712f54f4bf478a70
 | SP-011 | Unreleased（post-v0.33.0 main） | 2026-07-17 | Reminder 管理、pending Inbox、确定性响应分离与 CLI UTF-8；PR #23 已合并，手工验收为 Core PASSED / NL UX CONDITIONALLY PASSED |
 | SP-012 | Unreleased（post-v0.33.0 main） | 2026-07-17 | Intent Safety 与 Reminder Query UX；PR #25 已合并，查询兼容性由 SP-013 场景 H 覆盖 |
 | SP-013 | Unreleased（post-v0.33.0 main） | 2026-07-19 | Daily Agenda read model；APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED，SP-013B 修复已通过 PR #29 合并 |
+| SP-014 | Unreleased（post-v0.33.0 main） | 2026-07-19 | Unified Inbox、Capture-to-Action、workspace 隔离与持久化 resolution claim；PR #32 已合并，ACC-014 PASSED / FINAL |
+| SP-014B | Unreleased（post-v0.33.0 main） | 2026-07-19 | 明确 period 下的中文小时一至十二兼容；PR #33 已合并并验证 |
 
 ## Current
 
 | Status | Action |
 |---|---|
-| **BASELINE** | post-v0.33.0 main — `23b54be4bd3030c564c2e1a0325eaf36199357fe` |
-| **CURRENT** | SP-013 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED |
-| **NEXT** | SP-014 UNBLOCKED_FOR_PLANNING；任务书未定义，未启动实现 |
+| **BASELINE** | post-v0.33.0 main — `22f85db16a43e7d09a903859a26ac6a310370d81` |
+| **CURRENT** | SP-014 archived；SP-014B archived；ACC-014 PASSED / FINAL |
+| **NEXT** | SP-015 UNBLOCKED_FOR_PLANNING / NOT_STARTED；任务书未定义，未启动实现 |
 | **LIMITS** | 通知渠道、Recurring Reminder、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
 
 ## Future (Tentative)

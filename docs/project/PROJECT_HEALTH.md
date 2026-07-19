@@ -5,9 +5,11 @@
 
 ## Summary
 
+> SP-014 Unified Inbox 与 SP-014B 中文小时兼容修复已进入 `main`，ACC-014 A～L 全部 PASSED。当前 main 为 `22f85db16a43e7d09a903859a26ac6a310370d81`；SP-015 为 UNBLOCKED_FOR_PLANNING / NOT_STARTED。
+
 > SP-013 Daily Agenda：**APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED**。A～H 隔离 Mock 验收全部 PASSED；SP-013B CLI workspace 修复已通过 PR #29 合入 `main`。SP-012 的 `reminder_list/read` 查询兼容性由 SP-013 场景 H 实际覆盖，且查询无写入副作用。
 
-> CI-001 已通过 PR #30 合并。GitHub Quality Gate 使用 Python 3.12；Ubuntu 当前结果为 `1096 passed, 6 skipped, 27 warnings`。Ruff 只检查本次变更的 Python 文件，pytest 排除 `tests/real`。CI-002 与 QUALITY-001 仍为未解决债务。
+> CI-001 已通过 PR #30 合并。GitHub Quality Gate 使用 Python 3.12；当前 main run `29690136483` 为 `1154 passed, 6 skipped, 27 warnings`。Ruff 只检查本次变更的 Python 文件，pytest 排除 `tests/real`。CI-002 与 QUALITY-001 仍为未解决债务。
 
 > SP-011 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。管理协调、pending Inbox、确定性响应与 CLI UTF-8 已进入 main。手工验收为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED。SP-010 用户验收为 PASSED 7 / 7。
 
@@ -16,10 +18,10 @@
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| GitHub Ubuntu gate | 1096 passed, 6 skipped, 27 warnings（Python 3.12；`tests/real` excluded） |
+| GitHub Ubuntu gate | 1154 passed, 6 skipped, 27 warnings（run 29690136483；Python 3.12；`tests/real` excluded） |
 | Windows local gate | 1102 passed, 5 deselected（marker-filter baseline）；SP-013C explicit-ignore run: 1102 passed, 27 warnings |
-| RFCs | 25 files（RFC-023 Accepted） |
-| ADRs | 54 files（ADR-049/050/051 Accepted） |
+| RFCs | 25 files excluding template（RFC-024 Accepted） |
+| ADRs | 55 files excluding template（ADR-052/053 Accepted） |
 | Test Gate | GitHub Quality Gate SUCCESS；平台适配项单独 skip/deselect |
 | Ruff Gate | Changed Python files only；不是全库 Ruff 清零 |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
@@ -39,6 +41,7 @@
 | Knowledge | Implemented / Disabled | 默认不启动；Reindex、Chunk Persistence、Citation 和真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | Registry/Executor 和低风险工具已接入；自动 Tool Calling 与完整 MCP 产品闭环未完成 |
 | Scheduler / Reminder | Integrated / Verified / Disabled by default | Inbox、CAS claim、Occurrence 幂等与 Saga 已合并；通知渠道未实现 |
+| Unified Inbox | Integrated / Verified | SP-014 Capture-to-Action、workspace 隔离与跨进程 resolution claim 已通过 ACC-014 |
 | Coordination | Implemented / Disabled | 默认关闭；CEO Assistant 主链路未接入 |
 | Application / CEO Assistant | Integrated / Verified / Alpha | CLI、API 工作记录和持久化已验证；尚非生产级产品 |
 
@@ -75,7 +78,7 @@
 - SP-005 Merge PR: #10（Squash Merge / APPROVED）
 - SP-005 Merge Baseline: `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`
 - SP-005 Merged At: `2026-07-15T14:03:32Z`
-- Current Work: SP-013 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED；SP-014 UNBLOCKED_FOR_PLANNING（未启动）
+- Current Work: SP-014 与 SP-014B 已对账封存；ACC-014 PASSED / FINAL；SP-015 UNBLOCKED_FOR_PLANNING / NOT_STARTED
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).

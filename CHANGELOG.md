@@ -1,12 +1,20 @@
 ﻿
 ## [Unreleased]
 
+### SP-014 Unified Inbox and Governance Reconciliation
+- Merged Unified Inbox and Capture-to-Action through PR #32 at `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
+- Added explicit conversion to UserTask, Reminder, Work Log, Note and Dismiss through API, CLI and CEO Assistant using the canonical Composition Root.
+- Verified workspace isolation, persistent cross-process resolution claims, idempotency, competing resolutions, restart persistence and crash recovery.
+- ACC-014 A～L passed; SP-014 is APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED.
+- Product version remains `0.33.0`; no Tag or Release was created, and SP-015 was not started.
+
 ### SP-014B Chinese Numeral Reminder Time Compatibility
 - Extended the deterministic Reminder parser to accept Chinese hour numerals `一` through `十二` when an explicit `上午/下午/晚上` period is present.
 - Reused the existing period conversion, minute parsing, UTC conversion, past-time validation, title extraction, and FailureInfo path.
 - Added parser, intent-routing, and real `/chat` integration coverage for ACC-014 scenario K, including idempotency and Inbox isolation.
 - Kept unsupported dates, relative times, fuzzy suffixes, Chinese minute numerals, recurring reminders, and LLM parsing out of scope.
-- ACC-014 remains at its recorded FAILED result until independent acceptance is rerun; the product version remains `0.33.0`.
+- Merged through PR #33 at `22f85db16a43e7d09a903859a26ac6a310370d81`; ACC-014 scenario K and the complete API security scenario L passed on the merged main baseline.
+- Status: APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED. Product version remains `0.33.0`.
 
 ### SP-012 Intent Safety and Reminder Query UX
 - Added a deterministic `read/write/chat` intent-effect contract and read-first Reminder query aliases.

@@ -1,127 +1,73 @@
 # SP-014 Unified Inbox 手工验收
 
-Status: DRAFT / IMPLEMENTATION_CANDIDATE
+Status: PASSED / FINAL
 
-本文件定义验收步骤，不预先声明任何场景已通过。所有 PASSED 结论必须来自实际执行与可复核证据。
+Manual Product Acceptance = PASSED
 
-## 环境
+## 验收基线
 
-```powershell
-$env:AI_LAB_DATA_DIR = "$PWD\data\sp014-manual-acceptance"
-$env:AI_LAB_SQLITE_DIR = "$env:AI_LAB_DATA_DIR\sqlite"
-$env:AI_LAB_PROVIDER_MODE = "mock"
-$env:AI_LAB_ENABLE_REMINDERS = "true"
-$env:AI_LAB_ENABLE_SCHEDULER = "true"
-$env:AI_LAB_TIMEZONE = "Asia/Shanghai"
-$env:AI_LAB_API_AUTH_ENABLED = "false"
-$env:PYTHONIOENCODING = "utf-8"
-python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
-```
+- SP-014：PR #32，Squash Commit `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`
+- SP-014B：PR #33，Squash Commit `22f85db16a43e7d09a903859a26ac6a310370d81`
+- 合并后 main Quality Gate：run `29690136483`，Ruff SUCCESS，pytest (non-real) SUCCESS
+- pytest：`1154 passed, 6 skipped, 27 warnings`
+- Provider：隔离 mock；未配置或调用真实模型密钥
+- Workspace：canonical default workspace，并包含显式跨 workspace 隔离验证
+- 本地原始 Evidence 不提交 GitHub；本文件仅保留可审查的验收事实
 
-不得配置或调用真实模型密钥。每个 read 场景执行前后记录 InboxItem、UserTask、Reminder、Work Log 的数量和 ID 集合。
+## 最终场景状态
 
-## A — Capture
+| 场景 | 结果 | 最终验证事实 |
+|---|---|---|
+| A — Capture | PASSED | CEO Assistant 明确 capture 创建一条 pending InboxItem，不创建 Task、Reminder 或 Work Log，确定性响应无 Mock/API Key 噪音 |
+| B — List / Show | PASSED | CEO Assistant、CLI 与 API 读取同一 pending 状态；read 前后业务对象 ID 集合不变 |
+| C — Resolve to UserTask | PASSED | 创建一个真实 UserTask，Inbox 记录目标 ID；重复解析稳定冲突且不重复创建；Daily Agenda 可见目标 |
+| D — Resolve to Reminder | PASSED | 复用正式 Reminder orchestration 创建 backing UserTask、Reminder 与 Scheduler Job；重复解析不复制链路 |
+| E — Resolve to Work Log | PASSED | 创建一个真实 Work Log，内容与来源 metadata 正确；重复解析不复制目标 |
+| F — Note / Dismiss | PASSED | Note 以空目标完成解析；Dismiss 保留原记录且不创建外部目标 |
+| G — Restart persistence | PASSED | 重启后 Inbox、claim、目标 ID、状态、revision 与解析关系保持；重复解析仍稳定冲突 |
+| H — Workspace isolation | PASSED | 其他 workspace 无法 list/get/resolve/dismiss；不创建 claim 或目标对象 |
+| I — Different-type race | PASSED | 独立容器竞争解析同一 Item 时只有 claim 类型可创建目标，无孤儿目标，失败方得到稳定 claim 冲突信息 |
+| J — Same-type race / crash recovery | PASSED | 同类型竞争最多一个目标；从 `claimed` 与 `target_created` 中断点均可恢复并完成同一 Saga |
+| K — Existing intent compatibility | PASSED | 中文小时 Reminder 输入及其余五条既有输入保持原 intent/effect 与副作用合同，不漂移到 Inbox |
+| L — API security / error semantics | PASSED | Bearer auth、CORS allowlist、400/403/404/409、workspace 边界与 FailureInfo 脱敏合同全部通过 |
 
-输入 CEO Assistant：
+ACC-014：A～L 全部 PASSED，正式最终结论为 **PASSED / FINAL**。
 
-```text
-记一下，下周和包装供应商确认新版瓶盖
-```
+## 场景 K 最终复验
 
-预期：`metadata.intent=inbox_capture`、`metadata.effect=write`；创建一个 `source=ceo_assistant` 的 pending InboxItem；不创建 Task、Reminder 或 Work Log；确定性响应中没有 Mock/API Key 噪音。
-
-## B — List
-
-输入：
-
-```text
-看看我的收件箱
-```
-
-并交叉检查：
-
-```powershell
-python -m cli inbox list --json
-Invoke-RestMethod http://127.0.0.1:8000/inbox
-```
-
-预期：只返回 pending 项目，`metadata.intent=inbox_list`、`metadata.effect=read`，调用前后四类对象的数量与 ID 集合完全一致。
-
-## C — Resolve to Task
-
-```powershell
-python -m cli inbox resolve-task <ITEM_ID> --title "确认新版瓶盖" --priority medium --json
-```
-
-预期：创建真实 UserTask；InboxItem 变为 `resolved/user_task`，`resolved_target_id` 指向该 Task；Daily Agenda 可看到目标 Task。重复执行返回 `inbox.already_resolved`，Task 数量和 ID 集合不增加。
-
-## D — Resolve to Reminder
-
-先通过 API 或 CLI 捕获另一条记录，再执行：
-
-```powershell
-python -m cli inbox resolve-reminder <ITEM_ID> --title "联系包装供应商" --scheduled-at "<带时区 ISO 时间>" --timezone "Asia/Shanghai" --json
-```
-
-预期：通过既有 Reminder orchestration 创建 Reminder；InboxItem 记录真实 Reminder ID；现有 Reminder 查询可见。不得直接写 Reminder 表。
-
-## E — Resolve as Note
-
-```powershell
-python -m cli inbox resolve-note <ITEM_ID> --json
-```
-
-预期：InboxItem 为 `resolved/note`，`resolved_target_id=null`；Task、Reminder、Work Log 数量和 ID 集合不变。
-
-## F — Dismiss
-
-```powershell
-python -m cli inbox dismiss <ITEM_ID> --json
-python -m cli inbox list --json
-python -m cli inbox list --status all --json
-```
-
-预期：项目状态为 dismissed；默认 pending 列表不再显示，all 列表仍可追踪；原始记录未删除，未创建任何目标对象。
-
-## G — Restart
-
-记录所有 Inbox Item 的 ID、状态、解析类型与目标 ID，停止 Uvicorn，再以相同数据目录重启并重复查询。
-
-预期：pending/resolved/dismissed 状态和 `resolved_target_id` 保持一致；目标对象数量与 ID 集合不变；不重复创建目标对象。
-
-## H — Compatibility
-
-逐条输入：
+核心输入：
 
 ```text
-提醒我明天下午三点联系客户
-记录一下今天完成了包装验货
-创建任务：跟进客户
-今天都有什么事？
-查看今日日程
-我们聊聊明年的方向
+提醒我明天下午三点开会
 ```
 
-预期依次保持 Reminder/UserTask 创建路径、Work Log、UserTask、`reminder_list/read`、`daily_agenda/read`、普通 Chat；均不得漂移到 Inbox。执行前后检查 Inbox ID 集合，只有明确 Inbox capture 表达才允许新增。
+最终结果：HTTP 200；现有 `task/write` 路由产生 `reminder/write` 业务结果，只创建一条 backing UserTask、Reminder 与 Scheduler Job 链，不创建 InboxItem；回答无 Mock 配置噪音；相同显式幂等键复用同一链路。
 
-## SP-014B 场景 K 兼容性说明
+SP-014B 只扩展确定性 Reminder Parser：支持 `今天/明天 + 上午/下午/晚上 + 中文小时一至十二`，并继续复用阿拉伯数字、`HH:MM`、`半`、`一刻` 和数字分钟能力。中文小时无 period、后天、星期、相对/模糊时间、中文分钟、二刻/三刻、Recurring Reminder 与 LLM 时间解析仍不支持。
 
-确定性 Reminder Parser 现支持 `今天/明天 + 上午/下午/晚上 + 中文小时（一至十二）`，因此场景 K 的输入 `提醒我明天下午三点开会` 已纳入自动化 parser 与真实 `/chat` 集成回归。中文小时不带明确 period、后天、星期、相对/模糊时间、中文分钟、Recurring Reminder 与 LLM 时间解析仍不支持。
+其余兼容输入最终保持：Work Log `work_log/write`、普通 Task `task/write`、今日提醒 `reminder_list/read`、今日日程 `daily_agenda/read`、普通聊天 `chat/chat`；均未漂移到 Unified Inbox。
 
-本说明只记录修复分支的支持事实，不将 SP-014 或 ACC-014 标记为验收通过。最近一次正式 ACC-014 结论仍为 A～J PASSED、K FAILED、L NOT_EXECUTED_AFTER_CORE_FAILURE，必须由后续独立复验更新。
+## 验收过程说明
 
-## 并发与崩溃恢复补充门禁
+1. 场景 E 首次使用不存在的 `--content` 参数，命令以参数错误退出。该记录属于 `INVALID_ACCEPTANCE_COMMAND`，不是产品缺陷；改用正式 `--title / --description` 合同后场景通过。
+2. 场景 K 在 SP-014 初次验收中暴露中文数字小时不兼容，返回 `reminder.time_unsupported`。SP-014B 在既有 parser 内完成最小修复并通过 PR #33 合入。
+3. K/L 首次外部复验驱动使用大小写敏感方式读取 HTTP 响应头，误判 `WWW-Authenticate` 与 CORS header。修正仓库外驱动后，在全新数据目录中 K/L 均通过；未修改产品代码。
 
-使用两个拥有独立内存锁、共享同一 Inbox SQLite 文件的 `InboxService` 实例验证：
+## 持久化 claim 验收结论
 
-1. Task 与 Reminder 同时解析同一 pending Item 时，只有持久化 claim 的类型可调用目标 Service；失败方返回包含 `claimed_type`、`target_id`、`claim_state` 的冲突，且没有孤儿目标。
-2. 两个实例同时进行同类型解析时，最终最多存在一个确定性目标，Inbox 与 claim 均 completed。
-3. 分别在 claim 后、目标创建并记录后模拟进程中断；新 Service 实例应能继续同类型 Saga，不创建重复目标。
-4. 错误 workspace 不得创建 claim、目标或修改现有 claim。
-5. Note、Dismiss 与外部目标解析竞争时同样只有一种 resolved type 取得 claim。
+`inbox_resolution_claims` 已通过真实竞争与崩溃恢复验收：
 
-验收证据必须包含 `inbox_resolution_claims` 的类型、target ID、状态和 revision，但不得直接修改该内部表。
+- claim 必须在任何外部目标写入前取得；
+- 不同解析类型只有 claim 赢家可调用目标 Service；
+- 同类型竞争复用确定性 ID 或幂等键；
+- `claimed` 与 `target_created` 均可由新 Service 实例恢复；
+- Inbox 完成状态与 claim `completed` 最终一致；
+- 错误 workspace 不得创建或修改 claim。
 
-## 通过标准
+进程内锁仅是优化；持久化 claim 才是跨进程正确性边界。
 
-A～H 与并发恢复补充门禁均实际执行通过；workspace 隔离、跨进程唯一 claim、重复解析、重启持久化和 read-only 无副作用均有证据；未调用真实模型，未出现未解释写入或孤儿目标。
+## 保留边界
+
+- 首次 PR #33 pytest attempt 中观察到 Scheduler 状态短暂为 `running` 的时序波动；唯一重跑后通过。该测试不涉及 SP-014B 修改文件，不作为 SP-014B 缺陷，也不在本任务修复。
+- CI-002、QUALITY-001、Knowledge Layer 主链路、完整 Agent Runtime 产品闭环、多用户/Workspace 管理、外部通知和 Recurring Reminder 仍未完成。
+- SP-015 为 `UNBLOCKED_FOR_PLANNING / NOT_STARTED`，未在本验收或治理任务中启动。

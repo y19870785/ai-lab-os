@@ -12,6 +12,13 @@ Adopted
 - Merge Commit: `b1274d066cbc01053144cba8d5654a5f8c8a21da`
 - Adoption Date: `2026-07-16`
 
+## SP-014B Compatibility Record
+
+- SP-014B merged through PR #33 as `22f85db16a43e7d09a903859a26ac6a310370d81`.
+- With explicit `上午/下午/晚上`, the existing deterministic parser accepts Chinese hour numerals `一` through `十二`, including existing `半`、`一刻` and Arabic-digit minute combinations.
+- Chinese hours without a period, 后天、星期、相对/模糊时间、中文分钟、二刻/三刻、Recurring Reminder and LLM time parsing remain unsupported.
+- ACC-014 scenario K passed after this compatibility fix; the parser architecture and future time-parsing route are unchanged.
+
 ## Context
 
 SP-004 and SP-005 introduced durable UserTask, Reminder, Scheduler Job, JobRun, and ReminderOccurrence records, but the user-facing CEO Assistant path did not create or query that complete chain. SP-009 proposes the first user-testable product slice without adding external notification delivery.
