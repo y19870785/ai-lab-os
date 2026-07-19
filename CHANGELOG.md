@@ -1,6 +1,13 @@
 ﻿
 ## [Unreleased]
 
+### SP-014B Chinese Numeral Reminder Time Compatibility
+- Extended the deterministic Reminder parser to accept Chinese hour numerals `一` through `十二` when an explicit `上午/下午/晚上` period is present.
+- Reused the existing period conversion, minute parsing, UTC conversion, past-time validation, title extraction, and FailureInfo path.
+- Added parser, intent-routing, and real `/chat` integration coverage for ACC-014 scenario K, including idempotency and Inbox isolation.
+- Kept unsupported dates, relative times, fuzzy suffixes, Chinese minute numerals, recurring reminders, and LLM parsing out of scope.
+- ACC-014 remains at its recorded FAILED result until independent acceptance is rerun; the product version remains `0.33.0`.
+
 ### SP-012 Intent Safety and Reminder Query UX
 - Added a deterministic `read/write/chat` intent-effect contract and read-first Reminder query aliases.
 - Restricted Work Log creation to explicit commands or clear completed-action language.

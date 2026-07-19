@@ -13,6 +13,12 @@ def parser():
     return TaskReminderIntentParser("Asia/Shanghai", clock)
 
 
+@pytest.fixture
+def early_parser():
+    clock = MutableClock(datetime(2026, 7, 15, 23, 0, tzinfo=timezone.utc))
+    return TaskReminderIntentParser("Asia/Shanghai", clock)
+
+
 @pytest.mark.parametrize(("phrase", "expected"), [
     ("今天 15:00 提醒我联系张经理", "2026-07-16T07:00:00+00:00"),
     ("明天 15：00 提醒我联系张经理", "2026-07-17T07:00:00+00:00"),
@@ -28,6 +34,41 @@ def test_supported_reminder_phrases(parser, phrase, expected):
     assert parsed.title
     assert parsed.due_at.isoformat() == expected
     assert parsed.timezone == "Asia/Shanghai"
+
+
+@pytest.mark.parametrize(("phrase", "expected"), [
+    ("提醒我今天上午九点开会", "2026-07-16T01:00:00+00:00"),
+    ("提醒我今天下午三点开会", "2026-07-16T07:00:00+00:00"),
+    ("提醒我今天晚上八点开会", "2026-07-16T12:00:00+00:00"),
+    ("提醒我明天上午九点开会", "2026-07-17T01:00:00+00:00"),
+    ("提醒我明天下午三点开会", "2026-07-17T07:00:00+00:00"),
+    ("提醒我明天晚上八点开会", "2026-07-17T12:00:00+00:00"),
+    ("提醒我明天下午十一点开会", "2026-07-17T15:00:00+00:00"),
+    ("提醒我明天下午十二点开会", "2026-07-17T04:00:00+00:00"),
+    ("提醒我明天下午三点半开会", "2026-07-17T07:30:00+00:00"),
+    ("提醒我明天上午九点一刻开会", "2026-07-17T01:15:00+00:00"),
+])
+def test_chinese_numeral_hours_with_explicit_period(early_parser, phrase, expected):
+    parsed = early_parser.parse(phrase)
+
+    assert parsed.kind == "reminder"
+    assert parsed.title == "开会"
+    assert parsed.due_at.isoformat() == expected
+    assert parsed.timezone == "Asia/Shanghai"
+
+
+@pytest.mark.parametrize(("period", "expected"), [
+    ("上午", "2026-07-15T16:00:00+00:00"),
+    ("下午", "2026-07-16T04:00:00+00:00"),
+    ("晚上", "2026-07-16T04:00:00+00:00"),
+])
+def test_chinese_twelve_preserves_existing_period_semantics(period, expected):
+    clock = MutableClock(datetime(2026, 7, 15, 15, 0, tzinfo=timezone.utc))
+    parser = TaskReminderIntentParser("Asia/Shanghai", clock)
+
+    parsed = parser.parse(f"提醒我明天{period}十二点开会")
+
+    assert parsed.due_at.isoformat() == expected
 
 
 def test_task_without_time_has_no_due_at(parser):
@@ -59,6 +100,13 @@ def test_unsupported_task_time_is_explicitly_degraded(parser):
     "明天下午提醒我联系张经理",
     "明天下午3点三刻提醒我联系张经理",
     "明天下午3点45分30秒提醒我联系张经理",
+    "提醒我后天下午三点开会",
+    "提醒我明天下午十三点开会",
+    "提醒我明天下午二十点开会",
+    "提醒我明天下午三点左右开会",
+    "提醒我明天下午三点二十分开会",
+    "提醒我三小时后开会",
+    "提醒我明天三点开会",
 ])
 def test_unsupported_reminder_time_fails(parser, phrase):
     with pytest.raises(FailureException) as exc_info:

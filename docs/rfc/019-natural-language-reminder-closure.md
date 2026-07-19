@@ -22,7 +22,7 @@ A supported Chinese reminder sentence creates one UserTask, one Reminder, and on
 
 ## Supported Language Subset
 
-The deterministic parser accepts `今天/明天` plus `HH:MM`, `HH：MM`, or `上午/下午/晚上 H 点` forms. `半`、`一刻` and explicit minutes are also consumed completely. Expressions such as next week, recurring schedules, holidays, or missing times fail with `reminder.time_unsupported`; past times fail with `reminder.time_in_past`. LLM output never determines time.
+The deterministic parser accepts `今天/明天` plus `HH:MM`, `HH：MM`, or `上午/下午/晚上 H 点` forms. With an explicit `上午/下午/晚上` period, `H` may be an Arabic numeral or one of `一` through `十二`; Chinese hours without a period are intentionally unsupported. `半`、`一刻` and explicit Arabic-digit minutes are also consumed completely. Expressions such as next week, relative or fuzzy times, Chinese minute numerals, recurring schedules, holidays, or missing times fail with `reminder.time_unsupported`; past times fail with `reminder.time_in_past`. LLM output never determines time.
 
 ## Task Versus Reminder
 

@@ -14,6 +14,8 @@ SP-010 Reminder Inbox 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d60
 
 SP-011 Reminder Management Closure 已通过 PR #23 以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root 持有唯一 `ReminderManagementService`，继续委托现有 `ReminderSchedulerBridge` Saga 完成取消和改期，不建立第二套持久化协调。API、CLI 与 CEO Assistant 共享 workspace 校验、终态规则、标题歧义、幂等和失败语义；确定性 Reminder 响应与 LLM Provider 装配分离。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。Reminder 与 Scheduler 仍是独立持久化边界，不声称跨数据库原子事务。
 
+SP-014B 只在 `TaskReminderIntentParser` 的小时 token 边界增加中文 `一` 至 `十二` 映射，并要求中文小时同时具有明确 `上午/下午/晚上`。转换后继续进入原有 period、分钟、IANA 时区、UTC、past-time、title 与 FailureInfo 路径；不新增日期引擎、LLM 解析、持久化或 Inbox 依赖。
+
 ## Reminder 与 Scheduler Bridge（SP-005）
 
 `core/reminders` 将 UserTask、Reminder、ReminderOccurrence 与 Scheduled Job 保持为四个独立概念。Scheduler 使用 SQLite 条件 UPDATE 获取唯一 claim；Handler 成功后 One-shot Job 原子进入 completed。Reminder Handler 在 `reminders.db` 单事务内提交 Reminder 与唯一 Occurrence，EventBus 在提交后发布。两个数据库之间不声称原子事务，而是通过 pending 状态、补偿和可重复 reconciliation 恢复。完整契约见 `docs/architecture/REMINDER_SCHEDULER_BRIDGE.md`。
@@ -330,6 +332,6 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 ## SP-009 Natural-Language Reminder Closure
 
-`CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是已合并生产链。Parser 将 intent kind 与可选 `due_at` 分开：task-only 可保存截止时间但不创建 Reminder/Job；Reminder 必须具有受支持的未来时间。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释，持久化保持 UTC。无显式幂等键的 API 请求生成独立请求键，显式键继续提供重试复用与冲突检测。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
+`CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是已合并生产链。Parser 将 intent kind 与可选 `due_at` 分开：task-only 可保存截止时间但不创建 Reminder/Job；Reminder 必须具有受支持的未来时间。小时可使用既有阿拉伯数字，或在明确 `上午/下午/晚上` 时使用中文 `一` 至 `十二`；不带 period 的中文小时不做隐式猜测。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释，持久化保持 UTC。无显式幂等键的 API 请求生成独立请求键，显式键继续提供重试复用与冲突检测。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
 
 状态：**SP-009 APPROVED / MERGED / RECONCILED / ARCHIVED**。PR #19 的 Approved Head 为 `42697e2787d9d9e33f4a7b40c3dd0ea092dcf742`，Squash Commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`，合并时间为 `2026-07-16T13:54:55Z`。RFC-019 已 Adopted，ADR-039 与 ADR-040 已 Accepted；外部通知、Inbox、Recurring Reminder 和复杂自然语言日期仍明确延期。
