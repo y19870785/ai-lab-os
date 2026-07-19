@@ -17,12 +17,15 @@ from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.inbox.exceptions import (
     InboxItemNotFoundError,
     InboxRepositoryError,
+    InboxResolutionClaimConflictError,
     InboxRevisionConflictError,
     InboxWorkspaceMismatchError,
 )
 from core.inbox.models import (
     InboxItem,
     InboxPage,
+    InboxResolutionClaim,
+    InboxResolutionClaimState,
     InboxResolvedType,
     InboxStatus,
     InboxSuggestedType,
@@ -251,21 +254,30 @@ class InboxService:
                 retryable=True,
             )
 
-    async def _pending(self, workspace_key: WorkspaceKey, inbox_item_id: str) -> InboxItem:
-        item = await self.get(workspace_key=workspace_key, inbox_item_id=inbox_item_id)
-        if item.status != InboxStatus.PENDING:
-            self._raise(
-                "inbox.already_resolved",
-                ErrorCategory.CONFLICT,
-                "resolve",
-                trace_id=workspace_key.trace_id,
-                details={
-                    "status": item.status.value,
-                    "resolved_type": item.resolved_type.value if item.resolved_type else None,
-                    "resolved_target_id": item.resolved_target_id,
-                },
-            )
-        return item
+    @staticmethod
+    def _claim_details(claim: InboxResolutionClaim) -> dict[str, Any]:
+        return {
+            "claimed_type": claim.resolved_type.value,
+            "target_id": claim.target_id,
+            "claim_state": claim.state.value,
+            "resolved_type": claim.resolved_type.value,
+            "resolved_target_id": claim.target_id,
+        }
+
+    def _raise_claim_conflict(
+        self,
+        claim: InboxResolutionClaim,
+        workspace_key: WorkspaceKey,
+        exc: Exception | None = None,
+    ) -> None:
+        self._raise(
+            "inbox.already_resolved",
+            ErrorCategory.CONFLICT,
+            "resolve",
+            exc,
+            trace_id=workspace_key.trace_id,
+            details=self._claim_details(claim),
+        )
 
     async def _resolve(
         self,
@@ -273,26 +285,103 @@ class InboxService:
         workspace_key: WorkspaceKey,
         inbox_item_id: str,
         resolved_type: InboxResolvedType,
-        create_target: Callable[[InboxItem], Awaitable[str | None]],
+        target_key: str | None,
+        reserved_target_id: str | None,
+        create_target: Callable[
+            [InboxItem, InboxResolutionClaim], Awaitable[str]
+        ] | None,
     ) -> InboxItem:
+        """Resolve through a durable claim; the in-memory lock is only an optimization."""
+
         lock = self._locks.setdefault(inbox_item_id, asyncio.Lock())
         async with lock:
-            item = await self._pending(workspace_key, inbox_item_id)
             try:
-                target_id = await create_target(item)
-                now = self._clock.now()
-                resolved = item.model_copy(
-                    update={
-                        "status": InboxStatus.RESOLVED,
-                        "updated_at": now,
-                        "resolved_at": now,
-                        "resolved_type": resolved_type,
-                        "resolved_target_id": target_id,
-                    }
+                claim = await self._repository.claim_resolution(
+                    workspace_key,
+                    inbox_item_id,
+                    resolved_type=resolved_type,
+                    target_key=target_key,
+                    target_id=reserved_target_id,
+                    now=self._clock.now(),
                 )
-                resolved = InboxItem.model_validate(resolved.model_dump())
-                resolved = await self._repository.resolve(
-                    resolved, expected_revision=item.revision
+            except InboxItemNotFoundError as exc:
+                self._raise(
+                    "inbox.not_found",
+                    ErrorCategory.NOT_FOUND,
+                    "resolve",
+                    exc,
+                    trace_id=workspace_key.trace_id,
+                )
+            except InboxWorkspaceMismatchError as exc:
+                self._raise(
+                    "inbox.workspace_mismatch",
+                    ErrorCategory.PERMISSION_DENIED,
+                    "resolve",
+                    exc,
+                    trace_id=workspace_key.trace_id,
+                )
+            except InboxRevisionConflictError as exc:
+                item = await self.get(
+                    workspace_key=workspace_key, inbox_item_id=inbox_item_id
+                )
+                self._raise(
+                    "inbox.already_resolved",
+                    ErrorCategory.CONFLICT,
+                    "resolve",
+                    exc,
+                    trace_id=workspace_key.trace_id,
+                    details={
+                        "claimed_type": (
+                            item.resolved_type.value if item.resolved_type else None
+                        ),
+                        "target_id": item.resolved_target_id,
+                        "claim_state": "missing",
+                    },
+                )
+            except InboxRepositoryError as exc:
+                self._raise(
+                    "inbox.resolve_failed",
+                    ErrorCategory.PERSISTENCE_FAILURE,
+                    "claim_resolution",
+                    exc,
+                    trace_id=workspace_key.trace_id,
+                    retryable=True,
+                )
+
+            if claim.resolved_type != resolved_type:
+                self._raise_claim_conflict(claim, workspace_key)
+            if claim.state == InboxResolutionClaimState.COMPLETED:
+                self._raise_claim_conflict(claim, workspace_key)
+
+            item = await self.get(
+                workspace_key=workspace_key, inbox_item_id=inbox_item_id
+            )
+            if item.status != InboxStatus.PENDING:
+                current = await self._repository.get_resolution_claim(
+                    workspace_key, inbox_item_id
+                )
+                self._raise_claim_conflict(current, workspace_key)
+
+            try:
+                claim = await self._repository.get_resolution_claim(
+                    workspace_key, inbox_item_id
+                )
+                if create_target is not None and (
+                    claim.state == InboxResolutionClaimState.CLAIMED
+                ):
+                    target_id = await create_target(item, claim)
+                    claim = await self._repository.record_target_created(
+                        workspace_key,
+                        inbox_item_id,
+                        resolved_type=resolved_type,
+                        target_id=target_id,
+                        now=self._clock.now(),
+                    )
+                resolved, claim = await self._repository.complete_resolution(
+                    workspace_key,
+                    inbox_item_id,
+                    resolved_type=resolved_type,
+                    now=self._clock.now(),
                 )
             except FailureException as exc:
                 await self._publish("inbox.resolve_failed", item)
@@ -305,26 +394,14 @@ class InboxService:
                     details={"dependency_code": exc.failure.code},
                     retryable=exc.failure.retryable,
                 )
-            except InboxRevisionConflictError as exc:
-                current = await self.get(
-                    workspace_key=workspace_key, inbox_item_id=inbox_item_id
+            except (InboxResolutionClaimConflictError, InboxRevisionConflictError) as exc:
+                current = await self._repository.get_resolution_claim(
+                    workspace_key, inbox_item_id
                 )
-                if current.status != InboxStatus.PENDING:
-                    self._raise(
-                        "inbox.already_resolved",
-                        ErrorCategory.CONFLICT,
-                        "resolve",
-                        exc,
-                        trace_id=workspace_key.trace_id,
-                        details={
-                            "status": current.status.value,
-                            "resolved_type": (
-                                current.resolved_type.value
-                                if current.resolved_type else None
-                            ),
-                            "resolved_target_id": current.resolved_target_id,
-                        },
-                    )
+                if current.resolved_type != resolved_type or (
+                    current.state == InboxResolutionClaimState.COMPLETED
+                ):
+                    self._raise_claim_conflict(current, workspace_key, exc)
                 await self._publish("inbox.resolve_failed", item)
                 self._raise(
                     "inbox.resolve_failed",
@@ -332,6 +409,7 @@ class InboxService:
                     "resolve",
                     exc,
                     trace_id=workspace_key.trace_id,
+                    details=self._claim_details(current),
                     retryable=True,
                 )
             except InboxRepositoryError as exc:
@@ -342,7 +420,7 @@ class InboxService:
                     "resolve",
                     exc,
                     trace_id=workspace_key.trace_id,
-                    details={"resolved_target_id": locals().get("target_id")},
+                    details=self._claim_details(claim),
                     retryable=True,
                 )
             except (ValidationError, ValueError) as exc:
@@ -363,7 +441,12 @@ class InboxService:
                     exc,
                     trace_id=workspace_key.trace_id,
                 )
-            await self._publish("inbox.resolved", resolved)
+            await self._publish(
+                "inbox.dismissed"
+                if resolved_type == InboxResolvedType.DISMISSED
+                else "inbox.resolved",
+                resolved,
+            )
             return resolved
 
     async def resolve_to_task(
@@ -376,10 +459,14 @@ class InboxService:
         due_at: datetime | None = None,
         priority: UserTaskPriority = UserTaskPriority.MEDIUM,
     ) -> InboxItem:
-        async def create(item: InboxItem) -> str:
+        task_id = self._target_id("ut_inbox", inbox_item_id)
+
+        async def create(item: InboxItem, claim: InboxResolutionClaim) -> str:
             if self._user_tasks is None:
                 raise RuntimeError("UserTask service is not configured")
-            task_id = self._target_id("ut_inbox", item.id)
+            task_id = claim.target_key
+            if not task_id:
+                raise RuntimeError("UserTask claim target is missing")
             metadata = {
                 "workspace": self._workspace_dict(workspace_key),
                 "inbox_item_id": item.id,
@@ -410,6 +497,8 @@ class InboxService:
             workspace_key=workspace_key,
             inbox_item_id=inbox_item_id,
             resolved_type=InboxResolvedType.USER_TASK,
+            target_key=task_id,
+            reserved_target_id=task_id,
             create_target=create,
         )
 
@@ -424,7 +513,9 @@ class InboxService:
         priority: UserTaskPriority = UserTaskPriority.MEDIUM,
         timezone_name: str | None = None,
     ) -> InboxItem:
-        async def create(item: InboxItem) -> str:
+        idempotency_key = f"inbox:{inbox_item_id}:reminder"
+
+        async def create(item: InboxItem, claim: InboxResolutionClaim) -> str:
             if self._reminder_orchestrator is None:
                 raise RuntimeError("Reminder service is not configured")
             workspace = self._workspace_dict(workspace_key)
@@ -437,7 +528,7 @@ class InboxService:
                 session_id=workspace_key.session_id,
                 trace_id=workspace_key.trace_id,
                 workspace_scope=self._workspace_scope(workspace_key),
-                idempotency_key=f"inbox:{item.id}:reminder",
+                idempotency_key=claim.target_key or idempotency_key,
                 workspace=workspace,
             )
             return result.reminder_id
@@ -446,6 +537,8 @@ class InboxService:
             workspace_key=workspace_key,
             inbox_item_id=inbox_item_id,
             resolved_type=InboxResolvedType.REMINDER,
+            target_key=idempotency_key,
+            reserved_target_id=None,
             create_target=create,
         )
 
@@ -457,10 +550,14 @@ class InboxService:
         title: str,
         description: str = "",
     ) -> InboxItem:
-        async def create(item: InboxItem) -> str:
+        memory_id = self._target_id("inbox_wl", inbox_item_id)
+
+        async def create(item: InboxItem, claim: InboxResolutionClaim) -> str:
             if self._memory is None:
                 raise RuntimeError("Memory service is not configured")
-            memory_id = self._target_id("inbox_wl", item.id)
+            memory_id = claim.target_key
+            if not memory_id:
+                raise RuntimeError("Work Log claim target is missing")
             workspace = self._workspace_dict(workspace_key)
             local_date = self._clock.now().astimezone(ZoneInfo(self._timezone_name)).date()
             return await self._memory.save_memory(
@@ -487,50 +584,31 @@ class InboxService:
             workspace_key=workspace_key,
             inbox_item_id=inbox_item_id,
             resolved_type=InboxResolvedType.WORK_LOG,
+            target_key=memory_id,
+            reserved_target_id=memory_id,
             create_target=create,
         )
 
     async def resolve_as_note(
         self, *, workspace_key: WorkspaceKey, inbox_item_id: str
     ) -> InboxItem:
-        async def create(_item: InboxItem) -> None:
-            return None
-
         return await self._resolve(
             workspace_key=workspace_key,
             inbox_item_id=inbox_item_id,
             resolved_type=InboxResolvedType.NOTE,
-            create_target=create,
+            target_key=None,
+            reserved_target_id=None,
+            create_target=None,
         )
 
     async def dismiss(
         self, *, workspace_key: WorkspaceKey, inbox_item_id: str
     ) -> InboxItem:
-        lock = self._locks.setdefault(inbox_item_id, asyncio.Lock())
-        async with lock:
-            item = await self._pending(workspace_key, inbox_item_id)
-            now = self._clock.now()
-            dismissed = item.model_copy(
-                update={
-                    "status": InboxStatus.DISMISSED,
-                    "updated_at": now,
-                    "resolved_at": now,
-                    "resolved_type": InboxResolvedType.DISMISSED,
-                }
-            )
-            dismissed = InboxItem.model_validate(dismissed.model_dump())
-            try:
-                dismissed = await self._repository.dismiss(
-                    dismissed, expected_revision=item.revision
-                )
-            except Exception as exc:
-                self._raise(
-                    "inbox.resolve_failed",
-                    ErrorCategory.PERSISTENCE_FAILURE,
-                    "dismiss",
-                    exc,
-                    trace_id=workspace_key.trace_id,
-                    retryable=True,
-                )
-            await self._publish("inbox.dismissed", dismissed)
-            return dismissed
+        return await self._resolve(
+            workspace_key=workspace_key,
+            inbox_item_id=inbox_item_id,
+            resolved_type=InboxResolvedType.DISMISSED,
+            target_key=None,
+            reserved_target_id=None,
+            create_target=None,
+        )

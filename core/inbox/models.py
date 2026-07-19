@@ -51,6 +51,61 @@ class InboxResolvedType(StrEnum):
     DISMISSED = "dismissed"
 
 
+class InboxResolutionClaimState(StrEnum):
+    CLAIMED = "claimed"
+    TARGET_CREATED = "target_created"
+    COMPLETED = "completed"
+
+
+class InboxResolutionClaim(BaseModel):
+    """Internal durable Saga state; never exposed as an Inbox user status."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    inbox_item_id: str = Field(min_length=1, max_length=80)
+    workspace_key: WorkspaceKey
+    resolved_type: InboxResolvedType
+    target_key: str | None = Field(default=None, max_length=200)
+    target_id: str | None = Field(default=None, max_length=160)
+    state: InboxResolutionClaimState = InboxResolutionClaimState.CLAIMED
+    created_at: datetime
+    updated_at: datetime
+    revision: int = Field(default=1, ge=1)
+
+    @field_validator("created_at", "updated_at")
+    @classmethod
+    def _normalize_claim_datetime(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("claim datetime must be timezone-aware")
+        return value.astimezone(timezone.utc)
+
+    @model_validator(mode="after")
+    def _validate_claim(self) -> "InboxResolutionClaim":
+        if self.updated_at < self.created_at:
+            raise ValueError("claim updated_at must not precede created_at")
+        external_types = {
+            InboxResolvedType.USER_TASK,
+            InboxResolvedType.REMINDER,
+            InboxResolvedType.WORK_LOG,
+        }
+        if self.resolved_type in external_types and not self.target_key:
+            raise ValueError("external resolution claim requires target_key")
+        if self.resolved_type not in external_types and (
+            self.target_key is not None or self.target_id is not None
+        ):
+            raise ValueError("note and dismiss claims cannot contain a target")
+        if (
+            self.state in {
+                InboxResolutionClaimState.TARGET_CREATED,
+                InboxResolutionClaimState.COMPLETED,
+            }
+            and self.resolved_type in external_types
+            and not self.target_id
+        ):
+            raise ValueError("created external target requires target_id")
+        return self
+
+
 class InboxItem(BaseModel):
     """A captured item awaiting an explicit human resolution decision."""
 

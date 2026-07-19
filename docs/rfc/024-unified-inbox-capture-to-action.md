@@ -36,12 +36,21 @@ Status: Proposed
 
 ## 持久化
 
-新增独立 `inbox.db` 和 `inbox_items` 表，通过 `DatabaseManager` 的 lease 使用连接。查询以 tenant、workspace、namespace 三元组过滤，并按 `created_at DESC, id DESC` 稳定排序。
+新增独立 `inbox.db`，包含用户可见状态表 `inbox_items` 与内部 Saga 表 `inbox_resolution_claims`，通过 `DatabaseManager` 的 lease 使用连接。查询以 tenant、workspace、namespace 三元组过滤，并按 `created_at DESC, id DESC` 稳定排序。
 
 索引覆盖：
 
 - workspace + status + created_at + id
 - 非空 `resolved_target_id`
+- resolution claim 的 workspace + state + updated_at
+
+## 跨进程解析权
+
+任何 Task、Reminder 或 Work Log 写入之前，Repository 必须在 SQLite `BEGIN IMMEDIATE` transaction 中校验 workspace、验证 pending 状态并创建以 Inbox Item ID 为主键的唯一 claim。
+
+claim 记录唯一 `resolved_type`、确定性 target key/ID 以及 `claimed → target_created → completed` 状态。不同类型请求不能取得已有 claim，因此不得调用目标 Service。同类型请求可以恢复未完成 claim；Inbox 状态与 claim completed 最终在同一 SQLite transaction 中提交。
+
+进程内锁仅是减少重复工作的优化，不承担跨 worker、CLI 或 API 进程的一致性职责。
 
 ## 应用边界
 
@@ -53,6 +62,8 @@ Status: Proposed
 - Reminder：`NaturalLanguageReminderOrchestrator`
 - Work Log：`MemoryManager` 的 Episodic Memory 写入路径
 - Note：仅更新 Inbox 解析状态，不建立新领域
+
+UserTask 与 Work Log 通过确定性目标 ID 恢复；Reminder 通过确定性 orchestrator idempotency key 恢复。进程在 claim 或目标创建后崩溃时，后续同类型请求继续相同 Saga，不需要删除持久化记录。
 
 ## 失败语义
 

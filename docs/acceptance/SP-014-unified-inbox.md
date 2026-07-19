@@ -104,6 +104,18 @@ python -m cli inbox list --status all --json
 
 预期依次保持 Reminder/UserTask 创建路径、Work Log、UserTask、`reminder_list/read`、`daily_agenda/read`、普通 Chat；均不得漂移到 Inbox。执行前后检查 Inbox ID 集合，只有明确 Inbox capture 表达才允许新增。
 
+## 并发与崩溃恢复补充门禁
+
+使用两个拥有独立内存锁、共享同一 Inbox SQLite 文件的 `InboxService` 实例验证：
+
+1. Task 与 Reminder 同时解析同一 pending Item 时，只有持久化 claim 的类型可调用目标 Service；失败方返回包含 `claimed_type`、`target_id`、`claim_state` 的冲突，且没有孤儿目标。
+2. 两个实例同时进行同类型解析时，最终最多存在一个确定性目标，Inbox 与 claim 均 completed。
+3. 分别在 claim 后、目标创建并记录后模拟进程中断；新 Service 实例应能继续同类型 Saga，不创建重复目标。
+4. 错误 workspace 不得创建 claim、目标或修改现有 claim。
+5. Note、Dismiss 与外部目标解析竞争时同样只有一种 resolved type 取得 claim。
+
+验收证据必须包含 `inbox_resolution_claims` 的类型、target ID、状态和 revision，但不得直接修改该内部表。
+
 ## 通过标准
 
-A～H 均实际执行通过；workspace 隔离、重复解析、重启持久化和 read-only 无副作用均有证据；未调用真实模型，未出现未解释写入。
+A～H 与并发恢复补充门禁均实际执行通过；workspace 隔离、跨进程唯一 claim、重复解析、重启持久化和 read-only 无副作用均有证据；未调用真实模型，未出现未解释写入或孤儿目标。

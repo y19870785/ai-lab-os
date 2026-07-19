@@ -15,3 +15,11 @@ class InboxWorkspaceMismatchError(InboxRepositoryError):
 
 class InboxRevisionConflictError(InboxRepositoryError):
     """Raised when an optimistic update observes a stale revision."""
+
+
+class InboxResolutionClaimNotFoundError(InboxRepositoryError):
+    """Raised when an Inbox item has no durable resolution claim."""
+
+
+class InboxResolutionClaimConflictError(InboxRepositoryError):
+    """Raised when a durable claim cannot perform the requested transition."""
