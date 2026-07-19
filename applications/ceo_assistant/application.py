@@ -22,6 +22,7 @@ from applications.ceo_assistant.intent import (
     IntentDecision,
     IntentEffect,
     decide_intent,
+    extract_inbox_capture_content,
 )
 from applications.ceo_assistant.reminder_errors import ReminderUserErrorPresenter
 from core.errors import (
@@ -52,6 +53,7 @@ class CEOAssistant:
         reminder_inbox=None,
         reminder_management=None,
         daily_agenda=None,
+        inbox_service=None,
         task_intent_parser=None,
         config: ApplicationConfig | None = None,
         bus=None,
@@ -67,6 +69,7 @@ class CEOAssistant:
         self._reminder_inbox = reminder_inbox
         self._reminder_management = reminder_management
         self._daily_agenda = daily_agenda
+        self._inbox = inbox_service
         self._task_intent_parser = task_intent_parser
         self._config = config or ApplicationConfig()
         self._bus = bus
@@ -106,6 +109,8 @@ class CEOAssistant:
             "reminder_list": {IntentEffect.READ},
             "reminder_detail": {IntentEffect.READ},
             "daily_agenda": {IntentEffect.READ},
+            "inbox_capture": {IntentEffect.WRITE},
+            "inbox_list": {IntentEffect.READ},
             "reminder_cancel": {IntentEffect.WRITE},
             "reminder_reschedule": {IntentEffect.WRITE},
             "work_log": {IntentEffect.WRITE},
@@ -135,7 +140,11 @@ class CEOAssistant:
             mode = request.metadata.get("provider_mode", self._detect_mode())
 
             result = None
-            if decision.intent == "work_log":
+            if decision.intent == "inbox_capture":
+                result = await self._handle_inbox_capture(request)
+            elif decision.intent == "inbox_list":
+                result = await self._handle_inbox_list(request)
+            elif decision.intent == "work_log":
                 result = await self._handle_work_log(request)
             elif decision.intent == "reminder_list":
                 result = await self._handle_reminder_list(request)
@@ -194,6 +203,46 @@ class CEOAssistant:
             raise FailureException(failure.model_copy(update={"message": message})) from exc
 
     # ---- 1. 工作记录 ----
+
+    async def _handle_inbox_capture(self, request: ApplicationRequest) -> dict[str, Any]:
+        """Capture explicit input without creating a downstream business object."""
+
+        if self._inbox is None:
+            raise RuntimeError("Inbox service is not configured")
+        content = extract_inbox_capture_content(request.user_input)
+        if content is None:
+            raise ValueError("Inbox capture content is empty")
+        item = await self._inbox.capture(
+            workspace_key=request.workspace_key,
+            content=content,
+            source="ceo_assistant",
+            metadata={"intent": "inbox_capture"},
+        )
+        return {
+            "answer": f"已放入收件箱：{item.content}",
+            "status": "ok",
+            "metadata": {"inbox_item": item.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_inbox_list(self, request: ApplicationRequest) -> dict[str, Any]:
+        """List pending Inbox items without side effects."""
+
+        if self._inbox is None:
+            raise RuntimeError("Inbox service is not configured")
+        page = await self._inbox.list(workspace_key=request.workspace_key, status="pending")
+        if page.items:
+            lines = ["待整理的收件箱记录："]
+            lines.extend(f"- {item.id}: {item.content}" for item in page.items)
+            answer = "\n".join(lines)
+        else:
+            answer = "收件箱中没有待整理记录。"
+        return {
+            "answer": answer,
+            "status": "ok",
+            "metadata": {"inbox": page.model_dump(mode="json")},
+            "_deterministic": True,
+        }
 
     async def _handle_work_log(self, request: ApplicationRequest) -> dict[str, Any]:
         """处理工作记录输入。"""

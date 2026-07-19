@@ -6,6 +6,7 @@ from cli.commands import brief_cmd, log_cmd, task_cmd, decide_cmd, ask_cmd
 from cli.commands import reminder_status_cmd
 from cli.commands import reminders_cmd
 from cli.commands import reminder_cancel_cmd, reminder_reschedule_cmd
+from cli.commands import inbox_cmd
 from core.errors import FailureException
 
 
@@ -24,6 +25,7 @@ COMMANDS = {
     "reminders": reminders_cmd.run,
     "reminder-cancel": reminder_cancel_cmd.run,
     "reminder-reschedule": reminder_reschedule_cmd.run,
+    "inbox": inbox_cmd.run,
     "ceo": "ceo",  # 特殊处理：交互式 CLI，不走单次命令模式
 }
 

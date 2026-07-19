@@ -53,6 +53,7 @@ from core.workflow.registry import WorkflowRegistry
 from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.agenda import DailyAgendaService
+from core.inbox import InboxService, SQLiteInboxRepository
 from core.reminders import (
     ReminderActionHandler,
     NaturalLanguageReminderOrchestrator,
@@ -184,6 +185,10 @@ async def create_system(
             database_manager, settings.sqlite_dir / "tasks.db"
         )
         user_task_service = UserTaskService(user_task_repository, bus=event_bus)
+
+    inbox_repository = SQLiteInboxRepository(
+        database_manager, settings.sqlite_dir / "inbox.db"
+    )
 
     reminder_repository = None
     reminder_service = None
@@ -317,6 +322,16 @@ async def create_system(
                 reminder_inbox,
             )
 
+    inbox_service = InboxService(
+        inbox_repository,
+        clock=clock,
+        user_tasks=user_task_service,
+        reminder_orchestrator=reminder_orchestrator,
+        memory_manager=memory_manager,
+        bus=event_bus,
+        timezone_name=settings.timezone_name,
+    )
+
     task_runtime = TaskRuntime(
         manager=TaskManager(),
         workflow_runtime=workflow_runtime,
@@ -339,6 +354,7 @@ async def create_system(
         reminder_inbox=reminder_inbox,
         reminder_management=reminder_management,
         daily_agenda=daily_agenda,
+        inbox_service=inbox_service,
         task_intent_parser=TaskReminderIntentParser(settings.timezone_name, clock),
         config=ApplicationConfig(
             provider_mode=settings.provider_mode,
@@ -390,6 +406,8 @@ async def create_system(
         reminder_inbox=reminder_inbox,
         reminder_management=reminder_management,
         daily_agenda=daily_agenda,
+        inbox_repository=inbox_repository,
+        inbox_service=inbox_service,
         clock=clock,
         coordination_runtime=coordination_runtime,
         application_registry=application_registry,
