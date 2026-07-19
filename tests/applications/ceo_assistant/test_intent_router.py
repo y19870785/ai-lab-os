@@ -4,8 +4,10 @@
 优先级：decision > task > work_log > knowledge > chat
 """
 
+import os
+import sys
+
 import pytest
-import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
@@ -35,6 +37,13 @@ class TestIntentRouter:
         for text in ["创建任务", "待办事项", "提醒我明天开会"]:
             result = await app._detect_intent(text)
             assert result.intent == "task", f"输入 '{text}' 应识别为 task"
+
+    @pytest.mark.asyncio
+    async def test_chinese_numeral_reminder_routes_as_task_write(self, app):
+        result = await app._detect_intent("提醒我明天下午三点开会")
+
+        assert result.intent == "task"
+        assert result.effect == IntentEffect.WRITE
 
     @pytest.mark.asyncio
     async def test_decision_keywords(self, app):

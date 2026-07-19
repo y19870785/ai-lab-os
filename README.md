@@ -19,6 +19,8 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 > **CI-001 Quality Gate** 已通过 PR #30 合入。Pull Request、`main` push 与手动触发均使用 Python 3.12；Ruff 只检查本次变更的 Python 文件，pytest 显式排除 `tests/real`。这不代表全库 Ruff 或 real-provider 测试已通过。
 
+> **SP-014B Chinese Numeral Reminder Time Compatibility** 当前修复分支仅扩展确定性 Reminder Parser：在 `今天/明天` 与明确 `上午/下午/晚上` 组合中，小时支持中文数字 `一` 至 `十二`，并继续复用既有分钟、时区、UTC、过去时间和幂等链路。不支持后天、星期、相对/模糊时间、中文分钟、Recurring Reminder 或 LLM 时间解析。ACC-014 仍保持最近一次正式验收的 FAILED 结论，等待独立复验；版本仍为 `0.33.0`。
+
 ## 架构
 
 **SP-001：Single Composition Root 已完成并合并。** CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该实现已通过架构审查与合并后复核，现为 `main` 的稳定化基线。
@@ -176,4 +178,4 @@ AI-Lab/
 
 > **SP-012 Intent Safety and Reminder Query UX** 已通过 PR #25 审查并以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。其查询兼容性已由 SP-013 场景 H 实际验证：“今天都有什么事？”保持 `reminder_list/read` 且无写入；不虚构独立 SP-012 全量手工验收。
 
-> **SP-014** 仅为 `UNBLOCKED_FOR_PLANNING`，尚未进入设计、批准或实现阶段。
+> **SP-014** 已通过 PR #32 合并；最近一次 ACC-014 记录为 A～J PASSED、K FAILED、L NOT_EXECUTED_AFTER_CORE_FAILURE。SP-014B 只修复场景 K 暴露的中文小时兼容性，不预先改变该验收结论。

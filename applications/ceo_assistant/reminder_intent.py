@@ -14,12 +14,32 @@ from core.errors import ErrorCategory, FailureException, FailureInfo
 
 _REMINDER_MARKERS = ("提醒我", "记得", "别忘了")
 _TASK_PREFIX = re.compile(r"^(?:添加|创建)?(?:任务|待办)\s*[:：]?\s*")
+_CHINESE_HOURS = {
+    "一": 1,
+    "二": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+    "十": 10,
+    "十一": 11,
+    "十二": 12,
+}
 _TIME_EXPRESSION = re.compile(
     r"(?P<day>今天|明天)\s*"
     r"(?:(?P<period>上午|下午|晚上)\s*)?"
-    r"(?P<hour>\d{1,2})"
+    r"(?P<hour>\d{1,2}|十一|十二|十|一|二|三|四|五|六|七|八|九)"
     r"(?:\s*[:：]\s*(?P<colon_minute>\d{1,2})|\s*点(?:(?P<half>半)|(?P<quarter>一刻)|(?P<point_minute>\d{1,2})分?)?)"
 )
+
+
+def _parse_hour(value: str) -> int:
+    if value in _CHINESE_HOURS:
+        return _CHINESE_HOURS[value]
+    return int(value)
 
 
 @dataclass(frozen=True)
@@ -50,14 +70,20 @@ class TaskReminderIntentParser:
                 time_unparsed=self._contains_time_hint(raw),
             )
 
-        hour = int(match.group("hour"))
+        hour_token = match.group("hour")
+        hour = _parse_hour(hour_token)
         minute = int(
             match.group("colon_minute")
             or match.group("point_minute")
             or (30 if match.group("half") else 15 if match.group("quarter") else 0)
         )
         period = match.group("period")
-        if minute > 59 or (period and not 1 <= hour <= 12) or (not period and hour > 23):
+        if (
+            minute > 59
+            or (hour_token in _CHINESE_HOURS and period is None)
+            or (period and not 1 <= hour <= 12)
+            or (not period and hour > 23)
+        ):
             if is_reminder:
                 self._fail("reminder.time_unsupported", "Reminder time is not supported")
             title = _TASK_PREFIX.sub("", raw).strip(" ，。:：")
@@ -95,7 +121,8 @@ class TaskReminderIntentParser:
     @staticmethod
     def _has_unsupported_time_suffix(text: str, end: int) -> bool:
         return re.match(
-            r"\s*(?:[二三四]刻|\d{1,2}(?:分|秒)|刻|分|秒|左右)",
+            r"\s*(?:[二三四]刻|[零〇一二两三四五六七八九十]+(?:分|秒)|"
+            r"\d{1,2}(?:分|秒)|刻|分|秒|左右)",
             text[end:],
         ) is not None
 

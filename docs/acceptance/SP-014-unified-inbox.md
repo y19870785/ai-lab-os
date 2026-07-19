@@ -104,6 +104,12 @@ python -m cli inbox list --status all --json
 
 预期依次保持 Reminder/UserTask 创建路径、Work Log、UserTask、`reminder_list/read`、`daily_agenda/read`、普通 Chat；均不得漂移到 Inbox。执行前后检查 Inbox ID 集合，只有明确 Inbox capture 表达才允许新增。
 
+## SP-014B 场景 K 兼容性说明
+
+确定性 Reminder Parser 现支持 `今天/明天 + 上午/下午/晚上 + 中文小时（一至十二）`，因此场景 K 的输入 `提醒我明天下午三点开会` 已纳入自动化 parser 与真实 `/chat` 集成回归。中文小时不带明确 period、后天、星期、相对/模糊时间、中文分钟、Recurring Reminder 与 LLM 时间解析仍不支持。
+
+本说明只记录修复分支的支持事实，不将 SP-014 或 ACC-014 标记为验收通过。最近一次正式 ACC-014 结论仍为 A～J PASSED、K FAILED、L NOT_EXECUTED_AFTER_CORE_FAILURE，必须由后续独立复验更新。
+
 ## 并发与崩溃恢复补充门禁
 
 使用两个拥有独立内存锁、共享同一 Inbox SQLite 文件的 `InboxService` 实例验证：

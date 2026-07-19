@@ -180,6 +180,41 @@ def test_reminder_with_time_creates_full_chain(tmp_path):
         assert metadata["reminder_status"] == "scheduled"
 
 
+def test_chinese_numeral_reminder_creates_one_idempotent_chain_without_inbox(
+    tmp_path,
+):
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    app = create_app(_settings(tmp_path), clock=clock)
+    request = {"user_input": "提醒我明天下午三点开会"}
+    headers = {"Idempotency-Key": "acc-014-scenario-k"}
+
+    with TestClient(app) as client:
+        first = client.post("/chat", json=request, headers=headers)
+        duplicate = client.post("/chat", json=request, headers=headers)
+
+        assert first.status_code == duplicate.status_code == 200
+        metadata = first.json()["metadata"]
+        assert metadata["intent"] == "reminder"
+        assert metadata["effect"] == "write"
+        assert metadata["scheduled_for"] == "2026-07-17T15:00:00+08:00"
+        assert metadata["timezone"] == "Asia/Shanghai"
+        assert metadata["task_id"]
+        assert metadata["reminder_id"]
+        assert metadata["scheduler_job_id"]
+        assert "MOCK MODE" not in first.json()["answer"]
+
+        duplicate_metadata = duplicate.json()["metadata"]
+        assert duplicate_metadata["task_id"] == metadata["task_id"]
+        assert duplicate_metadata["reminder_id"] == metadata["reminder_id"]
+        tasks = client.get("/tasks").json()
+        assert [task["id"] for task in tasks] == [metadata["task_id"]]
+        reminders = client.get(f"/tasks/{metadata['task_id']}/reminders").json()
+        assert [reminder["id"] for reminder in reminders] == [
+            metadata["reminder_id"]
+        ]
+        assert client.get("/inbox?status=all").json()["items"] == []
+
+
 def test_unsupported_task_time_does_not_claim_reminder_success(tmp_path):
     clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
     app = create_app(_settings(tmp_path), clock=clock)

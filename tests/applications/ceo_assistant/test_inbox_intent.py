@@ -86,14 +86,17 @@ def test_inbox_list_is_read_only_and_has_no_mock_noise(tmp_path):
 
 def test_existing_intents_do_not_drift_to_inbox():
     expected = {
-        "提醒我明天下午三点联系客户": ("task", IntentEffect.WRITE),
-        "记录一下今天完成了包装验货": ("work_log", IntentEffect.WRITE),
-        "创建任务：跟进客户": ("task", IntentEffect.WRITE),
+        "提醒我明天下午三点开会": ("task", IntentEffect.WRITE),
+        "记一下，下周和包装供应商确认新版瓶盖": (
+            "inbox_capture", IntentEffect.WRITE,
+        ),
+        "看看我的收件箱": ("inbox_list", IntentEffect.READ),
+        "记录一下今天完成了报价审核": ("work_log", IntentEffect.WRITE),
+        "创建任务：整理客户需求": ("task", IntentEffect.WRITE),
         "今天都有什么事？": ("reminder_list", IntentEffect.READ),
         "查看今日日程": ("daily_agenda", IntentEffect.READ),
+        "你好，介绍一下你自己": ("chat", IntentEffect.CHAT),
     }
     for text, result in expected.items():
         decision = decide_intent(text)
         assert (decision.intent, decision.effect) == result
-
-    assert decide_intent("我们聊聊明年的方向").intent == "chat"
