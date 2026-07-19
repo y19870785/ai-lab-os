@@ -62,7 +62,7 @@
 | ADR-031 | Scheduler Action Handler | Adopted |
 | ADR-032 | Reminder Effectively-Once Occurrence | Adopted |
 
-**总计：RFC 文件 24 篇（含历史编号重复），ADR 文件 51 篇（含历史编号重复）**
+**总计：RFC 文件 25 篇（不含模板，含历史编号重复），ADR 文件 55 篇（不含模板，含历史编号重复）**
 
 | ADR-033 | API Authentication Mechanism | Accepted | 2026-07-15 |
 | ADR-034 | CORS Allowlist Policy | Accepted | 2026-07-15 |
@@ -94,6 +94,17 @@
 | ADR-047 | Read On Ambiguity And Explicit Write Commands | Accepted | 2026-07-17 |
 | ADR-048 | User-Facing Failure Presentation Boundary | Accepted | 2026-07-17 |
 
+| RFC-023 | Daily Agenda Read Model | Accepted | 2026-07-19 |
+| ADR-049 | Daily Agenda Read Model Boundary | Accepted | 2026-07-19 |
+| ADR-050 | Cross-Source Agenda Ordering and Pagination | Accepted | 2026-07-19 |
+| ADR-051 | Agenda Query Failure Semantics | Accepted | 2026-07-19 |
+
+| RFC-024 | Unified Inbox and Capture-to-Action | Accepted | 2026-07-19 |
+| ADR-052 | Inbox Resolution Idempotency | Accepted | 2026-07-19 |
+| ADR-053 | Inbox Source and Workspace Boundary | Accepted | 2026-07-19 |
+
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
+
+> SP-014 与 SP-014B 已完成对账并封存；ACC-014 A～L 全部 PASSED。SP-015 仅为 UNBLOCKED_FOR_PLANNING / NOT_STARTED。

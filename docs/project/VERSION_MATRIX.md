@@ -20,7 +20,15 @@
 
 **SP-011:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #23 (`5c4b442b2b5c7f934ac381020ba8b310976d5d3a`)
 
-**Main Baseline:** `23b54be4bd3030c564c2e1a0325eaf36199357fe`
+**SP-014:** APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED through PR #32 (`5bad5d412f9f2dabb158527a96c20c6e95e86d6e`)
+
+**SP-014B:** APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED through PR #33 (`22f85db16a43e7d09a903859a26ac6a310370d81`)
+
+**ACC-014:** PASSED / FINAL
+
+**SP-015:** UNBLOCKED_FOR_PLANNING / NOT_STARTED
+
+**Main Baseline:** `22f85db16a43e7d09a903859a26ac6a310370d81`
 
 | Capability | Contract | Minimum AI-Lab baseline |
 |---|---|---|
@@ -28,6 +36,7 @@
 | Reminder Management | RFC-021 Adopted / ADR-043/044/045 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #23 |
 | Intent Safety and Reminder Query UX | RFC-022 Adopted / ADR-046/047/048 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #25 |
 | Daily Agenda Read Model | RFC-023 Accepted / ADR-049/050/051 Accepted | Unreleased (`post-v0.33.0` main); accepted after PR #29 |
+| Unified Inbox / Capture-to-Action | RFC-024 Accepted / ADR-052/053 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #32 and accepted by ACC-014 |
 
 **Release Tag:** none
 
@@ -51,6 +60,7 @@
 | Natural-Language Reminder Closure | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, UserTask, Reminder Bridge, Scheduler |
 | Intent Safety and Reminder Query UX | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, Reminder Inbox, FailureInfo |
 | Daily Agenda Read Model | 1.0 | Unreleased（post-v0.33.0 main） | Reminder, UserTask, Work Log, CEO Assistant |
+| Unified Inbox | 1.0 | Unreleased（post-v0.33.0 main） | DatabaseManager, UserTask, Reminder, Memory, CEO Assistant |
 
 ## 升级说明
 
@@ -69,3 +79,5 @@
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
 > SP-007 至 SP-012 均已进入 main 并完成相应对账。SP-013 为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED，SP-013B 缺陷修复与 CI-001 也已进入 main。以上均属于 post-v0.33.0 工作；产品版本保持 `0.33.0`，Release Tag 与 GitHub Release 均为 none。
+
+> SP-014 与 SP-014B 已对账封存，ACC-014 A～L 全部 PASSED。SP-015 尚未启动。

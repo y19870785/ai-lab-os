@@ -15,11 +15,13 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 > **SP-011 Reminder Management Closure** 已通过 PR #23 审查并以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。统一管理服务为 API、CLI 与 CEO Assistant 提供详情、取消、改期、歧义解析和 workspace 校验；`view=pending` 表示未来 scheduled/retrying；确定性 Reminder 响应不附带 LLM/Mock 噪音；CLI 自主管理 UTF-8 输出边界。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED。
 
-> **SP-013 Daily Agenda** 已完成最终验收，状态为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。统一只读日程视图覆盖 API、CLI 与 CEO Assistant；SP-013B 通过 PR #29 修复了 CLI 默认 workspace 边界。当前 `main` 为 `23b54be4bd3030c564c2e1a0325eaf36199357fe`，产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
+> **SP-013 Daily Agenda** 已完成最终验收，状态为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。统一只读日程视图覆盖 API、CLI 与 CEO Assistant；SP-013B 通过 PR #29 修复了 CLI 默认 workspace 边界。该历史修复提交为 `23b54be4bd3030c564c2e1a0325eaf36199357fe`；产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
 
 > **CI-001 Quality Gate** 已通过 PR #30 合入。Pull Request、`main` push 与手动触发均使用 Python 3.12；Ruff 只检查本次变更的 Python 文件，pytest 显式排除 `tests/real`。这不代表全库 Ruff 或 real-provider 测试已通过。
 
-> **SP-014B Chinese Numeral Reminder Time Compatibility** 当前修复分支仅扩展确定性 Reminder Parser：在 `今天/明天` 与明确 `上午/下午/晚上` 组合中，小时支持中文数字 `一` 至 `十二`，并继续复用既有分钟、时区、UTC、过去时间和幂等链路。不支持后天、星期、相对/模糊时间、中文分钟、Recurring Reminder 或 LLM 时间解析。ACC-014 仍保持最近一次正式验收的 FAILED 结论，等待独立复验；版本仍为 `0.33.0`。
+> **SP-014 Unified Inbox / Capture-to-Action** 已通过 PR #32 合入并完成 ACC-014 A～L 手工验收，状态为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED。API、CLI 与 CEO Assistant 共用 canonical Composition Root，支持捕获并显式转化为 UserTask、Reminder、Work Log、Note 或 Dismiss；持久化 resolution claim 提供跨进程唯一解析权与崩溃恢复边界。
+
+> **SP-014B Chinese Numeral Reminder Time Compatibility** 已通过 PR #33 以 Squash Commit `22f85db16a43e7d09a903859a26ac6a310370d81` 合入并验证。在 `今天/明天` 与明确 `上午/下午/晚上` 组合中，小时支持中文数字 `一` 至 `十二`，并继续复用既有分钟、时区、UTC、过去时间和幂等链路。不支持后天、星期、相对/模糊时间、中文分钟、Recurring Reminder 或 LLM 时间解析。产品版本保持 `0.33.0`。
 
 ## 架构
 
@@ -178,4 +180,4 @@ AI-Lab/
 
 > **SP-012 Intent Safety and Reminder Query UX** 已通过 PR #25 审查并以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。其查询兼容性已由 SP-013 场景 H 实际验证：“今天都有什么事？”保持 `reminder_list/read` 且无写入；不虚构独立 SP-012 全量手工验收。
 
-> **SP-014** 已通过 PR #32 合并；最近一次 ACC-014 记录为 A～J PASSED、K FAILED、L NOT_EXECUTED_AFTER_CORE_FAILURE。SP-014B 只修复场景 K 暴露的中文小时兼容性，不预先改变该验收结论。
+> **ACC-014：PASSED / FINAL。** A～L 全部通过；SP-015 仅为 UNBLOCKED_FOR_PLANNING / NOT_STARTED，尚未启动。

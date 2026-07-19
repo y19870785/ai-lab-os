@@ -1,6 +1,6 @@
 # AI-Lab Known Limitations
 
-> 当前版本：`0.33.0` | main：`23b54be4bd3030c564c2e1a0325eaf36199357fe` | 对账日期：2026-07-19
+> 当前版本：`0.33.0` | main：`22f85db16a43e7d09a903859a26ac6a310370d81` | 对账日期：2026-07-19
 
 ## 功能与数据限制
 
@@ -10,6 +10,7 @@
 | 仅本地存储 | 主要使用 SQLite 与 Chroma，没有跨设备或分布式存储后端 |
 | Reminder 外部通知未实现 | 当前提供持久化状态、调度与查询，不代表邮件、短信或推送已送达 |
 | Coordination 未接入所有主路径 | 十一层架构中的 Coordination 已独立存在，但部分能力仍默认关闭或未接入 CEO Assistant 主路径 |
+| Knowledge / Agent 产品闭环未完成 | Knowledge 主链路、完整 Agent Runtime 产品闭环、自动 Tool Calling 与完整 MCP 闭环仍未完成 |
 
 ## 安全限制
 
@@ -28,6 +29,7 @@
 | Docker 未完整实测 | 配置存在，但尚无当前基线的受控 build + run 记录 |
 | SQLite 并发上限 | 单机持久化不等于高并发或分布式一致性 |
 | Windows 编码差异 | PowerShell/CMD 中文管道需要持续保留平台测试 |
+| Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂观察到 Job 状态为 `running`；唯一重跑通过，未涉及 SP-014B 修改文件，需留待独立稳定化范围处理 |
 
 ## 质量门禁限制
 

@@ -16,6 +16,8 @@ SP-011 Reminder Management Closure 已通过 PR #23 以 Squash Commit `5c4b442b2
 
 SP-014B 只在 `TaskReminderIntentParser` 的小时 token 边界增加中文 `一` 至 `十二` 映射，并要求中文小时同时具有明确 `上午/下午/晚上`。转换后继续进入原有 period、分钟、IANA 时区、UTC、past-time、title 与 FailureInfo 路径；不新增日期引擎、LLM 解析、持久化或 Inbox 依赖。
 
+SP-014 Unified Inbox 已通过 PR #32 合入并完成 ACC-014 A～L 验收。`InboxService` 由 canonical Composition Root 统一注入 API、CLI 与 CEO Assistant；持久化 `inbox_resolution_claims` 在任何目标写入前确定唯一解析类型，并支持 UserTask、Reminder、Work Log、Note 与 Dismiss 的幂等完成及崩溃恢复。进程内锁不是跨进程正确性边界，Workspace 三元组继续约束所有查询与写入。
+
 ## Reminder 与 Scheduler Bridge（SP-005）
 
 `core/reminders` 将 UserTask、Reminder、ReminderOccurrence 与 Scheduled Job 保持为四个独立概念。Scheduler 使用 SQLite 条件 UPDATE 获取唯一 claim；Handler 成功后 One-shot Job 原子进入 completed。Reminder Handler 在 `reminders.db` 单事务内提交 Reminder 与唯一 Occurrence，EventBus 在提交后发布。两个数据库之间不声称原子事务，而是通过 pending 状态、补偿和可重复 reconciliation 恢复。完整契约见 `docs/architecture/REMINDER_SCHEDULER_BRIDGE.md`。

@@ -1,6 +1,12 @@
 # ADR-053：Inbox Source and Workspace Boundary
 
-Status: Proposed
+Status: Accepted
+
+## Validation Record
+
+- Implemented by SP-014 and merged through PR #32 as `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
+- ACC-014 verified API, CLI and CEO Assistant Composition Root integration, canonical default workspace behavior, list isolation, and denied cross-workspace get/resolve/dismiss operations without claim or target creation.
+- No known SP-014 blocking item remains; multi-user identity, RBAC and strong multi-tenant isolation remain out of scope.
 
 ## 决策
 

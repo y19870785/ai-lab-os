@@ -1,6 +1,14 @@
 # RFC-024：Unified Inbox and Capture-to-Action
 
-Status: Proposed
+Status: Accepted
+
+## Acceptance Record
+
+- Implemented by SP-014 and merged through PR #32.
+- Merge Commit: `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
+- ACC-014 A～L: PASSED / FINAL.
+- Real acceptance verified workspace isolation, cross-process resolution claims, idempotent retry, competing resolution types, same-type races, restart persistence, and recovery after claim/target interruption.
+- No known SP-014 blocking item remains; deferred capabilities stay outside this RFC.
 
 ## 问题
 

@@ -1,6 +1,12 @@
 # ADR-052：Inbox Resolution Idempotency
 
-Status: Proposed
+Status: Accepted
+
+## Validation Record
+
+- Implemented by SP-014 and merged through PR #32 as `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
+- ACC-014 verified cross-process unique resolution ownership, different-type and same-type competition, idempotent retry, restart persistence, and recovery from both `claimed` and `target_created` interruption points.
+- The persistent claim, not the process-local lock, is the validated correctness boundary. No known SP-014 blocking item remains.
 
 ## 决策
 
