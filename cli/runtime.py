@@ -139,7 +139,7 @@ async def query_daily_agenda(
                 retryable=False,
             ))
         return await system.daily_agenda.list(
-            workspace_key=None,
+            workspace_key=WorkspaceKey(),
             view=view,
             window_hours=window_hours,
             limit=limit,
