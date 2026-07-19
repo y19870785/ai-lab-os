@@ -1,56 +1,80 @@
-﻿# AI-Lab Roadmap
+# AI-Lab Roadmap
 
-**Last Updated:** 2026-07-19 | **Current Version:** v0.33.0
+**Last Updated:** 2026-07-20
+**Current Version:** v0.34.0 Alpha Candidate
+**Current SP:** SP-015 — Release Governance Consolidation
 
-## Latest Archived Work
+Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
-SP-014 Unified Inbox：APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED。PR #32 与 SP-014B PR #33 已进入 `main`，ACC-014 A～L 全部 PASSED。SP-015 仅为 UNBLOCKED_FOR_PLANNING / NOT_STARTED。
+## 版本与 SP 的关系
 
-SP-013 Daily Agenda：APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。Feature、post-merge reconciliation 与 SP-013B CLI workspace 修复均已进入 `main`；A～H 隔离验收全部 PASSED。CI-001 已建立 GitHub Pull Request / `main` push / manual Quality Gate。
+- 产品版本由若干 SP 共同组成；SP 编号是开发批次，不等同于产品版本。
+- 每个产品版本必须明确功能范围、验收结果、Tag 和 Release Notes。
+- 候选 SP 不代表已经批准、排期或启动。
 
-SP-010 Reminder Inbox and User-Friendly Local Access：APPROVED / MERGED / RECONCILED / ARCHIVED。PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，后续手工产品验收已 PASSED 7 / 7。
+## v0.34.0 Alpha Candidate
 
-SP-010 后续用户验收已 PASSED 7 / 7（Baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`）。SP-011 Reminder Management Closure 已通过 PR #23 合并并完成治理对账；手工验收记录为 Reminder Core PASSED、自然语言 Reminder UX CONDITIONALLY PASSED。SP-012 当前为 APPROVED / MERGED / RECONCILED / ARCHIVED。
+目标成熟度：**Alpha / local-first / single-user-oriented**。
 
-## Completed
+### 包含范围
 
-| Phase | Version | Date | Deliverable |
-|---|---|---|---|
-| 1.0-1.6 | v0.1.0 ~ v0.6.1 | 2026-07-11~12 | Foundation: Core + Memory + Governance Architecture |
-| 2.0-2.7 | v0.7.0 ~ v0.14.0 | 2026-07-12 | Core & Memory Implementation + Stabilization |
-| 3.0-3.4 | v0.15.0 ~ v0.19.0 | 2026-07-12 | Provider、Knowledge、Agent、Tool、MCP 基础实现；部分能力默认 Disabled |
-| 4.0-4.3 | v0.20.0 ~ v0.23.0 | 2026-07-12~13 | Workflow/Task 已接入；Scheduler/Coordination Runtime 已实现但默认 Disabled |
-| 5.0-5.1 | v0.30.0 ~ v0.31.0 | 2026-07-13 | Application Foundation + Alpha Field Validation |
-| Product 1.0-1.2 | v0.32.0 ~ v0.32.4 | 2026-07-13~14 | CEO Assistant MVP + DeepSeek + Interactive CLI |
-| Stabilization | v0.33.0 | 2026-07-15 | SP-001~SP-003 Composition Root、失败语义、数据库连接所有权与版本治理 |
-| SP-004 | v0.33.0（未新增 Release） | 2026-07-15 | Canonical UserTask、`tasks.db`、真实 Task API、CEO Assistant 接入与 Legacy importer |
-| SP-005 | Unreleased（post-v0.33.0 main） | 2026-07-15 | Reminder/Occurrence、Scheduler CAS claim、Action Handler 与 Saga reconciliation；PR #10 已合并，默认关闭 |
-| SP-010 | Unreleased（post-v0.33.0 main） | 2026-07-16 | 持久化 Reminder Inbox、API/CLI/自然语言查询、workspace 过滤与 UTF-8 本地访问；PR #21 已合并 |
-| SP-011 | Unreleased（post-v0.33.0 main） | 2026-07-17 | Reminder 管理、pending Inbox、确定性响应分离与 CLI UTF-8；PR #23 已合并，手工验收为 Core PASSED / NL UX CONDITIONALLY PASSED |
-| SP-012 | Unreleased（post-v0.33.0 main） | 2026-07-17 | Intent Safety 与 Reminder Query UX；PR #25 已合并，查询兼容性由 SP-013 场景 H 覆盖 |
-| SP-013 | Unreleased（post-v0.33.0 main） | 2026-07-19 | Daily Agenda read model；APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED，SP-013B 修复已通过 PR #29 合并 |
-| SP-014 | Unreleased（post-v0.33.0 main） | 2026-07-19 | Unified Inbox、Capture-to-Action、workspace 隔离与持久化 resolution claim；PR #32 已合并，ACC-014 PASSED / FINAL |
-| SP-014B | Unreleased（post-v0.33.0 main） | 2026-07-19 | 明确 period 下的中文小时一至十二兼容；PR #33 已合并并验证 |
+- Canonical UserTask
+- Reminder Core 与持久化 Scheduler bridge
+- Reminder Inbox 与 Reminder Management
+- Natural-language Reminder 的确定性时间子集
+- Intent Safety
+- Daily Agenda
+- Unified Inbox 与 Capture-to-Action
+- API、CLI 与 CEO Assistant 共享 canonical Composition Root 和领域服务
+- Bearer Token / CORS 本地 API 安全边界
+- `project_state.json`、版本、文档职责、Release Notes 与自动一致性检查收口
 
-## Current
+### 不包含范围
 
-| Status | Action |
+- 外部通知投递
+- Recurring Reminder
+- Web UI
+- 完整 Knowledge 主链路
+- 用户身份、OAuth、JWT、RBAC 与强多租户
+- 企业级部署、高可用或 production-ready 承诺
+- Docker 与长期运行的正式发布验证
+
+### 发布门禁
+
+v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
+
+1. SP-015 通过审查并合并；
+2. main Quality Gate 通过；
+3. post-merge acceptance 完成；
+4. 独立 release reconciliation 获得 Owner 与 ChatGPT 授权。
+
+当前状态：Tag 未创建，GitHub Release 未创建。
+
+## v0.35.0 候选方向
+
+以下顺序仅为候选规划：
+
+| 候选 SP | 方向 | 状态 |
+|---|---|---|
+| SP-016 | Notification Delivery | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-017 | Recurring Reminder | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-018 | Minimal Web Console | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-019 | Knowledge Main Path | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+
+每个候选都需要独立任务书、范围审查、质量门禁和人工验收；SP-015 不包含这些能力的设计或实现。
+
+## 更远期方向
+
+| 版本方向 | 候选目标 |
 |---|---|
-| **BASELINE** | post-v0.33.0 main — `22f85db16a43e7d09a903859a26ac6a310370d81` |
-| **CURRENT** | SP-014 archived；SP-014B archived；ACC-014 PASSED / FINAL |
-| **NEXT** | SP-015 UNBLOCKED_FOR_PLANNING / NOT_STARTED；任务书未定义，未启动实现 |
-| **LIMITS** | 通知渠道、Recurring Reminder、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
+| v0.40.0 | 多应用与更完整的 Agent/Tool/MCP 产品闭环 |
+| v0.50.0 | 受控业务系统与企业集成 |
+| v1.0.0 | 满足独立生产就绪标准后的稳定发布 |
 
-## Future (Tentative)
+这些目标均为 tentative，不构成承诺。
 
-| Version | Goal |
-|---|---|
-| v0.33.0 | 根据审查结果修复关键问题（P1 技术债清理） |
-| v0.34.0 | 目标里程碑：CEO Assistant 产品化完善（Tag / Release 尚未创建） |
-| v0.40.0 | Beta Release — 多 App 支持 |
-| v0.50.0 | 企业微信 / ERP / 报价系统接入 |
-| v1.0.0 | Production Release — 稳定运营 |
+## 已完成基线
 
-> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
-
-> SP-007、SP-008 与 SP-009 均已 APPROVED / MERGED / RECONCILED / ARCHIVED。SR-001 选择的 Natural-Language Reminder Closure 已由 SP-009 通过 PR #19 合并，成为首个用户可验收的持久化产品切片。
+- v0.33.0：Composition Root、失败语义、DatabaseManager 所有权与版本治理基线。
+- post-v0.33.0 至 v0.34.0 Alpha Candidate：UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与 API/CLI/CEO Assistant 产品闭环。
+- ACC-014：A～L PASSED / FINAL。

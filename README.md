@@ -1,183 +1,165 @@
-﻿# AI-Lab
+# AI-Lab OS
 
-个人级 AI 操作系统（Personal AI Operating System）。
+面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
-## 定位
+**当前版本：v0.34.0 Alpha Candidate**
+**成熟度：Alpha / local-first / single-user-oriented**
 
-AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 AI Agent 平台。
-未来所有 AI 应用均基于 AI-Lab。
+AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业务判断和重要审批仍由用户负责。当前版本适合本地开发、验证和受控试用，不应被描述为 production ready。
 
-**AI 辅助决策，不替代人的最终判断。**
+## 当前能力
 
-当前目标产品基线为 **v0.33.0**。`pyproject.toml` 的 `[project].version` 是唯一运行时产品版本来源，`core.__version__`、CLI 与 API 均从 package metadata 或该来源派生。
+### 已接入并验证
 
-> **SP-010 Reminder Inbox** 已通过 PR #21 审查并以 Squash Merge 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。用户可通过 API、CLI 与确定性自然语言查询浏览持久化提醒；外部通知、Recurring Reminder 与 Web UI 仍未实现。产品版本保持 `0.33.0`，未创建新 Tag 或 Release。
+- Canonical UserTask：真实持久化、查询和生命周期管理。
+- Reminder Core：持久化 Reminder、Scheduler Job 与站内状态；支持今天/明天的确定性时间子集。
+- Reminder Management：列表、详情、取消、改期、workspace 校验和幂等语义。
+- Intent Safety：读、写、聊天显式分离；模糊查询优先只读。
+- Daily Agenda：统一读取 UserTask、Reminder 与 Work Log。
+- Unified Inbox / Capture-to-Action：捕获待整理事项，并显式转化为 UserTask、Reminder、Work Log、Note 或 Dismiss。
+- API、CLI 与 CEO Assistant：共享 canonical Composition Root 和领域服务。
+- Bearer Token 与 CORS allowlist：提供本地 API 安全边界。
 
-> **SP-011 Reminder Management Closure** 已通过 PR #23 审查并以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。统一管理服务为 API、CLI 与 CEO Assistant 提供详情、取消、改期、歧义解析和 workspace 校验；`view=pending` 表示未来 scheduled/retrying；确定性 Reminder 响应不附带 LLM/Mock 噪音；CLI 自主管理 UTF-8 输出边界。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED。
+### 已实现但默认关闭或需显式配置
 
-> **SP-013 Daily Agenda** 已完成最终验收，状态为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。统一只读日程视图覆盖 API、CLI 与 CEO Assistant；SP-013B 通过 PR #29 修复了 CLI 默认 workspace 边界。该历史修复提交为 `23b54be4bd3030c564c2e1a0325eaf36199357fe`；产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
+- Reminder / Scheduler：已集成和验证，是否启动由运行配置决定。
+- Knowledge：基础实现存在，但真实主链路、reindex、chunk persistence 和 citation 尚未完成。
+- Coordination：基础实现存在，默认关闭，未接入 CEO Assistant 主链路。
+- Real LLM Provider：需要显式安装对应 extra、配置凭据并获得单独验证授权；普通测试门禁不调用真实 Provider。
 
-> **CI-001 Quality Gate** 已通过 PR #30 合入。Pull Request、`main` push 与手动触发均使用 Python 3.12；Ruff 只检查本次变更的 Python 文件，pytest 显式排除 `tests/real`。这不代表全库 Ruff 或 real-provider 测试已通过。
+### 原型或未完成
 
-> **SP-014 Unified Inbox / Capture-to-Action** 已通过 PR #32 合入并完成 ACC-014 A～L 手工验收，状态为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED。API、CLI 与 CEO Assistant 共用 canonical Composition Root，支持捕获并显式转化为 UserTask、Reminder、Work Log、Note 或 Dismiss；持久化 resolution claim 提供跨进程唯一解析权与崩溃恢复边界。
+- 通用 Task / Workflow API 中不属于正式 UserTask 领域的路径仍是原型边界。
+- 自动 Tool Calling、完整 MCP 产品闭环和完整 Agent Runtime 产品闭环尚未完成。
+- 外部通知、Recurring Reminder、Web UI、用户身份、OAuth/JWT/RBAC、强多租户和企业级部署尚未实现。
 
-> **SP-014B Chinese Numeral Reminder Time Compatibility** 已通过 PR #33 以 Squash Commit `22f85db16a43e7d09a903859a26ac6a310370d81` 合入并验证。在 `今天/明天` 与明确 `上午/下午/晚上` 组合中，小时支持中文数字 `一` 至 `十二`，并继续复用既有分钟、时区、UTC、过去时间和幂等链路。不支持后天、星期、相对/模糊时间、中文分钟、Recurring Reminder 或 LLM 时间解析。产品版本保持 `0.33.0`。
+## 快速开始
 
-## 架构
-
-**SP-001：Single Composition Root 已完成并合并。** CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该实现已通过架构审查与合并后复核，现为 `main` 的稳定化基线。
-
-**SP-002：Failure Semantics & Observability 已完成并通过 PR #3 以 Squash Merge 合并到 `main`。** `FailureInfo` 已成为 Agent、Task、Scheduler、API、失败事件与 System Health 的统一失败契约。首轮审查发现的 Agent 缺失依赖静默跳过、HTTP 200 携带错误状态、Memory 健康无法恢复和 Health 聚合错误均已修复。合并基线为 `a39dc6a2434b409d311709b08b2c0df9a555a610`，审查结论为 `APPROVED`。
-
-**SP-003：DatabaseManager Connection Ownership 已完成，并通过 PR #5 以 Squash Merge 合并到 `main`。** Composition Root 将同一个 `DatabaseManager` 注入 Episodic、Semantic、Decision Store；Manager 是共享连接唯一 Owner。Managed lease 在完整借用周期持有对应数据库锁，`close()`/`close_all()` 会等待活跃借用，关闭失败的连接继续由 Manager 跟踪并可重试。现有 `sqlite_dir/*.db` 路径与 Schema 保持不变，Standalone Store 仍保留独立运行能力。SP-003 merge baseline 为 `ce3655ff5f7a625da6b168058873dadfc2289b5f`。
-
-**SP-004：Canonical UserTask Domain 已完成审查并通过 PR #8 以 Squash Merge 合并到 `main`。** 合并提交为 `10d1534049be2d526c930c513912dc661ac41728`，审查结论为 `APPROVED`。正式 UserTask 领域、`tasks.db` 持久化、真实 `/tasks` API、CEO Assistant 接入和显式 Legacy Decision Memory importer 已进入主分支。
-
-当前产品版本仍为 v0.33.0。SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查，并以 Squash Merge 合并到 `main`；合并提交为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，审查结论为 `APPROVED`，合并时间为 `2026-07-15T14:03:32Z`。持久化 Reminder/Occurrence、SQLite CAS claim、One-shot terminal 语义、Action Handler、跨库 Saga/reconciliation、UserTask 终态联动和真实 Reminder API 已进入主分支，但默认仍关闭。该能力属于 `post-v0.33.0 main`，尚未进入新的 Tag 或 Release；外部通知渠道、Recurring Reminder、Inbox 与 UI 仍未实现。
-
-SP-005 的 Windows 隔离 Python 3.12 本地最终验证为 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果。
-
-## 安装契约
-
-`pyproject.toml` 同时是版本与依赖的唯一权威来源：
+要求 Python 3.11 或更高版本。
 
 ```powershell
-# 最小 Core 运行环境
-python -m pip install -e .
-
-# 本地开发、API、真实 Provider、测试与构建验收
+git clone https://github.com/y19870785/ai-lab-os.git
+cd ai-lab-os
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[local]"
 ```
 
-`requirements.txt` 仅保留为 `[local]` extra 的兼容安装入口，不再维护第二份依赖列表。Knowledge 的 Chroma 与 SentenceTransformer 仍是显式可选依赖，不会进入最小 Core 或默认本地安装。
+查看 CLI：
 
-当前统一为十一层架构；Coordination 作为独立层存在：
-
-```
-┌───────────────────────────────────────────────────────────┐
-│            Governance Layer（治理层）                       │
-│  开发策略 · Agent 策略 · 知识策略 · 模型策略 · 版本策略     │
-├───────────────────────────────────────────────────────────┤
-│            Application Layer（业务应用层）                  │
-│  Investment Office · Enterprise AI · Quotation System      │
-├───────────────────────────────────────────────────────────┤
-│           Coordination Layer（协作协调层）                  │
-│  Team Registry · Planner · Orchestrator · Communication    │
-├───────────────────────────────────────────────────────────┤
-│              Task Runtime（任务编排层）                     │
-│  TaskManager · Planner · DependencyResolver · Checkpoint   │
-├───────────────────────────────────────────────────────────┤
-│            Scheduler Runtime（调度层）                     │
-│  TriggerEngine · JobExecutor · Persistence                 │
-├───────────────────────────────────────────────────────────┤
-│            Workflow Engine（工作流层）                     │
-│  StateMachine · Checkpoint · Planner · Executor            │
-├───────────────────────────────────────────────────────────┤
-│              Agent Runtime（智能 Agent 层）                 │
-│  Lifecycle · ContextBuilder · Executor · Registry          │
-├───────────────────────────────────────────────────────────┤
-│            Knowledge Layer（知识系统层）                    │
-│  Ingestion Pipeline · Chunking · Hybrid Retrieval · Rank   │
-├───────────────────────────────────────────────────────────┤
-│            Provider Layer（模型抽象层）                     │
-│  LLM · Embedding · Vector · Storage（Protocol + Mock）     │
-├───────────────────────────────────────────────────────────┤
-│              Tool Runtime（工具执行层）                     │
-│  Sandbox · Permissions · Audit · Metrics · MCP Adapter     │
-├───────────────────────────────────────────────────────────┤
-│              Memory Layer（记忆系统层）                     │
-│  Session · Episodic · Semantic · Decision（四层）          │
-│  Consolidation Engine（Importance / Decay / Policy）       │
-├───────────────────────────────────────────────────────────┤
-│              Core Layer（基础能力层）                       │
-│  配置 · 日志 · 消息总线 · 数据库                            │
-└───────────────────────────────────────────────────────────┘
+```powershell
+python -m cli --help
 ```
 
-## 核心理念
+启动本地 API：
 
-| AI 负责 | 用户负责 |
-| --- | --- |
-| 信息收集 · 数据整理 | 最终决策 |
-| 分析 · 提醒 | 业务判断 |
-| 自动化执行 | 重要审批 |
-
-## 当前阶段
-
-当前处于 **Phase 4 —— AI OS Runtime**（v0.22.0）。
-
-| Phase | 内容 | 状态 |
-| --- | --- | --- |
-| 1.1 - 1.6 | Foundation Phase 架构设计 | ✅ |
-| 2.1 - 2.8 | Core + Memory Implementation | ✅ |
-| 3.0 - 3.4 | Provider / Knowledge / Agent / Tool / MCP | Implemented；Knowledge 默认 Disabled，自动 Tool Calling 未完成 |
-| 4.0 | Workflow Engine | Integrated |
-| 4.1 / SP-005 | Scheduler + Reminder | Integrated / Verified / Disabled by default；外部通知未实现 |
-| 4.2 | Task Runtime | Integrated |
-| 4.3 | Multi-Agent Coordination | Implemented / Disabled；未接入 CEO Assistant 主链路 |
-| 5.0 | Real LLM Integration + Application Layer | Integrated；CEO Assistant 为 Alpha |
-
-## 项目结构
-
-```
-AI-Lab/
-├── docs/
-│   ├── governance/     # 治理体系（6 个策略文件）
-│   ├── rfc/            # 架构设计文档（12 篇）
-│   ├── adr/            # 架构决策记录（23 篇）
-│   └── project/        # 项目健康 / 路线图 / 里程碑
-├── core/
-│   ├── bus/            # 消息总线（Event Bus + Task Queue）
-│   ├── database/       # 数据库管理（Connection Pool + Migration）
-│   ├── memory/         # 记忆系统（Session / Episodic / Semantic / Decision）
-│   ├── providers/      # Provider Layer（LLM / Embedding / Vector / Storage）
-│   ├── knowledge/      # 知识系统（Ingestion / Chunking / Retrieval / Ranking）
-│   ├── agents/         # Agent Runtime（Lifecycle / ContextBuilder / Executor）
-│   ├── tools/          # Tool Runtime（Sandbox / Permissions / MCP Adapter）
-│   ├── workflow/       # Workflow Engine（StateMachine / Checkpoint / Planner）
-│   ├── scheduler/      # Scheduler Runtime（Trigger / Job / Persistence）
-│   ├── task/           # Task Runtime（编排 / 依赖 / 检查点）
-│   ├── system/         # 唯一 Composition Root + SystemContainer + Settings
-│   ├── logging.py      # 日志系统（Trace ID / Agent ID 上下文）
-│   └── config.py       # 配置管理
-├── tests/
-│   ├── core/           # 各模块单元测试
-│   └── integration/    # 端到端集成测试
-├── applications/       # 业务应用（预留）
-├── prompts/            # Prompt 模板管理（预留）
-├── config/             # 配置模板
-└── logs/               # 运行日志
+```powershell
+python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
 ```
 
-## 开发规范
+最小 Core 安装可以使用：
 
-- **文档驱动**：重大设计先写 RFC，架构决策记录 ADR
-- **模型不可知**：业务层不绑定具体模型
-- **配置驱动**：所有行为由配置控制，不硬编码
-- **详见**：[开发策略](docs/governance/DEVELOPMENT_POLICY.md)
+```powershell
+python -m pip install -e .
+```
 
-## 技术栈
+`pyproject.toml` 是版本、依赖和 package discovery 的唯一运行时来源；`requirements.txt` 仅兼容代理 `.[local]`。
 
-- Python >=3.11
-- Pydantic + YAML + 环境变量（配置）
-- SQLite（存储）+ Chroma / Qdrant（向量，预留）
-- asyncio（进程内通信）
-- 当前验证统计以 `docs/project/PROJECT_HEALTH.md` 为准；正式普通门禁来自 GitHub Quality Gate，历史本地记录会单独标注
+## 运行 Profile
 
----
+| Profile | 用途 | 关键边界 |
+|---|---|---|
+| Minimal Core | Core、Memory 与基础 Runtime 开发 | 不自动安装 API、真实 Provider 或 Knowledge 大型依赖 |
+| Local | API、CLI、Mock Provider、测试和构建 | 推荐的本地开发组合 |
+| Real Provider | 显式外部模型验证 | 需要凭据、网络和单独授权，不属于普通 Quality Gate |
+| Knowledge | 可选向量与 embedding 依赖 | 真实产品主链路仍未完成 |
 
-> 当前产品版本：`v0.33.0`。`main` 已包含 SP-004～SP-013B 的 post-v0.33.0 工作，但尚未创建新的 Tag、Release 或版本号。
+运行行为由环境配置控制。默认关闭的能力不会因为代码存在而自动成为可用产品功能。
 
-> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
+## 典型使用入口
 
-> SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 的 Approved Head 为 `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4`，Squash Merge Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，合并时间为 `2026-07-16T10:08:47Z`，产品版本保持 `0.33.0`。
+```powershell
+# 查看提醒
+python -m cli reminders --json
 
-> SP-008 Internal Work Admission Boundary: **APPROVED / MERGED / RECONCILED / ARCHIVED**。PR #16 以 Approved Head `536d1563baaecf5d50eeefc93dfdb0dbbfe3c659` 通过审查，Squash Commit `1858d4991379058948559cc96e2672df44e42b67` 于 `2026-07-16T11:06:29Z` 进入 main。API 与内部入口共享同一生命周期真相；RFC-018 已 Adopted，ADR-037/038 已 Accepted。
+# 查看今日日程
+python -m cli agenda --view today --json
 
-> SP-008 合并前 Windows 本地 Python 3.12 验证：`977 passed, 27 warnings in 49.17s`，零失败、零错误；该结果是历史本地记录，不是 GitHub Actions 或跨平台 CI 健康保证。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
+# 查看 Unified Inbox
+python -m cli inbox list --json
+```
 
-> **SP-009：APPROVED / MERGED / RECONCILED / ARCHIVED。** PR #19 以 Squash Merge 合入 `main`，merge commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`。受支持的自然语言提醒已接入真实 UserTask、Reminder、Scheduler Job、Occurrence 和站内状态查询，成为首个用户可验收的持久化产品切片。Task 的截止时间与 Reminder 调度仍是独立概念；仅支持今天/明天的确定性时间子集，外部通知、Inbox、Recurring Reminder、复杂日期和 Web UI 尚未实现。产品版本保持 `0.33.0`，未创建 Tag 或 Release。
+API、CLI 和 CEO Assistant 最终都进入 `core.system.create_system()` 创建的 `SystemContainer`，不会各自组装第二套 Repository 或领域服务。
 
-> **SP-012 Intent Safety and Reminder Query UX** 已通过 PR #25 审查并以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。其查询兼容性已由 SP-013 场景 H 实际验证：“今天都有什么事？”保持 `reminder_list/read` 且无写入；不虚构独立 SP-012 全量手工验收。
+## 架构概览
 
-> **ACC-014：PASSED / FINAL。** A～L 全部通过；SP-015 仅为 UNBLOCKED_FOR_PLANNING / NOT_STARTED，尚未启动。
+```text
+Governance
+  └─ Application / CEO Assistant / API / CLI
+       └─ Canonical Composition Root
+            ├─ UserTask / Reminder / Daily Agenda / Unified Inbox
+            ├─ Scheduler / Workflow / Agent / Tool / Coordination
+            ├─ Knowledge / Provider
+            └─ Memory / Database / EventBus / Core
+```
+
+关键边界：
+
+- `pyproject.toml`：唯一运行时产品版本源。
+- `project_state.json`：唯一机器可读实时项目状态源。
+- `core/system/factory.py:create_system()`：唯一 Composition Root。
+- SQLite 持久化 claim：Unified Inbox 跨进程唯一解析权和崩溃恢复边界。
+- `FailureInfo`：跨领域统一失败语义。
+
+更完整的实现关系见 [ARCHITECTURE.md](ARCHITECTURE.md)。
+
+## 当前限制
+
+- Alpha、local-first、single-user-oriented；没有生产可用性承诺。
+- Workspace 是逻辑隔离边界，不等于完整用户身份或强多租户授权。
+- Reminder 当前提供站内持久化状态，不代表邮件、短信或推送已经送达。
+- 不支持 Recurring Reminder、复杂自然语言日期或 LLM 时间裁决。
+- Knowledge 真实主链路、Web UI、Docker 受控 build/run 与长期稳定性尚未完成正式验证。
+- 普通 GitHub Quality Gate 显式排除 `tests/real`；真实 Provider 结果不能由普通门禁推导。
+- CI-002 与 QUALITY-001 等已确认技术债记录在 `project_state.json`。
+
+## 开发与测试
+
+普通治理和回归门禁：
+
+```powershell
+python -m pytest tests/governance -q
+python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no
+python -m build
+```
+
+Ruff 只检查本次修改或新增的 Python 文件：
+
+```powershell
+python -m ruff check <changed-python-files>
+```
+
+不得通过删除测试、扩大 skip 或放宽旧断言获得绿色结果。
+
+## 文档导航
+
+- [项目机器状态](project_state.json)：版本、main 基线、当前 SP、质量门禁、技术债与 Release 状态。
+- [项目大脑](docs/project/PROJECT_BRAIN.md)：长期架构事实与封存产品事实。
+- [Roadmap](docs/project/ROADMAP.md)：版本范围、里程碑与候选 SP。
+- [Changelog](CHANGELOG.md)：按产品版本记录用户可见变化。
+- [v0.34.0 Alpha Release Notes](docs/releases/v0.34.0-alpha.md)：本候选版本范围、升级说明与限制。
+- [Known Limitations](docs/project/KNOWN_LIMITATIONS.md)：当前限制的可读汇总。
+- [RFC](docs/rfc/)：重大方案设计。
+- [ADR](docs/adr/)：已作出的架构决策。
+- [SP-014 Acceptance](docs/acceptance/SP-014-unified-inbox.md)：Unified Inbox 最终产品验收。
+
+## 版本与 Release
+
+- 当前源码版本：`0.34.0`。
+- Release 阶段：v0.34.0 Alpha Candidate。
+- 上一个 Git Tag：`v0.33.0`。
+- v0.34.0 Tag：尚未创建。
+- v0.34.0 GitHub Release：尚未创建。
+- 创建条件：SP-015 合并、合并后验收与独立 Release reconciliation 全部完成。
+
+任务编号代表开发批次，不等同于产品版本；一个产品版本可以由多个 SP 共同组成。
