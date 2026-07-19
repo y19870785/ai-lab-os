@@ -3,6 +3,8 @@
 > 冻结日期：2026-07-14 | 版本：v0.32.4
 > 审查模型：全新 Codex GPT-5.6（无历史对话上下文）
 
+> **历史快照说明（2026-07-19）**：本文冻结于 v0.32.4，仅保留当时审查语境，不是当前项目状态来源。当前 main 为 `23b54be4bd3030c564c2e1a0325eaf36199357fe`，正式架构为十一层，SP-013 已通过手工验收；API 已有默认启用的 Bearer Token Authentication，CORS 为显式 allowlist。当前事实以 `docs/project/PROJECT_BRAIN.md`、`docs/project/PROJECT_STATUS.md`、`docs/review/CURRENT_RISKS.md` 与 `project_state.json` 为准。
+
 ---
 
 ## 项目背景

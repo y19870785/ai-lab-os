@@ -4,15 +4,19 @@
 
 > SP-011 Reminder Management Closure 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root-owned `ReminderManagementService` 复用现有 Bridge Saga，并将确定性 Reminder 响应与 Provider 提示分离。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。跨数据库原子事务、外部通知、Recurring Reminder 与 Web UI 仍未实现。
 
-> SP-012 为 APPROVED / MERGED / RECONCILED / ARCHIVED。候选实现仅收紧 CEO Assistant 与 CLI 的确定性意图边界：查询采用显式 `read` effect，写入要求明确命令或已发生动作，Reminder FailureInfo 由应用层集中呈现中文文案。RFC-022 与 ADR-046/047/048 均为 Proposed。
+> SP-012 为 APPROVED / MERGED / RECONCILED / ARCHIVED。实现收紧 CEO Assistant 与 CLI 的确定性意图边界：查询采用显式 `read` effect，写入要求明确命令或已发生动作，Reminder FailureInfo 由应用层集中呈现中文文案。RFC-022 已 Adopted，ADR-046/047/048 已 Accepted；查询兼容性由 SP-013 场景 H 实际覆盖。
 
-## 当前十层架构
+> SP-013 Daily Agenda 为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。Feature、post-merge reconciliation 与 SP-013B CLI workspace 修复均已进入 `main`。CI-001 已提供 Python 3.12 Pull Request / `main` push / manual Quality Gate。
+
+## 当前十一层架构
 
 ```
-Application → Task → Scheduler → Workflow → Agent → Knowledge → Provider → Tool → Adapter → External
-                                                                              ↑
-                                                                         Memory / Core
+Governance → Application → Coordination → Task → Scheduler → Workflow →
+Agent → Knowledge → Provider → Memory → Core
 ```
+
+Coordination 是独立层。Tool Runtime 与 MCP Adapter 是 Agent/Provider 边界内的支撑子系统，
+不会被重复计入当前十一层的层数。
 
 ## 完整层级视图
 
@@ -21,6 +25,8 @@ Application → Task → Scheduler → Workflow → Agent → Knowledge → Prov
 │               Governance                    │
 ├─────────────────────────────────────────────┤
 │              Application                    │
+├─────────────────────────────────────────────┤
+│             Coordination                    │
 ├─────────────────────────────────────────────┤
 │            Task Runtime                     │  ← 统一任务编排中心
 ├─────────────────────────────────────────────┤
@@ -34,13 +40,11 @@ Application → Task → Scheduler → Workflow → Agent → Knowledge → Prov
 ├─────────────────────────────────────────────┤
 │          Provider Layer                     │  ← LLM / Embedding / Vector / Storage
 ├─────────────────────────────────────────────┤
-│           Tool Runtime                      │  ← Sandbox / Permissions / Audit
-├─────────────────────────────────────────────┤
-│           MCP Adapter                       │  ← 协议转换
-├─────────────────────────────────────────────┤
 │         Memory (4 层)  │   Core (Bus + DB)  │
 └─────────────────────────────────────────────┘
 ```
+
+Supporting subsystems: Tool Runtime（Sandbox / Permissions / Audit）与 MCP Adapter（协议转换）。
 
 ## Task Runtime
 
@@ -81,6 +85,10 @@ WorkflowRuntime
 ```
 
 ## 当前验证基线
+
+GitHub Ubuntu Quality Gate（Python 3.12）当前为 `1096 passed, 6 skipped, 27 warnings`；
+Ruff 仅检查本次变更的 Python 文件，pytest 显式排除 `tests/real`。Windows 本地基线为
+`1102 passed, 5 deselected`。CI-002 与 QUALITY-001 仍是后续质量债务。
 
 SP-005 合并前的 Windows 本地完整验证为 `888 passed, 27 warnings in 45.19s`。该结果不是 GitHub Actions 或跨平台 CI 记录。Scheduler / Reminder 已集成并验证，但默认关闭；外部通知、Recurring Reminder 与 Inbox 尚未实现。
 

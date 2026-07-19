@@ -1,65 +1,56 @@
-﻿# AI-Lab Current Risks —— 技术债与风险摘要
+# AI-Lab Current Risks — 技术债与风险摘要
 
-> 冻结版本：v0.32.4 | 日期：2026-07-14
+> 当前版本：`0.33.0` | main：`23b54be4bd3030c564c2e1a0325eaf36199357fe` | 对账日期：2026-07-19
+
+## 当前质量与安全边界
+
+- GitHub Quality Gate 使用 Python 3.12，在 Pull Request、main push 与 `workflow_dispatch` 上运行。
+- pytest 门禁显式排除 `tests/real`；Ubuntu 当前基线为 `1096 passed, 6 skipped, 27 warnings`。
+- Ruff 只检查本次 PR 或 push 变更的 Python 文件，不代表全库历史 Ruff 债务已清零。
+- API 已实现 Bearer Token Authentication，默认启用；缺少必要 token 配置时启动失败。
+- CORS 使用显式 allowlist，默认不允许跨域；启用鉴权时拒绝通配符 `*`。
 
 ## P0：阻塞发布
 
-（当前无 P0 级别阻塞项，因为项目尚未进入生产发布阶段）
+当前无新增 P0。项目仍为 `0.33.0`，SP-004～SP-013B 是尚未形成新 Tag 或 Release 的后续 main 工作。
 
----
+## P1：下一阶段应处理
 
-## P1：下一迭代必须处理
-
-| 编号 | 问题 | 影响模块 | 说明 |
+| 编号 | 问题 | 影响 | 当前事实 |
 |---|---|---|---|
-| P1-1 | API 无鉴权、CORS `*` | API | 本地绑定 127.0.0.1 暂时安全，但部署到网络后是严重安全漏洞 |
-| P1-2 | Real Provider 测试不可靠 | tests/real/ | 机器 SOCKS 代理导致 openai SDK 初始化失败，需要配置 fallback 或跳过机制 |
-| P1-3 | Docker 未经真实验证 | deploy/ | Dockerfile 和 compose 配置存在但从未实际 docker build + run |
-| P1-4 | Chroma 生命周期管理脆弱 | Knowledge | Chroma 客户端初始化/关闭异常时可能泄漏连接 |
-| P1-5 | start.bat 依赖清除代理 | scripts/ | 如果用户机器有系统级 SOCKS 代理，不清除会导致 LLM 初始化失败 |
-| P1-6 | Prompt 注入无防护 | CEO Assistant | 用户输入直接拼入 system prompt，无任何注入检测 |
-
----
+| CI-002 | `tests/real/conftest.py` collection hook 作用域过宽 | CI / 测试收集 | 普通门禁通过 `--ignore=tests/real` 明确规避；不得据此声称 real 测试通过 |
+| QUALITY-001 | 全库 Ruff 历史基线尚未建立 | 代码质量 | 当前 CI 仅对变更 Python 文件做增量检查 |
+| P1-SEC-1 | 静态单一 Bearer Token | API | 无用户身份、OAuth/JWT、RBAC；token 轮换需要重启 |
+| P1-3 | Docker 未经完整真实验证 | deploy/ | Dockerfile 与 compose 存在，但缺少受控 build + run 验证记录 |
+| P1-4 | Chroma 生命周期管理脆弱 | Knowledge | 初始化或关闭异常时仍有资源生命周期风险 |
+| P1-6 | Prompt 注入防护不足 | CEO Assistant | 仍需明确输入信任边界与工具调用防护 |
 
 ## P2：中期风险
 
 | 编号 | 问题 | 说明 |
 |---|---|---|
-| P2-1 | SQLite 高并发无连接池保护 | 多 Agent 并发时可能出现 database locked |
-| P2-2 | Intent Router 误判率高 | 纯规则匹配，"完成了"、"怎么" 等词多次误匹配 |
-| P2-3 | Knowledge 来源可信度未标记 | 所有知识同等对待，无置信度/来源可信度区分 |
-| P2-4 | Daily Brief 数据真实性未验证 | Brief 可能引用过期或错误数据 |
-| P2-5 | Workspace 隔离仅文件级别 | 无加密，无法防止跨 Workspace 数据泄露 |
-| P2-6 | TD-001 测试辅助函数 id=None 问题 | 部分测试代码存在 Pydantic default_factory 不触发问题 |
-| P2-7 | RFC/ADR 编号重复 | RFC-013 和 ADR-024/025 各有两篇，编号冲突 |
-| P2-8 | 部分模块文档与代码版本不一致 | ARCHITECTURE 版本表停在不一致的位置 |
+| P2-1 | SQLite 并发能力有限 | 多执行单元并发时仍可能发生锁竞争；当前不是分布式存储 |
+| P2-2 | 意图路由仍以确定性规则为主 | 已有读写安全边界，但边缘自然语言仍需要持续回归覆盖 |
+| P2-3 | Knowledge 来源可信度未分级 | 缺少完整的来源可信度与时效性策略 |
+| P2-4 | Workspace 不是强租户隔离 | 现有 workspace 边界不等于用户身份、加密或强多租户安全 |
+| P2-5 | Real Provider 验证依赖外部条件 | 必须由明确授权的密钥、网络与测试任务单独执行 |
+| P2-6 | Reminder 外部通知未实现 | 当前持久化与查询状态不代表外部通知已送达 |
 
----
-
-## P3：优化建议
+## P3：架构与运维观察项
 
 | 编号 | 问题 | 说明 |
 |---|---|---|
-| P3-1 | asyncio 生命周期不统一 | 部分模块用 async with，部分用 initialize/shutdown |
-| P3-2 | Provider 降级语义未定义 | 当 LLM Provider 失败时，应降级到 Mock 还是报错？未明确定义 |
-| P3-3 | 过度架构风险 | 十层架构中可能有 2-3 层是为了"完整性"而非"业务需要" |
-| P3-4 | 公共 API 存在重复 | ApplicationRuntime.execute + CEOAssistant.run 功能重叠 |
-| P3-5 | 文档与代码偏差 | CHANGELOG 和 ARCHITECTURE 的版本记录有滞后 |
+| P3-1 | 生命周期接口尚未完全统一 | 部分模块使用 context manager，部分使用 initialize/shutdown |
+| P3-2 | Provider 降级策略需要继续明确 | Mock、失败返回与真实 Provider 故障边界应保持显式 |
+| P3-3 | 十一层架构存在复杂度成本 | Coordination 已是独立层；后续新增抽象必须由真实业务压力证明 |
+| P3-4 | 部分应用入口职责相近 | ApplicationRuntime 与 CEO Assistant 的边界需要持续保持清晰 |
+| P3-5 | Windows 编码与脚本兼容性 | PowerShell/CMD 中文管道仍需保留平台回归测试 |
 
----
+## 已关闭的旧风险结论
 
-## 文档与代码不一致项
+以下旧描述已经被 SP-006 及当前代码推翻，不再是当前风险：
 
-| 项 | 说明 |
-|---|---|
-| ARCHITECTURE.md 版本表 | 缺少 v0.32.0~v0.32.4 的完整记录 |
-| README.md | 测试统计数据可能已过期 |
-| CHANGELOG.md | 较早版本的详细内容为乱码（编码问题） |
+- “API 无鉴权”：Bearer Token Authentication 已存在并默认启用。
+- “CORS `*`”：当前为显式 allowlist 与默认 deny-all，鉴权开启时拒绝通配符。
 
----
-
-## 环境依赖风险
-
-- Windows 10/11 编码工具链不稳定（PowerShell/CMD 中文管道乱码）
-- httpx 0.28.1 + SOCKS 代理兼容性（需要 pip install httpx[socks]）
-- Python 3.10.9（未来可能需升级到 3.12+）
+安全风险并未因此全部消失；当前真实限制是静态单 token、无用户身份/RBAC、轮换需重启，以及缺少强多租户隔离。

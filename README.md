@@ -15,6 +15,10 @@ AI-Lab 的目标不是开发单一应用，而是建立一个可持续扩展的 
 
 > **SP-011 Reminder Management Closure** 已通过 PR #23 审查并以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。统一管理服务为 API、CLI 与 CEO Assistant 提供详情、取消、改期、歧义解析和 workspace 校验；`view=pending` 表示未来 scheduled/retrying；确定性 Reminder 响应不附带 LLM/Mock 噪音；CLI 自主管理 UTF-8 输出边界。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED。
 
+> **SP-013 Daily Agenda** 已完成最终验收，状态为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。统一只读日程视图覆盖 API、CLI 与 CEO Assistant；SP-013B 通过 PR #29 修复了 CLI 默认 workspace 边界。当前 `main` 为 `23b54be4bd3030c564c2e1a0325eaf36199357fe`，产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
+
+> **CI-001 Quality Gate** 已通过 PR #30 合入。Pull Request、`main` push 与手动触发均使用 Python 3.12；Ruff 只检查本次变更的 Python 文件，pytest 显式排除 `tests/real`。这不代表全库 Ruff 或 real-provider 测试已通过。
+
 ## 架构
 
 **SP-001：Single Composition Root 已完成并合并。** CLI、FastAPI lifespan、兼容 Bootstrap 与集成测试统一通过 `core.system.create_system()` 创建一套 `SystemContainer`。该实现已通过架构审查与合并后复核，现为 `main` 的稳定化基线。
@@ -43,7 +47,7 @@ python -m pip install -e ".[local]"
 
 `requirements.txt` 仅保留为 `[local]` extra 的兼容安装入口，不再维护第二份依赖列表。Knowledge 的 Chroma 与 SentenceTransformer 仍是显式可选依赖，不会进入最小 Core 或默认本地安装。
 
-采用十层架构（v0.22.0）：
+当前统一为十一层架构；Coordination 作为独立层存在：
 
 ```
 ┌───────────────────────────────────────────────────────────┐
@@ -52,6 +56,9 @@ python -m pip install -e ".[local]"
 ├───────────────────────────────────────────────────────────┤
 │            Application Layer（业务应用层）                  │
 │  Investment Office · Enterprise AI · Quotation System      │
+├───────────────────────────────────────────────────────────┤
+│           Coordination Layer（协作协调层）                  │
+│  Team Registry · Planner · Orchestrator · Communication    │
 ├───────────────────────────────────────────────────────────┤
 │              Task Runtime（任务编排层）                     │
 │  TaskManager · Planner · DependencyResolver · Checkpoint   │
@@ -151,11 +158,11 @@ AI-Lab/
 - Pydantic + YAML + 环境变量（配置）
 - SQLite（存储）+ Chroma / Qdrant（向量，预留）
 - asyncio（进程内通信）
-- 当前验证统计以 `docs/project/PROJECT_HEALTH.md` 为准；所有记录均为本地 pytest，不是 GitHub Actions 结果
+- 当前验证统计以 `docs/project/PROJECT_HEALTH.md` 为准；正式普通门禁来自 GitHub Quality Gate，历史本地记录会单独标注
 
 ---
 
-> 当前产品版本：`v0.33.0`。SP-004 已合并但未创建新 Tag 或 Release；v0.34.0 仍是目标里程碑。
+> 当前产品版本：`v0.33.0`。`main` 已包含 SP-004～SP-013B 的 post-v0.33.0 工作，但尚未创建新的 Tag、Release 或版本号。
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
@@ -167,4 +174,6 @@ AI-Lab/
 
 > **SP-009：APPROVED / MERGED / RECONCILED / ARCHIVED。** PR #19 以 Squash Merge 合入 `main`，merge commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`。受支持的自然语言提醒已接入真实 UserTask、Reminder、Scheduler Job、Occurrence 和站内状态查询，成为首个用户可验收的持久化产品切片。Task 的截止时间与 Reminder 调度仍是独立概念；仅支持今天/明天的确定性时间子集，外部通知、Inbox、Recurring Reminder、复杂日期和 Web UI 尚未实现。产品版本保持 `0.33.0`，未创建 Tag 或 Release。
 
-> **SP-012 Intent Safety and Reminder Query UX** 已通过 PR #25 审查并以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。确定性 `read/write/chat` effect 合同、只读 Reminder 查询优先、显式 Work Log 写边界与中文可操作错误引导已进入 main。SP-011 手工验收结论为 Reminder Core PASSED、自然语言 Reminder UX CONDITIONALLY PASSED；SP-012 手工产品验收待执行。产品版本仍为 `0.33.0`，未创建新 Tag 或 Release。
+> **SP-012 Intent Safety and Reminder Query UX** 已通过 PR #25 审查并以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 `main`，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。其查询兼容性已由 SP-013 场景 H 实际验证：“今天都有什么事？”保持 `reminder_list/read` 且无写入；不虚构独立 SP-012 全量手工验收。
+
+> **SP-014** 仅为 `UNBLOCKED_FOR_PLANNING`，尚未进入设计、批准或实现阶段。

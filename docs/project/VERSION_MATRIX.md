@@ -12,14 +12,22 @@
 
 **SP-012:** Unreleased APPROVED / MERGED / RECONCILED / ARCHIVED
 
+**SP-013:** Unreleased APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
+
+**SP-013B:** CLI workspace boundary fix merged through PR #29 (`23b54be4bd3030c564c2e1a0325eaf36199357fe`)
+
+**CI-001:** Quality Gate merged through PR #30 (`7750b1ebd2cc6f937496c904bf1d482952b1b52c`)
+
 **SP-011:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #23 (`5c4b442b2b5c7f934ac381020ba8b310976d5d3a`)
 
-**Main Baseline:** `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`
+**Main Baseline:** `23b54be4bd3030c564c2e1a0325eaf36199357fe`
 
 | Capability | Contract | Minimum AI-Lab baseline |
 |---|---|---|
 | Reminder Inbox | RFC-020 Adopted / ADR-041 and ADR-042 Accepted | Unreleased (`post-v0.33.0` main) |
 | Reminder Management | RFC-021 Adopted / ADR-043/044/045 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #23 |
+| Intent Safety and Reminder Query UX | RFC-022 Adopted / ADR-046/047/048 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #25 |
+| Daily Agenda Read Model | RFC-023 Accepted / ADR-049/050/051 Accepted | Unreleased (`post-v0.33.0` main); accepted after PR #29 |
 
 **Release Tag:** none
 
@@ -41,7 +49,8 @@
 | UserTask | 1.0 | Unreleased（post-v0.33.0 main） | DatabaseManager, EventBus |
 | Reminder Bridge | 1.0 | Unreleased（post-v0.33.0 main） | UserTask, Scheduler, DatabaseManager |
 | Natural-Language Reminder Closure | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, UserTask, Reminder Bridge, Scheduler |
-| Intent Safety and Reminder Query UX | 1.0 | Unreleased（SP-012 branch only） | CEO Assistant, Reminder Inbox, FailureInfo |
+| Intent Safety and Reminder Query UX | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, Reminder Inbox, FailureInfo |
+| Daily Agenda Read Model | 1.0 | Unreleased（post-v0.33.0 main） | Reminder, UserTask, Work Log, CEO Assistant |
 
 ## 升级说明
 
@@ -59,4 +68,4 @@
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
 
-> SP-007 至 SP-011 均已 APPROVED / MERGED / RECONCILED / ARCHIVED 并进入 main，但尚未进入新的正式 Release。SP-012 已合并并完成对账。产品版本保持 `0.33.0`；Release Tag 与 GitHub Release 均为 none。
+> SP-007 至 SP-012 均已进入 main 并完成相应对账。SP-013 为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED，SP-013B 缺陷修复与 CI-001 也已进入 main。以上均属于 post-v0.33.0 工作；产品版本保持 `0.33.0`，Release Tag 与 GitHub Release 均为 none。

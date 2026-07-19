@@ -1,40 +1,39 @@
-﻿# AI-Lab Known Limitations
+# AI-Lab Known Limitations
 
-> 冻结版本：v0.32.4 | 日期：2026-07-14
+> 当前版本：`0.33.0` | main：`23b54be4bd3030c564c2e1a0325eaf36199357fe` | 对账日期：2026-07-19
 
-## 功能限制
+## 功能与数据限制
 
-| 限制 | 说明 | 影响 |
-|---|---|---|
-| 无多用户/多租户 | 所有数据属于单一用户，无用户隔离 | 无法共享给团队使用 |
-| 无 API 鉴权 | CORS `*`，无 token/OAuth | 仅限本地使用 |
-| 仅本地存储 | SQLite + Chroma，无云存储后端 | 数据不可跨设备同步 |
-| 无分布式 | 单进程运行，无消息队列/分布式锁 | 性能有上限 |
-
-## 稳定性限制
-
-| 限制 | 说明 |
+| 限制 | 当前说明 |
 |---|---|
-| Long-running 未验证 | 未测试 >30 分钟的连续运行 |
-| Real Provider 测试不可靠 | 依赖本地环境变量 + 无 SOCKS 代理 |
-| Docker 未实测 | Dockerfile/compose 存在但未经 build + run |
-| Windows 编码不稳定 | PowerShell/CMD 管道传输中文可能乱码 |
+| 无完整多用户产品能力 | Workspace 边界已存在，但没有用户身份、RBAC 或强多租户隔离 |
+| 仅本地存储 | 主要使用 SQLite 与 Chroma，没有跨设备或分布式存储后端 |
+| Reminder 外部通知未实现 | 当前提供持久化状态、调度与查询，不代表邮件、短信或推送已送达 |
+| Coordination 未接入所有主路径 | 十一层架构中的 Coordination 已独立存在，但部分能力仍默认关闭或未接入 CEO Assistant 主路径 |
 
 ## 安全限制
 
-| 限制 | 说明 |
+| 限制 | 当前说明 |
 |---|---|
-| API Key 明文存储 | `.env` 文件包含明文 Key |
-| Prompt 注入无防护 | 用户输入直接拼入 system prompt |
-| 无 HTTPS | 仅本地 HTTP |
-| 无审计日志持久化 | 审计记录仅内存 |
+| 静态单一 Bearer Token | API 鉴权已实现且默认启用，但没有 OAuth、JWT、用户身份或 RBAC；token 轮换需要重启 |
+| CORS 不是身份隔离 | 当前使用显式 allowlist 与默认 deny-all，但这不能替代强租户与用户授权模型 |
+| 无内建 TLS 终止 | 本地服务使用 HTTP；网络部署需要受控反向代理与 TLS |
+| Prompt 注入防护不完整 | 仍需为自然语言输入、知识内容与工具执行建立更强信任边界 |
 
-## 质量限制
+## 稳定性与部署限制
 
-| 限制 | 说明 |
+| 限制 | 当前说明 |
 |---|---|
-| Intent Router 误判率高 | 纯规则匹配，约 10-15% 误判率 |
-| Knowledge 可信度未标记 | 所有知识同等对待 |
-| Daily Brief 数据可能过时 | 无时间窗口验证 |
-| RFC/ADR 编号重复 | RFC-013 + ADR-024/025 编号冲突 |
-| 部分文档滞后于代码 | ARCHITECTURE/README 版本记录有缺失 |
+| Long-running 验证有限 | 长时间运行、恢复与资源回收仍缺少完整持续验证 |
+| Docker 未完整实测 | 配置存在，但尚无当前基线的受控 build + run 记录 |
+| SQLite 并发上限 | 单机持久化不等于高并发或分布式一致性 |
+| Windows 编码差异 | PowerShell/CMD 中文管道需要持续保留平台测试 |
+
+## 质量门禁限制
+
+| 限制 | 当前说明 |
+|---|---|
+| CI-002 | `tests/real/conftest.py` 的 collection hook 作用域需修复；普通门禁显式使用 `--ignore=tests/real` |
+| QUALITY-001 | GitHub Ruff 只检查本次变更的 Python 文件；尚未建立并清理全库历史 Ruff 基线 |
+| Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥、不调用外部模型，也不证明 real 测试通过 |
+| 平台统计不同 | Ubuntu CI 为 `1096 passed, 6 skipped, 27 warnings`；Windows 本地可运行六个 batch-script 测试，统计可不同 |
