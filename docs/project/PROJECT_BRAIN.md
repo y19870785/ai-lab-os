@@ -12,6 +12,8 @@
 > SP-010 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
 > SP-011 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
 > SP-012 Status：APPROVED / MERGED / RECONCILED / ARCHIVED
+> SP-013 Status：APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
+> Current main：`23b54be4bd3030c564c2e1a0325eaf36199357fe`
 
 SP-010 Reminder Inbox 已通过 PR #21 以 Squash Merge 进入 `main`。列表查询复用 ADR-040 的持久化聚合状态，由 Composition Root 提供给 API、CLI 与 CEO Assistant；自然语言列表查询是只读操作。外部通知、Recurring Reminder、Web UI、用户身份与 RBAC 仍未实现。产品版本保持 `0.33.0`，无新 Tag 或 Release。
 
@@ -231,10 +233,10 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - Local access: API JSON declares UTF-8 and Windows PowerShell 5.1 Chinese output was manually verified during SP-010 implementation.
 - Storage trade-off: Inbox is a bounded cross-SQLite aggregation, not a single-database snapshot; sparse filters and deep offsets remain a future performance observation.
 - Validation: Windows local Python 3.12 recorded `1013 passed, 27 warnings in 57.76s`; this is not a GitHub Actions or cross-platform CI result.
-- Acceptance: implementation is merged; the post-merge manual product acceptance remains pending.
+- Acceptance: PASSED 7 / 7 at baseline `0ad1f26ef1712f54f4bf478a70a46e0e50260950`.
 - Deferred: external notification delivery, Recurring Reminder, Web UI, user identity, RBAC and strong multi-tenant isolation.
 - Governance: RFC-020 is Adopted; ADR-041 and ADR-042 are Accepted.
-- Follow-up: SP-012 manual product acceptance pending; next task not selected. APPROVED / MERGED / RECONCILED / ARCHIVED.
+- Follow-up: SP-012 query compatibility was later covered by SP-013 scenario H; no separate full SP-012 manual suite is claimed. APPROVED / MERGED / RECONCILED / ARCHIVED.
 
 ### SP-011 Manual Acceptance And SP-012 Closure
 - SP-011 Reminder Core: PASSED.
@@ -244,18 +246,23 @@ SP-006 merge commit: 2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9 (Squash Merge)
 - SP-012 merged response boundary: stable Reminder machine codes with centralized Chinese actionable guidance.
 - SP-012: APPROVED / MERGED / RECONCILED / ARCHIVED (PR #25, `d550ab8`).
 - Governance: RFC-022 Adopted; ADR-046/047/048 Accepted.
-- SP-012 manual product acceptance: Pending.
+- SP-012 compatibility acceptance: SP-013 scenario H confirmed “今天都有什么事？” remains `reminder_list/read`, does not drift to Daily Agenda, and performs no UserTask, Reminder or Work Log writes. This is compatibility coverage, not a claim that an independent full SP-012 manual suite ran.
 - Product version remains `0.33.0`; no `v0.34.0` Tag or GitHub Release exists.
 ### SP-013: Daily Agenda Read Model
-- Status: APPROVED / MERGED / AWAITING_MANUAL_ACCEPTANCE
+- Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 - PR: #27 (Squash Merge)
-- Post-merge reconciliation: PR #28 in progress (Draft)
+- Post-merge reconciliation: PR #28 merged as `1b4285efa483e5a389cd0055f3e053ccc7a6f25e`
+- CLI workspace-boundary fix: PR #29 merged as `23b54be4bd3030c564c2e1a0325eaf36199357fe`
 - Approved head: 2fb683b853b854b23597f53c950cbf4923a68087
 - Merge commit: 67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1
 - Merged at: 2026-07-17T18:30:11Z
 - Product: unified read-only Daily Agenda (Reminder+UserTask+WorkLog) with today/next/attention/completed/all views
 - Entrypoints: GET /agenda, python -m cli agenda, CEO Assistant daily_agenda/read
 - Governance: RFC-023 Accepted; ADR-049/050/051 Accepted
-- Default suite: 1100 passed, 0 failed, 0 errors
-- Manual product acceptance: PENDING
+- GitHub Quality Gate: Python 3.12 on Ubuntu; `1096 passed, 6 skipped, 27 warnings`, exit code 0. Ruff is an incremental changed-Python-files gate, not a claim that the full repository is Ruff-clean.
+- Windows local comparison: marker-filter baseline `1102 passed, 5 deselected`; SP-013C explicit `--ignore=tests/real` run `1102 passed, 27 warnings`, exit code 0. Ignoring the directory prevents the five real-marker tests from entering collection. Six Windows-only batch-script tests account for the Ubuntu platform skips.
+- Manual product acceptance: PASSED. Scenarios A-H ran in an isolated mock-provider data directory; the latest-main C/D retest returned exit code 0, preserved all UserTask, Reminder and Work Log ID sets, and did not emit `agenda.query_failed`.
+- CI-001: PR #30 merged as `7750b1ebd2cc6f937496c904bf1d482952b1b52c`; the workflow runs on pull requests, main pushes and manual dispatch, explicitly excludes `tests/real`, and uses no real provider keys.
+- Retained debt: CI-002 must narrow the `tests/real/conftest.py` collection hook; QUALITY-001 must establish and reduce the historical full-repository Ruff baseline.
+- SP-014: `UNBLOCKED_FOR_PLANNING`; no task design, approval or implementation has started.
 - Product version: 0.33.0; no Tag or Release

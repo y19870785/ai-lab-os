@@ -1,8 +1,10 @@
 ﻿# AI-Lab Roadmap
 
-**Last Updated:** 2026-07-17 | **Current Version:** v0.33.0
+**Last Updated:** 2026-07-19 | **Current Version:** v0.33.0
 
 ## Latest Archived Work
+
+SP-013 Daily Agenda：APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED。Feature、post-merge reconciliation 与 SP-013B CLI workspace 修复均已进入 `main`；A～H 隔离验收全部 PASSED。CI-001 已建立 GitHub Pull Request / `main` push / manual Quality Gate。
 
 SP-010 Reminder Inbox and User-Friendly Local Access：APPROVED / MERGED / RECONCILED / ARCHIVED。PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，后续手工产品验收已 PASSED 7 / 7。
 
@@ -23,13 +25,16 @@ SP-010 后续用户验收已 PASSED 7 / 7（Baseline `0ad1f26ef1712f54f4bf478a70
 | SP-005 | Unreleased（post-v0.33.0 main） | 2026-07-15 | Reminder/Occurrence、Scheduler CAS claim、Action Handler 与 Saga reconciliation；PR #10 已合并，默认关闭 |
 | SP-010 | Unreleased（post-v0.33.0 main） | 2026-07-16 | 持久化 Reminder Inbox、API/CLI/自然语言查询、workspace 过滤与 UTF-8 本地访问；PR #21 已合并 |
 | SP-011 | Unreleased（post-v0.33.0 main） | 2026-07-17 | Reminder 管理、pending Inbox、确定性响应分离与 CLI UTF-8；PR #23 已合并，手工验收为 Core PASSED / NL UX CONDITIONALLY PASSED |
+| SP-012 | Unreleased（post-v0.33.0 main） | 2026-07-17 | Intent Safety 与 Reminder Query UX；PR #25 已合并，查询兼容性由 SP-013 场景 H 覆盖 |
+| SP-013 | Unreleased（post-v0.33.0 main） | 2026-07-19 | Daily Agenda read model；APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED，SP-013B 修复已通过 PR #29 合并 |
 
 ## Current
 
 | Status | Action |
 |---|---|
-| **BASELINE** | post-v0.33.0 main — SP-011 merge baseline `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` |
-| **CURRENT** | SP-012 APPROVED / MERGED / RECONCILED / ARCHIVED |
+| **BASELINE** | post-v0.33.0 main — `23b54be4bd3030c564c2e1a0325eaf36199357fe` |
+| **CURRENT** | SP-013 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED |
+| **NEXT** | SP-014 UNBLOCKED_FOR_PLANNING；任务书未定义，未启动实现 |
 | **LIMITS** | 通知渠道、Recurring Reminder、Knowledge 主链路、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路和 UI 仍未完成 |
 
 ## Future (Tentative)

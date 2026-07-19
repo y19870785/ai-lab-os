@@ -1,9 +1,13 @@
 ﻿# AI-Lab Project Health
 
-**Last Updated:** 2026-07-17
+**Last Updated:** 2026-07-19
 **Current Version:** v0.33.0
 
 ## Summary
+
+> SP-013 Daily Agenda：**APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED**。A～H 隔离 Mock 验收全部 PASSED；SP-013B CLI workspace 修复已通过 PR #29 合入 `main`。SP-012 的 `reminder_list/read` 查询兼容性由 SP-013 场景 H 实际覆盖，且查询无写入副作用。
+
+> CI-001 已通过 PR #30 合并。GitHub Quality Gate 使用 Python 3.12；Ubuntu 当前结果为 `1096 passed, 6 skipped, 27 warnings`。Ruff 只检查本次变更的 Python 文件，pytest 排除 `tests/real`。CI-002 与 QUALITY-001 仍为未解决债务。
 
 > SP-011 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。管理协调、pending Inbox、确定性响应与 CLI UTF-8 已进入 main。手工验收为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED。SP-010 用户验收为 PASSED 7 / 7。
 
@@ -12,13 +16,14 @@
 | Metric | Value |
 |---|---|
 | Version | v0.33.0 |
-| SP-011 pre-merge tests | 1026 passed, 27 warnings in 58.15s（Windows 本地 Python 3.12；非 GitHub Actions 或跨平台 CI） |
-| RFCs | 23（RFC-021 已 Adopted） |
-| ADRs | 48（ADR-043/044/045 已 Accepted） |
-| Tests | 1026（SP-011 合并前 Windows 本地验证记录） |
-| Test Pass Rate | 100% (1026 passed, 0 failed, 0 errors；非跨平台 CI 结果) |
+| GitHub Ubuntu gate | 1096 passed, 6 skipped, 27 warnings（Python 3.12；`tests/real` excluded） |
+| Windows local gate | 1102 passed, 5 deselected（marker-filter baseline）；SP-013C explicit-ignore run: 1102 passed, 27 warnings |
+| RFCs | 25 files（RFC-023 Accepted） |
+| ADRs | 54 files（ADR-049/050/051 Accepted） |
+| Test Gate | GitHub Quality Gate SUCCESS；平台适配项单独 skip/deselect |
+| Ruff Gate | Changed Python files only；不是全库 Ruff 清零 |
 | Real Provider Tests | 5 passed in 8.37s in a fresh isolated Python 3.12 environment |
-| Technical Debt (Open) | 7 |
+| Technical Debt (Open) | CI-002、QUALITY-001 及当前风险清单 |
 | Technical Debt (Resolved) | 1 (TD-001 documented) |
 | Release Stage | Alpha |
 | Development Status | **Architecture stabilization baseline** |
@@ -70,7 +75,7 @@
 - SP-005 Merge PR: #10（Squash Merge / APPROVED）
 - SP-005 Merge Baseline: `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`
 - SP-005 Merged At: `2026-07-15T14:03:32Z`
-- Current Work: SP-012 APPROVED / MERGED / RECONCILED / ARCHIVED
+- Current Work: SP-013 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED；SP-014 UNBLOCKED_FOR_PLANNING（未启动）
 - Validation Source: SP-005 为 Windows 本地 `888 passed, 27 warnings in 45.19s`，不是 GitHub Actions 或跨平台 CI 结果
 
 > SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
