@@ -148,3 +148,35 @@ async def query_daily_agenda(
         )
     finally:
         await system.shutdown()
+
+
+async def execute_inbox_operation(operation: str, **values):
+    """Execute one Inbox command through the shared Composition Root."""
+
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        service = system.inbox_service
+        workspace_key = WorkspaceKey()
+        if operation == "add":
+            return await service.capture(
+                workspace_key=workspace_key, source="cli", **values
+            )
+        if operation == "list":
+            return await service.list(workspace_key=workspace_key, **values)
+        if operation == "show":
+            return await service.get(workspace_key=workspace_key, **values)
+        if operation == "resolve-task":
+            return await service.resolve_to_task(workspace_key=workspace_key, **values)
+        if operation == "resolve-reminder":
+            return await service.resolve_to_reminder(workspace_key=workspace_key, **values)
+        if operation == "resolve-work-log":
+            return await service.resolve_to_work_log(workspace_key=workspace_key, **values)
+        if operation == "resolve-note":
+            return await service.resolve_as_note(workspace_key=workspace_key, **values)
+        if operation == "dismiss":
+            return await service.dismiss(workspace_key=workspace_key, **values)
+        raise ValueError(f"Unsupported Inbox operation: {operation}")
+    finally:
+        await system.shutdown()

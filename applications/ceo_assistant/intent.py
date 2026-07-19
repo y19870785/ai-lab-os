@@ -81,6 +81,30 @@ def _is_explicit_work_log(text: str) -> bool:
     return any(marker in normalized for marker in _WORK_LOG_ACTIONS)
 
 
+_INBOX_LIST_QUERIES = {
+    "看看我的收件箱",
+    "还有哪些没整理",
+    "列出待处理记录",
+}
+_INBOX_CAPTURE_PREFIXES = (
+    "记一下",
+    "先记下来",
+    "把这个放到收件箱",
+    "这个想法先存着",
+)
+
+
+def extract_inbox_capture_content(text: str) -> str | None:
+    """Return captured text only for explicit, deterministic Inbox wording."""
+
+    stripped = text.strip()
+    for prefix in _INBOX_CAPTURE_PREFIXES:
+        if stripped.startswith(prefix):
+            content = stripped[len(prefix):].lstrip("，,:：。 ")
+            return content or None
+    return None
+
+
 def decide_intent(user_input: str) -> IntentDecision:
     """Classify intent deterministically, preferring reads when wording is ambiguous."""
 
@@ -97,7 +121,7 @@ def decide_intent(user_input: str) -> IntentDecision:
         return IntentDecision("reminder_list", 1.0, IntentEffect.READ)
 
     daily_agenda_markers = (
-        "今天有什么安排", "今天的日程", "查看今天安排",
+        "今天有什么安排", "今天的日程", "查看今天安排", "查看今日日程",
         "接下来三个小时有什么安排", "未来三小时有什么要做的",
         "未来三小时有什么", "接下来有什么事",
         "有哪些需要注意的事项", "有哪些失败的提醒", "有没有逾期任务",
@@ -105,11 +129,15 @@ def decide_intent(user_input: str) -> IntentDecision:
     )
     if any(marker in text for marker in daily_agenda_markers):
         return IntentDecision("daily_agenda", 1.0, IntentEffect.READ)
+    if _normalized_query(text) in _INBOX_LIST_QUERIES:
+        return IntentDecision("inbox_list", 1.0, IntentEffect.READ)
     if text.startswith(("查看提醒", "查看这条提醒")):
         return IntentDecision("reminder_detail", 1.0, IntentEffect.READ)
 
     if text.startswith(_WORK_LOG_PREFIXES):
         return IntentDecision("work_log", 1.0, IntentEffect.WRITE)
+    if extract_inbox_capture_content(text) is not None:
+        return IntentDecision("inbox_capture", 1.0, IntentEffect.WRITE)
 
     brief_keywords = (
         "简报", "今日总结", "今天做了什么", "今天的工作", "今日概览",

@@ -5,6 +5,7 @@ from typing import Any
 
 from core.user_tasks import UserTaskPriority, UserTaskStatus
 from core.reminders import ReminderOccurrenceStatus, ReminderStatus
+from core.inbox import InboxResolvedType, InboxStatus, InboxSuggestedType
 
 class ChatRequest(BaseModel):
     user_input: str = ""
@@ -131,3 +132,52 @@ class APIErrorResponse(BaseModel):
 
 
 ErrorResponse = APIErrorResponse
+
+
+class InboxCaptureRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=4_000)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    suggested_type: InboxSuggestedType = InboxSuggestedType.UNKNOWN
+
+
+class InboxResolveTaskRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=500)
+    description: str = ""
+    due_at: datetime | None = None
+    priority: UserTaskPriority = UserTaskPriority.MEDIUM
+
+
+class InboxResolveReminderRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=500)
+    scheduled_at: datetime
+    timezone: str
+    description: str = ""
+    priority: UserTaskPriority = UserTaskPriority.MEDIUM
+
+
+class InboxResolveWorkLogRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=500)
+    description: str = ""
+
+
+class InboxItemResponse(BaseModel):
+    id: str
+    content: str
+    source: str
+    status: InboxStatus
+    suggested_type: InboxSuggestedType
+    created_at: datetime
+    updated_at: datetime
+    resolved_at: datetime | None = None
+    resolved_type: InboxResolvedType | None = None
+    resolved_target_id: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    revision: int
+
+
+class InboxPageResponse(BaseModel):
+    items: list[InboxItemResponse]
+    status: InboxStatus | None
+    limit: int
+    offset: int
+    has_more: bool

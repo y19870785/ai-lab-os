@@ -26,7 +26,7 @@ from core.errors import RuntimeStatus
 from core.system.admission import WorkAdmissionGate
 from core.system.exceptions import SystemInitializationError
 from core.system.lifecycle import (
-    LifecycleStateMachine, SystemLifecycleState, InvalidLifecycleTransitionError
+    LifecycleStateMachine, SystemLifecycleState
 )
 from core.system.settings import SystemSettings
 from core.task.runtime import TaskRuntime
@@ -36,6 +36,7 @@ from core.tools.registry import ToolRegistry
 from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.agenda import DailyAgendaService
+from core.inbox import InboxService, SQLiteInboxRepository
 from core.reminders import (
     ReminderSchedulerBridge,
     ReminderInboxService,
@@ -45,7 +46,6 @@ from core.reminders import (
     SQLiteReminderRepository,
 )
 from core.agents.models import AgentStatus
-from core.errors import RuntimeStatus
 from core.providers.models import ProviderStatus
 
 logger = logging.getLogger("ai-lab.system")
@@ -80,6 +80,8 @@ class SystemContainer:
     reminder_inbox: ReminderInboxService | None
     reminder_management: ReminderManagementService | None
     daily_agenda: DailyAgendaService | None
+    inbox_repository: SQLiteInboxRepository
+    inbox_service: InboxService
     clock: Clock
     coordination_runtime: AgentOrchestrator | None
     application_registry: ApplicationRegistry
@@ -124,6 +126,9 @@ class SystemContainer:
                 logger.info("user_tasks.initialized")
             else:
                 logger.info("user_tasks.disabled")
+
+            await self.inbox_service.initialize()
+            logger.info("inbox.initialized")
 
             if self.reminder_service is not None:
                 await self.reminder_service.initialize()
@@ -213,6 +218,7 @@ class SystemContainer:
             await close_component("scheduler_runtime", self.scheduler_runtime.shutdown)
         if self.reminder_service is not None:
             await close_component("reminder_service", self.reminder_service.close)
+        await close_component("inbox_service", self.inbox_service.close)
         if self.user_task_service is not None:
             await close_component("user_task_service", self.user_task_service.close)
         await close_component("workflow_runtime", self.workflow_runtime.shutdown)
@@ -299,6 +305,7 @@ class SystemContainer:
             if self.reminder_bridge is not None
             else {"status": RuntimeStatus.DISABLED.value}
         )
+        inbox_health = await self.inbox_repository.health_check()
         reminder_status = RuntimeStatus.DISABLED.value
         if self.reminder_service is not None:
             statuses = {
@@ -359,6 +366,7 @@ class SystemContainer:
                 if self.task_runtime.initialized else RuntimeStatus.NOT_INITIALIZED.value,
             },
             "user_tasks": user_task_health,
+            "inbox": inbox_health,
             "reminders": {
                 "status": reminder_status,
                 "store": reminder_store_health,
@@ -386,6 +394,7 @@ class SystemContainer:
         critical = {
             "event_bus", "provider", "database", "memory", "tools", "applications",
             "agent", "workflow", "task",
+            "inbox",
         }
         if self.settings.enable_scheduler:
             critical.add("scheduler")
