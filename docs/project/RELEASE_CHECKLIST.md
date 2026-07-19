@@ -1,17 +1,30 @@
-﻿# Alpha Release Checklist —— v0.22.1
+# Alpha Release Checklist — v0.34.0
 
-- [x] 所有测试通过 (546 passed, 0 failed)
-- [x] 所有 Example 可运行
-- [x] Benchmark 完成
-- [x] Stress Test 完成
-- [x] 无已知 Memory Leak
-- [x] Provider 生命周期正常（initialize -> shutdown）
-- [x] Mock 与 Real Provider 并存
-- [x] 优雅降级（无 API Key 自动回退 Mock）
-- [x] EventBus 正常关闭
-- [x] Workflow Checkpoint 正常
-- [x] Task Checkpoint 正常
-- [x] README / ARCHITECTURE / CHANGELOG 同步
-- [x] PROJECT_HEALTH / ROADMAP / MILESTONES 同步
-- [x] RFC / ADR 完整
-- [x] Alpha Report 已生成
+## Candidate preparation
+
+- [x] `pyproject.toml` source version set to `0.34.0`
+- [x] `project_state.json` records SP-014 / SP-014B / ACC-014 final state
+- [x] SP-015 recorded as IN_PROGRESS and SP-016 as candidate only
+- [x] README、Project Brain、Roadmap、Changelog 与 v0.34.0 Alpha release notes responsibilities reconciled
+- [x] No business behavior or database schema migration added by SP-015
+
+## Required verification
+
+- [x] Governance consistency tests pass
+- [x] Full non-real pytest gate passes
+- [x] Changed Python files pass Ruff
+- [x] Source distribution and wheel build successfully
+- [x] Built artifacts report version `0.34.0`
+- [ ] Draft PR Quality Gate passes
+
+## Publication gates
+
+- [ ] SP-015 approved and merged
+- [ ] Main Quality Gate passes after merge
+- [ ] Post-merge acceptance completed
+- [ ] Release reconciliation completed
+- [ ] Owner authorizes Tag creation
+- [ ] `v0.34.0` Tag created from the approved commit
+- [ ] GitHub Release published from the same Tag
+
+未完成 Publication gates 前，源码中的 `0.34.0` 只能称为 Alpha Candidate，不得宣称 v0.34.0 已正式发布。
