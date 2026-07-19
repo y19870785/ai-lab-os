@@ -1,83 +1,36 @@
-﻿# 版本兼容性矩阵
+# 版本兼容性矩阵
 
-**Product Version:** `0.33.0`
+**Source Version:** `0.34.0` Alpha Candidate
+**Previous Tag:** `v0.33.0`
+**v0.34.0 Tag / GitHub Release:** 未创建
 
-**Latest Release:** unchanged
+## Current capability baseline
 
-**SP-008:** merged into main through PR #16 (`1858d4991379058948559cc96e2672df44e42b67`)
-
-**SP-009:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #19 (`b1274d066cbc01053144cba8d5654a5f8c8a21da`)
-
-**SP-010:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #21 (`af437afc32dcb17da68d600d6840ec94c8cbe681`)
-
-**SP-012:** Unreleased APPROVED / MERGED / RECONCILED / ARCHIVED
-
-**SP-013:** Unreleased APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
-
-**SP-013B:** CLI workspace boundary fix merged through PR #29 (`23b54be4bd3030c564c2e1a0325eaf36199357fe`)
-
-**CI-001:** Quality Gate merged through PR #30 (`7750b1ebd2cc6f937496c904bf1d482952b1b52c`)
-
-**SP-011:** APPROVED / MERGED / RECONCILED / ARCHIVED through PR #23 (`5c4b442b2b5c7f934ac381020ba8b310976d5d3a`)
-
-**SP-014:** APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED through PR #32 (`5bad5d412f9f2dabb158527a96c20c6e95e86d6e`)
-
-**SP-014B:** APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED through PR #33 (`22f85db16a43e7d09a903859a26ac6a310370d81`)
-
-**ACC-014:** PASSED / FINAL
-
-**SP-015:** UNBLOCKED_FOR_PLANNING / NOT_STARTED
-
-**Main Baseline:** `22f85db16a43e7d09a903859a26ac6a310370d81`
-
-| Capability | Contract | Minimum AI-Lab baseline |
+| Capability | Governance contract | v0.34.0 source state |
 |---|---|---|
-| Reminder Inbox | RFC-020 Adopted / ADR-041 and ADR-042 Accepted | Unreleased (`post-v0.33.0` main) |
-| Reminder Management | RFC-021 Adopted / ADR-043/044/045 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #23 |
-| Intent Safety and Reminder Query UX | RFC-022 Adopted / ADR-046/047/048 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #25 |
-| Daily Agenda Read Model | RFC-023 Accepted / ADR-049/050/051 Accepted | Unreleased (`post-v0.33.0` main); accepted after PR #29 |
-| Unified Inbox / Capture-to-Action | RFC-024 Accepted / ADR-052/053 Accepted | Unreleased (`post-v0.33.0` main); merged through PR #32 and accepted by ACC-014 |
+| Canonical UserTask | SP-004 | Integrated / Verified |
+| Reminder / Scheduler Bridge | SP-005、SP-009～SP-011 | Integrated / Verified / Disabled by default |
+| API Security Boundary | SP-006 | Integrated / Verified |
+| Lifecycle Admission | SP-007、SP-008 | Integrated / Verified |
+| Intent Safety | RFC-022 / ADR-046～048 | Integrated / Verified |
+| Daily Agenda | RFC-023 / ADR-049～051 | Integrated / Verified / Manual acceptance passed |
+| Unified Inbox / Capture-to-Action | RFC-024 / ADR-052～053 | Integrated / Verified / ACC-014 passed |
+| Chinese numeral reminder hours | SP-014B | Integrated / Verified within documented deterministic scope |
 
-**Release Tag:** none
+## Compatibility boundary
 
-**GitHub Release:** none
+v0.34.0 是从 v0.33.0 源码基线推进的治理与能力汇总，不引入数据库 schema 迁移，也不改变默认启用策略。既有 API、CLI 与 CEO Assistant 继续复用 Composition Root 和 canonical services。
 
-| Module | Version | Min AI-Lab | Dependencies |
-|--------|---------|------------|--------------|
-| Core (Bus) | 1.0 | v0.7.0 | - |
-| Core (Database) | 1.0 | v0.13.0 | - |
-| Memory | 1.0 | v0.13.0 | Core |
-| Knowledge | 1.0 | v0.16.0 | Provider, Memory |
-| Provider | 1.0 | v0.15.0 | Core |
-| Agent Runtime | 1.0 | v0.17.0 | Memory, Knowledge, Provider |
-| Tool Runtime | 1.0 | v0.18.0 | Provider |
-| MCP Adapter | 1.0 | v0.19.0 | Tool Runtime |
-| Workflow Engine | 1.0 | v0.20.0 | Agent, Tool, Memory |
-| Scheduler Runtime | 1.0 | v0.21.0 | Workflow, Memory |
-| Task Runtime | 1.0 | v0.22.0 | Scheduler, Workflow |
-| UserTask | 1.0 | Unreleased（post-v0.33.0 main） | DatabaseManager, EventBus |
-| Reminder Bridge | 1.0 | Unreleased（post-v0.33.0 main） | UserTask, Scheduler, DatabaseManager |
-| Natural-Language Reminder Closure | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, UserTask, Reminder Bridge, Scheduler |
-| Intent Safety and Reminder Query UX | 1.0 | Unreleased（post-v0.33.0 main） | CEO Assistant, Reminder Inbox, FailureInfo |
-| Daily Agenda Read Model | 1.0 | Unreleased（post-v0.33.0 main） | Reminder, UserTask, Work Log, CEO Assistant |
-| Unified Inbox | 1.0 | Unreleased（post-v0.33.0 main） | DatabaseManager, UserTask, Reminder, Memory, CEO Assistant |
+Reminder 中文小时仅支持今天/明天、明确上午/下午/晚上及一至十二小时，可复用既有半、一刻和数字分钟能力。复杂日期、模糊或相对时间、中文分钟、Recurring Reminder 与 LLM 时间解析不在范围内。
 
-## 升级说明
+## Runtime modules
 
-- v0.15.0 → v0.16.0: Knowledge Layer 新增，不影响已有模块
-- v0.16.0 → v0.17.0: Agent Runtime 新增，Provider 接口不变
-- v0.17.0 → v0.18.0: Tool Runtime 新增，Agent Runtime 接口不变
-- v0.18.0 → v0.19.0: MCP Adapter 新增，Tool Runtime 接口不变
-- v0.19.0 → v0.20.0: Workflow Engine 新增，Agent/Tool 接口不变
-- v0.20.0 → v0.21.0: Scheduler Runtime 新增，Workflow 接口不变
-- v0.21.0 → v0.22.0: Task Runtime 新增，Scheduler/Workflow 接口不变
-- post-v0.33.0 main（SP-004）: 新增 Canonical UserTask 与真实 Task API；尚未进入新的正式 Release，Reminder/Scheduler Bridge 留给 SP-005
-- post-v0.33.0 main（SP-005）: 新增 Reminder/Occurrence、Scheduler CAS claim 与 Saga reconciliation；已通过 PR #10 合并，尚未进入新的正式 Release
-- post-v0.33.0 main（SP-009）: 自然语言提醒闭环与站内状态已通过 PR #19 合并；尚未进入正式 Release
-- post-v0.33.0 main（SP-010）: 持久化 Reminder Inbox、API/CLI 查询与只读自然语言列表已通过 PR #21 合并；尚未进入正式 Release
+| Module | Internal contract version | Minimum historical baseline |
+|---|---:|---|
+| Core / Database / Memory | 1.0 | v0.13.0 |
+| Provider / Knowledge | 1.0 | v0.15.0 / v0.16.0 |
+| Agent / Tool / MCP | 1.0 | v0.17.0～v0.19.0 |
+| Workflow / Scheduler / Task | 1.0 | v0.20.0～v0.22.0 |
+| UserTask / Reminder / Agenda / Unified Inbox | 1.0 | v0.34.0 source candidate |
 
-> SP-006 API Security Boundary: Integrated / Verified (Merged PR #12).
-
-> SP-007 至 SP-012 均已进入 main 并完成相应对账。SP-013 为 APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED，SP-013B 缺陷修复与 CI-001 也已进入 main。以上均属于 post-v0.33.0 工作；产品版本保持 `0.33.0`，Release Tag 与 GitHub Release 均为 none。
-
-> SP-014 与 SP-014B 已对账封存，ACC-014 A～L 全部 PASSED。SP-015 尚未启动。
+发布状态不是从本表推导；以 `project_state.json` 的 `release_status` 为准。

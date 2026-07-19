@@ -1,5 +1,7 @@
 ﻿# Release Notes —— v0.21.0
 
+> 历史快照：本文件记录 v0.21.0，不表示当前版本或当前 Release 状态。当前 v0.34.0 Alpha Candidate 说明见 [`docs/releases/v0.34.0-alpha.md`](../releases/v0.34.0-alpha.md)，实时状态见根目录 [`project_state.json`](../../project_state.json)。
+
 **发布日期：** 2026-07-13
 **版本号：** v0.21.0 Alpha
 

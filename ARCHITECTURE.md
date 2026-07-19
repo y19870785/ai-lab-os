@@ -1,16 +1,16 @@
 ﻿# AI-Lab 架构文档
 
-## v0.33.0 产品基线
+## v0.34.0 Alpha Candidate 产品基线
 
-v0.33.0 汇总 SP-001 Single Composition Root、SP-002 Failure Semantics & Observability 和 SP-003 DatabaseManager Connection Ownership。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
+v0.34.0 Alpha Candidate 在 v0.33.0 稳定化基础上收口 Canonical UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与治理一致性。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；根 `project_state.json` 是唯一机器可读实时项目状态源；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
 
 SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
 
-当前产品版本仍为 v0.33.0。SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。Scheduler 通过数据库 CAS claim、持久化 JobRun 和 Action Handler 支持可靠 One-shot；Reminder/Occurrence 使用 `reminders.db`、唯一键和 Saga reconciliation。该能力默认关闭，属于 `post-v0.33.0 main`，尚未进入新的 Tag 或 Release；通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore、in-flight counting 和 drain timeout 仍未完成。
+SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。Scheduler 通过数据库 CAS claim、持久化 JobRun 和 Action Handler 支持可靠 One-shot；Reminder/Occurrence 使用 `reminders.db`、唯一键和 Saga reconciliation。该能力默认关闭；通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore、in-flight counting 和 drain timeout 仍未完成。
 
 SP-010 Reminder Inbox 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root 持有唯一 `ReminderInboxService`，通过 SQLite 稳定分页、UserTask workspace metadata 与 ADR-040 聚合状态，为 API、CLI 和 CEO Assistant 提供同一只读列表边界。该跨 SQLite 聚合不是快照事务，深度稀疏过滤仍是性能观察点；它不扩展到通知投递或 UI。
 
-**SP-012：APPROVED / MERGED / RECONCILED / ARCHIVED。** 已通过 PR #25 以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 main。引入不可变 `IntentDecision` 显式区分 `read/write/chat`，Reminder 查询先于 Work Log 写规则，CLI 将原始输入交给同一 canonical 决策，集中 `ReminderUserErrorPresenter` 在不改变 FailureInfo 机器码的前提下提供中文操作提示。不是 LLM 分类器或通用权限系统；手工产品验收待执行。RFC-022 已 Adopted，ADR-046/047/048 已 Accepted。
+**SP-012：APPROVED / MERGED / RECONCILED / ARCHIVED。** 已通过 PR #25 以 Squash Commit `d550ab8757b50e4d12587d5e71a0058089bd3821` 进入 main。引入不可变 `IntentDecision` 显式区分 `read/write/chat`，Reminder 查询先于 Work Log 写规则，CLI 将原始输入交给同一 canonical 决策，集中 `ReminderUserErrorPresenter` 在不改变 FailureInfo 机器码的前提下提供中文操作提示。不是 LLM 分类器或通用权限系统；查询兼容性由 SP-013 场景 H 覆盖，不虚构独立完整手工验收。RFC-022 已 Adopted，ADR-046/047/048 已 Accepted。
 
 SP-011 Reminder Management Closure 已通过 PR #23 以 Squash Commit `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root 持有唯一 `ReminderManagementService`，继续委托现有 `ReminderSchedulerBridge` Saga 完成取消和改期，不建立第二套持久化协调。API、CLI 与 CEO Assistant 共享 workspace 校验、终态规则、标题歧义、幂等和失败语义；确定性 Reminder 响应与 LLM Provider 装配分离。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。Reminder 与 Scheduler 仍是独立持久化边界，不声称跨数据库原子事务。
 
@@ -37,6 +37,17 @@ SP-004 的 Windows 本地最终验证记录为 `847 passed, 27 warnings in 38.81
 `pyproject.toml` 是产品版本、运行依赖、可选能力和 setuptools 包发现的唯一权威来源。最小 Core 安装仅包含 Pydantic、PyYAML 与 python-dotenv；API、Real Provider、Knowledge、Test、Build、Dev 通过独立 extras 声明，`local` 提供不含大型 Knowledge 依赖的完整本地验收组合。`requirements.txt` 只代理 `.[local]`，不维护第二套依赖版本。
 
 正式 wheel 包含 `core`、`agents`、`knowledge`、`applications`、`workflows`、`api` 与 `cli`；排除 tests、data、logs、runtime、Chroma 数据和构建缓存。Windows `.bat` 仍定位为源码 checkout 启动入口，不作为 Python package data 发布。
+
+## 项目状态与发布治理契约
+
+- `project_state.json`：唯一机器可读实时项目状态，记录 main 基线、SP、Quality Gate、技术债与 Release 状态。
+- `pyproject.toml`：唯一运行时产品版本来源。
+- README：面向使用者的当前能力和限制，不承担逐 SP 历史流水账。
+- Project Brain：长期架构事实和封存产品事实。
+- Roadmap：未来版本范围和候选任务。
+- Changelog / Release Notes：按产品版本记录用户可见变化、升级和限制。
+
+治理一致性测试只读解析这些来源并失败关闭；不得自动改写文档或根据开发分支 Head 冒充 `main`。
 
 ## SP-003 Memory SQLite 连接所有权
 
@@ -300,6 +311,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 | 版本 | 日期 | 变更 |
 | --- | --- | --- |
+| v0.34.0 Alpha Candidate | 2026-07-20 | UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与治理/Release 收口；Tag/Release 尚未创建 |
 | v0.33.0 | 2026-07-15 | SP-001~SP-003 稳定化成果与统一版本来源 |
 | v0.32.4 | 2026-07-13 | CEO Assistant Interactive CLI + Provider Mode 统一 |
 | v0.32.0~v0.32.3 | 2026-07-13 | CEO Assistant MVP + First Run + Release Cleanup |
@@ -330,7 +342,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 > Accepted scope 绑定当前 `asyncio.Task` 身份：同一 Task 的下游调用可继续，普通 detached child 不继承 bypass；仅 Scheduler 可通过 `spawn_accepted_task()` 显式延续已经接受的 Job。FastAPI Runtime dependency 仍先经过 `get_system()`，Runtime 在真实执行点再次检查以关闭竞态窗口。
 
-> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。产品版本保持 `0.33.0`；没有新 Tag 或 Release。
+> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。当前源码版本为 `0.34.0` Alpha Candidate；v0.34.0 Tag 和 GitHub Release 尚未创建。
 
 ## SP-009 Natural-Language Reminder Closure
 
