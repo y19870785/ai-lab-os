@@ -10,6 +10,7 @@
   "latest_completed_sp": "SP-014",
   "current_sp": "SP-015",
   "next_candidate_sp": "SP-016",
+  "next_candidate_name": "Follow-up & Waiting-For Workflow",
   "development_status": "sp_015_release_governance_consolidation_in_progress",
   "current_work": "SP-015 project state and v0.34.0 release governance consolidation",
   "next_action": "Merge SP-015, complete post-merge acceptance, then perform release reconciliation before creating the v0.34.0 tag or GitHub Release",
@@ -200,6 +201,19 @@
       "base_commit": "57444274abd4e568a6af72b218d50290de563654",
       "branch": "chore/sp-015-release-governance-consolidation",
       "scope": "Project state and v0.34.0 release governance consolidation"
+    },
+    "SP-015A": {
+      "status": "NOT_STARTED / BLOCKED_UNTIL_SP-015_MERGED",
+      "task_defined": true,
+      "implementation_started": false,
+      "blocked_by": "SP-015 merge",
+      "scope": "Post-merge acceptance and release reconciliation"
+    },
+    "SP-016": {
+      "name": "Follow-up & Waiting-For Workflow",
+      "status": "CANDIDATE / NOT_APPROVED / NOT_STARTED",
+      "approved": false,
+      "implementation_started": false
     }
   },
   "acceptance_records": {

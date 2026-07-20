@@ -56,7 +56,7 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
-| SP-016 | Notification Delivery | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-016 | Follow-up & Waiting-For Workflow | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 | SP-017 | Recurring Reminder | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 | SP-018 | Minimal Web Console | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 | SP-019 | Knowledge Main Path | CANDIDATE / NOT_APPROVED / NOT_STARTED |

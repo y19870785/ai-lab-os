@@ -80,6 +80,42 @@ def test_sp014_and_acc014_final_state_is_complete() -> None:
     assert acceptance["scenarios"] == {letter: "PASSED" for letter in "ABCDEFGHIJKL"}
 
 
+def test_sp015a_and_sp016_candidate_state_is_consistent() -> None:
+    state = _load_state()
+    records = state["sp_records"]
+    candidate_name = "Follow-up & Waiting-For Workflow"
+    candidate_status = "CANDIDATE / NOT_APPROVED / NOT_STARTED"
+    sp015a_status = "NOT_STARTED / BLOCKED_UNTIL_SP-015_MERGED"
+
+    assert records["SP-015A"]["status"] == sp015a_status
+    assert records["SP-015A"]["implementation_started"] is False
+    assert state["next_candidate_sp"] == "SP-016"
+    assert state["next_candidate_name"] == candidate_name
+    assert records["SP-016"]["name"] == candidate_name
+    assert records["SP-016"]["status"] == candidate_status
+    assert records["SP-016"]["approved"] is False
+    assert records["SP-016"]["implementation_started"] is False
+
+    documents = {
+        "status": ROOT / "docs/project/PROJECT_STATUS.md",
+        "roadmap": ROOT / "docs/project/ROADMAP.md",
+        "brain": ROOT / "docs/project/PROJECT_BRAIN.md",
+        "release_notes": ROOT / "docs/releases/v0.34.0-alpha.md",
+    }
+    text = {
+        name: path.read_text(encoding="utf-8-sig") for name, path in documents.items()
+    }
+
+    assert f"| SP-015A | {sp015a_status} |" in text["status"]
+    assert f"| SP-016 | {candidate_name} / {candidate_status} |" in text["status"]
+    assert f"| SP-016 | {candidate_name} | {candidate_status} |" in text["roadmap"]
+    assert f"> Next Candidate Direction: {candidate_name}" in text["brain"]
+    assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
+    assert f"SP-016 {candidate_name}" in text["release_notes"]
+    stale_candidate = "SP-016 " + "Notification" + " Delivery"
+    assert all(stale_candidate not in content for content in text.values())
+
+
 def test_release_is_still_an_unpublished_alpha_candidate() -> None:
     state = _load_state()
     release = state["release_status"]

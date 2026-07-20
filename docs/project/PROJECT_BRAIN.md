@@ -4,11 +4,13 @@
 > Last Completed SP: SP-014
 > Current SP: SP-015
 > Next Candidate SP: SP-016
+> Next Candidate Direction: Follow-up & Waiting-For Workflow
 > Release Stage: v0.34.0 Alpha Candidate
 > Current main: `57444274abd4e568a6af72b218d50290de563654`
 > SP-015 Base Commit: `57444274abd4e568a6af72b218d50290de563654`
 > SP-015 Branch: `chore/sp-015-release-governance-consolidation`
 > SP-015 Status: IN_PROGRESS
+> SP-015A Status: NOT_STARTED / BLOCKED_UNTIL_SP-015_MERGED
 > v0.34.0 Tag: NOT_CREATED
 > v0.34.0 GitHub Release: NOT_CREATED
 
@@ -140,4 +142,4 @@ tests/real: explicitly excluded
 - Knowledge 主链路、完整 Agent 产品闭环、自动 Tool Calling、完整 MCP、外部通知、Recurring Reminder 与 Web UI 未完成。
 - 静态 Bearer Token 没有用户身份、RBAC 或热轮换。
 
-SP-016 Notification Delivery、SP-017 Recurring Reminder、SP-018 Minimal Web Console 与 SP-019 Knowledge Main Path 仅为 Roadmap 候选，未批准、未启动。
+SP-016 Follow-up & Waiting-For Workflow、SP-017 Recurring Reminder、SP-018 Minimal Web Console 与 SP-019 Knowledge Main Path 仅为 Roadmap 候选，未批准、未启动。SP-015A 仍为 NOT_STARTED / BLOCKED_UNTIL_SP-015_MERGED。
