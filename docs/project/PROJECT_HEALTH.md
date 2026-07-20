@@ -9,13 +9,13 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。核心运行时
 
 | Metric | Current fact |
 |---|---|
-| Canonical main baseline | `57444274abd4e568a6af72b218d50290de563654` |
-| GitHub Quality Gate | run `29691702903` / SUCCESS |
-| pytest (non-real) | 1154 passed, 6 skipped, 27 warnings |
+| Canonical main baseline | `01166352224ddce5e859d4133f502aee1f97da07` |
+| GitHub Quality Gate | run `29738408215` / SUCCESS |
+| pytest (non-real) | 1162 passed, 6 skipped, 27 warnings |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current SP | SP-015 / IN_PROGRESS |
-| Latest completed SP | SP-014 |
-| Release stage | Alpha Candidate；v0.34.0 Tag/Release 未创建 |
+| Current governance task | SP-015A / IN_PROGRESS / DRAFT_PR_OPEN |
+| Latest completed SP | SP-015 / POST_MERGE_ACCEPTANCE_PASSED / ARCHIVED |
+| Release stage | Alpha Candidate / VERIFIED / UNPUBLISHED；v0.34.0 Tag/Release 未创建 |
 
 ## Module health
 

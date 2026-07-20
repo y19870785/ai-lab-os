@@ -57,11 +57,45 @@ def test_main_commit_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    current_record = records[state["current_sp"]]
-    assert current_record["status"] == "IN_PROGRESS"
-    assert "ARCHIVED" not in current_record["status"]
-    assert _sp_number(state["current_sp"]) > _sp_number(state["latest_completed_sp"])
-    assert _sp_number(state["next_candidate_sp"]) > _sp_number(state["current_sp"])
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] == "SP-015A"
+    assert records[state["current_governance_task"]]["status"] == (
+        "IN_PROGRESS / DRAFT_PR_OPEN"
+    )
+    assert _sp_number(state["next_candidate_sp"]) > _sp_number(
+        state["latest_completed_sp"]
+    )
+
+
+def test_sp015_merge_and_post_merge_acceptance_are_archived() -> None:
+    state = _load_state()
+    sp015 = state["sp_records"]["SP-015"]
+
+    assert state["main_commit"] == "01166352224ddce5e859d4133f502aee1f97da07"
+    assert state["latest_merged_sp"] == "SP-015"
+    assert state["latest_completed_sp"] == "SP-015"
+    assert sp015["status"] == (
+        "APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
+    )
+    assert sp015["pr"] == 35
+    assert sp015["approved_head"] == "b69b6dac0e34a5a0d6d216282d10f061c9cac7b3"
+    assert sp015["merge_commit"] == "01166352224ddce5e859d4133f502aee1f97da07"
+    assert sp015["merged_at"] == "2026-07-20T11:23:58Z"
+    assert sp015["post_merge_acceptance"] == "PASSED"
+    assert state["quality_gate"]["official"] == {
+        "source": "GitHub Actions Quality Gate",
+        "run_id": 29738408215,
+        "head_sha": "01166352224ddce5e859d4133f502aee1f97da07",
+        "environment": "ubuntu-latest / Python 3.12",
+        "command": 'python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no',
+        "ruff": "SUCCESS",
+        "pytest": "SUCCESS",
+        "passed": 1162,
+        "skipped": 6,
+        "warnings": 27,
+        "exit_code": 0,
+        "real_provider_tests_included": False,
+    }
 
 
 def test_sp014_and_acc014_final_state_is_complete() -> None:
@@ -85,10 +119,10 @@ def test_sp015a_and_sp016_candidate_state_is_consistent() -> None:
     records = state["sp_records"]
     candidate_name = "Follow-up & Waiting-For Workflow"
     candidate_status = "CANDIDATE / NOT_APPROVED / NOT_STARTED"
-    sp015a_status = "NOT_STARTED / BLOCKED_UNTIL_SP-015_MERGED"
+    sp015a_status = "IN_PROGRESS / DRAFT_PR_OPEN"
 
     assert records["SP-015A"]["status"] == sp015a_status
-    assert records["SP-015A"]["implementation_started"] is False
+    assert records["SP-015A"]["implementation_started"] is True
     assert state["next_candidate_sp"] == "SP-016"
     assert state["next_candidate_name"] == candidate_name
     assert records["SP-016"]["name"] == candidate_name
@@ -100,6 +134,9 @@ def test_sp015a_and_sp016_candidate_state_is_consistent() -> None:
         "status": ROOT / "docs/project/PROJECT_STATUS.md",
         "roadmap": ROOT / "docs/project/ROADMAP.md",
         "brain": ROOT / "docs/project/PROJECT_BRAIN.md",
+        "health": ROOT / "docs/project/PROJECT_HEALTH.md",
+        "version_matrix": ROOT / "docs/project/VERSION_MATRIX.md",
+        "release_checklist": ROOT / "docs/project/RELEASE_CHECKLIST.md",
         "release_notes": ROOT / "docs/releases/v0.34.0-alpha.md",
     }
     text = {
@@ -111,6 +148,12 @@ def test_sp015a_and_sp016_candidate_state_is_consistent() -> None:
     assert f"| SP-016 | {candidate_name} | {candidate_status} |" in text["roadmap"]
     assert f"> Next Candidate Direction: {candidate_name}" in text["brain"]
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
+    assert "Last Completed SP: SP-015" in text["brain"]
+    assert "Current SP: None" in text["brain"]
+    assert "SP-015A / IN_PROGRESS / DRAFT_PR_OPEN" in text["health"]
+    assert "Alpha Candidate / VERIFIED / UNPUBLISHED" in text["health"]
+    assert "**Verification:** Verified / Unpublished" in text["version_matrix"]
+    assert "SP-015 archived after post-merge acceptance" in text["release_checklist"]
     assert f"SP-016 {candidate_name}" in text["release_notes"]
     stale_candidate = "SP-016 " + "Notification" + " Delivery"
     assert all(stale_candidate not in content for content in text.values())
@@ -124,6 +167,7 @@ def test_release_is_still_an_unpublished_alpha_candidate() -> None:
     )
 
     assert release["release_stage"] == "alpha_candidate"
+    assert release["verification"] == "VERIFIED / UNPUBLISHED"
     assert release["tag_created"] is False
     assert release["tag_name"] is None
     assert release["github_release_created"] is False
