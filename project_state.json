@@ -1,235 +1,281 @@
 {
-  "project": "AI-Lab",
-  "version": "v0.33.0",
-  "current_version": "0.33.0",
-  "source_baseline": "main after CI-001 and SP-013B",
-  "main_commit": "23b54be4bd3030c564c2e1a0325eaf36199357fe",
-  "merge_baseline": "23b54be4bd3030c564c2e1a0325eaf36199357fe",
+  "schema_version": 1,
+  "project": "AI-Lab OS",
+  "version": "v0.34.0",
+  "current_version": "0.34.0",
   "git_branch": "main",
-  "latest_merged_sp": "SP-013",
-  "latest_completed_sp": "SP-013",
-  "next_candidate_sp": "SP-014",
-  "development_status": "sp_013_accepted_sp_014_planning_unblocked",
-  "current_work": "SP-013 final acceptance passed and governance reconciled; SP-014 is not started",
-  "next_action": "SP-014 is UNBLOCKED_FOR_PLANNING; its objective and task specification require separate approval",
-  "freeze_date": "2026-07-19",
-  "current_product": "CEO Assistant",
-  "python_version": ">=3.11",
-  "quality_gate_python": "3.12",
-  "code_stats": {
-    "python_files": 493,
-    "total_lines": 35716,
-    "test_files": 151
+  "main_commit": "57444274abd4e568a6af72b218d50290de563654",
+  "source_baseline": "main after SP-014 acceptance and governance reconciliation",
+  "latest_merged_sp": "SP-014",
+  "latest_completed_sp": "SP-014",
+  "current_sp": "SP-015",
+  "next_candidate_sp": "SP-016",
+  "next_candidate_name": "Follow-up & Waiting-For Workflow",
+  "development_status": "sp_015_release_governance_consolidation_in_progress",
+  "current_work": "SP-015 project state and v0.34.0 release governance consolidation",
+  "next_action": "Merge SP-015, complete post-merge acceptance, then perform release reconciliation before creating the v0.34.0 tag or GitHub Release",
+  "updated_at": "2026-07-20",
+  "governance_sources": {
+    "machine_readable_project_state": "project_state.json",
+    "runtime_product_version": "pyproject.toml:[project].version",
+    "readme": "Product introduction, setup, current supported capabilities, limitations, and documentation entrypoints",
+    "project_brain": "Long-lived architecture facts, decisions, archived product facts, and current governance context",
+    "roadmap": "Future version scope, milestones, and candidate SP ordering",
+    "changelog_and_release_notes": "User-visible changes grouped by product version",
+    "rfc": "Major solution design",
+    "adr": "Accepted architecture decisions",
+    "sp_task_specification": "One implementation and acceptance boundary"
   },
-  "test_summary": {
-    "official_gate": {
-      "environment": "GitHub Actions ubuntu-latest, Python 3.12",
+  "quality_gate": {
+    "official": {
+      "source": "GitHub Actions Quality Gate",
+      "run_id": 29691702903,
+      "head_sha": "57444274abd4e568a6af72b218d50290de563654",
+      "environment": "ubuntu-latest / Python 3.12",
       "command": "python -m pytest tests --ignore=tests/real -m \"not real\" -q --tb=no",
-      "passed": 1096,
+      "ruff": "SUCCESS",
+      "pytest": "SUCCESS",
+      "passed": 1154,
       "skipped": 6,
       "warnings": 27,
       "exit_code": 0,
-      "platform_note": "Six Windows-only batch-script tests are skipped on Ubuntu"
+      "real_provider_tests_included": false
     },
-    "windows_local_comparison": {
-      "passed": 1102,
-      "deselected": 5,
-      "exit_code": 0,
-      "note": "Marker-filter baseline; Windows can execute the corresponding batch-script tests; this is not a replacement for the GitHub gate"
-    },
-    "sp_013c_explicit_ignore_validation": {
-      "command": "python -m pytest tests --ignore=tests/real -m \"not real\" -q --tb=no",
-      "passed": 1102,
-      "warnings": 27,
-      "exit_code": 0,
-      "note": "No deselected count is reported because tests/real is excluded before collection"
-    }
-  },
-  "real_provider": {
-    "provider": "DeepSeek",
-    "model": "deepseek-v4-flash",
-    "status": "Integrated; prior authorized local validation is recorded separately and is not a GitHub Quality Gate result",
-    "api_base": "https://api.deepseek.com/v1"
-  },
-  "architecture_layers": [
-    "Governance",
-    "Application",
-    "Coordination",
-    "Task",
-    "Scheduler",
-    "Workflow",
-    "Agent",
-    "Knowledge",
-    "Provider",
-    "Memory",
-    "Core"
-  ],
-  "key_modules": {
-    "Memory": "core/memory/manager.py",
-    "Knowledge": "core/knowledge/manager.py",
-    "Provider_LLM": "core/providers/llm/openai.py",
-    "Agent": "core/agents/runtime.py",
-    "Tool": "core/tools/executor.py",
-    "Workflow": "core/workflow/runtime.py",
-    "Scheduler": "core/scheduler/runtime.py",
-    "Task": "core/task/runtime.py",
-    "UserTask": "core/user_tasks/service.py",
-    "Coordination": "core/coordination/orchestrator.py",
-    "Application": "applications/runtime.py",
-    "CEO_Assistant": "applications/ceo_assistant/application.py"
-  },
-  "module_status": {
-    "Knowledge": "Implemented / Disabled: reindex, chunk persistence, citation, and the real main path remain incomplete",
-    "Tool_Runtime": "Integrated: registry/executor and low-risk tools are wired; automatic tool calling and the complete MCP product loop remain incomplete",
-    "Scheduler": "Integrated / Verified / Disabled by default",
-    "Coordination": "Implemented / Disabled: not connected to the CEO Assistant main path",
-    "CEO_Assistant": "Integrated / Verified / Alpha",
-    "UserTask": "Completed / Integrated / Verified",
-    "Reminder": "Integrated / Verified / Disabled by default",
-    "Reminder_Inbox": "Completed / Integrated / Verified",
-    "Reminder_Management": "Completed / Integrated / Verified",
-    "Internal_Admission": "Integrated / Verified across API, ApplicationRuntime, CEO Assistant, CLI, and Scheduler producer boundaries",
-    "Natural_Language_Reminder": "Completed / Integrated / Verified",
-    "Intent_Safety": "Completed / Integrated / Verified; SP-013 scenario H confirms reminder_list/read compatibility without writes",
-    "Daily_Agenda": "Completed / Integrated / Verified / Manual acceptance passed",
-    "CI": "Active: Python 3.12 pull_request, main push and workflow_dispatch quality gate"
-  },
-  "ci_001": {
-    "status": "merged",
-    "pr": 30,
-    "merge_commit": "7750b1ebd2cc6f937496c904bf1d482952b1b52c",
-    "python": "3.12",
-    "triggers": [
-      "pull_request",
-      "push:main",
-      "workflow_dispatch"
-    ],
-    "ruff_scope": "Python files changed by the pull request or push only",
-    "pytest_scope": "tests excluding tests/real and marker real",
-    "real_provider_keys": false
-  },
-  "security_status": {
-    "authentication": "Bearer token authentication is implemented and enabled by default",
-    "cors": "Explicit allowlist with deny-all default; wildcard is rejected when authentication is enabled",
-    "remaining_limits": [
-      "Single static bearer token",
-      "Token rotation requires restart",
-      "No user identity, OAuth, JWT or RBAC",
-      "No strong multi-tenant isolation"
+    "known_boundaries": [
+      "Ruff checks changed Python files rather than claiming a clean historical repository baseline",
+      "tests/real is explicitly excluded from the ordinary gate",
+      "Real-provider validation requires separate authorization and is not implied by this result"
     ]
   },
+  "sp_records": {
+    "SP-001": {
+      "status": "MERGED / ARCHIVED",
+      "pr": 1,
+      "approved_head": "461d0ea975def4709ffef901a8d8872051590fdb",
+      "merge_commit": "0a36e250ab8382af6cf3ab3068e432aa69ba3399",
+      "merged_at": "2026-07-14T15:11:36Z"
+    },
+    "SP-001A": {
+      "status": "MERGED / ARCHIVED",
+      "pr": 2,
+      "approved_head": "0c7d029adf69ad252cae41654afba771925e43ae",
+      "merge_commit": "a77e0436f7583531ff2635f3c5422d7a00fe69b5",
+      "merged_at": "2026-07-14T16:23:20Z"
+    },
+    "SP-002": {
+      "status": "MERGED / ARCHIVED",
+      "pr": 3,
+      "approved_head": "e651b82f618bf4ae4a7cba88f3502e59150d42d9",
+      "merge_commit": "a39dc6a2434b409d311709b08b2c0df9a555a610",
+      "merged_at": "2026-07-14T18:22:14Z"
+    },
+    "SP-003": {
+      "status": "MERGED / ARCHIVED",
+      "pr": 5,
+      "approved_head": "76ab23b38f2d0cc683d400cd253378e7b9fe5e0a",
+      "merge_commit": "ce3655ff5f7a625da6b168058873dadfc2289b5f",
+      "merged_at": "2026-07-14T19:59:33Z"
+    },
+    "SP-004": {
+      "status": "MERGED / ARCHIVED",
+      "pr": 8,
+      "approved_head": "91593b408df94140463750d08e8173d2e72d6628",
+      "merge_commit": "10d1534049be2d526c930c513912dc661ac41728",
+      "merged_at": "2026-07-15T11:39:33Z"
+    },
+    "SP-005": {
+      "status": "MERGED / ARCHIVED",
+      "pr": 10,
+      "approved_head": "15c21855883f64c530de153bcc96daf33d44868b",
+      "merge_commit": "167b0d78f7713b1d5bfc85198c1461c7a35f63d3",
+      "merged_at": "2026-07-15T14:03:32Z"
+    },
+    "SP-006": {
+      "status": "MERGED / ARCHIVED",
+      "pr": 12,
+      "approved_head": "d2f302574b079f8495ed79afa25e0ed04ff0a14b",
+      "merge_commit": "2b2ce34e438b5d9bb8b8b5b09e1bf750547c9ed9",
+      "merged_at": "2026-07-15T23:45:42Z"
+    },
+    "SP-007": {
+      "status": "APPROVED / MERGED / RECONCILED / ARCHIVED",
+      "pr": 14,
+      "approved_head": "527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4",
+      "merge_commit": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
+      "merged_at": "2026-07-16T10:08:47Z"
+    },
+    "SP-008": {
+      "status": "APPROVED / MERGED / RECONCILED / ARCHIVED",
+      "pr": 16,
+      "approved_head": "536d1563baaecf5d50eeefc93dfdb0dbbfe3c659",
+      "merge_commit": "1858d4991379058948559cc96e2672df44e42b67",
+      "merged_at": "2026-07-16T11:06:29Z"
+    },
+    "SP-009": {
+      "status": "APPROVED / MERGED / RECONCILED / ARCHIVED",
+      "pr": 19,
+      "approved_head": "42697e2787d9d9e33f4a7b40c3dd0ea092dcf742",
+      "merge_commit": "b1274d066cbc01053144cba8d5654a5f8c8a21da",
+      "merged_at": "2026-07-16T13:54:55Z"
+    },
+    "SP-010": {
+      "status": "APPROVED / MERGED / RECONCILED / ARCHIVED",
+      "pr": 21,
+      "approved_head": "2719793102b4318f4b98162f4b288710fe4b44f8",
+      "merge_commit": "af437afc32dcb17da68d600d6840ec94c8cbe681",
+      "merged_at": "2026-07-16T16:18:28Z",
+      "manual_product_acceptance": "PASSED 7 / 7"
+    },
+    "SP-011": {
+      "status": "APPROVED / MERGED / RECONCILED / ARCHIVED",
+      "pr": 23,
+      "approved_head": "beb99115dd273a9fe55e86d21e65f714e7f7f52f",
+      "merge_commit": "5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
+      "merged_at": "2026-07-17T01:40:09Z",
+      "manual_product_acceptance": "Reminder Core PASSED; Natural-language Reminder UX CONDITIONALLY PASSED"
+    },
+    "SP-012": {
+      "status": "APPROVED / MERGED / RECONCILED / ARCHIVED",
+      "pr": 25,
+      "approved_head": "ef9747a47648d382c89362e7265ba1eb3b17bf63",
+      "merge_commit": "d550ab8757b50e4d12587d5e71a0058089bd3821",
+      "merged_at": "2026-07-17T10:12:19Z"
+    },
+    "SP-013": {
+      "status": "APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED",
+      "pr": 27,
+      "approved_head": "2fb683b853b854b23597f53c950cbf4923a68087",
+      "feature_merge_commit": "67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1",
+      "merged_at": "2026-07-17T18:30:11Z",
+      "reconciliation_pr": 28,
+      "reconciliation_commit": "1b4285efa483e5a389cd0055f3e053ccc7a6f25e",
+      "cli_fix_pr": 29,
+      "cli_fix_commit": "23b54be4bd3030c564c2e1a0325eaf36199357fe",
+      "manual_product_acceptance": "PASSED"
+    },
+    "SP-014": {
+      "status": "APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED",
+      "pr": 32,
+      "approved_head": "0e926af760c9da5a5f84ff835d4324e04ef9fa7a",
+      "feature_merge_commit": "5bad5d412f9f2dabb158527a96c20c6e95e86d6e",
+      "merged_at": "2026-07-19T09:14:45Z",
+      "reconciliation_pr": 34,
+      "reconciliation_commit": "57444274abd4e568a6af72b218d50290de563654",
+      "reconciled_at": "2026-07-19T14:52:46Z",
+      "review": "APPROVED",
+      "manual_product_acceptance": "PASSED",
+      "acceptance": "ACC-014 A-L PASSED / FINAL",
+      "capabilities": [
+        "Unified Inbox",
+        "Capture-to-Action",
+        "UserTask, Reminder, Work Log, Note, and Dismiss conversion",
+        "Workspace isolation",
+        "Persistent cross-process resolution claims",
+        "Idempotency, competition, restart persistence, and crash recovery",
+        "Shared canonical Composition Root for API, CLI, and CEO Assistant"
+      ],
+      "excluded_capabilities": [
+        "External notification delivery",
+        "Recurring Reminder",
+        "Web UI",
+        "User identity and RBAC",
+        "Strong multi-tenant isolation"
+      ]
+    },
+    "SP-014B": {
+      "status": "APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED",
+      "pr": 33,
+      "approved_head": "a7c0ee17a47b078d3cfd317096d2d6d183fbc774",
+      "merge_commit": "22f85db16a43e7d09a903859a26ac6a310370d81",
+      "merged_at": "2026-07-19T14:05:18Z",
+      "supported_scope": "today/tomorrow plus explicit morning/afternoon/evening and Chinese hour numerals one through twelve, reusing existing minute forms",
+      "unsupported_scope": "complex dates, relative or fuzzy time, Chinese minute numerals, recurring reminders, and LLM time parsing",
+      "verification": "ACC-014 scenario K PASSED on merged main",
+      "archived": true
+    },
+    "SP-015": {
+      "status": "IN_PROGRESS",
+      "task_defined": true,
+      "approved": true,
+      "implementation_started": true,
+      "base_commit": "57444274abd4e568a6af72b218d50290de563654",
+      "branch": "chore/sp-015-release-governance-consolidation",
+      "scope": "Project state and v0.34.0 release governance consolidation"
+    },
+    "SP-015A": {
+      "status": "NOT_STARTED / BLOCKED_UNTIL_SP-015_MERGED",
+      "task_defined": true,
+      "implementation_started": false,
+      "blocked_by": "SP-015 merge",
+      "scope": "Post-merge acceptance and release reconciliation"
+    },
+    "SP-016": {
+      "name": "Follow-up & Waiting-For Workflow",
+      "status": "CANDIDATE / NOT_APPROVED / NOT_STARTED",
+      "approved": false,
+      "implementation_started": false
+    }
+  },
+  "acceptance_records": {
+    "ACC-014": {
+      "status": "PASSED / FINAL",
+      "scenarios": {
+        "A": "PASSED",
+        "B": "PASSED",
+        "C": "PASSED",
+        "D": "PASSED",
+        "E": "PASSED",
+        "F": "PASSED",
+        "G": "PASSED",
+        "H": "PASSED",
+        "I": "PASSED",
+        "J": "PASSED",
+        "K": "PASSED",
+        "L": "PASSED"
+      },
+      "notes": [
+        "Scenario E first used an invalid acceptance command; the corrected documented CLI contract passed and no product defect was recorded",
+        "Scenario K exposed Chinese numeral hour compatibility and passed after SP-014B",
+        "The first K/L external driver misread case-insensitive HTTP header names; a corrected external-only driver passed in a fresh data directory without product-code changes"
+      ]
+    }
+  },
+  "module_status": {
+    "UserTask": "Integrated / Verified",
+    "Reminder_Core": "Integrated / Verified / Disabled by default",
+    "Reminder_Management": "Integrated / Verified",
+    "Intent_Safety": "Integrated / Verified",
+    "Daily_Agenda": "Integrated / Verified / Manual acceptance passed",
+    "Unified_Inbox": "Integrated / Verified / Manual acceptance passed",
+    "Capture_to_Action": "Integrated / Verified",
+    "Knowledge": "Implemented / Disabled; real main path incomplete",
+    "Coordination": "Implemented / Disabled; not connected to the CEO Assistant main path",
+    "Web_UI": "Not Implemented",
+    "External_Notification": "Not Implemented",
+    "Recurring_Reminder": "Not Implemented"
+  },
   "open_technical_debt": [
-    "CI-002: Narrow the tests/real/conftest.py collection hook scope; the ordinary gate currently excludes tests/real explicitly",
-    "QUALITY-001: Establish a full-repository Ruff baseline and reduce historical lint debt incrementally",
-    "Static bearer-token authentication has no user identity, RBAC or hot rotation",
-    "Docker build and runtime remain unverified",
-    "Chroma lifecycle management remains fragile",
-    "Prompt-injection defenses remain incomplete"
+    "CI-002: Narrow the tests/real/conftest.py collection hook scope",
+    "QUALITY-001: Establish and reduce a full-repository Ruff baseline",
+    "Observed Scheduler test timing fluctuation is not an SP-014B defect and requires separate stabilization scope",
+    "Knowledge real main path is incomplete",
+    "Docker build/run and long-running stability are not formally validated",
+    "Static bearer token has no user identity, OAuth, JWT, RBAC, or hot rotation",
+    "External notification delivery and Recurring Reminder are not implemented"
   ],
-  "known_limitations": [
-    "No user identity, RBAC or strong multi-tenant isolation",
-    "Only local SQLite and Chroma storage; no distributed storage",
-    "Real-provider tests require separately authorized credentials and network access",
-    "Long-running stability and Docker deployment are not fully verified",
-    "SchedulerPersistence remains an independent SQLite connection owner pending a later ownership migration",
-    "Reminder external notification delivery is not implemented"
-  ],
-  "sp_007": {
-    "status": "archived",
-    "pr": 14,
-    "approved_head": "527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4",
-    "merge_commit": "ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee",
-    "merged_at": "2026-07-16T10:08:47Z"
-  },
-  "sp_008": {
-    "status": "archived",
-    "pr": 16,
-    "approved_head": "536d1563baaecf5d50eeefc93dfdb0dbbfe3c659",
-    "merge_commit": "1858d4991379058948559cc96e2672df44e42b67",
-    "merged_at": "2026-07-16T11:06:29Z",
-    "product_version": "0.33.0"
-  },
-  "sp_009": {
-    "status": "archived",
-    "base_commit": "51fd6b38417840044f6ee1a1a699d13186762017",
-    "pr": 19,
-    "approved_head": "42697e2787d9d9e33f4a7b40c3dd0ea092dcf742",
-    "merge_commit": "b1274d066cbc01053144cba8d5654a5f8c8a21da",
-    "merged_at": "2026-07-16T13:54:55Z",
-    "review": "approved",
-    "merge_status": "squash_merged",
-    "product_version": "0.33.0",
-    "tag_or_release": "none"
-  },
-  "sp_010": {
-    "status": "archived",
-    "base_commit": "a9300c6427d45c478cf588dfe9a7be5e014cdff0",
-    "pr": 21,
-    "approved_head": "2719793102b4318f4b98162f4b288710fe4b44f8",
-    "merge_commit": "af437afc32dcb17da68d600d6840ec94c8cbe681",
-    "merged_at": "2026-07-16T16:18:28Z",
-    "review": "approved",
-    "merge_status": "squash_merged",
-    "product_version": "0.33.0",
-    "tag_or_release": "none",
-    "user_acceptance": "PASSED 7 / 7",
-    "acceptance_baseline": "0ad1f26ef1712f54f4bf478a70a46e0e50260950"
-  },
-  "sp_011": {
-    "status": "archived",
-    "base_commit": "0ad1f26ef1712f54f4bf478a70a46e0e50260950",
-    "pr": 23,
-    "approved_head": "beb99115dd273a9fe55e86d21e65f714e7f7f52f",
-    "merge_commit": "5c4b442b2b5c7f934ac381020ba8b310976d5d3a",
-    "merged_at": "2026-07-17T01:40:09Z",
-    "review": "approved",
-    "merge_status": "squash_merged",
-    "product_version": "0.33.0",
-    "tag_or_release": "none",
-    "manual_product_acceptance": "Reminder Core PASSED; Natural-language Reminder UX CONDITIONALLY PASSED",
-    "acceptance_finding": "Read-only reminder questions could create work-log writes before SP-012"
-  },
-  "sp_012": {
-    "status": "archived",
-    "base_commit": "5df080ac4e33f7019d84ad11b421329dc8020e2c",
-    "pr": 25,
-    "approved_head": "ef9747a47648d382c89362e7265ba1eb3b17bf63",
-    "merge_commit": "d550ab8757b50e4d12587d5e71a0058089bd3821",
-    "merged_at": "2026-07-17T10:12:19Z",
-    "review": "approved",
-    "merge_status": "squash_merged",
-    "reconciled": true,
-    "product_version": "0.33.0",
-    "tag_or_release": "none",
-    "compatibility_acceptance": "PASSED through SP-013 scenario H: reminder_list/read preserved and no UserTask, Reminder or Work Log writes; no independent full SP-012 manual suite is claimed"
-  },
-  "sp_013": {
-    "status": "APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED",
-    "pr": 27,
-    "approved_head": "2fb683b853b854b23597f53c950cbf4923a68087",
-    "feature_merge_commit": "67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1",
-    "merged_at": "2026-07-17T18:30:11Z",
-    "review": "approved",
-    "merge_status": "squash_merged",
-    "product_version": "0.33.0",
-    "tag_or_release": "none",
-    "reconciliation_pr": 28,
-    "reconciliation_commit": "1b4285efa483e5a389cd0055f3e053ccc7a6f25e",
-    "cli_fix_pr": 29,
-    "cli_fix_commit": "23b54be4bd3030c564c2e1a0325eaf36199357fe",
-    "manual_product_acceptance": "PASSED",
-    "acceptance_scenarios": "A-H PASSED in isolated mock-provider data; C and D retested on latest main with exit code 0 and unchanged persisted ID sets"
-  },
-  "sp_014": {
-    "status": "UNBLOCKED_FOR_PLANNING",
-    "task_defined": false,
-    "approved": false,
-    "implementation_started": false
-  },
   "release_status": {
-    "current_version": "0.33.0",
-    "post_version_work_on_main": "SP-004 through SP-013B",
-    "new_tag_or_release": false,
-    "note": "A future version plan requires separate approval"
+    "current_version": "0.34.0",
+    "release_stage": "alpha_candidate",
+    "maturity": "Alpha / local-first / single-user-oriented",
+    "previous_release_tag": "v0.33.0",
+    "tag_created": false,
+    "tag_name": null,
+    "github_release_created": false,
+    "github_release_url": null,
+    "release_blocked_by": [
+      "SP-015 merge",
+      "post-merge acceptance",
+      "release reconciliation"
+    ]
   }
 }

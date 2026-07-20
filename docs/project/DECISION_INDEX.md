@@ -107,4 +107,4 @@
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
 
-> SP-014 与 SP-014B 已完成对账并封存；ACC-014 A～L 全部 PASSED。SP-015 仅为 UNBLOCKED_FOR_PLANNING / NOT_STARTED。
+> SP-014 与 SP-014B 已完成对账并封存；ACC-014 A～L 全部 PASSED。SP-015 为 APPROVED / IN_PROGRESS，只负责 v0.34.0 状态与发布治理收口；SP-016 仅为候选，尚未批准或启动。

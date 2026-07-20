@@ -1,41 +1,38 @@
 # AI-Lab Known Limitations
 
-> 当前版本：`0.33.0` | main：`22f85db16a43e7d09a903859a26ac6a310370d81` | 对账日期：2026-07-19
+> 当前源码版本：`v0.34.0` Alpha Candidate | main 基线：`57444274abd4e568a6af72b218d50290de563654` | 更新日期：2026-07-20
 
-## 功能与数据限制
+## 产品与数据边界
 
-| 限制 | 当前说明 |
+| 限制 | 当前事实 |
 |---|---|
-| 无完整多用户产品能力 | Workspace 边界已存在，但没有用户身份、RBAC 或强多租户隔离 |
-| 仅本地存储 | 主要使用 SQLite 与 Chroma，没有跨设备或分布式存储后端 |
-| Reminder 外部通知未实现 | 当前提供持久化状态、调度与查询，不代表邮件、短信或推送已送达 |
-| Coordination 未接入所有主路径 | 十一层架构中的 Coordination 已独立存在，但部分能力仍默认关闭或未接入 CEO Assistant 主路径 |
-| Knowledge / Agent 产品闭环未完成 | Knowledge 主链路、完整 Agent Runtime 产品闭环、自动 Tool Calling 与完整 MCP 闭环仍未完成 |
+| 非完整多用户产品 | 有 workspace 边界，但没有用户身份、RBAC 或强多租户隔离 |
+| 本地优先持久化 | 主要使用 SQLite 与可选 Chroma，没有跨设备或分布式存储后端 |
+| Reminder 无外部通知 | 当前只有持久化状态、调度与站内查询，不代表邮件、短信或推送已送达 |
+| Reminder 时间解析是确定性子集 | 不支持后天、星期、相对/模糊时间、中文分钟、Recurring Reminder 或 LLM 时间解析 |
+| Knowledge 产品闭环未完成 | Reindex、Chunk Persistence、Citation 与真实主链路仍缺失 |
+| Coordination 默认关闭 | 独立能力存在，但未接入 CEO Assistant 主链路 |
+| 无 Web UI | 当前主要入口是 API、CLI 与 CEO Assistant |
 
-## 安全限制
+## 安全边界
 
-| 限制 | 当前说明 |
+| 限制 | 当前事实 |
 |---|---|
-| 静态单一 Bearer Token | API 鉴权已实现且默认启用，但没有 OAuth、JWT、用户身份或 RBAC；token 轮换需要重启 |
-| CORS 不是身份隔离 | 当前使用显式 allowlist 与默认 deny-all，但这不能替代强租户与用户授权模型 |
-| 无内建 TLS 终止 | 本地服务使用 HTTP；网络部署需要受控反向代理与 TLS |
-| Prompt 注入防护不完整 | 仍需为自然语言输入、知识内容与工具执行建立更强信任边界 |
+| 静态单一 Bearer Token | 无 OAuth、JWT、用户身份或 RBAC；Token 轮换需要重启 |
+| CORS 不是身份隔离 | 显式 allowlist / 默认 deny-all 不能替代授权模型 |
+| 无内建 TLS 终止 | 网络部署需要受控反向代理和 TLS |
+| Prompt 注入防护不完整 | 自然语言、知识内容与工具执行仍需更强信任边界 |
 
-## 稳定性与部署限制
+## 稳定性与质量边界
 
-| 限制 | 当前说明 |
+| 限制 | 当前事实 |
 |---|---|
-| Long-running 验证有限 | 长时间运行、恢复与资源回收仍缺少完整持续验证 |
-| Docker 未完整实测 | 配置存在，但尚无当前基线的受控 build + run 记录 |
+| 长时间运行验证有限 | 恢复、资源回收和持续运行仍缺完整基线 |
+| Docker 未正式验证 | 配置存在，但没有当前版本受控 build + run 记录 |
 | SQLite 并发上限 | 单机持久化不等于高并发或分布式一致性 |
-| Windows 编码差异 | PowerShell/CMD 中文管道需要持续保留平台测试 |
-| Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂观察到 Job 状态为 `running`；唯一重跑通过，未涉及 SP-014B 修改文件，需留待独立稳定化范围处理 |
+| Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂看到 `running`，唯一重跑通过；未在 SP-014B 或 SP-015 修改 Scheduler |
+| CI-002 | `tests/real/conftest.py` collection hook 需缩小作用域；普通门禁显式 `--ignore=tests/real` |
+| QUALITY-001 | GitHub Ruff 只检查变更 Python 文件，尚无全仓历史清零基线 |
+| Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥，也不调用外部模型 |
 
-## 质量门禁限制
-
-| 限制 | 当前说明 |
-|---|---|
-| CI-002 | `tests/real/conftest.py` 的 collection hook 作用域需修复；普通门禁显式使用 `--ignore=tests/real` |
-| QUALITY-001 | GitHub Ruff 只检查本次变更的 Python 文件；尚未建立并清理全库历史 Ruff 基线 |
-| Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥、不调用外部模型，也不证明 real 测试通过 |
-| 平台统计不同 | Ubuntu CI 为 `1096 passed, 6 skipped, 27 warnings`；Windows 本地可运行六个 batch-script 测试，统计可不同 |
+完整机器可读技术债清单以 `project_state.json` 为准。
