@@ -4,16 +4,17 @@
   "version": "v0.34.0",
   "current_version": "0.34.0",
   "git_branch": "main",
-  "main_commit": "57444274abd4e568a6af72b218d50290de563654",
-  "source_baseline": "main after SP-014 acceptance and governance reconciliation",
-  "latest_merged_sp": "SP-014",
-  "latest_completed_sp": "SP-014",
-  "current_sp": "SP-015",
+  "main_commit": "01166352224ddce5e859d4133f502aee1f97da07",
+  "source_baseline": "main after SP-015 merge and post-merge acceptance",
+  "latest_merged_sp": "SP-015",
+  "latest_completed_sp": "SP-015",
+  "current_sp": null,
+  "current_governance_task": "SP-015A",
   "next_candidate_sp": "SP-016",
   "next_candidate_name": "Follow-up & Waiting-For Workflow",
-  "development_status": "sp_015_release_governance_consolidation_in_progress",
-  "current_work": "SP-015 project state and v0.34.0 release governance consolidation",
-  "next_action": "Merge SP-015, complete post-merge acceptance, then perform release reconciliation before creating the v0.34.0 tag or GitHub Release",
+  "development_status": "sp_015_archived_sp_016_candidate_not_approved",
+  "current_work": "SP-015A post-merge acceptance and release reconciliation",
+  "next_action": "Merge SP-015A and pass the main Quality Gate, then obtain separate Owner and ChatGPT authorization before creating the v0.34.0 tag or GitHub Release",
   "updated_at": "2026-07-20",
   "governance_sources": {
     "machine_readable_project_state": "project_state.json",
@@ -29,13 +30,13 @@
   "quality_gate": {
     "official": {
       "source": "GitHub Actions Quality Gate",
-      "run_id": 29691702903,
-      "head_sha": "57444274abd4e568a6af72b218d50290de563654",
+      "run_id": 29738408215,
+      "head_sha": "01166352224ddce5e859d4133f502aee1f97da07",
       "environment": "ubuntu-latest / Python 3.12",
       "command": "python -m pytest tests --ignore=tests/real -m \"not real\" -q --tb=no",
       "ruff": "SUCCESS",
       "pytest": "SUCCESS",
-      "passed": 1154,
+      "passed": 1162,
       "skipped": 6,
       "warnings": 27,
       "exit_code": 0,
@@ -194,19 +195,26 @@
       "archived": true
     },
     "SP-015": {
-      "status": "IN_PROGRESS",
+      "status": "APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED",
       "task_defined": true,
       "approved": true,
       "implementation_started": true,
       "base_commit": "57444274abd4e568a6af72b218d50290de563654",
       "branch": "chore/sp-015-release-governance-consolidation",
-      "scope": "Project state and v0.34.0 release governance consolidation"
+      "scope": "Project state and v0.34.0 release governance consolidation",
+      "pr": 35,
+      "approved_head": "b69b6dac0e34a5a0d6d216282d10f061c9cac7b3",
+      "merge_commit": "01166352224ddce5e859d4133f502aee1f97da07",
+      "merged_at": "2026-07-20T11:23:58Z",
+      "post_merge_acceptance": "PASSED"
     },
     "SP-015A": {
-      "status": "NOT_STARTED / BLOCKED_UNTIL_SP-015_MERGED",
+      "status": "IN_PROGRESS / DRAFT_PR_OPEN",
       "task_defined": true,
-      "implementation_started": false,
-      "blocked_by": "SP-015 merge",
+      "approved": true,
+      "implementation_started": true,
+      "base_commit": "01166352224ddce5e859d4133f502aee1f97da07",
+      "branch": "docs/sp-015-post-merge-release-reconciliation",
       "scope": "Post-merge acceptance and release reconciliation"
     },
     "SP-016": {
@@ -266,6 +274,7 @@
   "release_status": {
     "current_version": "0.34.0",
     "release_stage": "alpha_candidate",
+    "verification": "VERIFIED / UNPUBLISHED",
     "maturity": "Alpha / local-first / single-user-oriented",
     "previous_release_tag": "v0.33.0",
     "tag_created": false,
@@ -273,9 +282,9 @@
     "github_release_created": false,
     "github_release_url": null,
     "release_blocked_by": [
-      "SP-015 merge",
-      "post-merge acceptance",
-      "release reconciliation"
+      "SP-015A merge",
+      "SP-015A main Quality Gate",
+      "separate Owner and ChatGPT release authorization"
     ]
   }
 }

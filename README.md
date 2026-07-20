@@ -160,6 +160,6 @@ python -m ruff check <changed-python-files>
 - 上一个 Git Tag：`v0.33.0`。
 - v0.34.0 Tag：尚未创建。
 - v0.34.0 GitHub Release：尚未创建。
-- 创建条件：SP-015 合并、合并后验收与独立 Release reconciliation 全部完成。
+- 创建条件：SP-015A 合并且 main Quality Gate 通过后，由 Owner 与 ChatGPT 另行授权。
 
 任务编号代表开发批次，不等同于产品版本；一个产品版本可以由多个 SP 共同组成。
