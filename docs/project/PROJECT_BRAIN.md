@@ -5,12 +5,13 @@
 > Current SP: None
 > Next Candidate SP: SP-016
 > Next Candidate Direction: Follow-up & Waiting-For Workflow
-> Release Stage: v0.34.0 Alpha Candidate
-> Current main: `01166352224ddce5e859d4133f502aee1f97da07`
+> Release Stage: v0.34.0 Alpha Candidate / VERIFIED / UNPUBLISHED / READY_FOR_RELEASE_AUTHORIZATION
+> Current main: `712b6f6e3d233d008d22098bec4a8f317af603c3`
 > SP-015 Base Commit: `57444274abd4e568a6af72b218d50290de563654`
 > SP-015 Branch: `chore/sp-015-release-governance-consolidation`
 > SP-015 Status: APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED
-> SP-015A Status: IN_PROGRESS / DRAFT_PR_OPEN
+> SP-015A Status: APPROVED / MERGED / RECONCILED / ARCHIVED
+> SP-015R Status: IN_PROGRESS / DRAFT_PR_OPEN
 > v0.34.0 Tag: NOT_CREATED
 > v0.34.0 GitHub Release: NOT_CREATED
 
@@ -95,7 +96,7 @@ Mock Provider: only explicit mock/test profiles
 
 | 模块 | 状态 | 边界 |
 |---|---|---|
-| Governance | Integrated / SP-015 archived; SP-015A Draft open | 统一机器状态、版本、文档职责与一致性测试 |
+| Governance | Integrated / SP-015 and SP-015A archived; SP-015R Draft open | 统一机器状态、版本、文档职责与一致性测试 |
 | EventBus / Database / Memory | Integrated / Verified | 本地持久化主链路 |
 | Provider | Integrated / Verified | Mock 路径属于普通门禁；真实 Provider 需单独授权 |
 | Knowledge | Implemented / Disabled | 真实主链路、reindex、chunk persistence、citation 未完成 |
@@ -108,12 +109,12 @@ Mock Provider: only explicit mock/test profiles
 
 ## 验证基线
 
-当前正式 Quality Gate 事实来自 GitHub Actions run `29738408215`：
+当前正式 Quality Gate 事实来自 GitHub Actions run `29749469117`：
 
 ```text
 Environment: ubuntu-latest / Python 3.12
 Ruff: SUCCESS (changed Python files only)
-pytest (non-real): 1162 passed, 6 skipped, 27 warnings
+pytest (non-real): 1163 passed, 6 skipped, 27 warnings
 tests/real: explicitly excluded
 ```
 
@@ -131,7 +132,7 @@ tests/real: explicitly excluded
 - 用户身份、OAuth/JWT/RBAC 与强多租户；
 - 企业级部署或生产可用性承诺。
 
-仓库已有历史 `v0.33.0` Tag；v0.34.0 Alpha Candidate 已在 main 验证，但 Tag 和 GitHub Release 尚未创建，必须等待 SP-015A 合并、main Quality Gate 和 Owner/ChatGPT 独立发布授权。
+仓库已有历史 `v0.33.0` Tag；v0.34.0 Alpha Candidate 已验证且未发布，当前已进入 release authorization readiness。Tag 和 GitHub Release 尚未创建，必须等待 SP-015R 合并、main Quality Gate 和 Owner/ChatGPT 独立发布授权。
 
 ## 当前技术债与限制
 
@@ -142,4 +143,4 @@ tests/real: explicitly excluded
 - Knowledge 主链路、完整 Agent 产品闭环、自动 Tool Calling、完整 MCP、外部通知、Recurring Reminder 与 Web UI 未完成。
 - 静态 Bearer Token 没有用户身份、RBAC 或热轮换。
 
-SP-016 Follow-up & Waiting-For Workflow、SP-017 Recurring Reminder、SP-018 Minimal Web Console 与 SP-019 Knowledge Main Path 仅为 Roadmap 候选，未批准、未启动。SP-015A 当前为 IN_PROGRESS / DRAFT_PR_OPEN。
+SP-016 Follow-up & Waiting-For Workflow、SP-017 Recurring Reminder、SP-018 Minimal Web Console 与 SP-019 Knowledge Main Path 仅为 Roadmap 候选，未批准、未启动。SP-015A 已合并并封存；SP-015R 当前为 IN_PROGRESS / DRAFT_PR_OPEN。
