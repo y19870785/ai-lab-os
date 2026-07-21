@@ -17,7 +17,7 @@
 - [x] Built artifacts report version `0.34.0`
 - [x] Fresh wheel installation reports runtime and distribution metadata version `0.34.0`
 - [x] SP-015A main Quality Gate run `29749469117` passes
-- [ ] SP-015R Draft PR Quality Gate passes
+- [x] SP-015R Draft PR Quality Gate passes — run `29750558338`
 
 ## Publication gates
 
