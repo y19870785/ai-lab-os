@@ -133,7 +133,7 @@ tests/real: explicitly excluded
 - 用户身份、OAuth/JWT/RBAC 与强多租户；
 - 企业级部署或生产可用性承诺。
 
-SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已授权 `v0.34.0` 的 GitHub Pre-release。GitHub publication pending final release operation。Tag 是否存在、目标提交、Release URL 与发布时间均以 GitHub 为权威来源，仓库不维护这些外部事实的实时布尔镜像。
+SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已授权 Tag `v0.34.0` 和 GitHub Pre-release。Tag 是否存在及其目标、Release 发布状态、URL 与时间均以 GitHub Tags and GitHub Releases 为权威来源，仓库不维护这些外部事实的实时布尔镜像。
 
 ## 当前技术债与限制
 

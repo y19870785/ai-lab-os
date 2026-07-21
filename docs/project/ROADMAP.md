@@ -50,7 +50,7 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 5. SP-015R 合并且 main Quality Gate 通过；（已完成）
 6. Owner 与 ChatGPT 独立授权 Tag 与 GitHub Release。（已完成）
 
-当前状态：Release Authorized；GitHub publication pending final release operation。授权 Tag 为 `v0.34.0`，Release 类型为 Pre-release；实际发布事实以 GitHub 为准。
+发布授权已完成。授权 Tag 为 `v0.34.0`，授权 Release 类型为 Pre-release；实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为准。
 
 ## v0.35.0 候选方向
 

@@ -3,7 +3,7 @@
 **Source Version:** `0.34.0` Alpha
 **Authorization:** Release Authorized
 **Previous Tag:** `v0.33.0`
-**Authorized publication:** Tag `v0.34.0` / GitHub Pre-release / publication pending final release operation
+**Authorized publication:** Tag `v0.34.0` / GitHub Pre-release
 
 ## Current capability baseline
 

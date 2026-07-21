@@ -233,6 +233,25 @@ def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
     ) in text["release_checklist"]
     assert "Final publication commit prepared" in text["release_checklist"]
     assert "- [ ] SP-015R merged" not in text["release_checklist"]
+    assert "授权 Tag 为 `v0.34.0`" in text["readme"]
+    assert "Pre-release" in text["readme"]
+    assert "GitHub Tags and GitHub Releases" in text["readme"]
+    assert "授权 Tag：`v0.34.0`" in text["status"]
+    assert "GitHub Release 类型：Pre-release" in text["status"]
+    assert "GitHub Tags and GitHub Releases" in text["status"]
+    assert "Authorized Tag：`v0.34.0`" in text["release_notes"]
+    assert "GitHub Release Type：Pre-release" in text["release_notes"]
+    assert "GitHub Tags and GitHub Releases" in text["release_notes"]
+    transient_publication_markers = (
+        "publication pending",
+        "pending final release operation",
+        "pending the final external release operation",
+    )
+    assert all(
+        marker.lower() not in content.lower()
+        for marker in transient_publication_markers
+        for content in text.values()
+    )
 
 
 def test_release_authorization_is_stable_and_github_is_authoritative() -> None:
@@ -261,9 +280,9 @@ def test_release_authorization_is_stable_and_github_is_authoritative() -> None:
     }
     assert realtime_mirrors.isdisjoint(release)
     assert "Alpha / local-first / single-user-oriented" in release_notes
-    assert "GitHub publication pending final release operation" in release_notes
+    assert "Authorized Tag：`v0.34.0`" in release_notes
     assert "GitHub Release Type：Pre-release" in release_notes
-    assert "Tag 是否存在及其目标、Release URL 与发布时间以 GitHub" in release_notes
+    assert "GitHub Tags and GitHub Releases" in release_notes
 
 
 def test_governance_source_responsibilities_are_explicit() -> None:

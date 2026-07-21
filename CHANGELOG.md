@@ -7,7 +7,7 @@
 - Reconciled SP-014, SP-014B and ACC-014 final state; SP-015 is merged, post-merge verified and archived, while SP-016 remains a candidate only.
 - Reworked README, Project Brain and Roadmap responsibilities to remove stale phases, unreliable document counts and duplicated SP history.
 - Added v0.34.0 Alpha release notes and automated project-governance consistency tests.
-- SP-015, SP-015A and SP-015R are archived; Owner and ChatGPT authorized the `v0.34.0` GitHub Pre-release publication, which remains pending the final external release operation.
+- SP-015, SP-015A and SP-015R are archived; Owner and ChatGPT authorized the `v0.34.0` GitHub Pre-release. GitHub Tags and GitHub Releases are authoritative for the actual publication status, Tag target, Release URL, and timestamps.
 - Replaced the self-referential tracked `main_commit` model with the independently verified release baseline `22f88d1da962fb436c48c19e5343fad8bf62f5f6` and Quality Gate run `29855987444`; GitHub is authoritative for Tag and Release facts.
 
 ### SP-014 Unified Inbox and Governance Reconciliation

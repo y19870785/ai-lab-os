@@ -15,7 +15,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。核心运行时
 | Ruff | Changed Python files gate / SUCCESS |
 | Current governance task | None |
 | Latest completed SP | SP-015 / POST_MERGE_ACCEPTANCE_PASSED / ARCHIVED |
-| Release stage | Alpha / RELEASE_AUTHORIZED；GitHub publication pending final release operation |
+| Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
 ## Module health
 

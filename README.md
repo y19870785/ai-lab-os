@@ -5,7 +5,7 @@
 **当前版本：v0.34.0 Alpha / Release Authorized**
 **成熟度：Alpha / local-first / single-user-oriented**
 
-GitHub publication pending final release operation；授权 Tag 为 `v0.34.0`，最终 GitHub Release 类型为 **Pre-release**。Tag、Release URL 与发布时间等外部发布事实以 GitHub 为准。
+授权 Tag 为 `v0.34.0`，授权 GitHub Release 类型为 **Pre-release**，不上传 wheel 或 sdist。Tag 与 Release 的实际存在性、目标、URL 和发布时间以 GitHub 为权威来源。
 
 AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业务判断和重要审批仍由用户负责。当前版本适合本地开发、验证和受控试用，不应被描述为 production ready。
 
@@ -162,6 +162,6 @@ python -m ruff check <changed-python-files>
 - 上一个 Git Tag：`v0.33.0`。
 - 授权 Tag：`v0.34.0`。
 - GitHub Release 类型：Pre-release，不上传 wheel 或 sdist。
-- 发布状态：GitHub publication pending final release operation；Tag、Release URL 与发布时间以 GitHub 为权威来源。
+- 外部发布事实：Tag 与 Release 的实际存在性、目标、URL 和发布时间以 GitHub Tags and GitHub Releases 为权威来源。
 
 任务编号代表开发批次，不等同于产品版本；一个产品版本可以由多个 SP 共同组成。
