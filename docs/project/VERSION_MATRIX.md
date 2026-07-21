@@ -1,7 +1,7 @@
 # 版本兼容性矩阵
 
 **Source Version:** `0.34.0` Alpha Candidate
-**Verification:** Verified / Unpublished
+**Verification:** Verified / Unpublished / Ready for Release Authorization
 **Previous Tag:** `v0.33.0`
 **v0.34.0 Tag / GitHub Release:** 未创建
 

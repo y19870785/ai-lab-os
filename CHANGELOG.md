@@ -7,7 +7,7 @@
 - Reconciled SP-014, SP-014B and ACC-014 final state; SP-015 is merged, post-merge verified and archived, while SP-016 remains a candidate only.
 - Reworked README, Project Brain and Roadmap responsibilities to remove stale phases, unreliable document counts and duplicated SP history.
 - Added v0.34.0 Alpha Candidate release notes and automated project-governance consistency tests.
-- Release maturity is Alpha / local-first / single-user-oriented; v0.34.0 Alpha Candidate is verified but unpublished, and Tag/GitHub Release remain pending separate authorization after SP-015A.
+- SP-015A is merged and archived; v0.34.0 Alpha Candidate is verified, unpublished and ready for release authorization after SP-015R, while Tag/GitHub Release remain uncreated.
 
 ### SP-014 Unified Inbox and Governance Reconciliation
 - Merged Unified Inbox and Capture-to-Action through PR #32 at `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.

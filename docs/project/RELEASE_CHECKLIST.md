@@ -4,7 +4,7 @@
 
 - [x] `pyproject.toml` source version set to `0.34.0`
 - [x] `project_state.json` records SP-014 / SP-014B / ACC-014 final state
-- [x] SP-015 archived after post-merge acceptance; SP-015A is in Draft reconciliation; SP-016 remains candidate only
+- [x] SP-015 and SP-015A archived; SP-015R is in Draft reconciliation; SP-016 remains candidate only
 - [x] README、Project Brain、Roadmap、Changelog 与 v0.34.0 Alpha release notes responsibilities reconciled
 - [x] No business behavior or database schema migration added by SP-015
 
@@ -16,16 +16,17 @@
 - [x] Source distribution and wheel build successfully
 - [x] Built artifacts report version `0.34.0`
 - [x] Fresh wheel installation reports runtime and distribution metadata version `0.34.0`
-- [x] SP-015 main Quality Gate run `29738408215` passes
-- [x] Draft PR Quality Gate passes — run `29748525295`
+- [x] SP-015A main Quality Gate run `29749469117` passes
+- [x] SP-015R Draft PR Quality Gate passes — run `29750558338`
 
 ## Publication gates
 
 - [x] SP-015 approved and merged
 - [x] Main Quality Gate passes after SP-015 merge
 - [x] Post-merge acceptance completed
-- [ ] Release reconciliation completed
-- [ ] SP-015A merged and its main Quality Gate passes
+- [x] SP-015A merged and its main Quality Gate passes
+- [x] Release reconciliation implementation completed
+- [ ] SP-015R merged and its main Quality Gate passes
 - [ ] Owner and ChatGPT authorize Tag and GitHub Release creation
 - [ ] `v0.34.0` Tag created from the approved commit
 - [ ] GitHub Release published from the same Tag

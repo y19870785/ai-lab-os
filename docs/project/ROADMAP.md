@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-07-20
 **Current Version:** v0.34.0 Alpha Candidate
-**Current SP:** None — SP-015 archived; SP-015A release reconciliation in progress
+**Current SP:** None — SP-015 and SP-015A archived; SP-015R release-readiness reconciliation in progress
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -46,8 +46,9 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 1. SP-015 通过审查并合并；（已完成）
 2. main Quality Gate 通过；（已完成）
 3. post-merge acceptance 完成；（已完成）
-4. SP-015A 合并且 main Quality Gate 通过；
-5. Owner 与 ChatGPT 独立授权 Tag 与 GitHub Release。
+4. SP-015A 合并且 main Quality Gate 通过；（已完成）
+5. SP-015R 合并且 main Quality Gate 通过；
+6. Owner 与 ChatGPT 独立授权 Tag 与 GitHub Release。
 
 当前状态：Tag 未创建，GitHub Release 未创建。
 

@@ -58,7 +58,7 @@ def test_main_commit_and_sp_progression_are_well_formed() -> None:
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "SP-015A"
+    assert state["current_governance_task"] == "SP-015R"
     assert records[state["current_governance_task"]]["status"] == (
         "IN_PROGRESS / DRAFT_PR_OPEN"
     )
@@ -67,11 +67,11 @@ def test_main_commit_and_sp_progression_are_well_formed() -> None:
     )
 
 
-def test_sp015_merge_and_post_merge_acceptance_are_archived() -> None:
+def test_sp015_merge_and_current_main_quality_gate_are_archived() -> None:
     state = _load_state()
     sp015 = state["sp_records"]["SP-015"]
 
-    assert state["main_commit"] == "01166352224ddce5e859d4133f502aee1f97da07"
+    assert state["main_commit"] == "712b6f6e3d233d008d22098bec4a8f317af603c3"
     assert state["latest_merged_sp"] == "SP-015"
     assert state["latest_completed_sp"] == "SP-015"
     assert sp015["status"] == (
@@ -84,13 +84,13 @@ def test_sp015_merge_and_post_merge_acceptance_are_archived() -> None:
     assert sp015["post_merge_acceptance"] == "PASSED"
     assert state["quality_gate"]["official"] == {
         "source": "GitHub Actions Quality Gate",
-        "run_id": 29738408215,
-        "head_sha": "01166352224ddce5e859d4133f502aee1f97da07",
+        "run_id": 29749469117,
+        "head_sha": "712b6f6e3d233d008d22098bec4a8f317af603c3",
         "environment": "ubuntu-latest / Python 3.12",
         "command": 'python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no',
         "ruff": "SUCCESS",
         "pytest": "SUCCESS",
-        "passed": 1162,
+        "passed": 1163,
         "skipped": 6,
         "warnings": 27,
         "exit_code": 0,
@@ -114,15 +114,33 @@ def test_sp014_and_acc014_final_state_is_complete() -> None:
     assert acceptance["scenarios"] == {letter: "PASSED" for letter in "ABCDEFGHIJKL"}
 
 
-def test_sp015a_and_sp016_candidate_state_is_consistent() -> None:
+def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
     state = _load_state()
     records = state["sp_records"]
     candidate_name = "Follow-up & Waiting-For Workflow"
     candidate_status = "CANDIDATE / NOT_APPROVED / NOT_STARTED"
-    sp015a_status = "IN_PROGRESS / DRAFT_PR_OPEN"
+    sp015a_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
+    sp015r_status = "IN_PROGRESS / DRAFT_PR_OPEN"
 
     assert records["SP-015A"]["status"] == sp015a_status
+    assert records["SP-015A"]["approved"] is True
     assert records["SP-015A"]["implementation_started"] is True
+    assert records["SP-015A"]["pr"] == 36
+    assert records["SP-015A"]["approved_head"] == (
+        "1fdfc001defca37dc517efe0db2e623568d0740a"
+    )
+    assert records["SP-015A"]["merge_commit"] == (
+        "712b6f6e3d233d008d22098bec4a8f317af603c3"
+    )
+    assert records["SP-015A"]["merged_at"] == "2026-07-20T14:10:27Z"
+    assert records["SP-015A"]["main_quality_gate"] == "PASSED"
+    assert records["SP-015R"]["status"] == sp015r_status
+    assert records["SP-015R"]["base_commit"] == (
+        "712b6f6e3d233d008d22098bec4a8f317af603c3"
+    )
+    assert records["SP-015R"]["branch"] == (
+        "docs/sp-015r-release-authorization-readiness"
+    )
     assert state["next_candidate_sp"] == "SP-016"
     assert state["next_candidate_name"] == candidate_name
     assert records["SP-016"]["name"] == candidate_name
@@ -138,23 +156,46 @@ def test_sp015a_and_sp016_candidate_state_is_consistent() -> None:
         "version_matrix": ROOT / "docs/project/VERSION_MATRIX.md",
         "release_checklist": ROOT / "docs/project/RELEASE_CHECKLIST.md",
         "release_notes": ROOT / "docs/releases/v0.34.0-alpha.md",
+        "readme": ROOT / "README.md",
+        "changelog": ROOT / "CHANGELOG.md",
     }
     text = {
         name: path.read_text(encoding="utf-8-sig") for name, path in documents.items()
     }
 
     assert f"| SP-015A | {sp015a_status} |" in text["status"]
+    assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {candidate_name} / {candidate_status} |" in text["status"]
     assert f"| SP-016 | {candidate_name} | {candidate_status} |" in text["roadmap"]
     assert f"> Next Candidate Direction: {candidate_name}" in text["brain"]
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
+    assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
     assert "Last Completed SP: SP-015" in text["brain"]
     assert "Current SP: None" in text["brain"]
-    assert "SP-015A / IN_PROGRESS / DRAFT_PR_OPEN" in text["health"]
-    assert "Alpha Candidate / VERIFIED / UNPUBLISHED" in text["health"]
-    assert "**Verification:** Verified / Unpublished" in text["version_matrix"]
-    assert "SP-015 archived after post-merge acceptance" in text["release_checklist"]
+    assert "SP-015R / IN_PROGRESS / DRAFT_PR_OPEN" in text["health"]
+    assert (
+        "Alpha Candidate / VERIFIED / UNPUBLISHED / READY_FOR_RELEASE_AUTHORIZATION"
+        in text["health"]
+    )
+    assert (
+        "**Verification:** Verified / Unpublished / Ready for Release Authorization"
+        in text["version_matrix"]
+    )
+    assert (
+        "SP-015 and SP-015A archived; SP-015R is in Draft reconciliation"
+        in text["release_checklist"]
+    )
     assert f"SP-016 {candidate_name}" in text["release_notes"]
+    stale_sp015a_markers = (
+        "SP-015A Status: IN_PROGRESS / DRAFT_PR_OPEN",
+        "SP-015A / IN_PROGRESS / DRAFT_PR_OPEN",
+        "| SP-015A | IN_PROGRESS / DRAFT_PR_OPEN |",
+    )
+    assert all(
+        marker not in content
+        for marker in stale_sp015a_markers
+        for content in text.values()
+    )
     stale_candidate = "SP-016 " + "Notification" + " Delivery"
     assert all(stale_candidate not in content for content in text.values())
 
@@ -167,11 +208,18 @@ def test_release_is_still_an_unpublished_alpha_candidate() -> None:
     )
 
     assert release["release_stage"] == "alpha_candidate"
-    assert release["verification"] == "VERIFIED / UNPUBLISHED"
+    assert release["verification"] == (
+        "VERIFIED / UNPUBLISHED / READY_FOR_RELEASE_AUTHORIZATION"
+    )
     assert release["tag_created"] is False
     assert release["tag_name"] is None
     assert release["github_release_created"] is False
     assert release["github_release_url"] is None
+    assert release["release_blocked_by"] == [
+        "SP-015R merge",
+        "SP-015R main Quality Gate",
+        "separate Owner and ChatGPT release authorization",
+    ]
     assert "Alpha / local-first / single-user-oriented" in release_notes
     assert "Tag and GitHub Release not created" in release_notes
 
