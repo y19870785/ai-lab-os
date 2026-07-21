@@ -1,7 +1,7 @@
 # AI-Lab Project Health
 
-**Last Updated:** 2026-07-20
-**Current Source Version:** v0.34.0 Alpha Candidate
+**Last Updated:** 2026-07-22
+**Current Source Version:** v0.34.0 Alpha / Release Authorized
 
 ## Summary
 
@@ -9,13 +9,13 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。核心运行时
 
 | Metric | Current fact |
 |---|---|
-| Canonical main baseline | `712b6f6e3d233d008d22098bec4a8f317af603c3` |
-| GitHub Quality Gate | run `29749469117` / SUCCESS |
+| Verified release baseline | `22f88d1da962fb436c48c19e5343fad8bf62f5f6` |
+| GitHub Quality Gate | run `29855987444` / SUCCESS |
 | pytest (non-real) | 1163 passed, 6 skipped, 27 warnings |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current governance task | SP-015R / IN_PROGRESS / DRAFT_PR_OPEN |
+| Current governance task | None |
 | Latest completed SP | SP-015 / POST_MERGE_ACCEPTANCE_PASSED / ARCHIVED |
-| Release stage | Alpha Candidate / VERIFIED / UNPUBLISHED / READY_FOR_RELEASE_AUTHORIZATION；v0.34.0 Tag/Release 未创建 |
+| Release stage | Alpha / RELEASE_AUTHORIZED；GitHub publication pending final release operation |
 
 ## Module health
 
@@ -39,4 +39,4 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。核心运行时
 - Scheduler 测试曾出现一次短暂 `running` 时序波动；唯一重跑通过，未在 SP-014B 或 SP-015 中修改 Scheduler。
 - Docker build/run、长时间运行、资源回收和高并发仍缺正式基线。
 
-机器可读详情、历史 PR 对账与发布阻断以根 `project_state.json` 为准。
+机器可读详情、历史 PR 对账与稳定发布授权配置以根 `project_state.json` 为准。Tag/Release 的存在性、目标、URL 与时间以 GitHub 为权威来源。

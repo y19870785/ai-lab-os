@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 import tomllib
 from pathlib import Path
 
@@ -37,17 +36,30 @@ def test_human_facing_current_state_markers_match_project_state() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8-sig")
     brain = (ROOT / "docs/project/PROJECT_BRAIN.md").read_text(encoding="utf-8-sig")
 
-    assert f"v{state['current_version']} Alpha Candidate" in readme
+    assert f"v{state['current_version']} Alpha / Release Authorized" in readme
     assert f"Product Version: {state['version']}" in brain
     assert f"Last Completed SP: {state['latest_completed_sp']}" in brain
     assert f"Current SP: {state['current_sp']}" in brain
+    assert f"Current Governance Task: {state['current_governance_task']}" in brain
     assert f"Next Candidate SP: {state['next_candidate_sp']}" in brain
-    assert state["main_commit"] in brain
+    baseline = state["verified_release_baseline"]
+    assert baseline["commit"] in brain
+    assert str(baseline["quality_gate_run"]) in brain
 
 
-def test_main_commit_and_sp_progression_are_well_formed() -> None:
+def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     state = _load_state()
-    assert re.fullmatch(r"[0-9a-f]{40}", state["main_commit"])
+    baseline = state["verified_release_baseline"]
+
+    assert "main_commit" not in state
+    assert re.fullmatch(r"[0-9a-f]{40}", baseline["commit"])
+    assert baseline == {
+        "commit": "22f88d1da962fb436c48c19e5343fad8bf62f5f6",
+        "quality_gate_run": 29855987444,
+        "meaning": (
+            "Main commit independently verified before the final publication commit"
+        ),
+    }
 
     records = state["sp_records"]
     completed_numbers = [
@@ -58,10 +70,7 @@ def test_main_commit_and_sp_progression_are_well_formed() -> None:
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "SP-015R"
-    assert records[state["current_governance_task"]]["status"] == (
-        "IN_PROGRESS / DRAFT_PR_OPEN"
-    )
+    assert state["current_governance_task"] is None
     assert _sp_number(state["next_candidate_sp"]) > _sp_number(
         state["latest_completed_sp"]
     )
@@ -71,7 +80,6 @@ def test_sp015_merge_and_current_main_quality_gate_are_archived() -> None:
     state = _load_state()
     sp015 = state["sp_records"]["SP-015"]
 
-    assert state["main_commit"] == "712b6f6e3d233d008d22098bec4a8f317af603c3"
     assert state["latest_merged_sp"] == "SP-015"
     assert state["latest_completed_sp"] == "SP-015"
     assert sp015["status"] == (
@@ -84,8 +92,8 @@ def test_sp015_merge_and_current_main_quality_gate_are_archived() -> None:
     assert sp015["post_merge_acceptance"] == "PASSED"
     assert state["quality_gate"]["official"] == {
         "source": "GitHub Actions Quality Gate",
-        "run_id": 29749469117,
-        "head_sha": "712b6f6e3d233d008d22098bec4a8f317af603c3",
+        "run_id": 29855987444,
+        "head_sha": "22f88d1da962fb436c48c19e5343fad8bf62f5f6",
         "environment": "ubuntu-latest / Python 3.12",
         "command": 'python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no',
         "ruff": "SUCCESS",
@@ -120,7 +128,7 @@ def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
     candidate_name = "Follow-up & Waiting-For Workflow"
     candidate_status = "CANDIDATE / NOT_APPROVED / NOT_STARTED"
     sp015a_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
-    sp015r_status = "IN_PROGRESS / DRAFT_PR_OPEN"
+    sp015r_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
 
     assert records["SP-015A"]["status"] == sp015a_status
     assert records["SP-015A"]["approved"] is True
@@ -141,6 +149,16 @@ def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
     assert records["SP-015R"]["branch"] == (
         "docs/sp-015r-release-authorization-readiness"
     )
+    assert records["SP-015R"]["pr"] == 37
+    assert records["SP-015R"]["approved_head"] == (
+        "12df0d34ea62271910bbfdc85d4e04e64719b24c"
+    )
+    assert records["SP-015R"]["merge_commit"] == (
+        "22f88d1da962fb436c48c19e5343fad8bf62f5f6"
+    )
+    assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
+    assert records["SP-015R"]["main_quality_gate"] == "PASSED"
+    assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
     assert state["next_candidate_sp"] == "SP-016"
     assert state["next_candidate_name"] == candidate_name
     assert records["SP-016"]["name"] == candidate_name
@@ -172,65 +190,80 @@ def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
     assert "Last Completed SP: SP-015" in text["brain"]
     assert "Current SP: None" in text["brain"]
-    assert "SP-015R / IN_PROGRESS / DRAFT_PR_OPEN" in text["health"]
+    assert "Current governance task | None" in text["health"]
+    assert "Alpha / RELEASE_AUTHORIZED" in text["health"]
+    assert "**Authorization:** Release Authorized" in text["version_matrix"]
     assert (
-        "Alpha Candidate / VERIFIED / UNPUBLISHED / READY_FOR_RELEASE_AUTHORIZATION"
-        in text["health"]
-    )
-    assert (
-        "**Verification:** Verified / Unpublished / Ready for Release Authorization"
-        in text["version_matrix"]
-    )
-    assert (
-        "SP-015 and SP-015A archived; SP-015R is in Draft reconciliation"
+        "SP-015, SP-015A and SP-015R archived; SP-016 remains candidate only"
         in text["release_checklist"]
     )
     assert f"SP-016 {candidate_name}" in text["release_notes"]
-    stale_sp015a_markers = (
+    stale_governance_markers = (
         "SP-015A Status: IN_PROGRESS / DRAFT_PR_OPEN",
         "SP-015A / IN_PROGRESS / DRAFT_PR_OPEN",
         "| SP-015A | IN_PROGRESS / DRAFT_PR_OPEN |",
+        "SP-015R Status: IN_PROGRESS / DRAFT_PR_OPEN",
+        "SP-015R / IN_PROGRESS / DRAFT_PR_OPEN",
+        "| SP-015R | IN_PROGRESS / DRAFT_PR_OPEN |",
+        "SP-015R merge, its main Quality Gate",
+        "SP-015R merged and its main Quality Gate passes\n- [ ]",
     )
     assert all(
         marker not in content
-        for marker in stale_sp015a_markers
+        for marker in stale_governance_markers
         for content in text.values()
     )
     stale_candidate = "SP-016 " + "Notification" + " Delivery"
     assert all(stale_candidate not in content for content in text.values())
+    realtime_mirror_fields = (
+        "tag_created",
+        "tag_name",
+        "github_release_created",
+        "github_release_url",
+        "release_blocked_by",
+    )
+    assert all(
+        field not in content
+        for field in realtime_mirror_fields
+        for content in text.values()
+    )
+    assert (
+        "External publication verification: GitHub Tag and GitHub Release are "
+        "authoritative."
+    ) in text["release_checklist"]
+    assert "Final publication commit prepared" in text["release_checklist"]
+    assert "- [ ] SP-015R merged" not in text["release_checklist"]
 
 
-def test_release_is_still_an_unpublished_alpha_candidate() -> None:
+def test_release_authorization_is_stable_and_github_is_authoritative() -> None:
     state = _load_state()
     release = state["release_status"]
     release_notes = (ROOT / "docs/releases/v0.34.0-alpha.md").read_text(
         encoding="utf-8-sig"
     )
 
-    assert release["release_stage"] == "alpha_candidate"
-    assert release["verification"] == (
-        "VERIFIED / UNPUBLISHED / READY_FOR_RELEASE_AUTHORIZATION"
-    )
-    assert release["tag_created"] is False
-    assert release["tag_name"] is None
-    assert release["github_release_created"] is False
-    assert release["github_release_url"] is None
-    assert release["release_blocked_by"] == [
-        "SP-015R merge",
-        "SP-015R main Quality Gate",
-        "separate Owner and ChatGPT release authorization",
-    ]
+    assert release == {
+        "current_version": "0.34.0",
+        "release_stage": "alpha",
+        "release_authorization": "APPROVED",
+        "publication_authority": "GitHub Tags and GitHub Releases",
+        "authorized_tag": "v0.34.0",
+        "github_release_type": "prerelease",
+        "maturity": "Alpha / local-first / single-user-oriented",
+        "binary_assets": "not published",
+    }
+    realtime_mirrors = {
+        "tag_created",
+        "tag_name",
+        "github_release_created",
+        "github_release_url",
+        "release_blocked_by",
+    }
+    assert realtime_mirrors.isdisjoint(release)
     assert "Alpha / local-first / single-user-oriented" in release_notes
-    assert "Tag and GitHub Release not created" in release_notes
-
-    tag = subprocess.run(
-        ["git", "tag", "--list", "v0.34.0"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    assert tag.stdout.strip() == ""
+    assert "GitHub publication pending final release operation" in release_notes
+    assert "GitHub Release Type：Pre-release" in release_notes
+    assert "Tag 是否存在及其目标、Release URL 与发布时间以 GitHub" in release_notes
 
 
 def test_governance_source_responsibilities_are_explicit() -> None:

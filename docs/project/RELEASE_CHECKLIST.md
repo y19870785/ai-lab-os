@@ -4,7 +4,7 @@
 
 - [x] `pyproject.toml` source version set to `0.34.0`
 - [x] `project_state.json` records SP-014 / SP-014B / ACC-014 final state
-- [x] SP-015 and SP-015A archived; SP-015R is in Draft reconciliation; SP-016 remains candidate only
+- [x] SP-015, SP-015A and SP-015R archived; SP-016 remains candidate only
 - [x] README、Project Brain、Roadmap、Changelog 与 v0.34.0 Alpha release notes responsibilities reconciled
 - [x] No business behavior or database schema migration added by SP-015
 
@@ -26,9 +26,8 @@
 - [x] Post-merge acceptance completed
 - [x] SP-015A merged and its main Quality Gate passes
 - [x] Release reconciliation implementation completed
-- [ ] SP-015R merged and its main Quality Gate passes
-- [ ] Owner and ChatGPT authorize Tag and GitHub Release creation
-- [ ] `v0.34.0` Tag created from the approved commit
-- [ ] GitHub Release published from the same Tag
+- [x] SP-015R merged and its main Quality Gate passes — run `29855987444`
+- [x] Owner and ChatGPT authorize v0.34.0 publication
+- [x] Final publication commit prepared
 
-未完成 Publication gates 前，源码中的 `0.34.0` 只能称为 Alpha Candidate，不得宣称 v0.34.0 已正式发布。
+External publication verification: GitHub Tag and GitHub Release are authoritative. Verify `v0.34.0` externally after this publication commit is merged. The authorized GitHub Release is a Pre-release with no uploaded wheel or sdist; this checklist does not require a post-publication repository commit.

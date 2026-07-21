@@ -4,18 +4,22 @@
   "version": "v0.34.0",
   "current_version": "0.34.0",
   "git_branch": "main",
-  "main_commit": "712b6f6e3d233d008d22098bec4a8f317af603c3",
-  "source_baseline": "main after SP-015A merge and main Quality Gate",
+  "verified_release_baseline": {
+    "commit": "22f88d1da962fb436c48c19e5343fad8bf62f5f6",
+    "quality_gate_run": 29855987444,
+    "meaning": "Main commit independently verified before the final publication commit"
+  },
+  "source_baseline": "independently verified main before the final publication commit",
   "latest_merged_sp": "SP-015",
   "latest_completed_sp": "SP-015",
   "current_sp": null,
-  "current_governance_task": "SP-015R",
+  "current_governance_task": null,
   "next_candidate_sp": "SP-016",
   "next_candidate_name": "Follow-up & Waiting-For Workflow",
-  "development_status": "v0_34_0_verified_unpublished_ready_for_release_authorization",
-  "current_work": "SP-015R final release authorization readiness reconciliation",
-  "next_action": "Merge SP-015R and pass its main Quality Gate, then obtain separate Owner and ChatGPT authorization before creating the v0.34.0 tag or GitHub Release",
-  "updated_at": "2026-07-20",
+  "development_status": "v0_34_0_alpha_release_authorized",
+  "current_work": null,
+  "next_action": "Complete the authorized GitHub publication operation for v0.34.0 and verify the external Tag and Pre-release facts on GitHub",
+  "updated_at": "2026-07-22",
   "governance_sources": {
     "machine_readable_project_state": "project_state.json",
     "runtime_product_version": "pyproject.toml:[project].version",
@@ -30,8 +34,8 @@
   "quality_gate": {
     "official": {
       "source": "GitHub Actions Quality Gate",
-      "run_id": 29749469117,
-      "head_sha": "712b6f6e3d233d008d22098bec4a8f317af603c3",
+      "run_id": 29855987444,
+      "head_sha": "22f88d1da962fb436c48c19e5343fad8bf62f5f6",
       "environment": "ubuntu-latest / Python 3.12",
       "command": "python -m pytest tests --ignore=tests/real -m \"not real\" -q --tb=no",
       "ruff": "SUCCESS",
@@ -223,13 +227,19 @@
       "main_quality_gate": "PASSED"
     },
     "SP-015R": {
-      "status": "IN_PROGRESS / DRAFT_PR_OPEN",
+      "status": "APPROVED / MERGED / RECONCILED / ARCHIVED",
       "task_defined": true,
       "approved": true,
       "implementation_started": true,
       "base_commit": "712b6f6e3d233d008d22098bec4a8f317af603c3",
       "branch": "docs/sp-015r-release-authorization-readiness",
-      "scope": "Final release authorization readiness reconciliation"
+      "scope": "Final release authorization readiness reconciliation",
+      "pr": 37,
+      "approved_head": "12df0d34ea62271910bbfdc85d4e04e64719b24c",
+      "merge_commit": "22f88d1da962fb436c48c19e5343fad8bf62f5f6",
+      "merged_at": "2026-07-21T18:09:03Z",
+      "main_quality_gate": "PASSED",
+      "main_quality_gate_run": 29855987444
     },
     "SP-016": {
       "name": "Follow-up & Waiting-For Workflow",
@@ -287,18 +297,12 @@
   ],
   "release_status": {
     "current_version": "0.34.0",
-    "release_stage": "alpha_candidate",
-    "verification": "VERIFIED / UNPUBLISHED / READY_FOR_RELEASE_AUTHORIZATION",
+    "release_stage": "alpha",
+    "release_authorization": "APPROVED",
+    "publication_authority": "GitHub Tags and GitHub Releases",
+    "authorized_tag": "v0.34.0",
+    "github_release_type": "prerelease",
     "maturity": "Alpha / local-first / single-user-oriented",
-    "previous_release_tag": "v0.33.0",
-    "tag_created": false,
-    "tag_name": null,
-    "github_release_created": false,
-    "github_release_url": null,
-    "release_blocked_by": [
-      "SP-015R merge",
-      "SP-015R main Quality Gate",
-      "separate Owner and ChatGPT release authorization"
-    ]
+    "binary_assets": "not published"
   }
 }
