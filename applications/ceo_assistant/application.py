@@ -25,6 +25,14 @@ from applications.ceo_assistant.intent import (
     extract_inbox_capture_content,
 )
 from applications.ceo_assistant.reminder_errors import ReminderUserErrorPresenter
+from applications.ceo_assistant.waiting_for_errors import WaitingForUserErrorPresenter
+from applications.ceo_assistant.waiting_for_intent import (
+    extract_action_note,
+    extract_waiting_for_capture_content,
+    extract_waiting_for_id,
+    parse_waiting_for_confirmation,
+    parse_waiting_for_time,
+)
 from core.errors import (
     ErrorCategory,
     FailureException,
@@ -54,7 +62,10 @@ class CEOAssistant:
         reminder_management=None,
         daily_agenda=None,
         inbox_service=None,
+        waiting_for_service=None,
         task_intent_parser=None,
+        clock=None,
+        timezone_name: str = "UTC",
         config: ApplicationConfig | None = None,
         bus=None,
         *,
@@ -70,7 +81,10 @@ class CEOAssistant:
         self._reminder_management = reminder_management
         self._daily_agenda = daily_agenda
         self._inbox = inbox_service
+        self._waiting_for = waiting_for_service
         self._task_intent_parser = task_intent_parser
+        self._clock = clock
+        self._timezone_name = timezone_name
         self._config = config or ApplicationConfig()
         self._bus = bus
         self._admission = admission
@@ -111,6 +125,16 @@ class CEOAssistant:
             "daily_agenda": {IntentEffect.READ},
             "inbox_capture": {IntentEffect.WRITE},
             "inbox_list": {IntentEffect.READ},
+            "waiting_for_list": {IntentEffect.READ},
+            "waiting_for_detail": {IntentEffect.READ},
+            "waiting_for_history": {IntentEffect.READ},
+            "waiting_for_capture": {IntentEffect.WRITE},
+            "waiting_for_confirm": {IntentEffect.WRITE},
+            "waiting_for_follow_up": {IntentEffect.WRITE},
+            "waiting_for_snooze": {IntentEffect.WRITE},
+            "waiting_for_resolve": {IntentEffect.WRITE},
+            "waiting_for_cancel": {IntentEffect.WRITE},
+            "waiting_for_reopen": {IntentEffect.WRITE},
             "reminder_cancel": {IntentEffect.WRITE},
             "reminder_reschedule": {IntentEffect.WRITE},
             "work_log": {IntentEffect.WRITE},
@@ -144,6 +168,20 @@ class CEOAssistant:
                 result = await self._handle_inbox_capture(request)
             elif decision.intent == "inbox_list":
                 result = await self._handle_inbox_list(request)
+            elif decision.intent == "waiting_for_capture":
+                result = await self._handle_waiting_for_capture(request)
+            elif decision.intent == "waiting_for_confirm":
+                result = await self._handle_waiting_for_confirm(request)
+            elif decision.intent == "waiting_for_list":
+                result = await self._handle_waiting_for_list(request)
+            elif decision.intent == "waiting_for_detail":
+                result = await self._handle_waiting_for_detail(request)
+            elif decision.intent == "waiting_for_history":
+                result = await self._handle_waiting_for_history(request)
+            elif decision.intent.startswith("waiting_for_"):
+                result = await self._handle_waiting_for_lifecycle(
+                    request, decision.intent
+                )
             elif decision.intent == "work_log":
                 result = await self._handle_work_log(request)
             elif decision.intent == "reminder_list":
@@ -186,7 +224,9 @@ class CEOAssistant:
                 metadata=metadata,
             )
         except FailureException as exc:
-            raise FailureException(ReminderUserErrorPresenter.present(exc.failure)) from exc
+            presented = WaitingForUserErrorPresenter.present(exc.failure)
+            presented = ReminderUserErrorPresenter.present(presented)
+            raise FailureException(presented) from exc
         except Exception as exc:
             failure = failure_from_exception(
                 exc,
@@ -241,6 +281,217 @@ class CEOAssistant:
             "answer": answer,
             "status": "ok",
             "metadata": {"inbox": page.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    def _require_waiting_for(self, request: ApplicationRequest):
+        if self._waiting_for is None:
+            raise FailureException(FailureInfo(
+                code="inbox.waiting_for.unavailable",
+                category=ErrorCategory.UNAVAILABLE,
+                message="Waiting-For service is unavailable",
+                component="waiting_for",
+                operation="ceo_assistant",
+                retryable=False,
+                trace_id=request.workspace_key.trace_id,
+            ))
+        return self._waiting_for
+
+    @staticmethod
+    def _waiting_for_line(item) -> str:
+        time_value = item.next_review_at or item.expected_by
+        return (
+            f"{item.id} | {item.subject} | 等待：{item.waiting_on} | "
+            f"状态：{item.status.value} | 时间："
+            f"{time_value.isoformat() if time_value else '未设置'}"
+        )
+
+    async def _waiting_for_candidates(self, request: ApplicationRequest) -> dict[str, Any]:
+        page = await self._require_waiting_for(request).list(
+            workspace_key=request.workspace_key, view="open", limit=50
+        )
+        if page.items:
+            lines = ["请使用明确的 wf_ ID；候选等待事项："]
+            lines.extend(f"- {self._waiting_for_line(item)}" for item in page.items)
+        else:
+            lines = ["请使用明确的 wf_ ID；当前没有可选的等待事项。"]
+        return {
+            "answer": "\n".join(lines),
+            "status": "ok",
+            "metadata": {"waiting_for_candidates": page.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_waiting_for_capture(
+        self, request: ApplicationRequest
+    ) -> dict[str, Any]:
+        if self._inbox is None:
+            raise RuntimeError("Inbox service is not configured")
+        content = extract_waiting_for_capture_content(request.user_input)
+        if content is None:
+            raise ValueError("Waiting-For capture content is empty")
+        from core.inbox import InboxSuggestedType
+
+        item = await self._inbox.capture(
+            workspace_key=request.workspace_key,
+            content=content,
+            source="ceo_assistant",
+            suggested_type=InboxSuggestedType.WAITING_FOR,
+            metadata={"intent": "waiting_for_capture"},
+        )
+        return {
+            "answer": (
+                f"已捕获为待确认收件箱记录：{item.id}\n"
+                "下一步请使用该 Inbox ID 明确整理成等待事项。"
+            ),
+            "status": "ok",
+            "metadata": {"inbox_item": item.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_waiting_for_confirm(
+        self, request: ApplicationRequest
+    ) -> dict[str, Any]:
+        if self._inbox is None or self._clock is None:
+            raise RuntimeError("Waiting-For confirmation dependencies are not configured")
+        parsed = parse_waiting_for_confirmation(
+            request.user_input, self._timezone_name, self._clock
+        )
+        inbox_item = await self._inbox.resolve_to_waiting_for(
+            workspace_key=request.workspace_key,
+            inbox_item_id=parsed.inbox_item_id,
+            subject=parsed.subject,
+            waiting_on=parsed.waiting_on,
+            next_review_at=parsed.next_review_at,
+            timezone=parsed.timezone,
+        )
+        service = self._require_waiting_for(request)
+        item = await service.get(
+            workspace_key=request.workspace_key,
+            waiting_for_id=inbox_item.resolved_target_id,
+        )
+        events = await service.list_events(
+            workspace_key=request.workspace_key,
+            waiting_for_id=item.id,
+            limit=1,
+        )
+        event = events.items[0]
+        return {
+            "answer": (
+                f"等待事项已确认。\nInbox ID：{inbox_item.id}\n"
+                f"Waiting-For ID：{item.id}\n事项：{item.subject}\n"
+                f"等待对象：{item.waiting_on}\nrevision：{item.revision}\n"
+                f"event：{event.event_type.value}\n"
+                f"next_review_at：{item.next_review_at.isoformat()}"
+            ),
+            "status": "ok",
+            "metadata": {
+                "inbox_item": inbox_item.model_dump(mode="json"),
+                "waiting_for": item.model_dump(mode="json"),
+                "event": event.model_dump(mode="json"),
+            },
+            "_deterministic": True,
+        }
+
+    async def _handle_waiting_for_list(
+        self, request: ApplicationRequest
+    ) -> dict[str, Any]:
+        page = await self._require_waiting_for(request).list(
+            workspace_key=request.workspace_key, view="open", limit=50
+        )
+        lines = ["当前没有等待事项。"] if not page.items else ["等待事项："]
+        lines.extend(f"- {self._waiting_for_line(item)}" for item in page.items)
+        return {
+            "answer": "\n".join(lines),
+            "status": "ok",
+            "metadata": {"waiting_for": page.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_waiting_for_detail(
+        self, request: ApplicationRequest
+    ) -> dict[str, Any]:
+        waiting_for_id = extract_waiting_for_id(request.user_input)
+        if waiting_for_id is None:
+            return await self._waiting_for_candidates(request)
+        item = await self._require_waiting_for(request).get(
+            workspace_key=request.workspace_key, waiting_for_id=waiting_for_id
+        )
+        return {
+            "answer": self._waiting_for_line(item),
+            "status": "ok",
+            "metadata": {"waiting_for": item.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_waiting_for_history(
+        self, request: ApplicationRequest
+    ) -> dict[str, Any]:
+        waiting_for_id = extract_waiting_for_id(request.user_input)
+        if waiting_for_id is None:
+            return await self._waiting_for_candidates(request)
+        page = await self._require_waiting_for(request).list_events(
+            workspace_key=request.workspace_key, waiting_for_id=waiting_for_id
+        )
+        lines = [f"{waiting_for_id} 的催办历史："]
+        lines.extend(
+            f"- {event.sequence} | {event.event_type.value} | {event.note}"
+            for event in page.items
+        )
+        return {
+            "answer": "\n".join(lines),
+            "status": "ok",
+            "metadata": {"waiting_for_events": page.model_dump(mode="json")},
+            "_deterministic": True,
+        }
+
+    async def _handle_waiting_for_lifecycle(
+        self, request: ApplicationRequest, intent: str
+    ) -> dict[str, Any]:
+        waiting_for_id = extract_waiting_for_id(request.user_input)
+        if waiting_for_id is None:
+            return await self._waiting_for_candidates(request)
+        service = self._require_waiting_for(request)
+        current = await service.get(
+            workspace_key=request.workspace_key, waiting_for_id=waiting_for_id
+        )
+        note = extract_action_note(request.user_input)
+        common = {
+            "workspace_key": request.workspace_key,
+            "waiting_for_id": waiting_for_id,
+            "expected_revision": current.revision,
+            "source": "ceo_assistant",
+            "trace_id": request.workspace_key.trace_id,
+        }
+        if intent == "waiting_for_follow_up":
+            result = await service.record_follow_up(note=note, **common)
+        elif intent == "waiting_for_snooze":
+            if self._clock is None:
+                raise RuntimeError("Waiting-For clock is not configured")
+            next_review_at = parse_waiting_for_time(
+                request.user_input, self._timezone_name, self._clock
+            )
+            result = await service.snooze(
+                next_review_at=next_review_at, note=note, **common
+            )
+        elif intent == "waiting_for_resolve":
+            result = await service.resolve(resolution_note=note, **common)
+        elif intent == "waiting_for_cancel":
+            result = await service.cancel(note=note, **common)
+        elif intent == "waiting_for_reopen":
+            result = await service.reopen(note=note, **common)
+        else:
+            raise RuntimeError(f"Unsupported Waiting-For lifecycle intent: {intent}")
+        item = result.item
+        time_value = item.next_review_at or item.expected_by
+        return {
+            "answer": (
+                f"Waiting-For ID：{item.id}\nrevision：{item.revision}\n"
+                f"event：{result.event.event_type.value}\n状态：{item.status.value}\n"
+                f"时间：{time_value.isoformat() if time_value else '终态'}"
+            ),
+            "status": "ok",
+            "metadata": result.model_dump(mode="json"),
             "_deterministic": True,
         }
 
@@ -967,7 +1218,14 @@ class CEOAssistant:
             elif item.due_at:
                 t = item.due_at.isoformat()
                 time_str = f"\u622a\u6b62 {t} \u2014 "
-            source_label = {"reminder": "\u63d0\u9192", "user_task": "\u4efb\u52a1", "work_log": "\u5de5\u4f5c\u8bb0\u5f55"}.get(item.source.value, item.source.value)
-            lines.append(f"{time_str}{item.title}  [{source_label} / {item.status}]")
+            source_label = {"reminder": "\u63d0\u9192", "user_task": "\u4efb\u52a1", "work_log": "\u5de5\u4f5c\u8bb0\u5f55", "waiting_for": "\u7b49\u5f85\u4e8b\u9879"}.get(item.source.value, item.source.value)
+            if item.source.value == "waiting_for":
+                waiting_on = item.metadata.get("waiting_on", "")
+                lines.append(
+                    f"{time_str}{item.title} | ID: {item.waiting_for_id} | "
+                    f"\u7b49\u5f85: {waiting_on}  [{source_label} / {item.status}]"
+                )
+            else:
+                lines.append(f"{time_str}{item.title}  [{source_label} / {item.status}]")
         summary = f"\u5171 {page.count} \u9879" + ("\uff0c\u663e\u793a\u90e8\u5206" if page.has_more else "")
         return {"answer": "\n".join(lines) + f"\n\n({summary})", "status": "ok", "metadata": {"intent": "daily_agenda", **page.model_dump(mode="json")}, "_deterministic": True}

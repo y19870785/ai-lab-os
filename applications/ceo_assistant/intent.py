@@ -6,6 +6,10 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 
+from applications.ceo_assistant.waiting_for_intent import (
+    extract_waiting_for_capture_content,
+)
+
 
 class IntentEffect(str, Enum):
     READ = "read"
@@ -110,12 +114,35 @@ def decide_intent(user_input: str) -> IntentDecision:
 
     text = user_input.lower().strip()
 
+    if "inbox_" in text and "整理成等待事项" in text:
+        return IntentDecision("waiting_for_confirm", 1.0, IntentEffect.WRITE)
+
+    if "催办历史" in text and "wf_" in text:
+        return IntentDecision("waiting_for_history", 1.0, IntentEffect.READ)
+    if any(marker in text for marker in ("查看等待事项", "我在等谁回复", "有哪些需要催办的事项")):
+        if "wf_" in text:
+            return IntentDecision("waiting_for_detail", 1.0, IntentEffect.READ)
+        return IntentDecision("waiting_for_list", 1.0, IntentEffect.READ)
+    if text.startswith("查看") and "wf_" in text:
+        return IntentDecision("waiting_for_detail", 1.0, IntentEffect.READ)
+
+    if text.startswith("催办"):
+        return IntentDecision("waiting_for_follow_up", 1.0, IntentEffect.WRITE)
+    if "延后到" in text and "提醒" not in text:
+        return IntentDecision("waiting_for_snooze", 1.0, IntentEffect.WRITE)
+    if text.startswith("解决"):
+        return IntentDecision("waiting_for_resolve", 1.0, IntentEffect.WRITE)
+    if text.startswith("重新打开"):
+        return IntentDecision("waiting_for_reopen", 1.0, IntentEffect.WRITE)
+
     if "提醒" in text and text.startswith("取消"):
         return IntentDecision("reminder_cancel", 1.0, IntentEffect.WRITE)
     if any(marker in text for marker in ("提醒我", "记得", "别忘了")):
         return IntentDecision("task", 1.0, IntentEffect.WRITE)
     if "提醒" in text and any(marker in text for marker in ("改到", "延后到", "改期")):
         return IntentDecision("reminder_reschedule", 1.0, IntentEffect.WRITE)
+    if text.startswith("取消") and "提醒" not in text:
+        return IntentDecision("waiting_for_cancel", 1.0, IntentEffect.WRITE)
 
     if _is_reminder_list_query(text):
         return IntentDecision("reminder_list", 1.0, IntentEffect.READ)
@@ -136,6 +163,8 @@ def decide_intent(user_input: str) -> IntentDecision:
 
     if text.startswith(_WORK_LOG_PREFIXES):
         return IntentDecision("work_log", 1.0, IntentEffect.WRITE)
+    if extract_waiting_for_capture_content(text) is not None:
+        return IntentDecision("waiting_for_capture", 1.0, IntentEffect.WRITE)
     if extract_inbox_capture_content(text) is not None:
         return IntentDecision("inbox_capture", 1.0, IntentEffect.WRITE)
 
