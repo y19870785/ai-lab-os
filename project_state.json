@@ -11,12 +11,12 @@
   },
   "source_baseline": "independently verified main before the final publication commit",
   "latest_merged_sp": "SP-016",
-  "latest_completed_sp": "SP-015",
-  "current_sp": "SP-016",
+  "latest_completed_sp": "SP-016",
+  "current_sp": null,
   "current_governance_task": null,
   "next_candidate_sp": "SP-017",
   "next_candidate_name": "Follow-up Interaction & Capture Closure",
-  "development_status": "sp_016_manual_acceptance_pending",
+  "development_status": "sp_016_archived_sp_017_candidate",
   "current_work": null,
   "updated_at": "2026-07-22",
   "governance_sources": {
@@ -242,17 +242,23 @@
     },
     "SP-016": {
       "name": "Canonical Waiting-For Domain & Agenda Closure",
-      "status": "APPROVED / IMPLEMENTATION_COMPLETE / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING",
+      "status": "APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED",
       "planning_baseline_defined": true,
       "approved": true,
       "implementation_started": true,
       "implementation_complete": true,
-      "manual_acceptance_status": "PENDING",
+      "manual_acceptance_status": "PASSED",
+      "completed": true,
+      "archived": true,
       "target_version": "0.35.0",
       "rfc": "RFC-025",
       "adrs": ["ADR-054", "ADR-055"],
       "base_commit": "2b4f312b6b2bae388ae9819f66fcf2f00dc4dbf4",
-      "branch": "feat/sp-016-canonical-waiting-for",
+      "feature_pr": 40,
+      "approved_head": "0e9fd454b11f6e8d01b256893bed98c3a07ff854",
+      "merge_commit": "bc1bac632920c5c07823cd34c5f908086d4d923d",
+      "merged_at": "2026-07-22T14:51:34Z",
+      "acceptance": "ACC-016 PASSED / FINAL",
       "scope": "Canonical Waiting-For lifecycle, persistence, workspace isolation, API/CLI and Daily Agenda optional-source closure"
     }
   },
@@ -280,19 +286,26 @@
       ]
     },
     "ACC-016": {
-      "status": "AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING",
+      "status": "PASSED / FINAL",
+      "baseline_commit": "bc1bac632920c5c07823cd34c5f908086d4d923d",
+      "manual_acceptance": true,
       "scenarios": {
-        "A": "AUTOMATED_VERIFICATION_PASSED",
-        "B": "AUTOMATED_VERIFICATION_PASSED",
-        "C": "AUTOMATED_VERIFICATION_PASSED",
-        "D": "AUTOMATED_VERIFICATION_PASSED",
-        "E": "AUTOMATED_VERIFICATION_PASSED",
-        "F": "AUTOMATED_VERIFICATION_PASSED",
-        "G": "AUTOMATED_VERIFICATION_PASSED",
-        "H": "AUTOMATED_VERIFICATION_PASSED",
-        "I": "AUTOMATED_VERIFICATION_PASSED",
-        "J": "AUTOMATED_VERIFICATION_PASSED"
-      }
+        "A": "PASSED",
+        "B": "PASSED",
+        "C": "PASSED",
+        "D": "PASSED",
+        "E": "PASSED",
+        "F": "PASSED",
+        "G": "PASSED",
+        "H": "PASSED",
+        "I": "PASSED",
+        "J": "PASSED"
+      },
+      "notes": [
+        "Manual acceptance used real CLI subprocesses and a real Uvicorn API process sharing one isolated SQLite data directory.",
+        "No real Provider request occurred.",
+        "Three acceptance-driver incidents were non-product script or assertion issues and did not alter product results or acceptance data."
+      ]
     }
   },
   "module_status": {
@@ -301,7 +314,7 @@
     "Reminder_Management": "Integrated / Verified",
     "Intent_Safety": "Integrated / Verified",
     "Daily_Agenda": "Integrated / Verified / Optional-source composition",
-    "Waiting_For": "Integrated / Automated verification passed / Manual acceptance pending",
+    "Waiting_For": "Integrated / Verified / Manual acceptance passed",
     "Unified_Inbox": "Integrated / Verified / Manual acceptance passed",
     "Capture_to_Action": "Integrated / Verified",
     "Knowledge": "Implemented / Disabled; real main path incomplete",

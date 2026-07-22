@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-07-22
 **Current Version:** v0.34.0 Alpha / Release Authorized
-**Current SP:** SP-016 — implementation complete / automated verification passed / manual acceptance pending
+**Current SP:** None
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -54,16 +54,16 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 ## v0.35.0 候选方向
 
-SP-016 已进入实现后的人工验收阶段；后续方向仍只是候选：
+SP-016 已完成人工验收并封存；后续方向仍只是候选：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
-| SP-016 | Canonical Waiting-For Domain & Agenda Closure | APPROVED / IMPLEMENTATION_COMPLETE / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING |
+| SP-016 | Canonical Waiting-For Domain & Agenda Closure | COMPLETED / ARCHIVED |
 | SP-017 | Follow-up Interaction & Capture Closure | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 | SP-018 | Structured Work Log Query & Context Linking | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 | SP-019 | Daily Review & Follow-up Brief | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 
-SP-016 在人工验收完成前不得称 completed、reconciled 或 archived。SP-017～SP-019 仍只是候选，每个候选都需要独立授权。
+ACC-016 已为 PASSED / FINAL。SP-017～SP-019 仍只是候选，每个候选都需要独立授权。
 
 ## 后续候选版本
 
@@ -92,3 +92,4 @@ SP-016 在人工验收完成前不得称 completed、reconciled 或 archived。S
 - ACC-014：A～L PASSED / FINAL。
 - SP-015：APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED。
 - SP-015A、SP-015R：APPROVED / MERGED / RECONCILED / ARCHIVED。
+- SP-016：COMPLETED / MANUAL_ACCEPTANCE_PASSED / ARCHIVED；ACC-016：PASSED / FINAL。
