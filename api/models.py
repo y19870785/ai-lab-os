@@ -6,6 +6,7 @@ from typing import Any
 from core.user_tasks import UserTaskPriority, UserTaskStatus
 from core.reminders import ReminderOccurrenceStatus, ReminderStatus
 from core.inbox import InboxResolvedType, InboxStatus, InboxSuggestedType
+from core.waiting_for import WaitingForEventType, WaitingForStatus, WaitingForView
 
 class ChatRequest(BaseModel):
     user_input: str = ""
@@ -181,3 +182,100 @@ class InboxPageResponse(BaseModel):
     limit: int
     offset: int
     has_more: bool
+
+
+class WaitingForCreateRequest(BaseModel):
+    subject: str = Field(min_length=1, max_length=500)
+    waiting_on: str = Field(min_length=1, max_length=200)
+    context: str = Field(default="", max_length=4_000)
+    expected_by: datetime | None = None
+    next_review_at: datetime | None = None
+    timezone: str = "UTC"
+    linked_user_task_id: str | None = None
+    linked_reminder_id: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class WaitingForFollowUpRequest(BaseModel):
+    expected_revision: int = Field(ge=1)
+    note: str = Field(min_length=1, max_length=4_000)
+    next_review_at: datetime | None = None
+
+
+class WaitingForSnoozeRequest(BaseModel):
+    expected_revision: int = Field(ge=1)
+    next_review_at: datetime
+    note: str = Field(default="", max_length=4_000)
+
+
+class WaitingForResolveRequest(BaseModel):
+    expected_revision: int = Field(ge=1)
+    resolution_note: str = Field(min_length=1, max_length=4_000)
+
+
+class WaitingForCancelRequest(BaseModel):
+    expected_revision: int = Field(ge=1)
+    note: str = Field(min_length=1, max_length=4_000)
+
+
+class WaitingForReopenRequest(BaseModel):
+    expected_revision: int = Field(ge=1)
+    note: str = Field(min_length=1, max_length=4_000)
+    next_review_at: datetime | None = None
+
+
+class WaitingForResponse(BaseModel):
+    id: str
+    subject: str
+    waiting_on: str
+    context: str
+    status: WaitingForStatus
+    expected_by: datetime | None
+    next_review_at: datetime | None
+    timezone: str
+    linked_user_task_id: str | None
+    linked_reminder_id: str | None
+    source: str
+    created_at: datetime
+    updated_at: datetime
+    resolved_at: datetime | None
+    cancelled_at: datetime | None
+    resolution_note: str
+    metadata: dict[str, Any]
+    revision: int
+    review_due: bool
+    expected_overdue: bool
+    attention_due: bool
+
+
+class WaitingForEventResponse(BaseModel):
+    id: str
+    waiting_for_id: str
+    sequence: int
+    event_type: WaitingForEventType
+    occurred_at: datetime
+    note: str
+    source: str
+    trace_id: str
+    metadata: dict[str, Any]
+
+
+class WaitingForPageResponse(BaseModel):
+    items: list[WaitingForResponse]
+    view: WaitingForView
+    limit: int
+    offset: int
+    has_more: bool
+    generated_at: datetime
+
+
+class WaitingForEventPageResponse(BaseModel):
+    items: list[WaitingForEventResponse]
+    limit: int
+    offset: int
+    has_more: bool
+
+
+class WaitingForMutationResponse(BaseModel):
+    item: WaitingForResponse
+    event: WaitingForEventResponse

@@ -180,3 +180,36 @@ async def execute_inbox_operation(operation: str, **values):
         raise ValueError(f"Unsupported Inbox operation: {operation}")
     finally:
         await system.shutdown()
+
+
+async def execute_waiting_for_operation(operation: str, **values):
+    """Execute a Waiting-For command through the canonical Composition Root."""
+
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        service = system.waiting_for_service
+        workspace_key = WorkspaceKey()
+        if operation == "create":
+            return await service.create(
+                workspace_key=workspace_key, source="cli", **values
+            )
+        if operation == "list":
+            return await service.list(workspace_key=workspace_key, **values)
+        if operation == "show":
+            return await service.get(workspace_key=workspace_key, **values)
+        if operation == "history":
+            return await service.list_events(workspace_key=workspace_key, **values)
+        method = {
+            "follow-up": service.record_follow_up,
+            "snooze": service.snooze,
+            "resolve": service.resolve,
+            "cancel": service.cancel,
+            "reopen": service.reopen,
+        }.get(operation)
+        if method is None:
+            raise ValueError(f"Unsupported Waiting-For operation: {operation}")
+        return await method(workspace_key=workspace_key, source="cli", **values)
+    finally:
+        await system.shutdown()

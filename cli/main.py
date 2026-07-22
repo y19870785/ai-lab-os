@@ -7,6 +7,7 @@ from cli.commands import reminder_status_cmd
 from cli.commands import reminders_cmd
 from cli.commands import reminder_cancel_cmd, reminder_reschedule_cmd
 from cli.commands import inbox_cmd
+from cli.commands import waiting_for_cmd
 from core.errors import FailureException
 
 
@@ -26,6 +27,7 @@ COMMANDS = {
     "reminder-cancel": reminder_cancel_cmd.run,
     "reminder-reschedule": reminder_reschedule_cmd.run,
     "inbox": inbox_cmd.run,
+    "waiting-for": waiting_for_cmd.run,
     "ceo": "ceo",  # 特殊处理：交互式 CLI，不走单次命令模式
 }
 
@@ -55,6 +57,7 @@ def main():
         print("  reminders             查看站内提醒列表")
         print("  reminder-cancel <ID>  取消提醒")
         print("  reminder-reschedule <ID> --scheduled-for <ISO>  改期提醒")
+        print("  waiting-for <命令>      管理 Waiting-For")
         print()
         print("Examples:")
         print('  python -m cli brief')

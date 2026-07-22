@@ -14,6 +14,7 @@ from api.routes import applications, brief, chat, decisions, health, knowledge
 from api.routes import reminders, tasks, work_logs, workflows
 from api.routes import agenda
 from api.routes import inbox
+from api.routes import waiting_for
 from core import __version__
 from core.clock import Clock
 from core.system import SystemSettings, create_system, load_system_settings
@@ -119,6 +120,7 @@ def create_app(
         brief.router,
         agenda.router,
         inbox.router,
+        waiting_for.router,
         knowledge.router,
     ):
         api.include_router(router, dependencies=[Depends(require_auth)])
