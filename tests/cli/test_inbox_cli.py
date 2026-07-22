@@ -99,6 +99,53 @@ def test_inbox_cli_nonzero_exit_on_failure(tmp_path):
     assert result.stdout == ""
 
 
+def test_inbox_cli_resolve_waiting_for_plain_json_and_validation(tmp_path):
+    first = _add(tmp_path, "等张经理回复")
+    review_at = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+    plain = _run(
+        tmp_path,
+        "resolve-waiting-for",
+        first["id"],
+        "--subject",
+        "蜂蜡检测方案",
+        "--waiting-on",
+        "张经理",
+        "--next-review-at",
+        review_at,
+        "--timezone",
+        "Asia/Shanghai",
+    )
+    repeated = _run(
+        tmp_path,
+        "resolve-waiting-for",
+        first["id"],
+        "--subject",
+        "蜂蜡检测方案",
+        "--waiting-on",
+        "张经理",
+        "--next-review-at",
+        review_at,
+        "--json",
+    )
+    missing = _run(
+        tmp_path,
+        "resolve-waiting-for",
+        first["id"],
+        "--subject",
+        "蜂蜡检测方案",
+        "--waiting-on",
+        "张经理",
+    )
+
+    assert plain.returncode == repeated.returncode == 0
+    assert "已创建等待事项：wf_inbox_" in plain.stdout
+    payload = json.loads(repeated.stdout)
+    assert payload["resolved_type"] == "waiting_for"
+    assert payload["resolved_target_id"].startswith("wf_inbox_")
+    assert missing.returncode == 2
+    assert "--expected-by or --next-review-at is required" in missing.stderr
+
+
 def test_inbox_runtime_uses_canonical_default_workspace(monkeypatch, tmp_path):
     captured = {}
 
