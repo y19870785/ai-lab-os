@@ -1,8 +1,8 @@
 ﻿# AI-Lab 架构文档
 
-## v0.34.0 Alpha Candidate 产品基线
+## v0.34.0 Alpha 产品基线
 
-v0.34.0 Alpha Candidate 在 v0.33.0 稳定化基础上收口 Canonical UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与治理一致性。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；根 `project_state.json` 是唯一机器可读实时项目状态源；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
+v0.34.0 Alpha 在 v0.33.0 稳定化基础上收口 Canonical UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与治理一致性。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；根 `project_state.json` 记录稳定的仓库治理状态、历史验证基线和发布授权配置。当前 Git HEAD、Tag 和 GitHub Release 等外部事实通过 Git/GitHub 按需查询；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
 
 SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
 
@@ -40,7 +40,7 @@ SP-004 的 Windows 本地最终验证记录为 `847 passed, 27 warnings in 38.81
 
 ## 项目状态与发布治理契约
 
-- `project_state.json`：唯一机器可读实时项目状态，记录 main 基线、SP、Quality Gate、技术债与 Release 状态。
+- `project_state.json`：机器可读的稳定仓库治理状态，记录历史验证基线、SP、Quality Gate、技术债与发布授权配置；不镜像当前 Git HEAD、Tag 或 GitHub Release 实时事实。
 - `pyproject.toml`：唯一运行时产品版本来源。
 - README：面向使用者的当前能力和限制，不承担逐 SP 历史流水账。
 - Project Brain：长期架构事实和封存产品事实。
@@ -311,7 +311,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 | 版本 | 日期 | 变更 |
 | --- | --- | --- |
-| v0.34.0 Alpha Candidate | 2026-07-20 | UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与治理/Release 收口；Tag/Release 尚未创建 |
+| v0.34.0 Alpha | 2026-07-22 | UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与治理/Release 收口；已作为 GitHub Pre-release 发布 |
 | v0.33.0 | 2026-07-15 | SP-001~SP-003 稳定化成果与统一版本来源 |
 | v0.32.4 | 2026-07-13 | CEO Assistant Interactive CLI + Provider Mode 统一 |
 | v0.32.0~v0.32.3 | 2026-07-13 | CEO Assistant MVP + First Run + Release Cleanup |

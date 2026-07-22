@@ -1,23 +1,25 @@
-﻿# 技术债清单
+# 技术债清单
+
+> 当前源码版本：v0.34.0 Alpha | 更新日期：2026-07-22
 
 ## 开放
 
-| ID | 描述 | 优先级 | 状态 |
-|----|------|--------|------|
-| TD-001 | 部分测试辅助函数错误传入 id=None，导致 Pydantic default_factory 不触发 | P3 | Open |
+| ID | 描述 | 状态 |
+|---|---|---|
+| QUALITY-001 | 建立并逐步清理全仓 Ruff 基线。 | OPEN |
+| AGENDA-001 | Daily Agenda 应成为可选来源聚合器，不得因为 Reminder/Scheduler 关闭而整体不可用。 | OPEN |
+| SCHEDULER-001 | 稳定 Scheduler 时序测试并建立持续运行基线。 | OPEN |
+| DEPLOY-001 | Docker build/run、持久化卷、关闭和恢复缺正式验收。 | OPEN |
+| SECURITY-001 | 静态 Bearer Token 无身份、RBAC 和热轮换。 | OPEN |
+| KNOWLEDGE-001 | Knowledge reindex、chunk persistence、citation 及真实产品主链路未完成。 | OPEN |
 
 ## 已解决
 
-| ID | 描述 | 解决版本 |
-|----|------|---------|
-| TD-001-resolved | 生产代码正常，测试代码已修复 | v0.13.0 |
+| ID | 描述 | 状态 |
+|---|---|---|
+| CI-002 | Real-provider collection skip 已限定于 `tests/real/**`；混合收集时普通测试正常执行。 | RESOLVED |
 
-## 已知限制（非债，属于设计取舍）
+## 设计取舍
 
-| 描述 | 计划解决版本 |
-|------|------------|
-| Cron 仅支持 */N 格式 | v0.22.0 |
-| Event Trigger 未实现 | v0.22.0 |
-| Scheduler 单进程 | v0.50.0 |
-| SchedulerPersistence 仍独立持有 SQLite connection，尚未迁移 DatabaseManager | 后续独立稳定化任务 |
-| Mock Provider 替代真实 API | v0.25.0 |
+- Scheduler 当前为单进程实现；这不等同于具备分布式调度能力。
+- Real Provider 测试依赖明确授权的凭据和网络，普通 Quality Gate 不运行真实外部 Provider。

@@ -15,10 +15,9 @@
   "current_sp": null,
   "current_governance_task": null,
   "next_candidate_sp": "SP-016",
-  "next_candidate_name": "Follow-up & Waiting-For Workflow",
-  "development_status": "v0_34_0_alpha_release_authorized",
+  "next_candidate_name": "Canonical Waiting-For Domain & Agenda Closure",
+  "development_status": "v0_35_planning_baseline_defined",
   "current_work": null,
-  "next_action": "Complete the authorized GitHub publication operation for v0.34.0 and verify the external Tag and Pre-release facts on GitHub",
   "updated_at": "2026-07-22",
   "governance_sources": {
     "machine_readable_project_state": "project_state.json",
@@ -242,10 +241,14 @@
       "main_quality_gate_run": 29855987444
     },
     "SP-016": {
-      "name": "Follow-up & Waiting-For Workflow",
-      "status": "CANDIDATE / NOT_APPROVED / NOT_STARTED",
+      "name": "Canonical Waiting-For Domain & Agenda Closure",
+      "status": "PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED",
+      "planning_baseline_defined": true,
       "approved": false,
-      "implementation_started": false
+      "implementation_started": false,
+      "target_version": "0.35.0",
+      "rfc": "RFC-025",
+      "scope": "Canonical Waiting-For domain, lifecycle, persistence, workspace isolation, API/CLI contract and Daily Agenda integration"
     }
   },
   "acceptance_records": {
@@ -287,13 +290,19 @@
     "Recurring_Reminder": "Not Implemented"
   },
   "open_technical_debt": [
-    "CI-002: Narrow the tests/real/conftest.py collection hook scope",
     "QUALITY-001: Establish and reduce a full-repository Ruff baseline",
-    "Observed Scheduler test timing fluctuation is not an SP-014B defect and requires separate stabilization scope",
-    "Knowledge real main path is incomplete",
-    "Docker build/run and long-running stability are not formally validated",
-    "Static bearer token has no user identity, OAuth, JWT, RBAC, or hot rotation",
-    "External notification delivery and Recurring Reminder are not implemented"
+    "AGENDA-001: Daily Agenda construction is coupled to Reminder/Scheduler availability and must become an optional-source aggregate before or during SP-016",
+    "SCHEDULER-001: Stabilize Scheduler timing tests and establish a continuous-running baseline",
+    "DEPLOY-001: Docker build/run, persistent volumes, shutdown and recovery lack formal acceptance",
+    "SECURITY-001: Static bearer token has no user identity, RBAC or hot rotation",
+    "KNOWLEDGE-001: Knowledge reindex, chunk persistence, citation and the real product main path are incomplete"
+  ],
+  "resolved_technical_debt": [
+    {
+      "id": "CI-002",
+      "status": "RESOLVED",
+      "resolution": "Real-provider collection skip is scoped to tests/real only; ordinary tests execute normally in mixed collection."
+    }
   ],
   "release_status": {
     "current_version": "0.34.0",

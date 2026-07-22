@@ -73,5 +73,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[local]"
+      - name: Verify real-test collection isolation
+        env:
+          OPENAI_API_KEY: ""
+          AI_LAB_LLM_API_KEY: ""
+        run: python -m pytest tests/core/test_version.py tests/real -q --tb=no
       - name: Run non-real tests
         run: python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no

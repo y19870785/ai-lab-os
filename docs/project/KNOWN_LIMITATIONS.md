@@ -1,6 +1,6 @@
 # AI-Lab Known Limitations
 
-> 当前源码版本：`v0.34.0` Alpha Candidate | main 基线：`57444274abd4e568a6af72b218d50290de563654` | 更新日期：2026-07-20
+> 当前源码版本：`v0.34.0` Alpha | 更新日期：2026-07-22
 
 ## 产品与数据边界
 
@@ -13,6 +13,8 @@
 | Knowledge 产品闭环未完成 | Reindex、Chunk Persistence、Citation 与真实主链路仍缺失 |
 | Coordination 默认关闭 | 独立能力存在，但未接入 CEO Assistant 主链路 |
 | 无 Web UI | 当前主要入口是 API、CLI 与 CEO Assistant |
+| Waiting-For / Follow-up 未实现 | SP-016 只有设计基线，尚未批准实现，也没有生产模型、持久化、API 或 CLI |
+| Daily Agenda 来源耦合 | 当前 Agenda 组装依赖 Reminder/Scheduler 可用；尚未成为可选来源聚合器 |
 
 ## 安全边界
 
@@ -31,7 +33,6 @@
 | Docker 未正式验证 | 配置存在，但没有当前版本受控 build + run 记录 |
 | SQLite 并发上限 | 单机持久化不等于高并发或分布式一致性 |
 | Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂看到 `running`，唯一重跑通过；未在 SP-014B 或 SP-015 修改 Scheduler |
-| CI-002 | `tests/real/conftest.py` collection hook 需缩小作用域；普通门禁显式 `--ignore=tests/real` |
 | QUALITY-001 | GitHub Ruff 只检查变更 Python 文件，尚无全仓历史清零基线 |
 | Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥，也不调用外部模型 |
 
