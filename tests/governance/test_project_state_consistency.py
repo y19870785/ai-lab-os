@@ -70,7 +70,7 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    assert state["current_sp"] == "SP-016"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert _sp_number(state["next_candidate_sp"]) > _sp_number(
         state["latest_completed_sp"]
@@ -82,7 +82,7 @@ def test_sp015_release_baseline_is_archived_while_sp016_is_latest_work() -> None
     sp015 = state["sp_records"]["SP-015"]
 
     assert state["latest_merged_sp"] == "SP-016"
-    assert state["latest_completed_sp"] == "SP-015"
+    assert state["latest_completed_sp"] == "SP-016"
     assert sp015["status"] == (
         "APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
@@ -128,8 +128,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     records = state["sp_records"]
     sp016_name = "Canonical Waiting-For Domain & Agenda Closure"
     sp016_status = (
-        "APPROVED / IMPLEMENTATION_COMPLETE / AUTOMATED_VERIFICATION_PASSED / "
-        "MANUAL_ACCEPTANCE_PENDING"
+        "APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / "
+        "MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED"
     )
     sp015a_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
     sp015r_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
@@ -163,9 +163,9 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
-    assert state["current_sp"] == "SP-016"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["development_status"] == "sp_016_manual_acceptance_pending"
+    assert state["development_status"] == "sp_016_archived_sp_017_candidate"
     assert state["next_candidate_sp"] == "SP-017"
     assert state["next_candidate_name"] == "Follow-up Interaction & Capture Closure"
     assert records["SP-016"]["name"] == sp016_name
@@ -174,18 +174,34 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-016"]["approved"] is True
     assert records["SP-016"]["implementation_started"] is True
     assert records["SP-016"]["implementation_complete"] is True
-    assert records["SP-016"]["manual_acceptance_status"] == "PENDING"
+    assert records["SP-016"]["manual_acceptance_status"] == "PASSED"
+    assert records["SP-016"]["completed"] is True
+    assert records["SP-016"]["archived"] is True
     assert records["SP-016"]["rfc"] == "RFC-025"
     assert records["SP-016"]["adrs"] == ["ADR-054", "ADR-055"]
     assert records["SP-016"]["base_commit"] == (
         "2b4f312b6b2bae388ae9819f66fcf2f00dc4dbf4"
     )
-    assert "pr" not in records["SP-016"]
-    assert "approved_head" not in records["SP-016"]
-    assert "merge_commit" not in records["SP-016"]
-    assert state["acceptance_records"]["ACC-016"]["status"] == (
-        "AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING"
+    assert records["SP-016"]["feature_pr"] == 40
+    assert records["SP-016"]["approved_head"] == (
+        "0e9fd454b11f6e8d01b256893bed98c3a07ff854"
     )
+    assert records["SP-016"]["merge_commit"] == (
+        "bc1bac632920c5c07823cd34c5f908086d4d923d"
+    )
+    assert records["SP-016"]["merged_at"] == "2026-07-22T14:51:34Z"
+    assert records["SP-016"]["acceptance"] == "ACC-016 PASSED / FINAL"
+    acceptance = state["acceptance_records"]["ACC-016"]
+    assert acceptance["status"] == "PASSED / FINAL"
+    assert acceptance["baseline_commit"] == (
+        "bc1bac632920c5c07823cd34c5f908086d4d923d"
+    )
+    assert acceptance["manual_acceptance"] is True
+    assert acceptance["scenarios"] == {letter: "PASSED" for letter in "ABCDEFGHIJ"}
+    assert state["module_status"]["Waiting_For"] == (
+        "Integrated / Verified / Manual acceptance passed"
+    )
+    assert "SP-017" not in records
 
     documents = {
         "status": ROOT / "docs/project/PROJECT_STATUS.md",
@@ -205,12 +221,13 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015A | {sp015a_status} |" in text["status"]
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
-    assert f"| SP-016 | {sp016_name} | {sp016_status} |" in text["roadmap"]
+    assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
     assert "> Next Candidate Direction: Follow-up Interaction & Capture Closure" in text["brain"]
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
-    assert "Last Completed SP: SP-015" in text["brain"]
-    assert "Current SP: SP-016" in text["brain"]
+    assert "Last Completed SP: SP-016" in text["brain"]
+    assert "Current SP: None" in text["brain"]
+    assert "ACC-016 Status: PASSED / FINAL" in text["brain"]
     assert "Current governance task | None" in text["health"]
     assert "Alpha / RELEASE_AUTHORIZED" in text["health"]
     assert "**Authorization:** Release Authorized" in text["version_matrix"]
@@ -297,7 +314,8 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
     assert "Status: Accepted" in adr
     assert "Status: Accepted" in agenda_adr
     assert "followups.db" in architecture
-    assert "AUTOMATED VERIFICATION PASSED / MANUAL ACCEPTANCE PENDING" in acceptance
+    assert "状态：PASSED / FINAL" in acceptance
+    assert "结果：10 / 10 场景通过" in acceptance
     assert "H 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
     assert "I 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
     assert "J 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
@@ -309,6 +327,10 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
     )
     positions = [roadmap.index(row) for row in roadmap_rows]
     assert positions == sorted(positions)
+    assert (
+        "| SP-017 | Follow-up Interaction & Capture Closure | "
+        "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+    ) in roadmap
 
     open_debt = state["open_technical_debt"]
     resolved_debt = state["resolved_technical_debt"]
@@ -392,3 +414,30 @@ def test_readme_has_no_stale_phase_or_manual_document_counts() -> None:
     assert "Phase 4" not in readme
     assert "v0.22.0" not in readme
     assert re.search(r"\b\d+\s+(RFC|ADR)s?\b", readme, flags=re.IGNORECASE) is None
+
+
+def test_sp016_closure_contains_no_local_or_transient_governance_state() -> None:
+    state = _load_state()
+    paths = (
+        STATE_PATH,
+        ROOT / "docs/acceptance/SP-016-waiting-for-domain.md",
+        ROOT / "docs/project/PROJECT_STATUS.md",
+        ROOT / "docs/project/PROJECT_HEALTH.md",
+        ROOT / "docs/project/PROJECT_BRAIN.md",
+        ROOT / "docs/project/ROADMAP.md",
+    )
+    content = "\n".join(path.read_text(encoding="utf-8-sig") for path in paths)
+
+    assert "next_action" not in state
+    assert "C:\\Users\\" not in content
+    assert "AppData\\Local\\Temp" not in content
+    assert "ai-lab-acc016-" not in content
+    sp016 = state["sp_records"]["SP-016"]
+    transient_fields = {
+        "closure_pr",
+        "closure_head",
+        "closure_merge_commit",
+        "draft_pr",
+        "github_check_status",
+    }
+    assert transient_fields.isdisjoint(sp016)

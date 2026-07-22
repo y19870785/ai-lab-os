@@ -5,7 +5,7 @@
 
 ## Summary
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiting-For 已集成并完成自动化验证，Daily Agenda 已改为可选来源组合；这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiting-For 已集成、通过人工验收并封存，Daily Agenda 使用可选来源组合；这些能力不等同于生产级多用户平台。
 
 | Metric | Current fact |
 |---|---|
@@ -13,10 +13,10 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | GitHub Quality Gate | run `29855987444` / SUCCESS |
 | pytest (non-real) | 1163 passed, 6 skipped, 27 warnings |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current product SP | SP-016 / implementation complete / automated verification passed / manual acceptance pending |
+| Current product SP | None |
 | Current governance task | None |
 | Next candidate | SP-017 — Follow-up Interaction & Capture Closure / not approved / not started |
-| Latest completed SP | SP-015 / POST_MERGE_ACCEPTANCE_PASSED / ARCHIVED |
+| Latest completed SP | SP-016 / manual acceptance passed / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
 ## Module health
@@ -28,7 +28,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | UserTask | Integrated / Verified | Canonical domain 与 `tasks.db` |
 | Reminder / Scheduler | Integrated / Verified / Disabled by default | 外部通知和 Recurring Reminder 未实现 |
 | Intent Safety / Daily Agenda | Integrated / Verified / Optional-source composition | 确定性路由与聚合读取，不是通用 NLP |
-| Waiting-For | Integrated / Automated verification passed | 人工验收待执行；独立 canonical domain 与 `followups.db` |
+| Waiting-For | Integrated / Verified / Manual acceptance passed | SP-016 completed / archived；独立 canonical domain 与 `followups.db` |
 | Unified Inbox / Capture-to-Action | Integrated / Verified | workspace 隔离、持久化 resolution claim 与幂等已验收 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
