@@ -1,13 +1,14 @@
 ﻿
 ## [Unreleased]
 
-### v0.34.0 Alpha Candidate / SP-015 Governance Consolidation
+### v0.34.0 Alpha / Release Authorized
 - Promoted the source product version from `0.33.0` to `0.34.0` without changing business behavior or database schemas.
-- Established root `project_state.json` as the only machine-readable live project state and retained `pyproject.toml` as the only runtime version source.
+- Established root `project_state.json` as the only machine-readable repository governance state and retained `pyproject.toml` as the only runtime version source.
 - Reconciled SP-014, SP-014B and ACC-014 final state; SP-015 is merged, post-merge verified and archived, while SP-016 remains a candidate only.
 - Reworked README, Project Brain and Roadmap responsibilities to remove stale phases, unreliable document counts and duplicated SP history.
-- Added v0.34.0 Alpha Candidate release notes and automated project-governance consistency tests.
-- SP-015A is merged and archived; v0.34.0 Alpha Candidate is verified, unpublished and ready for release authorization after SP-015R, while Tag/GitHub Release remain uncreated.
+- Added v0.34.0 Alpha release notes and automated project-governance consistency tests.
+- SP-015, SP-015A and SP-015R are archived; Owner and ChatGPT authorized the `v0.34.0` GitHub Pre-release. GitHub Tags and GitHub Releases are authoritative for the actual publication status, Tag target, Release URL, and timestamps.
+- Replaced the self-referential tracked `main_commit` model with the independently verified release baseline `22f88d1da962fb436c48c19e5343fad8bf62f5f6` and Quality Gate run `29855987444`; GitHub is authoritative for Tag and Release facts.
 
 ### SP-014 Unified Inbox and Governance Reconciliation
 - Merged Unified Inbox and Capture-to-Action through PR #32 at `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
