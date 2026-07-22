@@ -70,18 +70,18 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-016"
     assert state["current_governance_task"] is None
     assert _sp_number(state["next_candidate_sp"]) > _sp_number(
         state["latest_completed_sp"]
     )
 
 
-def test_sp015_merge_and_current_main_quality_gate_are_archived() -> None:
+def test_sp015_release_baseline_is_archived_while_sp016_is_latest_work() -> None:
     state = _load_state()
     sp015 = state["sp_records"]["SP-015"]
 
-    assert state["latest_merged_sp"] == "SP-015"
+    assert state["latest_merged_sp"] == "SP-016"
     assert state["latest_completed_sp"] == "SP-015"
     assert sp015["status"] == (
         "APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
@@ -123,12 +123,13 @@ def test_sp014_and_acc014_final_state_is_complete() -> None:
     assert acceptance["scenarios"] == {letter: "PASSED" for letter in "ABCDEFGHIJKL"}
 
 
-def test_sp015a_sp015r_and_sp016_planning_state_is_consistent() -> None:
+def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     state = _load_state()
     records = state["sp_records"]
-    candidate_name = "Canonical Waiting-For Domain & Agenda Closure"
-    candidate_status = (
-        "PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED"
+    sp016_name = "Canonical Waiting-For Domain & Agenda Closure"
+    sp016_status = (
+        "APPROVED / IMPLEMENTATION_COMPLETE / AUTOMATED_VERIFICATION_PASSED / "
+        "MANUAL_ACCEPTANCE_PENDING"
     )
     sp015a_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
     sp015r_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
@@ -162,14 +163,29 @@ def test_sp015a_sp015r_and_sp016_planning_state_is_consistent() -> None:
     assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
-    assert state["next_candidate_sp"] == "SP-016"
-    assert state["next_candidate_name"] == candidate_name
-    assert records["SP-016"]["name"] == candidate_name
-    assert records["SP-016"]["status"] == candidate_status
+    assert state["current_sp"] == "SP-016"
+    assert state["current_governance_task"] is None
+    assert state["development_status"] == "sp_016_manual_acceptance_pending"
+    assert state["next_candidate_sp"] == "SP-017"
+    assert state["next_candidate_name"] == "Follow-up Interaction & Capture Closure"
+    assert records["SP-016"]["name"] == sp016_name
+    assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
-    assert records["SP-016"]["approved"] is False
-    assert records["SP-016"]["implementation_started"] is False
+    assert records["SP-016"]["approved"] is True
+    assert records["SP-016"]["implementation_started"] is True
+    assert records["SP-016"]["implementation_complete"] is True
+    assert records["SP-016"]["manual_acceptance_status"] == "PENDING"
     assert records["SP-016"]["rfc"] == "RFC-025"
+    assert records["SP-016"]["adrs"] == ["ADR-054", "ADR-055"]
+    assert records["SP-016"]["base_commit"] == (
+        "2b4f312b6b2bae388ae9819f66fcf2f00dc4dbf4"
+    )
+    assert "pr" not in records["SP-016"]
+    assert "approved_head" not in records["SP-016"]
+    assert "merge_commit" not in records["SP-016"]
+    assert state["acceptance_records"]["ACC-016"]["status"] == (
+        "AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING"
+    )
 
     documents = {
         "status": ROOT / "docs/project/PROJECT_STATUS.md",
@@ -188,13 +204,13 @@ def test_sp015a_sp015r_and_sp016_planning_state_is_consistent() -> None:
 
     assert f"| SP-015A | {sp015a_status} |" in text["status"]
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
-    assert f"| SP-016 | {candidate_name} / {candidate_status} |" in text["status"]
-    assert f"| SP-016 | {candidate_name} | {candidate_status} |" in text["roadmap"]
-    assert f"> Next Candidate Direction: {candidate_name}" in text["brain"]
+    assert f"| SP-016 | {sp016_status} |" in text["status"]
+    assert f"| SP-016 | {sp016_name} | {sp016_status} |" in text["roadmap"]
+    assert "> Next Candidate Direction: Follow-up Interaction & Capture Closure" in text["brain"]
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
     assert "Last Completed SP: SP-015" in text["brain"]
-    assert "Current SP: None" in text["brain"]
+    assert "Current SP: SP-016" in text["brain"]
     assert "Current governance task | None" in text["health"]
     assert "Alpha / RELEASE_AUTHORIZED" in text["health"]
     assert "**Authorization:** Release Authorized" in text["version_matrix"]
@@ -258,7 +274,7 @@ def test_sp015a_sp015r_and_sp016_planning_state_is_consistent() -> None:
     )
 
 
-def test_sp016_planning_artifacts_debt_and_current_documents_are_consistent() -> None:
+def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> None:
     state = _load_state()
     rfc = (ROOT / "docs/rfc/025-canonical-waiting-for-domain.md").read_text(
         encoding="utf-8-sig"
@@ -266,10 +282,22 @@ def test_sp016_planning_artifacts_debt_and_current_documents_are_consistent() ->
     adr = (ROOT / "docs/adr/ADR-054-canonical-waiting-for-domain.md").read_text(
         encoding="utf-8-sig"
     )
+    agenda_adr = (
+        ROOT / "docs/adr/ADR-055-daily-agenda-optional-source-composition.md"
+    ).read_text(encoding="utf-8-sig")
+    architecture = (
+        ROOT / "docs/architecture/WAITING_FOR_DOMAIN.md"
+    ).read_text(encoding="utf-8-sig")
+    acceptance = (
+        ROOT / "docs/acceptance/SP-016-waiting-for-domain.md"
+    ).read_text(encoding="utf-8-sig")
     roadmap = (ROOT / "docs/project/ROADMAP.md").read_text(encoding="utf-8-sig")
 
-    assert "Status: Proposed / Planning Baseline" in rfc
+    assert "Status: Adopted" in rfc
     assert "Status: Accepted" in adr
+    assert "Status: Accepted" in agenda_adr
+    assert "followups.db" in architecture
+    assert "AUTOMATED VERIFICATION PASSED / MANUAL ACCEPTANCE PENDING" in acceptance
     roadmap_rows = (
         "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
         "| SP-017 | Follow-up Interaction & Capture Closure |",
@@ -282,9 +310,13 @@ def test_sp016_planning_artifacts_debt_and_current_documents_are_consistent() ->
     open_debt = state["open_technical_debt"]
     resolved_debt = state["resolved_technical_debt"]
     assert all(not entry.startswith("CI-002:") for entry in open_debt)
-    assert any(entry.startswith("AGENDA-001:") for entry in open_debt)
+    assert all(not entry.startswith("AGENDA-001:") for entry in open_debt)
     assert any(
         entry["id"] == "CI-002" and entry["status"] == "RESOLVED"
+        for entry in resolved_debt
+    )
+    assert any(
+        entry["id"] == "AGENDA-001" and entry["status"] == "RESOLVED"
         for entry in resolved_debt
     )
 

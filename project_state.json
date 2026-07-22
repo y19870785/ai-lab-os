@@ -10,13 +10,13 @@
     "meaning": "Main commit independently verified before the final publication commit"
   },
   "source_baseline": "independently verified main before the final publication commit",
-  "latest_merged_sp": "SP-015",
+  "latest_merged_sp": "SP-016",
   "latest_completed_sp": "SP-015",
-  "current_sp": null,
+  "current_sp": "SP-016",
   "current_governance_task": null,
-  "next_candidate_sp": "SP-016",
-  "next_candidate_name": "Canonical Waiting-For Domain & Agenda Closure",
-  "development_status": "v0_35_planning_baseline_defined",
+  "next_candidate_sp": "SP-017",
+  "next_candidate_name": "Follow-up Interaction & Capture Closure",
+  "development_status": "sp_016_manual_acceptance_pending",
   "current_work": null,
   "updated_at": "2026-07-22",
   "governance_sources": {
@@ -242,13 +242,18 @@
     },
     "SP-016": {
       "name": "Canonical Waiting-For Domain & Agenda Closure",
-      "status": "PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED",
+      "status": "APPROVED / IMPLEMENTATION_COMPLETE / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING",
       "planning_baseline_defined": true,
-      "approved": false,
-      "implementation_started": false,
+      "approved": true,
+      "implementation_started": true,
+      "implementation_complete": true,
+      "manual_acceptance_status": "PENDING",
       "target_version": "0.35.0",
       "rfc": "RFC-025",
-      "scope": "Canonical Waiting-For domain, lifecycle, persistence, workspace isolation, API/CLI contract and Daily Agenda integration"
+      "adrs": ["ADR-054", "ADR-055"],
+      "base_commit": "2b4f312b6b2bae388ae9819f66fcf2f00dc4dbf4",
+      "branch": "feat/sp-016-canonical-waiting-for",
+      "scope": "Canonical Waiting-For lifecycle, persistence, workspace isolation, API/CLI and Daily Agenda optional-source closure"
     }
   },
   "acceptance_records": {
@@ -273,6 +278,21 @@
         "Scenario K exposed Chinese numeral hour compatibility and passed after SP-014B",
         "The first K/L external driver misread case-insensitive HTTP header names; a corrected external-only driver passed in a fresh data directory without product-code changes"
       ]
+    },
+    "ACC-016": {
+      "status": "AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING",
+      "scenarios": {
+        "A": "AUTOMATED_VERIFICATION_PASSED",
+        "B": "AUTOMATED_VERIFICATION_PASSED",
+        "C": "AUTOMATED_VERIFICATION_PASSED",
+        "D": "AUTOMATED_VERIFICATION_PASSED",
+        "E": "AUTOMATED_VERIFICATION_PASSED",
+        "F": "AUTOMATED_VERIFICATION_PASSED",
+        "G": "AUTOMATED_VERIFICATION_PASSED",
+        "H": "AUTOMATED_VERIFICATION_PASSED",
+        "I": "AUTOMATED_VERIFICATION_PASSED",
+        "J": "AUTOMATED_VERIFICATION_PASSED"
+      }
     }
   },
   "module_status": {
@@ -280,7 +300,8 @@
     "Reminder_Core": "Integrated / Verified / Disabled by default",
     "Reminder_Management": "Integrated / Verified",
     "Intent_Safety": "Integrated / Verified",
-    "Daily_Agenda": "Integrated / Verified / Manual acceptance passed",
+    "Daily_Agenda": "Integrated / Verified / Optional-source composition",
+    "Waiting_For": "Integrated / Automated verification passed / Manual acceptance pending",
     "Unified_Inbox": "Integrated / Verified / Manual acceptance passed",
     "Capture_to_Action": "Integrated / Verified",
     "Knowledge": "Implemented / Disabled; real main path incomplete",
@@ -291,7 +312,6 @@
   },
   "open_technical_debt": [
     "QUALITY-001: Establish and reduce a full-repository Ruff baseline",
-    "AGENDA-001: Daily Agenda construction is coupled to Reminder/Scheduler availability and must become an optional-source aggregate before or during SP-016",
     "SCHEDULER-001: Stabilize Scheduler timing tests and establish a continuous-running baseline",
     "DEPLOY-001: Docker build/run, persistent volumes, shutdown and recovery lack formal acceptance",
     "SECURITY-001: Static bearer token has no user identity, RBAC or hot rotation",
@@ -302,6 +322,11 @@
       "id": "CI-002",
       "status": "RESOLVED",
       "resolution": "Real-provider collection skip is scoped to tests/real only; ordinary tests execute normally in mixed collection."
+    },
+    {
+      "id": "AGENDA-001",
+      "status": "RESOLVED",
+      "resolution": "Daily Agenda is always composed and treats disabled UserTask, Reminder, Waiting-For and Work Log sources as optional while failing closed on enabled-source runtime errors."
     }
   ],
   "release_status": {

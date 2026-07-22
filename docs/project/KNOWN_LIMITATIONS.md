@@ -13,8 +13,8 @@
 | Knowledge 产品闭环未完成 | Reindex、Chunk Persistence、Citation 与真实主链路仍缺失 |
 | Coordination 默认关闭 | 独立能力存在，但未接入 CEO Assistant 主链路 |
 | 无 Web UI | 当前主要入口是 API、CLI 与 CEO Assistant |
-| Waiting-For / Follow-up 未实现 | SP-016 只有设计基线，尚未批准实现，也没有生产模型、持久化、API 或 CLI |
-| Daily Agenda 来源耦合 | 当前 Agenda 组装依赖 Reminder/Scheduler 可用；尚未成为可选来源聚合器 |
+| Waiting-For 人工验收待完成 | Canonical domain、持久化、API、CLI 与 Agenda 集成已完成自动化验证，但尚未完成人工验收与合并后对账 |
+| Follow-up 交互捕获未实现 | SP-017 仍为未批准候选；CEO Assistant 与 Unified Inbox 不解析或转换 Waiting-For |
 
 ## 安全边界
 

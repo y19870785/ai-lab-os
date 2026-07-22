@@ -7,7 +7,6 @@
 | ID | 描述 | 状态 |
 |---|---|---|
 | QUALITY-001 | 建立并逐步清理全仓 Ruff 基线。 | OPEN |
-| AGENDA-001 | Daily Agenda 应成为可选来源聚合器，不得因为 Reminder/Scheduler 关闭而整体不可用。 | OPEN |
 | SCHEDULER-001 | 稳定 Scheduler 时序测试并建立持续运行基线。 | OPEN |
 | DEPLOY-001 | Docker build/run、持久化卷、关闭和恢复缺正式验收。 | OPEN |
 | SECURITY-001 | 静态 Bearer Token 无身份、RBAC 和热轮换。 | OPEN |
@@ -18,6 +17,7 @@
 | ID | 描述 | 状态 |
 |---|---|---|
 | CI-002 | Real-provider collection skip 已限定于 `tests/real/**`；混合收集时普通测试正常执行。 | RESOLVED |
+| AGENDA-001 | Daily Agenda 已成为可选来源聚合器；禁用 Reminder/Scheduler 不再使整个 Agenda 不可用。 | RESOLVED |
 
 ## 设计取舍
 

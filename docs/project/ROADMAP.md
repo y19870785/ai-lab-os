@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-07-22
 **Current Version:** v0.34.0 Alpha / Release Authorized
-**Current SP:** None — SP-015, SP-015A and SP-015R archived; no current governance task
+**Current SP:** SP-016 — implementation complete / automated verification passed / manual acceptance pending
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -54,16 +54,16 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 ## v0.35.0 候选方向
 
-以下顺序仅为候选规划：
+SP-016 已进入实现后的人工验收阶段；后续方向仍只是候选：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
-| SP-016 | Canonical Waiting-For Domain & Agenda Closure | PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED |
+| SP-016 | Canonical Waiting-For Domain & Agenda Closure | APPROVED / IMPLEMENTATION_COMPLETE / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PENDING |
 | SP-017 | Follow-up Interaction & Capture Closure | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 | SP-018 | Structured Work Log Query & Context Linking | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 | SP-019 | Daily Review & Follow-up Brief | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 
-SP-016 仅定义规划基线，尚未批准实现；SP-017～SP-019 仍只是候选。每个候选都需要独立任务书、范围审查、质量门禁和人工验收。
+SP-016 在人工验收完成前不得称 completed、reconciled 或 archived。SP-017～SP-019 仍只是候选，每个候选都需要独立授权。
 
 ## 后续候选版本
 
