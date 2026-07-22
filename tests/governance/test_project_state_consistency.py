@@ -51,6 +51,7 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     state = _load_state()
     baseline = state["verified_release_baseline"]
 
+    assert "next_action" not in state
     assert "main_commit" not in state
     assert re.fullmatch(r"[0-9a-f]{40}", baseline["commit"])
     assert baseline == {
@@ -122,11 +123,13 @@ def test_sp014_and_acc014_final_state_is_complete() -> None:
     assert acceptance["scenarios"] == {letter: "PASSED" for letter in "ABCDEFGHIJKL"}
 
 
-def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
+def test_sp015a_sp015r_and_sp016_planning_state_is_consistent() -> None:
     state = _load_state()
     records = state["sp_records"]
-    candidate_name = "Follow-up & Waiting-For Workflow"
-    candidate_status = "CANDIDATE / NOT_APPROVED / NOT_STARTED"
+    candidate_name = "Canonical Waiting-For Domain & Agenda Closure"
+    candidate_status = (
+        "PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED"
+    )
     sp015a_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
     sp015r_status = "APPROVED / MERGED / RECONCILED / ARCHIVED"
 
@@ -163,8 +166,10 @@ def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
     assert state["next_candidate_name"] == candidate_name
     assert records["SP-016"]["name"] == candidate_name
     assert records["SP-016"]["status"] == candidate_status
+    assert records["SP-016"]["planning_baseline_defined"] is True
     assert records["SP-016"]["approved"] is False
     assert records["SP-016"]["implementation_started"] is False
+    assert records["SP-016"]["rfc"] == "RFC-025"
 
     documents = {
         "status": ROOT / "docs/project/PROJECT_STATUS.md",
@@ -197,7 +202,6 @@ def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
         "SP-015, SP-015A and SP-015R archived; SP-016 remains candidate only"
         in text["release_checklist"]
     )
-    assert f"SP-016 {candidate_name}" in text["release_notes"]
     stale_governance_markers = (
         "SP-015A Status: IN_PROGRESS / DRAFT_PR_OPEN",
         "SP-015A / IN_PROGRESS / DRAFT_PR_OPEN",
@@ -252,6 +256,57 @@ def test_sp015a_sp015r_and_sp016_candidate_state_is_consistent() -> None:
         for marker in transient_publication_markers
         for content in text.values()
     )
+
+
+def test_sp016_planning_artifacts_debt_and_current_documents_are_consistent() -> None:
+    state = _load_state()
+    rfc = (ROOT / "docs/rfc/025-canonical-waiting-for-domain.md").read_text(
+        encoding="utf-8-sig"
+    )
+    adr = (ROOT / "docs/adr/ADR-054-canonical-waiting-for-domain.md").read_text(
+        encoding="utf-8-sig"
+    )
+    roadmap = (ROOT / "docs/project/ROADMAP.md").read_text(encoding="utf-8-sig")
+
+    assert "Status: Proposed / Planning Baseline" in rfc
+    assert "Status: Accepted" in adr
+    roadmap_rows = (
+        "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
+        "| SP-017 | Follow-up Interaction & Capture Closure |",
+        "| SP-018 | Structured Work Log Query & Context Linking |",
+        "| SP-019 | Daily Review & Follow-up Brief |",
+    )
+    positions = [roadmap.index(row) for row in roadmap_rows]
+    assert positions == sorted(positions)
+
+    open_debt = state["open_technical_debt"]
+    resolved_debt = state["resolved_technical_debt"]
+    assert all(not entry.startswith("CI-002:") for entry in open_debt)
+    assert any(entry.startswith("AGENDA-001:") for entry in open_debt)
+    assert any(
+        entry["id"] == "CI-002" and entry["status"] == "RESOLVED"
+        for entry in resolved_debt
+    )
+
+    current_documents = (
+        ROOT / "ARCHITECTURE.md",
+        ROOT / "docs/project/KNOWN_LIMITATIONS.md",
+        ROOT / "docs/project/TECHNICAL_DEBT.md",
+        ROOT / "docs/project/ROADMAP.md",
+        ROOT / "docs/project/PROJECT_STATUS.md",
+        ROOT / "docs/project/PROJECT_HEALTH.md",
+        ROOT / "docs/project/PROJECT_BRAIN.md",
+        ROOT / "docs/review/CURRENT_RISKS.md",
+    )
+    stale_markers = (
+        "v0.34.0 Alpha Candidate",
+        "current main: 574442",
+        "当前版本：0.33.0",
+        "project_state.json 是唯一机器可读实时 main 状态源",
+    )
+    for document in current_documents:
+        content = document.read_text(encoding="utf-8-sig")
+        assert all(marker.lower() not in content.lower() for marker in stale_markers)
 
 
 def test_release_authorization_is_stable_and_github_is_authoritative() -> None:

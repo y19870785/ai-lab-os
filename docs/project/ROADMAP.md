@@ -58,12 +58,22 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
-| SP-016 | Follow-up & Waiting-For Workflow | CANDIDATE / NOT_APPROVED / NOT_STARTED |
-| SP-017 | Recurring Reminder | CANDIDATE / NOT_APPROVED / NOT_STARTED |
-| SP-018 | Minimal Web Console | CANDIDATE / NOT_APPROVED / NOT_STARTED |
-| SP-019 | Knowledge Main Path | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-016 | Canonical Waiting-For Domain & Agenda Closure | PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED |
+| SP-017 | Follow-up Interaction & Capture Closure | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-018 | Structured Work Log Query & Context Linking | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-019 | Daily Review & Follow-up Brief | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 
-每个候选都需要独立任务书、范围审查、质量门禁和人工验收；SP-015 不包含这些能力的设计或实现。
+SP-016 仅定义规划基线，尚未批准实现；SP-017～SP-019 仍只是候选。每个候选都需要独立任务书、范围审查、质量门禁和人工验收。
+
+## 后续候选版本
+
+| 候选版本 | 候选方向 | 状态 |
+|---|---|---|
+| v0.36.0 | Recurring Reminder | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
+| v0.37.0 | Minimal Web Console | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
+| v0.40.0 或更后 | Knowledge Main Path | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
+
+这些版本没有承诺发布日期。
 
 ## 更远期方向
 

@@ -1,6 +1,6 @@
 ﻿# AI-Lab Decision Index —— 设计决策索引
 
-> 冻结版本：v0.32.4 | 日期：2026-07-14
+> 当前源码版本：v0.34.0 Alpha | 更新日期：2026-07-22
 
 ## RFC 列表
 
@@ -62,8 +62,6 @@
 | ADR-031 | Scheduler Action Handler | Adopted |
 | ADR-032 | Reminder Effectively-Once Occurrence | Adopted |
 
-**总计：RFC 文件 25 篇（不含模板，含历史编号重复），ADR 文件 55 篇（不含模板，含历史编号重复）**
-
 | ADR-033 | API Authentication Mechanism | Accepted | 2026-07-15 |
 | ADR-034 | CORS Allowlist Policy | Accepted | 2026-07-15 |
 | RFC-016 | Application API Security Boundary | Adopted | 2026-07-15 |
@@ -103,8 +101,11 @@
 | ADR-052 | Inbox Resolution Idempotency | Accepted | 2026-07-19 |
 | ADR-053 | Inbox Source and Workspace Boundary | Accepted | 2026-07-19 |
 
+| RFC-025 | Canonical Waiting-For Domain and Agenda Closure | Proposed / Planning Baseline | 2026-07-22 |
+| ADR-054 | Model Waiting-For as a Separate Canonical Domain | Accepted | 2026-07-22 |
+
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
 
-> SP-014 与 SP-014B 已完成对账并封存；ACC-014 A～L 全部 PASSED。SP-015 为 APPROVED / IN_PROGRESS，只负责 v0.34.0 状态与发布治理收口；SP-016 仅为候选，尚未批准或启动。
+> SP-014、SP-014B、SP-015、SP-015A 与 SP-015R 已完成对账并封存；ACC-014 A～L 全部 PASSED。SP-016 已定义规划基线，但尚未批准实施、尚未启动。

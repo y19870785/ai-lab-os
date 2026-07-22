@@ -13,7 +13,9 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。核心运行时
 | GitHub Quality Gate | run `29855987444` / SUCCESS |
 | pytest (non-real) | 1163 passed, 6 skipped, 27 warnings |
 | Ruff | Changed Python files gate / SUCCESS |
+| Current product SP | None |
 | Current governance task | None |
+| Next candidate | SP-016 — Canonical Waiting-For Domain & Agenda Closure / planning baseline defined / not approved for implementation / not started |
 | Latest completed SP | SP-015 / POST_MERGE_ACCEPTANCE_PASSED / ARCHIVED |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
@@ -34,9 +36,11 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。核心运行时
 
 ## Open quality debt
 
-- CI-002：`tests/real/conftest.py` collection hook 作用域需单独修复；普通门禁必须显式忽略 `tests/real`。
 - QUALITY-001：Ruff 是 changed-files gate，不代表全仓历史 Ruff 已清零。
+- AGENDA-001：Daily Agenda 组装仍耦合 Reminder/Scheduler 可用性，需要改为可选来源聚合器。
 - Scheduler 测试曾出现一次短暂 `running` 时序波动；唯一重跑通过，未在 SP-014B 或 SP-015 中修改 Scheduler。
 - Docker build/run、长时间运行、资源回收和高并发仍缺正式基线。
+
+CI-002 已解决：real-provider collection skip 只作用于 `tests/real`，混合集合中的普通测试会正常执行。
 
 机器可读详情、历史 PR 对账与稳定发布授权配置以根 `project_state.json` 为准。Tag/Release 的存在性、目标、URL 与时间以 GitHub 为权威来源。
