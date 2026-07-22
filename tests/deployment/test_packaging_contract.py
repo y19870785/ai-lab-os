@@ -54,6 +54,7 @@ def test_setuptools_discovers_product_packages_only():
     assert "data*" in excludes
     assert "logs*" in excludes
     assert "runtime*" in excludes
+    assert (PROJECT_ROOT / "core" / "waiting_for" / "__init__.py").is_file()
 
 
 def test_requirements_is_only_a_local_extra_compatibility_entrypoint():
