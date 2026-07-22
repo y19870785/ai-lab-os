@@ -1,6 +1,6 @@
 ﻿# AI-Lab Public API Inventory —— 公共 API 清单
 
-> 冻结版本：v0.32.4 | 日期：2026-07-14
+> 当前源码版本：v0.34.0 Alpha | 日期：2026-07-22
 
 ## 核心 Runtime / Manager
 
@@ -14,6 +14,8 @@
 | WorkflowRuntime | `core/workflow/runtime.py` | create / start / pause / resume / cancel |
 | SchedulerRuntime | `core/scheduler/runtime.py` | schedule / cancel_job / reschedule_one_shot / list_job_runs / start / shutdown |
 | ReminderService / Bridge | `core/reminders/` | create / get / list / reschedule / cancel / reconcile |
+| WaitingForService | `core/waiting_for/service.py` | create / get / list / list_events / record_follow_up / snooze / resolve / cancel / reopen |
+| DailyAgendaService | `core/agenda/service.py` | list（可选聚合 UserTask / Reminder / Waiting-For / Work Log） |
 | TaskRuntime | `core/task/runtime.py` | create / start / pause / resume / retry |
 | AgentOrchestrator | `core/coordination/orchestrator.py` | create_team / coordinate |
 
@@ -48,3 +50,9 @@
 2. MemoryManager 是 Memory Layer 唯一入口
 3. ApplicationRuntime.execute() 是 Application Layer 唯一入口
 4. 事件只能通过 EventBus 发布，不能直接调用
+
+## HTTP 与 CLI
+
+- HTTP：`/waiting-for` 提供 create/list/get，并通过子资源提供 history、follow-up、snooze、resolve、cancel、reopen。
+- CLI：`python -m cli waiting-for` 提供同一生命周期。
+- API 与 CLI 只通过 canonical `SystemContainer.waiting_for_service` 访问 `followups.db`。

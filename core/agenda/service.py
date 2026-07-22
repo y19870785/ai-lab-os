@@ -27,10 +27,20 @@ class DailyAgendaService:
 
     COMPONENT = "agenda"
 
-    def __init__(self, user_tasks, reminder_inbox, memory_manager, *, timezone_name: str, clock: Clock) -> None:
+    def __init__(
+        self,
+        user_tasks=None,
+        reminder_inbox=None,
+        memory_manager=None,
+        waiting_for=None,
+        *,
+        timezone_name: str,
+        clock: Clock,
+    ) -> None:
         self._user_tasks = user_tasks
         self._reminder_inbox = reminder_inbox
         self._memory = memory_manager
+        self._waiting_for = waiting_for
         self._zone = ZoneInfo(timezone_name)
         self._clock = clock
 
@@ -65,23 +75,79 @@ class DailyAgendaService:
         items: list[AgendaItem] = []
         failures: list[str] = []
         if view == AgendaView.TODAY:
-            items += await self._safe("reminder", lambda: self._reminder_today(workspace_key, trace_id, today_start, today_end), failures)
-            items += await self._safe("user_task", lambda: self._user_task_actions(workspace_key, trace_id, today_start, today_end, False), failures)
-            items += await self._safe("work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_today(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(self._user_tasks, "user_task", lambda: self._user_task_actions(workspace_key, trace_id, today_start, today_end, False), failures)
+            items += await self._optional(self._memory, "work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.NEXT:
-            items += await self._safe("reminder", lambda: self._reminder_actions(workspace_key, trace_id, window_start, window_end), failures)
-            items += await self._safe("user_task", lambda: self._user_task_actions(workspace_key, trace_id, window_start, window_end, True), failures)
+            items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_actions(workspace_key, trace_id, window_start, window_end), failures)
+            items += await self._optional(self._user_tasks, "user_task", lambda: self._user_task_actions(workspace_key, trace_id, window_start, window_end, True), failures)
+            items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.ATTENTION:
-            items += await self._safe("reminder", lambda: self._reminder_attention(workspace_key, trace_id, now_utc), failures)
-            items += await self._safe("user_task", lambda: self._overdue_tasks(workspace_key, trace_id, now_utc), failures)
+            items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_attention(workspace_key, trace_id, now_utc), failures)
+            items += await self._optional(self._user_tasks, "user_task", lambda: self._overdue_tasks(workspace_key, trace_id, now_utc), failures)
+            items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.COMPLETED:
-            items += await self._safe("reminder", lambda: self._reminder_completed(workspace_key, trace_id, today_start, today_end), failures)
-            items += await self._safe("work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_completed(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(self._memory, "work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.ALL:
-            items += await self._safe("reminder", lambda: self._reminder_all(workspace_key, trace_id), failures)
-            items += await self._safe("user_task", lambda: self._user_task_all(workspace_key, trace_id), failures)
-            items += await self._safe("work_log", lambda: self._wl(workspace_key, trace_id, today_start - timedelta(days=365), today_end + timedelta(days=365)), failures)
+            items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_all(workspace_key, trace_id), failures)
+            items += await self._optional(self._user_tasks, "user_task", lambda: self._user_task_all(workspace_key, trace_id), failures)
+            items += await self._optional(self._memory, "work_log", lambda: self._wl(workspace_key, trace_id, today_start - timedelta(days=365), today_end + timedelta(days=365)), failures)
+            items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         return items, failures
+
+    async def _waiting_for_items(self, wk, tid, view, now, today_start, today_end, window_start, window_end):
+        page = await self._waiting_for.list(
+            workspace_key=wk, view="all", limit=200, offset=0
+        )
+        out = []
+        for item in page.items:
+            is_open = item.status.value == "open"
+            review_in_today = (
+                item.next_review_at is not None
+                and today_start <= item.next_review_at < today_end
+            )
+            expected_in_today = (
+                item.expected_by is not None
+                and today_start <= item.expected_by < today_end
+            )
+            review_in_window = (
+                item.next_review_at is not None
+                and window_start <= item.next_review_at < window_end
+            )
+            expected_in_window = (
+                item.expected_by is not None
+                and window_start <= item.expected_by < window_end
+            )
+            kind = AgendaItemKind.ACTION
+            include = False
+            if view == AgendaView.TODAY:
+                include = is_open and (review_in_today or expected_in_today)
+                kind = AgendaItemKind.ATTENTION if item.attention_due(now) else AgendaItemKind.ACTION
+            elif view == AgendaView.NEXT:
+                include = is_open and (review_in_window or expected_in_window)
+                kind = AgendaItemKind.ATTENTION if item.attention_due(now) else AgendaItemKind.ACTION
+            elif view == AgendaView.ATTENTION:
+                include = item.attention_due(now)
+                kind = AgendaItemKind.ATTENTION
+            elif view == AgendaView.COMPLETED:
+                terminal_at = item.resolved_at or item.cancelled_at
+                include = terminal_at is not None and today_start <= terminal_at < today_end
+                kind = AgendaItemKind.COMPLETED
+            elif view == AgendaView.ALL:
+                include = True
+                kind = (
+                    AgendaItemKind.COMPLETED
+                    if item.status.value in {"resolved", "cancelled"}
+                    else AgendaItemKind.ATTENTION
+                    if item.attention_due(now)
+                    else AgendaItemKind.ACTION
+                )
+            if include:
+                out.append(_wfi(item, kind, now))
+        return out
 
     async def _reminder_today(self, wk, tid, ts, te):
         from core.reminders.inbox import ReminderInboxTimeScope
@@ -186,7 +252,17 @@ class DailyAgendaService:
 
     @staticmethod
     def _sort_key(item: AgendaItem):
-        eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+        if item.source == AgendaItemSource.WAITING_FOR:
+            if item.kind == AgendaItemKind.COMPLETED:
+                eff = item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+            else:
+                candidates = [
+                    value for value in (item.scheduled_for, item.due_at)
+                    if value is not None
+                ]
+                eff = min(candidates) if candidates else datetime.min.replace(tzinfo=timezone.utc)
+        else:
+            eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
         return (eff, kind_priority(item.kind), source_priority(item.source), item.source_id)
 
     @staticmethod
@@ -196,6 +272,12 @@ class DailyAgendaService:
             code=code, category=cat, message=message, component=DailyAgendaService.COMPONENT,
             operation="list", retryable=False, trace_id=trace_id, details=details or {},
         ))
+
+    @staticmethod
+    async def _optional(component, source: str, fn, failures: list[str]):
+        if component is None:
+            return []
+        return await DailyAgendaService._safe(source, fn, failures)
 
     @staticmethod
     async def _safe(source: str, fn, failures: list[str]):
@@ -223,6 +305,35 @@ def _ui(t, kind, status_override=None):
     return AgendaItem(id=f"agenda-ut-{t.id}", source=AgendaItemSource.USER_TASK, kind=kind,
                        title=t.title, status=status_override or t.status.value, due_at=t.due_at,
                        timezone=t.timezone, workspace_id="", source_id=t.id, task_id=t.id)
+
+
+def _wfi(item, kind, now):
+    occurred_at = item.resolved_at or item.cancelled_at
+    if item.status.value == "resolved":
+        status = "resolved"
+    elif item.status.value == "cancelled":
+        status = "cancelled"
+    elif item.expected_overdue(now):
+        status = "expected_overdue"
+    elif item.review_due(now):
+        status = "review_due"
+    else:
+        status = "open"
+    return AgendaItem(
+        id=f"agenda-wf-{item.id}",
+        source=AgendaItemSource.WAITING_FOR,
+        kind=kind,
+        title=item.subject,
+        status=status,
+        scheduled_for=item.next_review_at,
+        due_at=item.expected_by,
+        occurred_at=occurred_at,
+        timezone=item.timezone,
+        workspace_id=item.workspace_key.workspace_id or "default",
+        source_id=item.id,
+        waiting_for_id=item.id,
+        metadata={"waiting_on": item.waiting_on},
+    )
 
 
 def _reminder_kind(status: str) -> AgendaItemKind:

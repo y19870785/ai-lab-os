@@ -54,10 +54,17 @@ def test_agenda_cli_next_3(tmp_path):
     assert data["view"] == "next"
 
 
-def test_agenda_cli_nonzero_on_error(tmp_path):
-    env_bad = {"AI_LAB_ENABLE_REMINDERS": "false"}
-    proc = _run_agenda("--today --json", tmp_path, extra_env=env_bad)
-    assert proc.returncode != 0
+def test_agenda_cli_remains_available_when_reminders_are_disabled(tmp_path):
+    proc = _run_agenda(
+        "--today --json",
+        tmp_path,
+        extra_env={
+            "AI_LAB_ENABLE_REMINDERS": "false",
+            "AI_LAB_ENABLE_SCHEDULER": "false",
+        },
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert json.loads(proc.stdout)["view"] == "today"
 
 
 def test_query_daily_agenda_uses_canonical_default_workspace(monkeypatch, tmp_path):
