@@ -165,7 +165,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["development_status"] == "sp_016_archived_sp_017_candidate"
+    assert state["development_status"] == "sp_017_planning_baseline_defined"
     assert state["next_candidate_sp"] == "SP-017"
     assert state["next_candidate_name"] == "Follow-up Interaction & Capture Closure"
     assert records["SP-016"]["name"] == sp016_name
@@ -201,7 +201,9 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["module_status"]["Waiting_For"] == (
         "Integrated / Verified / Manual acceptance passed"
     )
-    assert "SP-017" not in records
+    assert records["SP-017"]["status"] == (
+        "PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED"
+    )
 
     documents = {
         "status": ROOT / "docs/project/PROJECT_STATUS.md",
@@ -321,15 +323,17 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
     assert "J 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
     roadmap_rows = (
         "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
-        "| SP-017 | Follow-up Interaction & Capture Closure |",
+        "| SP-017 | Follow-up Interaction & Capture Closure —",
         "| SP-018 | Structured Work Log Query & Context Linking |",
         "| SP-019 | Daily Review & Follow-up Brief |",
     )
     positions = [roadmap.index(row) for row in roadmap_rows]
     assert positions == sorted(positions)
     assert (
-        "| SP-017 | Follow-up Interaction & Capture Closure | "
-        "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+        "| SP-017 | Follow-up Interaction & Capture Closure — Deterministic "
+        "Waiting-For interaction, Inbox capture confirmation, and durable "
+        "Inbox-to-Waiting-For conversion | PLANNING_BASELINE_DEFINED / "
+        "NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED |"
     ) in roadmap
 
     open_debt = state["open_technical_debt"]
@@ -441,3 +445,110 @@ def test_sp016_closure_contains_no_local_or_transient_governance_state() -> None
         "github_check_status",
     }
     assert transient_fields.isdisjoint(sp016)
+
+
+def test_sp017_planning_baseline_is_defined_without_implementation_authority() -> None:
+    state = _load_state()
+    records = state["sp_records"]
+    sp017 = records["SP-017"]
+    expected_status = (
+        "PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED"
+    )
+
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["latest_merged_sp"] == "SP-016"
+    assert state["latest_completed_sp"] == "SP-016"
+    assert state["next_candidate_sp"] == "SP-017"
+    assert state["next_candidate_name"] == "Follow-up Interaction & Capture Closure"
+    assert state["development_status"] == "sp_017_planning_baseline_defined"
+    assert state["current_work"] is None
+    assert "next_action" not in state
+
+    assert sp017 == {
+        "name": "Follow-up Interaction & Capture Closure",
+        "status": expected_status,
+        "planning_baseline_defined": True,
+        "approved": False,
+        "implementation_started": False,
+        "target_version": "0.35.0",
+        "rfc": "RFC-026",
+        "adrs": ["ADR-056", "ADR-057"],
+        "scope": (
+            "Deterministic Waiting-For interaction, Inbox capture confirmation, "
+            "durable Inbox-to-Waiting-For conversion and explicit lifecycle commands"
+        ),
+    }
+    assert {
+        "branch",
+        "pr",
+        "feature_pr",
+        "head",
+        "approved_head",
+        "implementation_complete",
+        "draft_pr",
+        "github_check_status",
+    }.isdisjoint(sp017)
+
+    rfc = (
+        ROOT / "docs/rfc/026-follow-up-interaction-capture-closure.md"
+    ).read_text(encoding="utf-8-sig")
+    adr056 = (
+        ROOT / "docs/adr/ADR-056-deterministic-follow-up-interaction-boundary.md"
+    ).read_text(encoding="utf-8-sig")
+    adr057 = (
+        ROOT / "docs/adr/ADR-057-inbox-to-waiting-for-resolution-saga.md"
+    ).read_text(encoding="utf-8-sig")
+    decision_index = (
+        ROOT / "docs/project/DECISION_INDEX.md"
+    ).read_text(encoding="utf-8-sig")
+    roadmap = (ROOT / "docs/project/ROADMAP.md").read_text(encoding="utf-8-sig")
+
+    assert "Status: Proposed / Planning Baseline" in rfc
+    assert "Status: Accepted" in adr056
+    assert "Status: Accepted" in adr057
+    assert (
+        "| RFC-026 | Follow-up Interaction and Capture Closure | "
+        "Proposed / Planning Baseline |"
+    ) in decision_index
+    assert (
+        "| ADR-056 | Deterministic Follow-up Interaction Boundary | Accepted |"
+    ) in decision_index
+    assert (
+        "| ADR-057 | Inbox-to-Waiting-For Resolution Saga | Accepted |"
+    ) in decision_index
+    assert "SP-016 人工验收待执行" not in decision_index
+
+    ordered_rows = (
+        "| SP-017 | Follow-up Interaction & Capture Closure —",
+        "| SP-018 | Structured Work Log Query & Context Linking |",
+        "| SP-019 | Daily Review & Follow-up Brief |",
+    )
+    positions = [roadmap.index(row) for row in ordered_rows]
+    assert positions == sorted(positions)
+
+    current_documents = (
+        ROOT / "docs/project/PROJECT_STATUS.md",
+        ROOT / "docs/project/PROJECT_HEALTH.md",
+        ROOT / "docs/project/PROJECT_BRAIN.md",
+        ROOT / "docs/project/ROADMAP.md",
+    )
+    current_text = "\n".join(
+        path.read_text(encoding="utf-8-sig") for path in current_documents
+    )
+    forbidden_markers = (
+        "SP-017 APPROVED",
+        "SP-017 IN_PROGRESS",
+        "Current SP: SP-017",
+        "implementation_started: true",
+    )
+    assert all(marker not in current_text for marker in forbidden_markers)
+
+    transient_fields = {
+        "planning_pr",
+        "planning_head",
+        "planning_merge_commit",
+        "draft_pr",
+        "github_check_status",
+    }
+    assert transient_fields.isdisjoint(sp017)

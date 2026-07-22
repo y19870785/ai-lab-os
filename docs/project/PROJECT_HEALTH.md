@@ -5,7 +5,7 @@
 
 ## Summary
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiting-For 已集成、通过人工验收并封存，Daily Agenda 使用可选来源组合；这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiting-For 已集成、通过人工验收并封存，Daily Agenda 使用可选来源组合。SP-017 仅定义确定性交互与 Inbox 确认的规划基线，未批准实施；这些能力与规划均不等同于生产级多用户平台。
 
 | Metric | Current fact |
 |---|---|
@@ -15,7 +15,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
 | Current governance task | None |
-| Next candidate | SP-017 — Follow-up Interaction & Capture Closure / not approved / not started |
+| Next candidate | SP-017 — Follow-up Interaction & Capture Closure / planning baseline defined / not approved for implementation / not started |
 | Latest completed SP | SP-016 / manual acceptance passed / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
@@ -30,6 +30,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | Intent Safety / Daily Agenda | Integrated / Verified / Optional-source composition | 确定性路由与聚合读取，不是通用 NLP |
 | Waiting-For | Integrated / Verified / Manual acceptance passed | SP-016 completed / archived；独立 canonical domain 与 `followups.db` |
 | Unified Inbox / Capture-to-Action | Integrated / Verified | workspace 隔离、持久化 resolution claim 与幂等已验收 |
+| SP-017 planning | Proposed baseline only | RFC-026 Proposed / Planning Baseline；ADR-056、ADR-057 Accepted；无生产实现 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

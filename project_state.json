@@ -16,7 +16,7 @@
   "current_governance_task": null,
   "next_candidate_sp": "SP-017",
   "next_candidate_name": "Follow-up Interaction & Capture Closure",
-  "development_status": "sp_016_archived_sp_017_candidate",
+  "development_status": "sp_017_planning_baseline_defined",
   "current_work": null,
   "updated_at": "2026-07-22",
   "governance_sources": {
@@ -260,6 +260,17 @@
       "merged_at": "2026-07-22T14:51:34Z",
       "acceptance": "ACC-016 PASSED / FINAL",
       "scope": "Canonical Waiting-For lifecycle, persistence, workspace isolation, API/CLI and Daily Agenda optional-source closure"
+    },
+    "SP-017": {
+      "name": "Follow-up Interaction & Capture Closure",
+      "status": "PLANNING_BASELINE_DEFINED / NOT_APPROVED_FOR_IMPLEMENTATION / NOT_STARTED",
+      "planning_baseline_defined": true,
+      "approved": false,
+      "implementation_started": false,
+      "target_version": "0.35.0",
+      "rfc": "RFC-026",
+      "adrs": ["ADR-056", "ADR-057"],
+      "scope": "Deterministic Waiting-For interaction, Inbox capture confirmation, durable Inbox-to-Waiting-For conversion and explicit lifecycle commands"
     }
   },
   "acceptance_records": {
