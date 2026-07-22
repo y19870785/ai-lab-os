@@ -5,9 +5,8 @@ from pathlib import Path
 import tempfile
 
 import pytest
-import pytest_asyncio
 
-from core.system.lifecycle import LifecycleStateMachine, SystemLifecycleState
+from core.system.lifecycle import SystemLifecycleState
 from core.system.settings import make_test_settings
 from core.system.factory import create_system
 from core.system.exceptions import SystemInitializationError
@@ -179,3 +178,23 @@ class TestHealthExactStates:
         assert health["lifecycle"] == "ready"
         assert health["accepting_work"] is True
         loop.run_until_complete(system.shutdown())
+
+
+@pytest.mark.asyncio
+async def test_waiting_for_and_agenda_exist_when_reminders_and_scheduler_are_disabled(
+    tmp_path,
+):
+    settings = make_test_settings(
+        tmp_path,
+        enable_reminders=False,
+        enable_scheduler=False,
+    )
+    system = await create_system(settings)
+    await system.start()
+    try:
+        assert system.waiting_for_service is not None
+        assert system.daily_agenda is not None
+        health = await system.health()
+        assert health["components"]["waiting_for"]["status"] == "healthy"
+    finally:
+        await system.shutdown()

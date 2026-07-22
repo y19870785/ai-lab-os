@@ -53,6 +53,7 @@ from core.workflow.registry import WorkflowRegistry
 from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.agenda import DailyAgendaService
+from core.waiting_for import SQLiteWaitingForRepository, WaitingForService
 from core.inbox import InboxService, SQLiteInboxRepository
 from core.reminders import (
     ReminderActionHandler,
@@ -189,6 +190,12 @@ async def create_system(
     inbox_repository = SQLiteInboxRepository(
         database_manager, settings.sqlite_dir / "inbox.db"
     )
+    waiting_for_repository = SQLiteWaitingForRepository(
+        database_manager, settings.sqlite_dir / "followups.db"
+    )
+    waiting_for_service = WaitingForService(
+        waiting_for_repository, bus=event_bus, clock=clock
+    )
 
     reminder_repository = None
     reminder_service = None
@@ -307,13 +314,6 @@ async def create_system(
             )
 
         if reminder_inbox is not None:
-            daily_agenda = DailyAgendaService(
-                user_tasks=user_task_service,
-                reminder_inbox=reminder_inbox,
-                memory_manager=memory_manager,
-                timezone_name=settings.timezone_name,
-                clock=clock,
-            )
             reminder_management = ReminderManagementService(
                 user_task_service,
                 reminder_service,
@@ -321,6 +321,15 @@ async def create_system(
                 scheduler_runtime,
                 reminder_inbox,
             )
+
+    daily_agenda = DailyAgendaService(
+        user_tasks=user_task_service,
+        reminder_inbox=reminder_inbox,
+        memory_manager=memory_manager,
+        waiting_for=waiting_for_service,
+        timezone_name=settings.timezone_name,
+        clock=clock,
+    )
 
     inbox_service = InboxService(
         inbox_repository,
@@ -406,6 +415,8 @@ async def create_system(
         reminder_inbox=reminder_inbox,
         reminder_management=reminder_management,
         daily_agenda=daily_agenda,
+        waiting_for_repository=waiting_for_repository,
+        waiting_for_service=waiting_for_service,
         inbox_repository=inbox_repository,
         inbox_service=inbox_service,
         clock=clock,

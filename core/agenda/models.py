@@ -13,6 +13,7 @@ class AgendaItemSource(str, Enum):
     USER_TASK = "user_task"
     REMINDER = "reminder"
     WORK_LOG = "work_log"
+    WAITING_FOR = "waiting_for"
 
 
 class AgendaItemKind(str, Enum):
@@ -41,6 +42,7 @@ _SOURCE_PRIORITY = {
     AgendaItemSource.REMINDER: 0,
     AgendaItemSource.USER_TASK: 1,
     AgendaItemSource.WORK_LOG: 2,
+    AgendaItemSource.WAITING_FOR: 3,
 }
 
 
@@ -66,6 +68,7 @@ class AgendaItem(BaseModel):
     source_id: str
     task_id: str | None = None
     reminder_id: str | None = None
+    waiting_for_id: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

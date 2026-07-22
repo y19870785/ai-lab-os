@@ -1,6 +1,5 @@
 import pytest
 from datetime import datetime, timedelta, timezone
-from core.agenda.models import AgendaView
 from core.agenda.service import DailyAgendaService
 from tests.helpers.clock import MutableClock
 from core.errors import ErrorCategory, FailureException
@@ -20,7 +19,6 @@ class FakeReminderInbox:
     def __init__(self, items=None):
         self._items = items or []
     async def list(self, *, workspace_key, statuses=None, time_scope=None, view=None, limit=100, offset=0, trace_id=""):
-        from core.reminders.inbox import ReminderInboxStatus
         result = list(self._items)
         if statuses:
             result = [i for i in result if i["status"] in statuses]
@@ -32,6 +30,14 @@ class FakeMemoryManager:
         self._items = items or []
     async def retrieve_memory(self, query):
         return self._items
+
+
+class FakeWaitingForService:
+    def __init__(self, items=None):
+        self._items = items or []
+
+    async def list(self, **_kwargs):
+        return type("Page", (), {"items": self._items})()
 
 
 def _fake_reminder_item(reminder_id, title, status, scheduled_for, triggered_at=None, last_failure_code=None):
@@ -137,3 +143,52 @@ async def test_invalid_limit_raises(svc):
     with pytest.raises(FailureException) as exc:
         await svc.list(workspace_key=FakeWorkspace(), view="today", limit=200)
     assert exc.value.failure.code == "agenda.limit_invalid"
+
+
+@pytest.mark.asyncio
+async def test_waiting_for_attention_and_completed_mapping(clock):
+    from core.waiting_for import WaitingFor, WaitingForStatus
+    from core.workspace.models import WorkspaceKey
+
+    base = {
+        "workspace_key": WorkspaceKey(workspace_id="default"),
+        "waiting_on": "Supplier",
+        "source": "test",
+        "created_at": clock.now() - timedelta(days=1),
+        "updated_at": clock.now(),
+    }
+    attention = WaitingFor(
+        **base,
+        subject="Reply overdue",
+        next_review_at=clock.now() - timedelta(hours=1),
+    )
+    resolved = WaitingFor(
+        **base,
+        subject="Reply received",
+        status=WaitingForStatus.RESOLVED,
+        resolved_at=clock.now(),
+        resolution_note="Done",
+    )
+    service = DailyAgendaService(
+        waiting_for=FakeWaitingForService([attention, resolved]),
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    attention_page = await service.list(
+        workspace_key=WorkspaceKey(), view="attention"
+    )
+    completed_page = await service.list(
+        workspace_key=WorkspaceKey(), view="completed"
+    )
+    assert attention_page.items[0].waiting_for_id == attention.id
+    assert attention_page.items[0].kind.value == "attention"
+    assert attention_page.items[0].metadata == {"waiting_on": "Supplier"}
+    assert completed_page.items[0].waiting_for_id == resolved.id
+    assert completed_page.items[0].kind.value == "completed"
+
+
+@pytest.mark.asyncio
+async def test_missing_sources_are_disabled_not_failed(clock):
+    service = DailyAgendaService(timezone_name="Asia/Shanghai", clock=clock)
+    page = await service.list(workspace_key=FakeWorkspace(), view="today")
+    assert page.items == []
