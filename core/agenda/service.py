@@ -104,18 +104,31 @@ class DailyAgendaService:
         )
         out = []
         for item in page.items:
-            effective = item.next_review_at or item.expected_by
+            is_open = item.status.value == "open"
+            review_in_today = (
+                item.next_review_at is not None
+                and today_start <= item.next_review_at < today_end
+            )
+            expected_in_today = (
+                item.expected_by is not None
+                and today_start <= item.expected_by < today_end
+            )
+            review_in_window = (
+                item.next_review_at is not None
+                and window_start <= item.next_review_at < window_end
+            )
+            expected_in_window = (
+                item.expected_by is not None
+                and window_start <= item.expected_by < window_end
+            )
             kind = AgendaItemKind.ACTION
             include = False
             if view == AgendaView.TODAY:
-                include = effective is not None and today_start <= effective < today_end
+                include = is_open and (review_in_today or expected_in_today)
                 kind = AgendaItemKind.ATTENTION if item.attention_due(now) else AgendaItemKind.ACTION
             elif view == AgendaView.NEXT:
-                include = (
-                    item.status.value == "open"
-                    and effective is not None
-                    and window_start <= effective < window_end
-                )
+                include = is_open and (review_in_window or expected_in_window)
+                kind = AgendaItemKind.ATTENTION if item.attention_due(now) else AgendaItemKind.ACTION
             elif view == AgendaView.ATTENTION:
                 include = item.attention_due(now)
                 kind = AgendaItemKind.ATTENTION
@@ -133,7 +146,7 @@ class DailyAgendaService:
                     else AgendaItemKind.ACTION
                 )
             if include:
-                out.append(_wfi(item, kind))
+                out.append(_wfi(item, kind, now))
         return out
 
     async def _reminder_today(self, wk, tid, ts, te):
@@ -239,7 +252,17 @@ class DailyAgendaService:
 
     @staticmethod
     def _sort_key(item: AgendaItem):
-        eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+        if item.source == AgendaItemSource.WAITING_FOR:
+            if item.kind == AgendaItemKind.COMPLETED:
+                eff = item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+            else:
+                candidates = [
+                    value for value in (item.scheduled_for, item.due_at)
+                    if value is not None
+                ]
+                eff = min(candidates) if candidates else datetime.min.replace(tzinfo=timezone.utc)
+        else:
+            eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
         return (eff, kind_priority(item.kind), source_priority(item.source), item.source_id)
 
     @staticmethod
@@ -284,14 +307,24 @@ def _ui(t, kind, status_override=None):
                        timezone=t.timezone, workspace_id="", source_id=t.id, task_id=t.id)
 
 
-def _wfi(item, kind):
+def _wfi(item, kind, now):
     occurred_at = item.resolved_at or item.cancelled_at
+    if item.status.value == "resolved":
+        status = "resolved"
+    elif item.status.value == "cancelled":
+        status = "cancelled"
+    elif item.expected_overdue(now):
+        status = "expected_overdue"
+    elif item.review_due(now):
+        status = "review_due"
+    else:
+        status = "open"
     return AgendaItem(
         id=f"agenda-wf-{item.id}",
         source=AgendaItemSource.WAITING_FOR,
         kind=kind,
         title=item.subject,
-        status=item.status.value,
+        status=status,
         scheduled_for=item.next_review_at,
         due_at=item.expected_by,
         occurred_at=occurred_at,

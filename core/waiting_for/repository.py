@@ -19,6 +19,7 @@ from core.waiting_for.exceptions import (
 from core.waiting_for.models import (
     WaitingFor,
     WaitingForEvent,
+    WaitingForEventType,
     WaitingForEventPage,
     WaitingForPage,
     WaitingForStatus,
@@ -32,6 +33,11 @@ class SQLiteWaitingForRepository:
     """Borrow one DatabaseManager-owned connection for all repository work."""
 
     LOGICAL_NAME = "waiting_for"
+
+    @staticmethod
+    def _workspace_identity(workspace_key: WorkspaceKey) -> tuple[str, str, str]:
+        workspace = canonical_workspace(workspace_key)
+        return workspace.tenant_id, workspace.workspace_id, workspace.namespace
 
     def __init__(self, database_manager: DatabaseManager, db_path: str | Path) -> None:
         self._manager = database_manager
@@ -240,7 +246,14 @@ class SQLiteWaitingForRepository:
     async def create(
         self, item: WaitingFor, event: WaitingForEvent
     ) -> tuple[WaitingFor, WaitingForEvent]:
-        if event.waiting_for_id != item.id or event.sequence != item.revision:
+        if (
+            self._workspace_identity(item.workspace_key)
+            != self._workspace_identity(event.workspace_key)
+            or event.waiting_for_id != item.id
+            or item.revision != 1
+            or event.sequence != item.revision
+            or event.event_type != WaitingForEventType.CREATED
+        ):
             raise WaitingForConflictError("Created event does not match snapshot")
         try:
             with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
@@ -405,6 +418,12 @@ class SQLiteWaitingForRepository:
         expected_revision: int,
     ) -> tuple[WaitingFor, WaitingForEvent]:
         workspace = canonical_workspace(workspace_key)
+        request_identity = self._workspace_identity(workspace)
+        if (
+            request_identity != self._workspace_identity(updated.workspace_key)
+            or request_identity != self._workspace_identity(event.workspace_key)
+        ):
+            raise WaitingForConflictError("Mutation workspace does not match request")
         if updated.revision != expected_revision + 1:
             raise WaitingForConflictError("Snapshot revision is invalid")
         if event.waiting_for_id != updated.id or event.sequence != updated.revision:
@@ -414,6 +433,8 @@ class SQLiteWaitingForRepository:
                 with transaction(conn):
                     conn.execute("BEGIN IMMEDIATE")
                     current = self._item(self._scoped_row(conn, workspace, updated.id))
+                    if self._workspace_identity(current.workspace_key) != request_identity:
+                        raise WaitingForConflictError("Stored workspace does not match request")
                     if current.revision != expected_revision:
                         raise WaitingForConflictError("Waiting-For revision conflict")
                     values = self._item_values(updated)

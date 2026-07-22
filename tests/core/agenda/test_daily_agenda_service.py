@@ -58,6 +58,22 @@ def _fake_wl(item_id, date_str, subject, ws="default"):
                       content={"type": "work_log", "date": date_str, "subject": subject, "metadata": {"workspace_id": ws}})
 
 
+def _fake_waiting_for(clock, subject, **changes):
+    from core.waiting_for import WaitingFor
+    from core.workspace.models import WorkspaceKey
+
+    values = {
+        "workspace_key": WorkspaceKey(workspace_id="default"),
+        "subject": subject,
+        "waiting_on": "Supplier",
+        "source": "test",
+        "created_at": clock.now() - timedelta(days=1),
+        "updated_at": clock.now(),
+    }
+    values.update(changes)
+    return WaitingFor(**values)
+
+
 @pytest.fixture
 def clock():
     return MutableClock(datetime(2026, 7, 17, 10, 0, tzinfo=timezone.utc))
@@ -192,3 +208,152 @@ async def test_missing_sources_are_disabled_not_failed(clock):
     service = DailyAgendaService(timezone_name="Asia/Shanghai", clock=clock)
     page = await service.list(workspace_key=FakeWorkspace(), view="today")
     assert page.items == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("view", ["today", "next"])
+async def test_waiting_for_dual_times_include_either_field_once(clock, view):
+    from core.workspace.models import WorkspaceKey
+
+    item = _fake_waiting_for(
+        clock,
+        "Dual time",
+        next_review_at=clock.now() + timedelta(days=2),
+        expected_by=clock.now() + timedelta(hours=1),
+    )
+    service = DailyAgendaService(
+        waiting_for=FakeWaitingForService([item]),
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    kwargs = {"window_hours": 3} if view == "next" else {}
+    page = await service.list(workspace_key=WorkspaceKey(), view=view, **kwargs)
+    assert [agenda_item.waiting_for_id for agenda_item in page.items] == [item.id]
+
+
+@pytest.mark.asyncio
+async def test_waiting_for_both_times_in_today_produces_no_duplicate(clock):
+    from core.workspace.models import WorkspaceKey
+
+    item = _fake_waiting_for(
+        clock,
+        "Both today",
+        next_review_at=clock.now() + timedelta(hours=1),
+        expected_by=clock.now() + timedelta(hours=2),
+    )
+    service = DailyAgendaService(
+        waiting_for=FakeWaitingForService([item]),
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    page = await service.list(workspace_key=WorkspaceKey(), view="today")
+    assert len(page.items) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", ["resolved", "cancelled"])
+async def test_terminal_waiting_for_is_excluded_from_today_and_in_completed(clock, status):
+    from core.waiting_for import WaitingForStatus
+    from core.workspace.models import WorkspaceKey
+
+    terminal_at = clock.now()
+    terminal = {
+        "status": WaitingForStatus(status),
+        "expected_by": clock.now() + timedelta(hours=1),
+        "resolved_at" if status == "resolved" else "cancelled_at": terminal_at,
+    }
+    if status == "resolved":
+        terminal["resolution_note"] = "done"
+    item = _fake_waiting_for(clock, status, **terminal)
+    service = DailyAgendaService(
+        waiting_for=FakeWaitingForService([item]),
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    today = await service.list(workspace_key=WorkspaceKey(), view="today")
+    completed = await service.list(workspace_key=WorkspaceKey(), view="completed")
+    assert today.items == []
+    assert completed.items[0].status == status
+    assert completed.items[0].kind.value == "completed"
+
+
+@pytest.mark.asyncio
+async def test_waiting_for_derived_status_priority_and_kind(clock):
+    from core.workspace.models import WorkspaceKey
+
+    expected = _fake_waiting_for(
+        clock,
+        "Expected overdue",
+        expected_by=clock.now() - timedelta(hours=2),
+        next_review_at=clock.now() - timedelta(hours=1),
+    )
+    review = _fake_waiting_for(
+        clock,
+        "Review due",
+        next_review_at=clock.now() - timedelta(minutes=1),
+    )
+    future = _fake_waiting_for(
+        clock,
+        "Future",
+        next_review_at=clock.now() + timedelta(hours=1),
+    )
+    service = DailyAgendaService(
+        waiting_for=FakeWaitingForService([expected, review, future]),
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    page = await service.list(workspace_key=WorkspaceKey(), view="all")
+    by_id = {item.waiting_for_id: item for item in page.items}
+    assert by_id[expected.id].status == "expected_overdue"
+    assert by_id[expected.id].kind.value == "attention"
+    assert by_id[review.id].status == "review_due"
+    assert by_id[review.id].kind.value == "attention"
+    assert by_id[future.id].status == "open"
+    assert by_id[future.id].kind.value == "action"
+
+
+@pytest.mark.asyncio
+async def test_waiting_for_open_and_completed_sort_use_correct_effective_time(clock):
+    from core.waiting_for import WaitingForStatus
+    from core.workspace.models import WorkspaceKey
+
+    open_item = _fake_waiting_for(
+        clock,
+        "Earliest expected",
+        next_review_at=clock.now() + timedelta(hours=3),
+        expected_by=clock.now() + timedelta(hours=1),
+    )
+    other_open = _fake_waiting_for(
+        clock, "Later", next_review_at=clock.now() + timedelta(hours=2)
+    )
+    completed_early = _fake_waiting_for(
+        clock,
+        "Completed early",
+        status=WaitingForStatus.RESOLVED,
+        expected_by=clock.now() - timedelta(days=30),
+        resolved_at=clock.now() - timedelta(hours=1),
+        resolution_note="done",
+    )
+    completed_late = _fake_waiting_for(
+        clock,
+        "Completed late",
+        status=WaitingForStatus.RESOLVED,
+        expected_by=clock.now() - timedelta(days=60),
+        resolved_at=clock.now(),
+        resolution_note="done",
+    )
+    service = DailyAgendaService(
+        waiting_for=FakeWaitingForService(
+            [other_open, completed_late, open_item, completed_early]
+        ),
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    all_page = await service.list(workspace_key=WorkspaceKey(), view="all")
+    open_ids = [item.waiting_for_id for item in all_page.items if item.kind.value != "completed"]
+    assert open_ids == [open_item.id, other_open.id]
+    completed_page = await service.list(workspace_key=WorkspaceKey(), view="completed")
+    assert [item.waiting_for_id for item in completed_page.items] == [
+        completed_early.id,
+        completed_late.id,
+    ]

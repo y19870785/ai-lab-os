@@ -22,3 +22,16 @@
 ## 人工验收边界
 
 上述结论只代表自动化验证通过。人工验收尚未执行，不得将 SP-016 标记为 completed、reconciled 或 archived，也不得据此启动 SP-017。
+
+## 独立审查修正证据
+
+- H 保持 `AUTOMATED_VERIFICATION_PASSED`：TODAY/NEXT 分别检查
+  `next_review_at` 与 `expected_by`；终态只映射到 COMPLETED；派生状态优先级稳定，
+  同一 Waiting-For 只产生一个 AgendaItem。
+- I 保持 `AUTOMATED_VERIFICATION_PASSED`：真实 API 与 CLI Composition Root
+  接受显式 Waiting-For ID；重复提交返回 conflict，并且只保留一个快照和一个
+  `created` 事件。
+- J 保持 `AUTOMATED_VERIFICATION_PASSED`：Repository 的 create/mutate 在所有权
+  迁移前拒绝 snapshot、event、request 的 workspace 不一致，且不产生部分行或历史变化。
+- CLI 证据同时覆盖 snooze 必填时间、正整数 revision，以及纯文本 list/history
+  的完整身份字段。

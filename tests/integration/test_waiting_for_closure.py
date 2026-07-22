@@ -82,6 +82,31 @@ def test_real_application_api_is_workspace_scoped_and_uses_canonical_service(tmp
         assert client.app.state.system.waiting_for_service is not None
 
 
+def test_real_application_api_explicit_id_retry_creates_one_chain(tmp_path):
+    settings = make_test_settings(tmp_path)
+    headers = {"X-Workspace-ID": "alpha"}
+    body = {
+        "waiting_for_id": "wf_retry_boundary",
+        "subject": "Retry boundary",
+        "waiting_on": "Counsel",
+    }
+    with TestClient(create_app(settings, clock=MutableClock(NOW))) as client:
+        first = client.post("/waiting-for", headers=headers, json=body)
+        retry = client.post("/waiting-for", headers=headers, json=body)
+        assert first.status_code == 201
+        assert first.json()["item"]["id"] == "wf_retry_boundary"
+        assert retry.status_code == 409
+
+        listed = client.get("/waiting-for", headers=headers).json()["items"]
+        history = client.get(
+            "/waiting-for/wf_retry_boundary/events", headers=headers
+        ).json()["items"]
+        assert [item["id"] for item in listed] == ["wf_retry_boundary"]
+        assert [(event["sequence"], event["event_type"]) for event in history] == [
+            (1, "created")
+        ]
+
+
 @pytest.mark.asyncio
 async def test_waiting_for_initialization_failure_rolls_back_system_start(tmp_path, monkeypatch):
     system = await create_system(make_test_settings(tmp_path))

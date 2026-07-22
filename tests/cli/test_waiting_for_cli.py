@@ -113,3 +113,64 @@ def test_waiting_for_cli_real_entry_persists_and_lists(tmp_path):
     listed = _run(tmp_path, "list", "--json")
     assert listed.returncode == 0, listed.stderr
     assert [item["id"] for item in json.loads(listed.stdout)["items"]] == [item_id]
+
+
+def test_waiting_for_cli_explicit_id_retry_is_conflict_with_one_chain(tmp_path):
+    create_args = (
+        "create", "--waiting-for-id", "wf_cli_retry", "--subject",
+        "Retry boundary", "--waiting-on", "Counsel",
+    )
+    first = _run(tmp_path, *create_args)
+    retry = _run(tmp_path, *create_args)
+    assert first.returncode == 0, first.stderr
+    assert retry.returncode == 2
+    assert "Traceback" not in retry.stderr
+    listed = _run(tmp_path, "list", "--json")
+    history = _run(tmp_path, "history", "wf_cli_retry", "--json")
+    assert [item["id"] for item in json.loads(listed.stdout)["items"]] == [
+        "wf_cli_retry"
+    ]
+    assert [event["event_type"] for event in json.loads(history.stdout)["items"]] == [
+        "created"
+    ]
+
+
+def test_waiting_for_cli_snooze_requires_next_review_before_system_start(tmp_path):
+    result = _run(
+        tmp_path, "snooze", "wf_missing", "--expected-revision", "1"
+    )
+    assert result.returncode == 2
+    assert "--next-review-at" in result.stderr
+    assert "required" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert not (tmp_path / "sqlite" / "followups.db").exists()
+
+
+def test_waiting_for_cli_plain_list_and_history_include_contract_fields(tmp_path):
+    created = _run(
+        tmp_path, "create", "--waiting-for-id", "wf_plain_contract",
+        "--subject", "Plain contract", "--waiting-on", "Counsel",
+    )
+    assert created.returncode == 0, created.stderr
+    listed = _run(tmp_path, "list")
+    history = _run(tmp_path, "history", "wf_plain_contract")
+    for marker in (
+        "ID: wf_plain_contract", "status: open", "subject: Plain contract",
+        "waiting_on: Counsel", "revision: 1", "expected_by: -",
+        "next_review_at: -",
+    ):
+        assert marker in listed.stdout
+    for marker in (
+        "Event ID:", "sequence: 1", "event_type: created", "occurred_at:"
+    ):
+        assert marker in history.stdout
+
+
+def test_waiting_for_cli_rejects_non_positive_revision(tmp_path):
+    result = _run(
+        tmp_path, "resolve", "wf_invalid_revision", "--expected-revision", "0",
+        "--note", "done",
+    )
+    assert result.returncode == 2
+    assert "positive integer" in result.stderr
+    assert "Traceback" not in result.stderr

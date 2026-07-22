@@ -298,6 +298,9 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
     assert "Status: Accepted" in agenda_adr
     assert "followups.db" in architecture
     assert "AUTOMATED VERIFICATION PASSED / MANUAL ACCEPTANCE PENDING" in acceptance
+    assert "H 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
+    assert "I 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
+    assert "J 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
     roadmap_rows = (
         "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
         "| SP-017 | Follow-up Interaction & Capture Closure |",

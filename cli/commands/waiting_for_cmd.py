@@ -22,9 +22,16 @@ def _aware_datetime(parser: argparse.ArgumentParser, value: str, option: str) ->
 
 def _common_mutation(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("waiting_for_id")
-    parser.add_argument("--expected-revision", type=int, required=True)
+    parser.add_argument("--expected-revision", type=_positive_int, required=True)
     parser.add_argument("--note", default="")
     parser.add_argument("--json", action="store_true", dest="as_json")
+
+
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
 
 
 async def run(args: list[str]) -> int:
@@ -32,6 +39,7 @@ async def run(args: list[str]) -> int:
     commands = parser.add_subparsers(dest="operation", required=True)
 
     create = commands.add_parser("create")
+    create.add_argument("--waiting-for-id")
     create.add_argument("--subject", required=True)
     create.add_argument("--waiting-on", required=True)
     create.add_argument("--context", default="")
@@ -63,13 +71,17 @@ async def run(args: list[str]) -> int:
     for name in ("follow-up", "snooze", "resolve", "cancel", "reopen"):
         command = commands.add_parser(name)
         _common_mutation(command)
-        if name in {"follow-up", "snooze", "reopen"}:
+        if name in {"follow-up", "reopen"}:
             command.add_argument("--next-review-at")
+        elif name == "snooze":
+            command.add_argument("--next-review-at", required=True)
 
     options = parser.parse_args(args)
     values = vars(options).copy()
     operation = values.pop("operation")
     as_json = values.pop("as_json")
+    if values.get("waiting_for_id") is None:
+        values.pop("waiting_for_id", None)
 
     for key in ("expected_by", "next_review_at"):
         if key in values and values[key]:
@@ -89,8 +101,18 @@ async def run(args: list[str]) -> int:
         if not result.items:
             print("没有符合条件的 Waiting-For 记录。")
         for item in result.items:
-            label = getattr(item, "subject", item.event_type.value)
-            print(f"{item.id}  {label}")
+            if operation == "history":
+                print(
+                    f"Event ID: {item.id}  sequence: {item.sequence}  "
+                    f"event_type: {item.event_type.value}  occurred_at: {item.occurred_at}"
+                )
+            else:
+                print(
+                    f"ID: {item.id}  status: {item.status.value}  subject: {item.subject}  "
+                    f"waiting_on: {item.waiting_on}  revision: {item.revision}  "
+                    f"expected_by: {item.expected_by or '-'}  "
+                    f"next_review_at: {item.next_review_at or '-'}"
+                )
         return 0
     item = getattr(result, "item", result)
     print(f"ID: {item.id}")

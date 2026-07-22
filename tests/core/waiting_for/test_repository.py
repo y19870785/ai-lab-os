@@ -203,3 +203,55 @@ async def test_duplicate_id_is_a_conflict(tmp_path):
 
     with pytest.raises(WaitingForConflictError):
         await repository.create(item, _event(item))
+
+
+@pytest.mark.asyncio
+async def test_create_rejects_workspace_and_created_event_invariant_mismatches(tmp_path):
+    manager = DatabaseManager(tmp_path)
+    repository = SQLiteWaitingForRepository(manager, tmp_path / "followups.db")
+    await repository.initialize()
+    alpha = WorkspaceKey(workspace_id="alpha")
+    beta = WorkspaceKey(workspace_id="beta")
+    item = _snapshot(alpha, "wf_create_invariant")
+    foreign_event = _event(item).model_copy(update={"workspace_key": beta})
+
+    with pytest.raises(WaitingForConflictError):
+        await repository.create(item, foreign_event)
+    with manager.lease("waiting_for") as conn:
+        assert conn.execute("SELECT COUNT(*) FROM waiting_for_items").fetchone()[0] == 0
+        assert conn.execute("SELECT COUNT(*) FROM waiting_for_events").fetchone()[0] == 0
+
+    wrong_type = _event(item, WaitingForEventType.FOLLOWED_UP)
+    with pytest.raises(WaitingForConflictError):
+        await repository.create(item, wrong_type)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("foreign_part", ["updated", "event"])
+async def test_mutation_rejects_workspace_mismatch_without_state_change(
+    tmp_path, foreign_part
+):
+    manager = DatabaseManager(tmp_path)
+    repository = SQLiteWaitingForRepository(manager, tmp_path / "followups.db")
+    await repository.initialize()
+    alpha = WorkspaceKey(workspace_id="alpha")
+    beta = WorkspaceKey(workspace_id="beta")
+    item = _snapshot(alpha, f"wf_mutation_{foreign_part}")
+    await repository.create(item, _event(item))
+    updated = item.model_copy(
+        update={"revision": 2, "updated_at": NOW + timedelta(minutes=1)}
+    )
+    event = _event(updated, WaitingForEventType.FOLLOWED_UP)
+    if foreign_part == "updated":
+        updated = updated.model_copy(update={"workspace_key": beta})
+    else:
+        event = event.model_copy(update={"workspace_key": beta})
+
+    with pytest.raises(WaitingForConflictError):
+        await repository.mutate(
+            alpha, updated=updated, event=event, expected_revision=1
+        )
+    stored = await repository.get(alpha, item.id)
+    history = await repository.list_events(alpha, item.id, limit=10, offset=0)
+    assert stored.revision == 1
+    assert [value.sequence for value in history.items] == [1]

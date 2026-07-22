@@ -185,6 +185,7 @@ class InboxPageResponse(BaseModel):
 
 
 class WaitingForCreateRequest(BaseModel):
+    waiting_for_id: str | None = Field(default=None, min_length=4, max_length=80)
     subject: str = Field(min_length=1, max_length=500)
     waiting_on: str = Field(min_length=1, max_length=200)
     context: str = Field(default="", max_length=4_000)
