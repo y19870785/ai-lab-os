@@ -10,6 +10,7 @@ from api.models import (
     InboxResolveReminderRequest,
     InboxResolveTaskRequest,
     InboxResolveWorkLogRequest,
+    InboxResolveWaitingForRequest,
 )
 from core.system.container import SystemContainer
 from core.workspace.models import WorkspaceKey
@@ -117,6 +118,21 @@ async def resolve_inbox_to_work_log(
 ):
     item = await system.inbox_service.resolve_to_work_log(
         workspace_key=_workspace(request), inbox_item_id=item_id, **body.model_dump()
+    )
+    return _item_response(item)
+
+
+@router.post("/{item_id}/resolve/waiting-for", response_model=InboxItemResponse)
+async def resolve_inbox_to_waiting_for(
+    item_id: str,
+    body: InboxResolveWaitingForRequest,
+    request: Request,
+    system: SystemContainer = Depends(get_system),
+):
+    item = await system.inbox_service.resolve_to_waiting_for(
+        workspace_key=_workspace(request),
+        inbox_item_id=item_id,
+        **body.model_dump(),
     )
     return _item_response(item)
 

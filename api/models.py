@@ -161,6 +161,14 @@ class InboxResolveWorkLogRequest(BaseModel):
     description: str = ""
 
 
+class InboxResolveWaitingForRequest(BaseModel):
+    subject: str = Field(default="", max_length=500)
+    waiting_on: str = Field(default="", max_length=200)
+    context: str = Field(default="", max_length=4_000)
+    expected_by: datetime | None = None
+    next_review_at: datetime | None = None
+    timezone: str = "UTC"
+
 class InboxItemResponse(BaseModel):
     id: str
     content: str

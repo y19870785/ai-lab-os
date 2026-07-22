@@ -173,6 +173,10 @@ async def execute_inbox_operation(operation: str, **values):
             return await service.resolve_to_reminder(workspace_key=workspace_key, **values)
         if operation == "resolve-work-log":
             return await service.resolve_to_work_log(workspace_key=workspace_key, **values)
+        if operation == "resolve-waiting-for":
+            return await service.resolve_to_waiting_for(
+                workspace_key=workspace_key, **values
+            )
         if operation == "resolve-note":
             return await service.resolve_as_note(workspace_key=workspace_key, **values)
         if operation == "dismiss":
