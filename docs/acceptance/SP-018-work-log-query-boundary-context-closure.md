@@ -86,7 +86,12 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - 不存在 ID；
 - 非法 ID；
 - Workspace mismatch；
-- raw generic Memory ID 不作为公开 alias。
+- 已完成历史 Inbox-to-Work-Log 仍从 Inbox 返回 `inbox_wl_...`；
+- WorkLogService 接受合法历史 `inbox_wl_...` alias，并返回 canonical `wl_legacy_<full sha256>`；
+- alias 与 canonical ID 再次 get 返回同一对象，不创建新行；
+- 重启后 alias 映射不变；
+- Inbox alias Workspace mismatch fail closed；
+- 普通随机 Memory ID 仍不作为公开 alias。
 
 状态：NOT_EXECUTED
 
@@ -106,7 +111,11 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - count、has_more、total_count；
 - 跨页无重复、无遗漏；
 - invalid limit/offset 明确失败；
-- 不按 importance 排序。
+- 不按 importance 排序；
+- 数据量超过 slow-query/scanned-row observability warning threshold 时仍返回精确 total_count；
+- 告警不截断分页、不改变 count、has_more、排序或结果；
+- Workspace filter 在分页和计数前生效；
+- 不存在业务结果 candidate cap。
 
 状态：NOT_EXECUTED
 
@@ -119,7 +128,10 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - 重启、API、CLI、Agenda、Brief 身份一致；
 - 保留 legacy_memory_id；
 - 不创建新行、不重复导入、不改变原行或 importance；
-- legacy projection failure 可见。
+- legacy projection failure 可见且查询 fail closed；
+- 历史 Inbox row 投影为稳定 `wl_legacy_...`，Inbox 仍保留 `inbox_wl_...`；
+- alias 与 canonical 查询零写入、重启后身份不变；
+- 普通随机 Memory ID 仍被拒绝。
 
 状态：NOT_EXECUTED
 
@@ -165,7 +177,9 @@ Daily Brief 的 Work Log 数据必须来自 WorkLogService，具有正确 Worksp
 - 相同 FailureInfo code；
 - API Workspace headers 生效；
 - `python -m cli log` 兼容 alias 不形成第二写路径；
-- 明确 query intent 为 READ。
+- 明确 query intent 为 READ；
+- 已完成 Inbox resolution、API、CLI、CEO Assistant、Agenda 与 Brief 对同一 Work Log 返回一致 canonical `wl_legacy_...`；
+- Inbox 自身历史字段继续返回 `inbox_wl_...`，重复 resolve 不创建 `wl_...` 新行。
 
 状态：NOT_EXECUTED
 
@@ -206,6 +220,8 @@ Daily Brief 的 Work Log 数据必须来自 WorkLogService，具有正确 Worksp
 - `work_log.context_ref_invalid`
 - `work_log.repository_failed`
 - `work_log.legacy_projection_failed`
+
+注入 `content` 非 dict、type 非 work_log、缺 subject/raw_text、安全时间缺失、非法 row id 与非法持久化 timestamp。验证非 Work Log 不进入 list、exact Inbox alias 对非 Work Log 返回 not_found，而符合 Work Log type 但无法安全投影时整个查询以 `work_log.legacy_projection_failed` fail closed，details 只含安全 row identity digest。
 
 验证 category、HTTP、CLI exit code、retryable、details、trace_id 一致；中文 Presenter 只能改变 message，不得改变机器字段。
 
