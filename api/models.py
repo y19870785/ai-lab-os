@@ -167,7 +167,7 @@ class InboxResolveWaitingForRequest(BaseModel):
     context: str = Field(default="", max_length=4_000)
     expected_by: datetime | None = None
     next_review_at: datetime | None = None
-    timezone: str = "UTC"
+    timezone: str | None = None
 
 class InboxItemResponse(BaseModel):
     id: str

@@ -78,7 +78,7 @@ async def run(args: list[str]) -> int:
     waiting_for_parser.add_argument("--context", default="")
     waiting_for_parser.add_argument("--expected-by")
     waiting_for_parser.add_argument("--next-review-at")
-    waiting_for_parser.add_argument("--timezone", default="Asia/Shanghai")
+    waiting_for_parser.add_argument("--timezone")
     _add_json(waiting_for_parser)
 
     note_parser = commands.add_parser("resolve-note")
