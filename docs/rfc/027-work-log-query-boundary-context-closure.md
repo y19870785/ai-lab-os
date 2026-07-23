@@ -1,8 +1,8 @@
 # RFC-027 — Work Log Query Boundary & Context Closure
 
-Status: Proposed / Planning Baseline
+Status: Adopted
 
-> 本 RFC 仅定义 SP-018 规划基线。SP-018 实施尚未批准、尚未启动；本文中的模型、服务、API、CLI 和迁移路径均未实现。
+> 本 RFC 已获采纳并由 SP-018 Draft Head 实现。自动化验证已通过；ACC-018 人工验收尚未执行，实现尚未合并。
 
 ## 1. 背景
 

@@ -1,13 +1,13 @@
 ﻿
 ## [Unreleased]
 
-### SP-018 Work Log Query Boundary & Context Closure（规划基线）
-- 定义唯一 `WorkLogService` 与类型化 Work Log create/get/list 查询边界，尚未实施。
-- 选择专用 Repository/Adapter 复用既有 `episodic.db / episodic_memories`；不创建 `work_logs.db`、新表或双写。
-- 规划完整 WorkspaceKey、`wl_...` canonical ID、确定性 legacy 只读投影与显式 `ut_/rem_/wf_/inbox_` context refs。
-- 规划让 CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 最终共享同一 WorkLogService。
-- RFC-027 状态为 Proposed / Planning Baseline；ADR-058～ADR-060 为 Accepted；ACC-018 A～O 均为 NOT_EXECUTED。
-- 状态保持 `IMPLEMENTATION_NOT_APPROVED / NOT_STARTED`；SP-019 未启动，产品版本、Tag 与 Release 不变。
+### SP-018 Work Log Query Boundary & Context Closure（Draft Head）
+- 实现唯一 `WorkLogService` 与类型化 create/get/list 边界；CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 共享同一服务。
+- `SQLiteWorkLogRepository` 复用既有 `episodic.db / episodic_memories` 与 `DatabaseManager` connection ownership；没有 `work_logs.db`、新表、索引或迁移。
+- 新记录使用 `wl_<32 hex>`；旧随机 Memory ID 以稳定 `wl_legacy_<sha256>` 只读投影，历史 `inbox_wl_...` 仅作受限兼容 alias。
+- 完整 Workspace identity、精确分页、确定性过滤与显式 `ut_/rem_/wf_/inbox_` context refs 已由自动化测试覆盖；查询不写回、不发事件、不调用 LLM。
+- RFC-027 为 Adopted；ADR-058～ADR-060 为 Accepted；ACC-018 A～O 仍全部 NOT_EXECUTED。
+- 状态为 `IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED`；SP-019 未启动，产品版本、Tag 与 Release 不变。
 
 ### SP-017 Follow-up Interaction & Capture Closure
 - 通过 PR #43 以 Squash Merge 完成确定性 Waiting-For 读取、Inbox 捕获与确认，以及显式 lifecycle interaction。

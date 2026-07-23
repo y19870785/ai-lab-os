@@ -1,6 +1,6 @@
 # SP-018 Work Log Query Boundary & Context Closure 验收规划
 
-状态：PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED
+状态：IMPLEMENTATION_DRAFT / NOT_EXECUTED
 
 规划日期：2026-07-23（Asia/Shanghai）
 
@@ -8,11 +8,11 @@
 
 当前源码版本：`0.34.0`
 
-RFC：RFC-027 — Proposed / Planning Baseline
+RFC：RFC-027 — Adopted
 
 ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
-> 本文仅定义 ACC-018 A～O 的未来验收矩阵。没有场景已执行或通过；规划 PR 不批准 SP-018 实施。
+> 本文定义 ACC-018 A～O 的未来人工验收矩阵。Draft Head 的自动化验证不等于人工验收；没有场景已执行或通过。
 
 ## 固定边界
 
