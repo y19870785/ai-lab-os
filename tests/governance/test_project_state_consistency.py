@@ -70,17 +70,19 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    assert state["current_sp"] == "SP-017"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert _sp_number(state["next_candidate_sp"]) > _sp_number(state["current_sp"])
+    assert _sp_number(state["next_candidate_sp"]) > _sp_number(
+        state["latest_completed_sp"]
+    )
 
 
-def test_sp015_release_baseline_is_archived_while_sp016_is_latest_work() -> None:
+def test_sp015_release_baseline_is_archived_while_sp017_is_latest_work() -> None:
     state = _load_state()
     sp015 = state["sp_records"]["SP-015"]
 
-    assert state["latest_merged_sp"] == "SP-016"
-    assert state["latest_completed_sp"] == "SP-016"
+    assert state["latest_merged_sp"] == "SP-017"
+    assert state["latest_completed_sp"] == "SP-017"
     assert sp015["status"] == (
         "APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
@@ -161,9 +163,9 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
-    assert state["current_sp"] == "SP-017"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["development_status"] == "sp_017_in_progress"
+    assert state["development_status"] == "sp_017_completed_and_archived"
     assert state["next_candidate_sp"] == "SP-018"
     assert state["next_candidate_name"] == "Structured Work Log Query & Context Linking"
     assert records["SP-016"]["name"] == sp016_name
@@ -199,7 +201,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["module_status"]["Waiting_For"] == (
         "Integrated / Verified / Manual acceptance passed"
     )
-    assert records["SP-017"]["status"] == "APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS"
+    assert "ARCHIVED" in records["SP-017"]["status"]
 
     documents = {
         "status": ROOT / "docs/project/PROJECT_STATUS.md",
@@ -226,9 +228,10 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     )
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
-    assert "Last Completed SP: SP-016" in text["brain"]
-    assert "Current SP: SP-017" in text["brain"]
+    assert "Last Completed SP: SP-017" in text["brain"]
+    assert "Current SP: None" in text["brain"]
     assert "ACC-016 Status: PASSED / FINAL" in text["brain"]
+    assert "ACC-017 Status: PASSED / FINAL" in text["brain"]
     assert "Current governance task | None" in text["health"]
     assert "Alpha / RELEASE_AUTHORIZED" in text["health"]
     assert "**Authorization:** Release Authorized" in text["version_matrix"]
@@ -331,8 +334,7 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
     assert (
         "| SP-017 | Follow-up Interaction & Capture Closure — Deterministic "
         "Waiting-For interaction, Inbox capture confirmation, and durable "
-        "Inbox-to-Waiting-For conversion | APPROVED_FOR_IMPLEMENTATION / "
-        "IN_PROGRESS |"
+        "Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |"
     ) in roadmap
 
     open_debt = state["open_technical_debt"]
@@ -446,22 +448,23 @@ def test_sp016_closure_contains_no_local_or_transient_governance_state() -> None
     assert transient_fields.isdisjoint(sp016)
 
 
-def test_sp017_is_adopted_and_in_progress_without_completion_claims() -> None:
+def test_sp017_is_accepted_reconciled_and_archived() -> None:
     state = _load_state()
     records = state["sp_records"]
     sp017 = records["SP-017"]
-    expected_status = "APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS"
+    expected_status = (
+        "APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / "
+        "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
+    )
 
-    assert state["current_sp"] == "SP-017"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["latest_merged_sp"] == "SP-016"
-    assert state["latest_completed_sp"] == "SP-016"
+    assert state["latest_merged_sp"] == "SP-017"
+    assert state["latest_completed_sp"] == "SP-017"
     assert state["next_candidate_sp"] == "SP-018"
     assert state["next_candidate_name"] == "Structured Work Log Query & Context Linking"
-    assert state["development_status"] == "sp_017_in_progress"
-    assert state["current_work"] == (
-        "SP-017 Follow-up Interaction & Capture Closure implementation"
-    )
+    assert state["development_status"] == "sp_017_completed_and_archived"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp017 == {
@@ -470,12 +473,21 @@ def test_sp017_is_adopted_and_in_progress_without_completion_claims() -> None:
         "planning_baseline_defined": True,
         "approved": True,
         "implementation_started": True,
-        "implementation_complete": False,
+        "implementation_complete": True,
         "base_commit": "c1ef6fc5d2c46896748643dae08554725ce16f43",
         "branch": "feat/sp-017-follow-up-interaction-closure",
         "planning_pr": 42,
         "planning_head": "72a5976e3a93879c46800413f48367ee54391879",
         "planning_merge_commit": "c1ef6fc5d2c46896748643dae08554725ce16f43",
+        "feature_pr": 43,
+        "approved_head": "40319102eb7aaea90a24d8abdf106e406b680618",
+        "feature_merge_commit": "32bb9c0a939c65f2278fc2b6be8d072fb2e3656a",
+        "merged_at": "2026-07-23T12:25:57Z",
+        "review": "APPROVED",
+        "post_merge_acceptance": "PASSED",
+        "acceptance": "ACC-017 A-O PASSED / FINAL",
+        "main_quality_gate": "PASSED",
+        "main_quality_gate_run": 30006958413,
         "target_version": "0.35.0",
         "rfc": "RFC-026",
         "adrs": ["ADR-056", "ADR-057"],
@@ -484,14 +496,19 @@ def test_sp017_is_adopted_and_in_progress_without_completion_claims() -> None:
             "durable Inbox-to-Waiting-For conversion and explicit lifecycle commands"
         ),
     }
-    assert {
-        "pr",
-        "feature_pr",
-        "head",
-        "approved_head",
-        "draft_pr",
-        "github_check_status",
-    }.isdisjoint(sp017)
+    assert {"pr", "head", "draft_pr", "github_check_status"}.isdisjoint(sp017)
+
+    acc017 = state["acceptance_records"]["ACC-017"]
+    assert acc017["status"] == "PASSED / FINAL"
+    assert acc017["baseline_commit"] == (
+        "32bb9c0a939c65f2278fc2b6be8d072fb2e3656a"
+    )
+    assert acc017["manual_acceptance"] is True
+    assert acc017["scenarios"] == {
+        letter: "PASSED" for letter in "ABCDEFGHIJKLMNO"
+    }
+    assert "SP-018" not in records
+    assert "SP-019" not in records
 
     rfc = (
         ROOT / "docs/rfc/026-follow-up-interaction-capture-closure.md"
@@ -526,11 +543,20 @@ def test_sp017_is_adopted_and_in_progress_without_completion_claims() -> None:
     assert "SP-016 人工验收待执行" not in decision_index
     assert (
         "LOCAL_AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / "
-        "GITHUB_QUALITY_GATE_PASSED / INDEPENDENT_REVIEW_CHANGES_REQUESTED"
+        "PR_QUALITY_GATE_PASSED / POST_MERGE_QUALITY_GATE_PASSED / "
+        "INDEPENDENT_REVIEW_APPROVED / FINAL"
     ) in acceptance
-    assert "GitHub Run ID：`29948314665`" in acceptance
-    assert "GitHub Quality Gate：Ruff `SUCCESS`；pytest (non-real) `SUCCESS`" in acceptance
-    assert "Independent Review：`REQUEST_CHANGES`" in acceptance
+    assert "Feature PR：#43" in acceptance
+    assert "Approved Head：`40319102eb7aaea90a24d8abdf106e406b680618`" in acceptance
+    assert (
+        "Feature Merge Commit：`32bb9c0a939c65f2278fc2b6be8d072fb2e3656a`"
+        in acceptance
+    )
+    assert "PR Quality Gate Run：`30006130019`" in acceptance
+    assert "Post-Merge main Quality Gate Run：`30006958413`" in acceptance
+    assert "Independent Review：`APPROVED`" in acceptance
+    assert "ACC-017 A～O：PASSED / FINAL" in acceptance
+    assert "INVALID_ACCEPTANCE_HARNESS" in acceptance
     assert all(f"ACC-017-{letter}" in acceptance for letter in "ABCDEFGHIJKLMNO")
 
     ordered_rows = (
@@ -542,6 +568,9 @@ def test_sp017_is_adopted_and_in_progress_without_completion_claims() -> None:
     assert positions == sorted(positions)
 
     current_documents = (
+        ROOT / "README.md",
+        ROOT / "ARCHITECTURE.md",
+        ROOT / "docs/rfc/026-follow-up-interaction-capture-closure.md",
         ROOT / "docs/project/PROJECT_STATUS.md",
         ROOT / "docs/project/PROJECT_HEALTH.md",
         ROOT / "docs/project/PROJECT_BRAIN.md",
@@ -551,12 +580,22 @@ def test_sp017_is_adopted_and_in_progress_without_completion_claims() -> None:
         path.read_text(encoding="utf-8-sig") for path in current_documents
     )
     required_markers = (
-        "APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS",
-        "Current SP: SP-017",
+        "SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED",
+        "Current SP: None",
         "RFC-026 Adopted",
+        "ACC-017 Status: PASSED / FINAL",
+        "| SP-018 | Structured Work Log Query & Context Linking | "
+        "CANDIDATE / NOT_APPROVED / NOT_STARTED |",
+        "| SP-019 | Daily Review & Follow-up Brief | "
+        "CANDIDATE / NOT_APPROVED / NOT_STARTED |",
     )
     assert all(marker in current_text for marker in required_markers)
-    forbidden_markers = ("SP-017 completed", "SP-017 verified", "SP-017 accepted")
+    forbidden_markers = (
+        "APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS",
+        "INDEPENDENT_REVIEW_CHANGES_REQUESTED",
+        "GITHUB_QUALITY_GATE_PENDING",
+        "SP-017 implementation in progress",
+    )
     assert all(marker not in current_text for marker in forbidden_markers)
 
     transient_fields = {
