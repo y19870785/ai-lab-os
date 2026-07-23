@@ -8,6 +8,7 @@ from enum import Enum
 
 from applications.ceo_assistant.waiting_for_intent import (
     extract_waiting_for_capture_content,
+    extract_waiting_for_id,
 )
 
 
@@ -113,6 +114,7 @@ def decide_intent(user_input: str) -> IntentDecision:
     """Classify intent deterministically, preferring reads when wording is ambiguous."""
 
     text = user_input.lower().strip()
+    waiting_for_id = extract_waiting_for_id(text)
 
     if "inbox_" in text and "整理成等待事项" in text:
         return IntentDecision("waiting_for_confirm", 1.0, IntentEffect.WRITE)
@@ -126,13 +128,13 @@ def decide_intent(user_input: str) -> IntentDecision:
     if text.startswith("查看") and "wf_" in text:
         return IntentDecision("waiting_for_detail", 1.0, IntentEffect.READ)
 
-    if text.startswith("催办"):
+    if waiting_for_id is not None and text.startswith("催办"):
         return IntentDecision("waiting_for_follow_up", 1.0, IntentEffect.WRITE)
-    if "延后到" in text and "提醒" not in text:
+    if waiting_for_id is not None and "延后到" in text and "提醒" not in text:
         return IntentDecision("waiting_for_snooze", 1.0, IntentEffect.WRITE)
-    if text.startswith("解决"):
+    if waiting_for_id is not None and text.startswith("解决"):
         return IntentDecision("waiting_for_resolve", 1.0, IntentEffect.WRITE)
-    if text.startswith("重新打开"):
+    if waiting_for_id is not None and text.startswith("重新打开"):
         return IntentDecision("waiting_for_reopen", 1.0, IntentEffect.WRITE)
 
     if "提醒" in text and text.startswith("取消"):
@@ -141,7 +143,7 @@ def decide_intent(user_input: str) -> IntentDecision:
         return IntentDecision("task", 1.0, IntentEffect.WRITE)
     if "提醒" in text and any(marker in text for marker in ("改到", "延后到", "改期")):
         return IntentDecision("reminder_reschedule", 1.0, IntentEffect.WRITE)
-    if text.startswith("取消") and "提醒" not in text:
+    if waiting_for_id is not None and text.startswith("取消") and "提醒" not in text:
         return IntentDecision("waiting_for_cancel", 1.0, IntentEffect.WRITE)
 
     if _is_reminder_list_query(text):
