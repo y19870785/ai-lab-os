@@ -71,6 +71,16 @@ async def run(args: list[str]) -> int:
     work_log_parser.add_argument("--description", default="")
     _add_json(work_log_parser)
 
+    waiting_for_parser = commands.add_parser("resolve-waiting-for")
+    waiting_for_parser.add_argument("item_id")
+    waiting_for_parser.add_argument("--subject", required=True)
+    waiting_for_parser.add_argument("--waiting-on", required=True)
+    waiting_for_parser.add_argument("--context", default="")
+    waiting_for_parser.add_argument("--expected-by")
+    waiting_for_parser.add_argument("--next-review-at")
+    waiting_for_parser.add_argument("--timezone")
+    _add_json(waiting_for_parser)
+
     note_parser = commands.add_parser("resolve-note")
     note_parser.add_argument("item_id")
     _add_json(note_parser)
@@ -99,6 +109,17 @@ async def run(args: list[str]) -> int:
             parser, values["scheduled_at"], "--scheduled-at"
         )
         values["timezone_name"] = values.pop("timezone")
+    elif operation == "resolve-waiting-for":
+        for field, option in (
+            ("expected_by", "--expected-by"),
+            ("next_review_at", "--next-review-at"),
+        ):
+            if values[field]:
+                values[field] = _aware_datetime(parser, values[field], option)
+            else:
+                values.pop(field)
+        if "expected_by" not in values and "next_review_at" not in values:
+            parser.error("--expected-by or --next-review-at is required")
 
     result = await execute_inbox_operation(operation, **values)
     if as_json:
@@ -114,5 +135,8 @@ async def run(args: list[str]) -> int:
 
     print(f"{result.id}  {result.status.value}  {result.content}")
     if result.resolved_target_id:
-        print(f"target: {result.resolved_target_id}")
+        if operation == "resolve-waiting-for":
+            print(f"已创建等待事项：{result.resolved_target_id}")
+        else:
+            print(f"target: {result.resolved_target_id}")
     return 0

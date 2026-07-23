@@ -104,7 +104,7 @@
 | RFC-025 | Canonical Waiting-For Domain and Agenda Closure | Adopted | 2026-07-22 |
 | ADR-054 | Model Waiting-For as a Separate Canonical Domain | Accepted | 2026-07-22 |
 | ADR-055 | Daily Agenda Optional-Source Composition | Accepted | 2026-07-22 |
-| RFC-026 | Follow-up Interaction and Capture Closure | Proposed / Planning Baseline | 2026-07-23 |
+| RFC-026 | Follow-up Interaction and Capture Closure | Adopted | 2026-07-23 |
 | ADR-056 | Deterministic Follow-up Interaction Boundary | Accepted | 2026-07-23 |
 | ADR-057 | Inbox-to-Waiting-For Resolution Saga | Accepted | 2026-07-23 |
 
@@ -112,4 +112,4 @@
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
 
-> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016 与 ACC-016 已完成并封存；ACC-014 A～L、ACC-016 A～J 全部 PASSED。SP-017 仅建立规划基线，未批准实施。
+> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016 与 ACC-016 已完成并封存；ACC-014 A～L、ACC-016 A～J 全部 PASSED。SP-017 的规划 PR #42 已合并，RFC-026 已 Adopted，当前获准实施并处于 IN_PROGRESS，尚未完成验证或验收。

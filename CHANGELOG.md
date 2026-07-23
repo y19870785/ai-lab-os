@@ -1,6 +1,11 @@
 ﻿
 ## [Unreleased]
 
+### SP-017 Follow-up Interaction & Capture Closure（实施中）
+- Planning PR #42 已以 Squash Merge 合入，RFC-026 已 Adopted，ADR-056 与 ADR-057 保持 Accepted。
+- SP-017 状态为 `APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS`；产品版本、Tag、Release 与发布授权保持不变。
+- 实现目标是确定性 Waiting-For 读取、Inbox 捕获与确认、显式 ID 生命周期操作；尚未完成验证或验收。
+
 ### v0.34.0 Alpha / Release Authorized
 - Promoted the source product version from `0.33.0` to `0.34.0` without changing business behavior or database schemas.
 - Established root `project_state.json` as the only machine-readable repository governance state and retained `pyproject.toml` as the only runtime version source.

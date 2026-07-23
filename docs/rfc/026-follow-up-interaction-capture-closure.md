@@ -1,6 +1,6 @@
 # RFC-026 — Follow-up Interaction and Capture Closure
 
-Status: Proposed / Planning Baseline
+Status: Adopted
 
 ## 背景与当前能力审计
 
@@ -274,7 +274,7 @@ SP-017 不包含：
 - Agenda 文本
 - 无 LLM 写入
 
-本 RFC 只定义规划基线，不实施上述工作流，也不批准 SP-017 实现。
+本 RFC 已通过规划 PR #42 合并并获准进入 SP-017 实施；当前状态为 `APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS`，尚未完成自动化验证或人工验收。
 
 ## 未来验收场景
 

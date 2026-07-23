@@ -40,6 +40,7 @@ class InboxSuggestedType(StrEnum):
     REMINDER = "reminder"
     WORK_LOG = "work_log"
     NOTE = "note"
+    WAITING_FOR = "waiting_for"
     UNKNOWN = "unknown"
 
 
@@ -48,6 +49,7 @@ class InboxResolvedType(StrEnum):
     REMINDER = "reminder"
     WORK_LOG = "work_log"
     NOTE = "note"
+    WAITING_FOR = "waiting_for"
     DISMISSED = "dismissed"
 
 
@@ -87,6 +89,7 @@ class InboxResolutionClaim(BaseModel):
             InboxResolvedType.USER_TASK,
             InboxResolvedType.REMINDER,
             InboxResolvedType.WORK_LOG,
+            InboxResolvedType.WAITING_FOR,
         }
         if self.resolved_type in external_types and not self.target_key:
             raise ValueError("external resolution claim requires target_key")

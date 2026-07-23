@@ -50,6 +50,7 @@ class InboxService:
         user_tasks=None,
         reminder_orchestrator=None,
         memory_manager=None,
+        waiting_for_service=None,
         bus=None,
         timezone_name: str = "UTC",
     ) -> None:
@@ -58,6 +59,7 @@ class InboxService:
         self._user_tasks = user_tasks
         self._reminder_orchestrator = reminder_orchestrator
         self._memory = memory_manager
+        self._waiting_for = waiting_for_service
         self._bus = bus
         self._timezone_name = timezone_name
         self._locks: weakref.WeakValueDictionary[str, asyncio.Lock] = (
@@ -112,6 +114,10 @@ class InboxService:
             "inbox.already_resolved": "Inbox item has already been resolved",
             "inbox.resolve_failed": "Inbox item resolution failed",
             "inbox.workspace_mismatch": "Inbox item belongs to another workspace",
+            "inbox.waiting_for.fields_missing": "Waiting-For confirmation fields are missing",
+            "inbox.waiting_for.timezone_invalid": "Waiting-For timezone is invalid",
+            "inbox.waiting_for.unavailable": "Waiting-For service is unavailable",
+            "inbox.waiting_for.source_mismatch": "Waiting-For source metadata does not match the Inbox item",
         }
         failure = FailureInfo(
             code=code,
@@ -290,6 +296,7 @@ class InboxService:
         create_target: Callable[
             [InboxItem, InboxResolutionClaim], Awaitable[str]
         ] | None,
+        return_completed: bool = False,
     ) -> InboxItem:
         """Resolve through a durable claim; the in-memory lock is only an optimization."""
 
@@ -351,6 +358,15 @@ class InboxService:
             if claim.resolved_type != resolved_type:
                 self._raise_claim_conflict(claim, workspace_key)
             if claim.state == InboxResolutionClaimState.COMPLETED:
+                completed = await self.get(
+                    workspace_key=workspace_key, inbox_item_id=inbox_item_id
+                )
+                if (
+                    return_completed
+                    and completed.resolved_type == resolved_type
+                    and completed.resolved_target_id == claim.target_id
+                ):
+                    return completed
                 self._raise_claim_conflict(claim, workspace_key)
 
             item = await self.get(
@@ -385,6 +401,8 @@ class InboxService:
                 )
             except FailureException as exc:
                 await self._publish("inbox.resolve_failed", item)
+                if resolved_type == InboxResolvedType.WAITING_FOR:
+                    raise
                 self._raise(
                     "inbox.resolve_failed",
                     exc.failure.category,
@@ -587,6 +605,120 @@ class InboxService:
             target_key=memory_id,
             reserved_target_id=memory_id,
             create_target=create,
+        )
+
+    async def resolve_to_waiting_for(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        inbox_item_id: str,
+        subject: str,
+        waiting_on: str,
+        context: str = "",
+        expected_by: datetime | None = None,
+        next_review_at: datetime | None = None,
+        timezone: str | None = None,
+    ) -> InboxItem:
+        """Confirm one Inbox item into one deterministic canonical Waiting-For."""
+
+        subject = subject.strip()
+        waiting_on = waiting_on.strip()
+        missing = []
+        if not subject:
+            missing.append("subject")
+        if not waiting_on:
+            missing.append("waiting_on")
+        if expected_by is None and next_review_at is None:
+            missing.append("expected_by_or_next_review_at")
+        if missing:
+            self._raise(
+                "inbox.waiting_for.fields_missing",
+                ErrorCategory.VALIDATION,
+                "resolve_to_waiting_for",
+                trace_id=workspace_key.trace_id,
+                details={
+                    "missing_fields": missing,
+                    "confirmation_template": (
+                        "python -m cli inbox resolve-waiting-for "
+                        f"{inbox_item_id} --subject <事项> --waiting-on <对象> "
+                        "--next-review-at <ISO-8601> --timezone <IANA>"
+                    ),
+                },
+            )
+        timezone_name = timezone or self._timezone_name
+        try:
+            ZoneInfo(timezone_name)
+        except (ValueError, KeyError) as exc:
+            self._raise(
+                "inbox.waiting_for.timezone_invalid",
+                ErrorCategory.VALIDATION,
+                "resolve_to_waiting_for",
+                exc,
+                trace_id=workspace_key.trace_id,
+                details={"timezone": timezone_name},
+            )
+        if self._waiting_for is None:
+            self._raise(
+                "inbox.waiting_for.unavailable",
+                ErrorCategory.UNAVAILABLE,
+                "resolve_to_waiting_for",
+                trace_id=workspace_key.trace_id,
+            )
+
+        target_id = self._target_id("wf_inbox", inbox_item_id)
+
+        async def create(item: InboxItem, claim: InboxResolutionClaim) -> str:
+            metadata = {
+                "inbox_item_id": item.id,
+                "inbox_source": item.source,
+            }
+            try:
+                result = await self._waiting_for.create(
+                    workspace_key=workspace_key,
+                    subject=subject,
+                    waiting_on=waiting_on,
+                    context=context,
+                    expected_by=expected_by,
+                    next_review_at=next_review_at,
+                    timezone=timezone_name,
+                    source="inbox",
+                    trace_id=workspace_key.trace_id,
+                    metadata=metadata,
+                    waiting_for_id=claim.target_key or target_id,
+                )
+                return result.item.id
+            except FailureException as exc:
+                if exc.failure.category != ErrorCategory.CONFLICT:
+                    raise
+                existing = await self._waiting_for.get(
+                    workspace_key=workspace_key,
+                    waiting_for_id=claim.target_key or target_id,
+                )
+                if (
+                    existing.metadata.get("inbox_item_id") != item.id
+                    or existing.metadata.get("inbox_source") != item.source
+                ):
+                    self._raise(
+                        "inbox.waiting_for.source_mismatch",
+                        ErrorCategory.CONFLICT,
+                        "resolve_to_waiting_for",
+                        exc,
+                        trace_id=workspace_key.trace_id,
+                        details={
+                            "waiting_for_id": existing.id,
+                            "inbox_item_id": item.id,
+                        },
+                    )
+                return existing.id
+
+        return await self._resolve(
+            workspace_key=workspace_key,
+            inbox_item_id=inbox_item_id,
+            resolved_type=InboxResolvedType.WAITING_FOR,
+            target_key=target_id,
+            reserved_target_id=target_id,
+            create_target=create,
+            return_completed=True,
         )
 
     async def resolve_as_note(

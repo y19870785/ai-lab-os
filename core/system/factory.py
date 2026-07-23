@@ -337,6 +337,7 @@ async def create_system(
         user_tasks=user_task_service,
         reminder_orchestrator=reminder_orchestrator,
         memory_manager=memory_manager,
+        waiting_for_service=waiting_for_service,
         bus=event_bus,
         timezone_name=settings.timezone_name,
     )
@@ -364,7 +365,10 @@ async def create_system(
         reminder_management=reminder_management,
         daily_agenda=daily_agenda,
         inbox_service=inbox_service,
+        waiting_for_service=waiting_for_service,
         task_intent_parser=TaskReminderIntentParser(settings.timezone_name, clock),
+        clock=clock,
+        timezone_name=settings.timezone_name,
         config=ApplicationConfig(
             provider_mode=settings.provider_mode,
             default_model=settings.model,

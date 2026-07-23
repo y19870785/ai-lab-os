@@ -478,6 +478,7 @@ class SQLiteInboxRepository:
                         InboxResolvedType.USER_TASK,
                         InboxResolvedType.REMINDER,
                         InboxResolvedType.WORK_LOG,
+                        InboxResolvedType.WAITING_FOR,
                     }
                     if external and claim.state not in {
                         InboxResolutionClaimState.TARGET_CREATED,
