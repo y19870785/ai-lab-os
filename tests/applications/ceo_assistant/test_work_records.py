@@ -10,16 +10,20 @@
 
 import pytest
 import pytest_asyncio
-import sys, os, asyncio
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
 from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.bus.bus import get_bus
 from core.memory.manager import MemoryManager
-from core.memory.models import MemoryType, MemoryQuery
+from core.memory.models import MemoryType
 from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
 from core.memory.session import SessionMemory
+from core.clock import SystemClock
+from core.database import DatabaseManager
+from core.work_log import SQLiteWorkLogRepository, WorkLogQuery, WorkLogService
 
 
 @pytest_asyncio.fixture
@@ -36,15 +40,31 @@ async def app_with_memory(tmp_path):
     memory.register_store(MemoryType.SESSION, sm)
 
     es_path = os.path.join(db_dir, "episodic.db")
-    es = SQLiteEpisodicStore(db_path=es_path)
+    db_manager = DatabaseManager(db_dir)
+    es = SQLiteEpisodicStore(db_path=es_path, db_manager=db_manager)
     await es.initialize()
     memory.register_store(MemoryType.EPISODIC, es)
+    work_logs = WorkLogService(
+        SQLiteWorkLogRepository(
+            db_manager, es_path, timezone_name="Asia/Shanghai"
+        ),
+        clock=SystemClock(),
+        timezone_name="Asia/Shanghai",
+    )
+    await work_logs.initialize()
 
-    app = CEOAssistant(memory_manager=memory, admission=PERMISSIVE_TEST_ADMISSION)
+    app = CEOAssistant(
+        memory_manager=memory,
+        work_log_service=work_logs,
+        clock=SystemClock(),
+        timezone_name="Asia/Shanghai",
+        admission=PERMISSIVE_TEST_ADMISSION,
+    )
     yield app
 
     await bus.stop()
     await es.close()
+    db_manager.close_all()
 
 
 class TestWorkRecords:
@@ -69,8 +89,8 @@ class TestWorkRecords:
         """验证标签提取。"""
         app = CEOAssistant(admission=PERMISSIVE_TEST_ADMISSION)
         result = await app._extract_work_entities("蜂蜡面包袋FDA检测方案确认")
-        assert "蜂蜡" in result["tags"], f"应包含蜂蜡标签"
-        assert "检测" in result["tags"], f"应包含检测标签"
+        assert "蜂蜡" in result["tags"], "应包含蜂蜡标签"
+        assert "检测" in result["tags"], "应包含检测标签"
 
     @pytest.mark.asyncio
     async def test_extract_empty_input(self):
@@ -101,10 +121,10 @@ class TestWorkRecords:
         assert len(resp.answer) > 0
 
         # 验证 Episodic Memory 中有记录
-        q = MemoryQuery(memory_type=MemoryType.EPISODIC, top_k=10)
-        items = await app_with_memory._memory.retrieve_memory(q)
-        work_logs = [i for i in items if i.content.get("type") == "work_log"]
-        assert len(work_logs) >= 1, "应有至少一条工作记录"
+        page = await app_with_memory._work_logs.list(
+            workspace_key=req.workspace_key, query=WorkLogQuery()
+        )
+        assert len(page.items) >= 1, "应有至少一条工作记录"
 
     @pytest.mark.asyncio
     async def test_work_log_prefix_stripping(self, app_with_memory):
@@ -127,7 +147,10 @@ class TestWorkRecords:
                 application_name="ceo-assistant", user_input=text,
             ))
 
-        q = MemoryQuery(memory_type=MemoryType.EPISODIC, top_k=10)
-        items = await app_with_memory._memory.retrieve_memory(q)
-        work_logs = [i for i in items if i.content.get("type") == "work_log"]
-        assert len(work_logs) >= 2, f"应有至少2条记录，实际: {len(work_logs)}"
+        page = await app_with_memory._work_logs.list(
+            workspace_key=ApplicationRequest(
+                application_name="ceo-assistant", user_input=""
+            ).workspace_key,
+            query=WorkLogQuery(),
+        )
+        assert len(page.items) >= 2, f"应有至少2条记录，实际: {len(page.items)}"

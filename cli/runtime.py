@@ -24,6 +24,34 @@ async def execute_ceo_request(user_input: str) -> tuple[ApplicationResponse, str
         await system.shutdown()
 
 
+async def execute_work_log_operation(
+    operation: str, *, workspace_key: WorkspaceKey, **values
+):
+    """Execute one Work Log operation through the shared Composition Root."""
+
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        service = system.work_log_service
+        if operation == "create":
+            return await service.create(
+                workspace_key=workspace_key, command=values["command"]
+            )
+        if operation == "list":
+            return await service.list(
+                workspace_key=workspace_key, query=values["query"]
+            )
+        if operation == "show":
+            return await service.get(
+                workspace_key=workspace_key,
+                work_log_id=values["work_log_id"],
+            )
+        raise ValueError(f"Unsupported Work Log operation: {operation}")
+    finally:
+        await system.shutdown()
+
+
 async def query_reminder_status(reminder_id: str):
     """Query persisted Reminder state and always close the shared system."""
 

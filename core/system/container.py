@@ -38,6 +38,7 @@ from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.agenda import DailyAgendaService
 from core.inbox import InboxService, SQLiteInboxRepository
 from core.waiting_for import SQLiteWaitingForRepository, WaitingForService
+from core.work_log import SQLiteWorkLogRepository, WorkLogService
 from core.reminders import (
     ReminderSchedulerBridge,
     ReminderInboxService,
@@ -65,6 +66,8 @@ class SystemContainer:
     providers: tuple[BaseProvider, ...]
     memory_manager: MemoryManager
     memory_stores: tuple[MemoryStore, ...]
+    work_log_repository: SQLiteWorkLogRepository
+    work_log_service: WorkLogService
     knowledge_manager: KnowledgeManager | None
     tool_registry: ToolRegistry
     tool_executor: ToolExecutor
@@ -123,6 +126,9 @@ class SystemContainer:
             for store in self.memory_stores:
                 await store.initialize()
             logger.info("memory.initialized")
+
+            await self.work_log_service.initialize()
+            logger.info("work_log.initialized")
 
             if self.user_task_service is not None:
                 await self.user_task_service.initialize()
@@ -226,6 +232,7 @@ class SystemContainer:
             await close_component("reminder_service", self.reminder_service.close)
         await close_component("waiting_for_service", self.waiting_for_service.close)
         await close_component("inbox_service", self.inbox_service.close)
+        await close_component("work_log_service", self.work_log_service.close)
         if self.user_task_service is not None:
             await close_component("user_task_service", self.user_task_service.close)
         await close_component("workflow_runtime", self.workflow_runtime.shutdown)
@@ -314,6 +321,7 @@ class SystemContainer:
         )
         inbox_health = await self.inbox_repository.health_check()
         waiting_for_health = await self.waiting_for_service.health()
+        work_log_health = await self.work_log_service.health_check()
         reminder_status = RuntimeStatus.DISABLED.value
         if self.reminder_service is not None:
             statuses = {
@@ -342,6 +350,7 @@ class SystemContainer:
             },
             "database": database_health,
             "memory": memory_health,
+            "work_log": work_log_health,
             "knowledge": {
                 "status": (
                     RuntimeStatus.DISABLED.value
@@ -405,6 +414,7 @@ class SystemContainer:
             "agent", "workflow", "task",
             "inbox",
             "waiting_for",
+            "work_log",
         }
         if self.settings.enable_scheduler:
             critical.add("scheduler")

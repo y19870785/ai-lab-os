@@ -5,7 +5,7 @@
 
 ## Summary
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiting-For、确定性 Follow-up Interaction 与 Inbox-to-Waiting-For conversion 已集成、通过人工验收并封存，Daily Agenda 使用可选来源组合。这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 Draft Head 已实现 canonical Work Log 查询边界并通过自动化验证，但尚未合并或执行 ACC-018。这些能力不等同于生产级多用户平台。
 
 | Metric | Current fact |
 |---|---|
@@ -15,9 +15,9 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | SP-017 post-merge main | `32bb9c0a939c65f2278fc2b6be8d072fb2e3656a` / run `30006958413` / SUCCESS |
 | SP-017 post-merge pytest (non-real) | 1239 passed, 6 skipped, 27 warnings |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current product SP | None |
+| Current product SP | SP-018 / implemented on Draft Head / manual acceptance not executed |
 | Current governance task | None |
-| Next candidate | SP-018 — Work Log Query Boundary & Context Closure / planning baseline / implementation not approved / not started |
+| Next candidate | SP-019 — Daily Review & Follow-up Brief / not approved / not started |
 | Latest completed SP | SP-017 / manual acceptance passed / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
@@ -33,7 +33,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | Waiting-For | Integrated / Verified / Manual acceptance passed | SP-016 与 SP-017 completed / archived；独立 canonical domain、确定性交互与 `followups.db` |
 | Unified Inbox / Capture-to-Action | Integrated / Verified | workspace 隔离、持久化 resolution claim 与幂等已验收 |
 | SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
-| SP-018 planning | Planning baseline only / Not implemented | RFC-027 Proposed；ADR-058～060 Accepted；ACC-018 NOT_EXECUTED；生产代码未改变 |
+| Work Log / SP-018 | Implemented on Draft Head / Automated verification passed | RFC-027 Adopted；ADR-058～060 Accepted；ACC-018 NOT_EXECUTED；未合并 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

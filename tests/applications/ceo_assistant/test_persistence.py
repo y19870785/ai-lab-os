@@ -7,7 +7,9 @@
 - Workspace 数据隔离
 """
 
-import pytest, sys, os, asyncio
+import pytest
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
@@ -23,6 +25,7 @@ from core.memory.storage.sqlite_decision import SQLiteDecisionStore
 from core.memory.session import SessionMemory
 from core.database import DatabaseManager
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
+from core.work_log import SQLiteWorkLogRepository, WorkLogService
 
 
 class TestPersistence:
@@ -40,17 +43,33 @@ class TestPersistence:
         await bus1.start()
         mem1 = MemoryManager(bus=bus1)
         mem1.register_store(MemoryType.SESSION, SessionMemory(3600, bus=bus1))
-        es1 = SQLiteEpisodicStore(db_path=ep_path)
+        manager1 = DatabaseManager(db_dir)
+        es1 = SQLiteEpisodicStore(db_path=ep_path, db_manager=manager1)
         await es1.initialize()
         mem1.register_store(MemoryType.EPISODIC, es1)
+        work_logs1 = WorkLogService(
+            SQLiteWorkLogRepository(
+                manager1, ep_path, timezone_name="Asia/Shanghai"
+            ),
+            clock=SystemClock(),
+            timezone_name="Asia/Shanghai",
+        )
+        await work_logs1.initialize()
 
-        app1 = CEOAssistant(memory_manager=mem1, admission=PERMISSIVE_TEST_ADMISSION)
+        app1 = CEOAssistant(
+            memory_manager=mem1,
+            work_log_service=work_logs1,
+            clock=SystemClock(),
+            timezone_name="Asia/Shanghai",
+            admission=PERMISSIVE_TEST_ADMISSION,
+        )
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="记录: 测试持久化数据",
         ))
         await bus1.stop()
         await es1.close()
+        manager1.close_all()
 
         # 第二次：重新打开，验证数据还在
         bus2 = get_bus()
@@ -157,20 +176,38 @@ class TestPersistence:
         os.makedirs(db_dir2, exist_ok=True)
 
         # Workspace 1
-        bus1 = get_bus(); await bus1.start()
+        bus1 = get_bus()
+        await bus1.start()
         mem1 = MemoryManager(bus=bus1)
         mem1.register_store(MemoryType.SESSION, SessionMemory(3600, bus=bus1))
-        es1 = SQLiteEpisodicStore(db_path=os.path.join(db_dir1, "episodic.db"))
+        ep_path1 = os.path.join(db_dir1, "episodic.db")
+        manager1 = DatabaseManager(db_dir1)
+        es1 = SQLiteEpisodicStore(db_path=ep_path1, db_manager=manager1)
         await es1.initialize()
         mem1.register_store(MemoryType.EPISODIC, es1)
-        app1 = CEOAssistant(memory_manager=mem1, admission=PERMISSIVE_TEST_ADMISSION)
+        work_logs1 = WorkLogService(
+            SQLiteWorkLogRepository(
+                manager1, ep_path1, timezone_name="Asia/Shanghai"
+            ),
+            clock=SystemClock(),
+            timezone_name="Asia/Shanghai",
+        )
+        await work_logs1.initialize()
+        app1 = CEOAssistant(
+            memory_manager=mem1,
+            work_log_service=work_logs1,
+            clock=SystemClock(),
+            timezone_name="Asia/Shanghai",
+            admission=PERMISSIVE_TEST_ADMISSION,
+        )
         await app1.run(ApplicationRequest(
             application_name="ceo-assistant",
             user_input="记录: Workspace1的数据",
         ))
 
         # Workspace 2
-        bus2 = get_bus(); await bus2.start()
+        bus2 = get_bus()
+        await bus2.start()
         mem2 = MemoryManager(bus=bus2)
         mem2.register_store(MemoryType.SESSION, SessionMemory(3600, bus=bus2))
         es2 = SQLiteEpisodicStore(db_path=os.path.join(db_dir2, "episodic.db"))
@@ -183,5 +220,8 @@ class TestPersistence:
         # Workspace 2 不应看到 Workspace 1 的数据
         assert len(work_logs2) == 0, f"Workspace 2 不应有 WS1 的数据: {len(work_logs2)}"
 
-        await bus1.stop(); await es1.close()
-        await bus2.stop(); await es2.close()
+        await bus1.stop()
+        await es1.close()
+        manager1.close_all()
+        await bus2.stop()
+        await es2.close()

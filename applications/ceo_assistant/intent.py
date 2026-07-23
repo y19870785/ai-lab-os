@@ -10,6 +10,7 @@ from applications.ceo_assistant.waiting_for_intent import (
     extract_waiting_for_capture_content,
     extract_waiting_for_id,
 )
+from applications.ceo_assistant.work_log_intent import is_work_log_query
 
 
 class IntentEffect(str, Enum):
@@ -148,6 +149,9 @@ def decide_intent(user_input: str) -> IntentDecision:
 
     if _is_reminder_list_query(text):
         return IntentDecision("reminder_list", 1.0, IntentEffect.READ)
+
+    if is_work_log_query(text):
+        return IntentDecision("work_log_query", 1.0, IntentEffect.READ)
 
     daily_agenda_markers = (
         "今天有什么安排", "今天的日程", "查看今天安排", "查看今日日程",

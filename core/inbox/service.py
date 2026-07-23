@@ -32,7 +32,6 @@ from core.inbox.models import (
     canonical_workspace,
 )
 from core.inbox.repository import SQLiteInboxRepository
-from core.memory.models import MemoryType
 from core.user_tasks import UserTaskPriority
 from core.workspace.models import WorkspaceKey
 
@@ -50,6 +49,7 @@ class InboxService:
         user_tasks=None,
         reminder_orchestrator=None,
         memory_manager=None,
+        work_log_service=None,
         waiting_for_service=None,
         bus=None,
         timezone_name: str = "UTC",
@@ -59,6 +59,7 @@ class InboxService:
         self._user_tasks = user_tasks
         self._reminder_orchestrator = reminder_orchestrator
         self._memory = memory_manager
+        self._work_logs = work_log_service
         self._waiting_for = waiting_for_service
         self._bus = bus
         self._timezone_name = timezone_name
@@ -568,43 +569,40 @@ class InboxService:
         title: str,
         description: str = "",
     ) -> InboxItem:
-        memory_id = self._target_id("inbox_wl", inbox_item_id)
+        work_log_id = (
+            "wl_"
+            + hashlib.sha256(
+                f"work_log|{inbox_item_id}".encode("utf-8")
+            ).hexdigest()[:32]
+        )
 
         async def create(item: InboxItem, claim: InboxResolutionClaim) -> str:
-            if self._memory is None:
-                raise RuntimeError("Memory service is not configured")
-            memory_id = claim.target_key
-            if not memory_id:
+            if self._work_logs is None:
+                raise RuntimeError("Work Log service is not configured")
+            reserved_id = claim.target_key
+            if not reserved_id:
                 raise RuntimeError("Work Log claim target is missing")
-            workspace = self._workspace_dict(workspace_key)
-            local_date = self._clock.now().astimezone(ZoneInfo(self._timezone_name)).date()
-            return await self._memory.save_memory(
-                MemoryType.EPISODIC,
-                {
-                    "type": "work_log",
-                    "raw_text": description or item.content,
-                    "date": local_date.isoformat(),
-                    "subject": title,
-                    "status": "completed",
-                    "tags": ["inbox"],
-                    "metadata": workspace,
-                },
-                importance=0.6,
-                item_id=memory_id,
-                metadata={
-                    "source": "inbox",
-                    "inbox_item_id": item.id,
-                    "workspace_id": workspace["workspace_id"],
-                },
+            record = await self._work_logs.create_from_inbox(
+                workspace_key=workspace_key,
+                inbox_item_id=item.id,
+                subject=title,
+                raw_text=description or item.content,
+                reserved_id=reserved_id,
+            )
+            return (
+                reserved_id
+                if reserved_id.startswith("inbox_wl_")
+                else record.id
             )
 
         return await self._resolve(
             workspace_key=workspace_key,
             inbox_item_id=inbox_item_id,
             resolved_type=InboxResolvedType.WORK_LOG,
-            target_key=memory_id,
-            reserved_target_id=memory_id,
+            target_key=work_log_id,
+            reserved_target_id=work_log_id,
             create_target=create,
+            return_completed=True,
         )
 
     async def resolve_to_waiting_for(

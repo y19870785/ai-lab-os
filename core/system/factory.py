@@ -55,6 +55,7 @@ from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.agenda import DailyAgendaService
 from core.waiting_for import SQLiteWaitingForRepository, WaitingForService
 from core.inbox import InboxService, SQLiteInboxRepository
+from core.work_log import SQLiteWorkLogRepository, WorkLogService
 from core.reminders import (
     ReminderActionHandler,
     NaturalLanguageReminderOrchestrator,
@@ -178,6 +179,17 @@ async def create_system(
     memory_stores = (session_store, episodic_store, semantic_store, decision_store)
     for memory_type, store in zip(MemoryType, memory_stores):
         memory_manager.register_store(memory_type, store)
+
+    work_log_repository = SQLiteWorkLogRepository(
+        database_manager,
+        settings.sqlite_dir / "episodic.db",
+        timezone_name=settings.timezone_name,
+    )
+    work_log_service = WorkLogService(
+        work_log_repository,
+        clock=clock,
+        timezone_name=settings.timezone_name,
+    )
 
     user_task_repository = None
     user_task_service = None
@@ -326,6 +338,7 @@ async def create_system(
         user_tasks=user_task_service,
         reminder_inbox=reminder_inbox,
         memory_manager=memory_manager,
+        work_log_service=work_log_service,
         waiting_for=waiting_for_service,
         timezone_name=settings.timezone_name,
         clock=clock,
@@ -338,6 +351,7 @@ async def create_system(
         reminder_orchestrator=reminder_orchestrator,
         memory_manager=memory_manager,
         waiting_for_service=waiting_for_service,
+        work_log_service=work_log_service,
         bus=event_bus,
         timezone_name=settings.timezone_name,
     )
@@ -366,6 +380,7 @@ async def create_system(
         daily_agenda=daily_agenda,
         inbox_service=inbox_service,
         waiting_for_service=waiting_for_service,
+        work_log_service=work_log_service,
         task_intent_parser=TaskReminderIntentParser(settings.timezone_name, clock),
         clock=clock,
         timezone_name=settings.timezone_name,
@@ -403,6 +418,8 @@ async def create_system(
         providers=(llm, *extras),
         memory_manager=memory_manager,
         memory_stores=memory_stores,
+        work_log_repository=work_log_repository,
+        work_log_service=work_log_service,
         knowledge_manager=knowledge_manager,
         tool_registry=tool_registry,
         tool_executor=tool_executor,

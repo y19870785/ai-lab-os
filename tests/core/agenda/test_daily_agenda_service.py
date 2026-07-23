@@ -32,6 +32,39 @@ class FakeMemoryManager:
         return self._items
 
 
+class FakeWorkLogService:
+    def __init__(self, items=None):
+        self._items = items or []
+
+    async def list(self, *, workspace_key, query):
+        identity = (
+            getattr(workspace_key, "tenant_id", "") or "default",
+            getattr(workspace_key, "workspace_id", "") or "default",
+            getattr(workspace_key, "namespace", "") or "default",
+        )
+        items = [
+            item
+            for item in self._items
+            if (
+                item.workspace_key.tenant_id,
+                item.workspace_key.workspace_id,
+                item.workspace_key.namespace,
+            )
+            == identity
+            and (query.date_from is None or item.occurred_at >= query.date_from)
+            and (query.date_to is None or item.occurred_at < query.date_to)
+        ]
+        return type(
+            "Page",
+            (),
+            {
+                "items": tuple(items[query.offset : query.offset + query.limit]),
+                "has_more": query.offset + query.limit < len(items),
+                "count": len(items[query.offset : query.offset + query.limit]),
+            },
+        )()
+
+
 class FakeWaitingForService:
     def __init__(self, items=None):
         self._items = items or []
@@ -53,9 +86,29 @@ def _fake_task(task_id, title, status, due_at=None):
 
 
 def _fake_wl(item_id, date_str, subject, ws="default"):
-    from core.memory.models import MemoryItem, MemoryType
-    return MemoryItem(id=item_id, memory_type=MemoryType.EPISODIC,
-                      content={"type": "work_log", "date": date_str, "subject": subject, "metadata": {"workspace_id": ws}})
+    from core.work_log import WorkLogRecord
+    from core.workspace.models import WorkspaceKey
+
+    return WorkLogRecord(
+        id=item_id,
+        workspace_key=WorkspaceKey(
+            tenant_id="default",
+            workspace_id=ws,
+            namespace="default",
+            trace_id="",
+        ),
+        occurred_at=datetime.fromisoformat(date_str).replace(
+            tzinfo=timezone.utc
+        ),
+        timezone="Asia/Shanghai",
+        subject=subject,
+        raw_text=subject,
+        source="legacy",
+        created_at=datetime.fromisoformat(date_str).replace(
+            tzinfo=timezone.utc
+        ),
+        schema_version=1,
+    )
 
 
 def _fake_waiting_for(clock, subject, **changes):
@@ -81,7 +134,14 @@ def clock():
 
 @pytest.fixture
 def svc(clock):
-    return DailyAgendaService(FakeUserTaskService(), FakeReminderInbox(), FakeMemoryManager(), timezone_name="Asia/Shanghai", clock=clock)
+    return DailyAgendaService(
+        FakeUserTaskService(),
+        FakeReminderInbox(),
+        FakeMemoryManager(),
+        work_log_service=FakeWorkLogService(),
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
 
 
 class FakeWorkspace:
@@ -126,9 +186,9 @@ async def test_next_in_window_task_included(svc, clock):
 
 @pytest.mark.asyncio
 async def test_wl_workspace_isolation(svc, clock):
-    svc._memory = FakeMemoryManager([
-        _fake_wl("wl1", "2026-07-17", "Alpha", ws="alpha"),
-        _fake_wl("wl2", "2026-07-17", "Default", ws="default"),
+    svc._work_logs = FakeWorkLogService([
+        _fake_wl("wl_" + "1" * 32, "2026-07-17", "Alpha", ws="alpha"),
+        _fake_wl("wl_" + "2" * 32, "2026-07-17", "Default", ws="default"),
     ])
     page = await svc.list(workspace_key=FakeWorkspace(), view="today")
     assert len(page.items) == 1

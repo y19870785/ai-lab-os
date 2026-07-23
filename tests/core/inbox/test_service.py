@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import hashlib
 
 import pytest
 
@@ -124,7 +125,23 @@ async def test_resolve_to_reminder_and_work_log_use_existing_services(tmp_path):
         stored_reminder = await system.reminder_service.get(reminder.resolved_target_id)
         assert stored_reminder.id == reminder.resolved_target_id
         assert work_log.resolved_type == InboxResolvedType.WORK_LOG
-        assert work_log.resolved_target_id.startswith("inbox_wl_")
+        assert work_log.resolved_target_id.startswith("wl_")
+        stored_work_log = await system.work_log_service.get(
+            workspace_key=workspace,
+            work_log_id=work_log.resolved_target_id,
+        )
+        assert stored_work_log.source.value == "inbox"
+        repeated = await system.inbox_service.resolve_to_work_log(
+            workspace_key=workspace,
+            inbox_item_id=work_log_item.id,
+            title="完成验货",
+        )
+        assert repeated.resolved_target_id == work_log.resolved_target_id
+        with system.database_manager.lease("episodic") as conn:
+            assert conn.execute(
+                "SELECT COUNT(*) FROM episodic_memories WHERE id=?",
+                (work_log.resolved_target_id,),
+            ).fetchone()[0] == 1
     finally:
         await system.shutdown()
 
@@ -153,5 +170,48 @@ async def test_target_failure_leaves_inbox_pending(tmp_path, monkeypatch):
         assert failure.value.failure.code == "inbox.resolve_failed"
         assert stored.status == InboxStatus.PENDING
         assert stored.resolved_target_id is None
+    finally:
+        await system.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_historical_work_log_claim_preserves_alias_during_recovery(tmp_path):
+    system = await _system(tmp_path)
+    workspace = WorkspaceKey()
+    try:
+        item = await system.inbox_service.capture(
+            workspace_key=workspace,
+            content="历史 claim 恢复",
+            source="api",
+        )
+        alias = (
+            "inbox_wl_"
+            + hashlib.sha256(
+                f"inbox_wl|{item.id}".encode("utf-8")
+            ).hexdigest()[:24]
+        )
+        await system.inbox_repository.claim_resolution(
+            workspace,
+            item.id,
+            resolved_type=InboxResolvedType.WORK_LOG,
+            target_key=alias,
+            target_id=alias,
+            now=NOW,
+        )
+        resolved = await system.inbox_service.resolve_to_work_log(
+            workspace_key=workspace,
+            inbox_item_id=item.id,
+            title="历史 claim 恢复",
+        )
+        assert resolved.resolved_target_id == alias
+        projected = await system.work_log_service.get(
+            workspace_key=workspace, work_log_id=alias
+        )
+        assert projected.id.startswith("wl_legacy_")
+        claim = await system.inbox_repository.get_resolution_claim(
+            workspace, item.id
+        )
+        assert claim.target_key == alias
+        assert claim.target_id == alias
     finally:
         await system.shutdown()
