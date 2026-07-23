@@ -1,12 +1,16 @@
 ﻿"""API Models。"""
 from datetime import datetime
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Any
 
 from core.user_tasks import UserTaskPriority, UserTaskStatus
 from core.reminders import ReminderOccurrenceStatus, ReminderStatus
 from core.inbox import InboxResolvedType, InboxStatus, InboxSuggestedType
 from core.waiting_for import WaitingForEventType, WaitingForStatus, WaitingForView
+from core.work_log import (
+    WorkLogContextRef,
+    WorkLogStatus,
+)
 
 class ChatRequest(BaseModel):
     user_input: str = ""
@@ -22,6 +26,40 @@ class ChatResponse(BaseModel):
     trace_id: str = ""
     latency_ms: float = 0.0
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class WorkLogCreateRequest(BaseModel):
+    """Typed create contract plus the historical ChatRequest input adapter."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    subject: str | None = Field(default=None, max_length=500)
+    raw_text: str | None = Field(default=None, max_length=4_000)
+    occurred_at: datetime | None = None
+    timezone: str | None = None
+    target: str | None = Field(default=None, max_length=200)
+    status: WorkLogStatus = WorkLogStatus.COMPLETED
+    tags: list[str] = Field(default_factory=list)
+    context_refs: list[WorkLogContextRef] = Field(default_factory=list)
+    user_input: str | None = Field(
+        default=None,
+        max_length=4_000,
+        description="Deprecated ChatRequest compatibility field.",
+    )
+    application_name: str | None = None
+    session_id: str | None = None
+    idempotency_key: str | None = None
+    stream: bool | None = None
+
+    @model_validator(mode="after")
+    def require_typed_or_compatibility_text(self):
+        compatibility = (self.user_input or "").strip()
+        if self.subject is None and self.raw_text is None and compatibility:
+            self.subject = compatibility[:500]
+            self.raw_text = compatibility
+        if not (self.subject or "").strip() or not (self.raw_text or "").strip():
+            raise ValueError("subject and raw_text are required")
+        return self
 
 class TaskCreateRequest(BaseModel):
     title: str

@@ -39,6 +39,13 @@ from core.errors import (
     FailureInfo,
     failure_from_exception,
 )
+from applications.ceo_assistant.work_log_intent import parse_work_log_query
+from core.work_log import (
+    WorkLogCreateCommand,
+    WorkLogQuery,
+    WorkLogSource,
+    WorkLogStatus,
+)
 from core.memory.models import MemoryQuery, MemoryType
 from core.system.admission import WorkAdmission
 
@@ -63,6 +70,7 @@ class CEOAssistant:
         daily_agenda=None,
         inbox_service=None,
         waiting_for_service=None,
+        work_log_service=None,
         task_intent_parser=None,
         clock=None,
         timezone_name: str = "UTC",
@@ -82,6 +90,7 @@ class CEOAssistant:
         self._daily_agenda = daily_agenda
         self._inbox = inbox_service
         self._waiting_for = waiting_for_service
+        self._work_logs = work_log_service
         self._task_intent_parser = task_intent_parser
         self._clock = clock
         self._timezone_name = timezone_name
@@ -138,6 +147,7 @@ class CEOAssistant:
             "reminder_cancel": {IntentEffect.WRITE},
             "reminder_reschedule": {IntentEffect.WRITE},
             "work_log": {IntentEffect.WRITE},
+            "work_log_query": {IntentEffect.READ},
             "decision": {IntentEffect.WRITE},
             "brief": {IntentEffect.READ},
             "knowledge": {IntentEffect.READ},
@@ -184,6 +194,8 @@ class CEOAssistant:
                 )
             elif decision.intent == "work_log":
                 result = await self._handle_work_log(request)
+            elif decision.intent == "work_log_query":
+                result = await self._handle_work_log_query(request)
             elif decision.intent == "reminder_list":
                 result = await self._handle_reminder_list(request)
             elif decision.intent == "reminder_detail":
@@ -497,58 +509,39 @@ class CEOAssistant:
 
     async def _handle_work_log(self, request: ApplicationRequest) -> dict[str, Any]:
         """处理工作记录输入。"""
-        if self._memory is None:
-            raise RuntimeError("Memory service is not configured")
+        if self._work_logs is None:
+            raise RuntimeError("Work Log service is not configured")
         user_input = request.user_input
         # Strip common prefixes
         for prefix in ["记录:", "记录：", "记录 ", "log:", "log "]:
             if user_input.startswith(prefix):
                 user_input = user_input[len(prefix):].strip()
 
-        # 实体提取
+        status = (
+            WorkLogStatus.BLOCKED
+            if any(marker in user_input for marker in ("阻塞", "卡住", "等待"))
+            else WorkLogStatus.IN_PROGRESS
+            if any(marker in user_input for marker in ("进行中", "正在"))
+            else WorkLogStatus.COMPLETED
+        )
         extracted = await self._extract_work_entities(user_input)
-
-        # 写入 Episodic Memory
-        episode_content = {
-            "type": "work_log",
-            "raw_text": user_input,
-            "date": extracted.get("date", datetime.now().strftime("%Y-%m-%d")),
-            "target": extracted.get("target", ""),
-            "subject": extracted.get("subject", user_input[:100]),
-            "status": extracted.get("status", ""),
-            "tags": extracted.get("tags", []),
+        record = await self._work_logs.create(
+            workspace_key=request.workspace_key,
+            command=WorkLogCreateCommand(
+                subject=(extracted.get("subject") or user_input)[:500],
+                raw_text=user_input,
+                target=extracted.get("target") or None,
+                status=status,
+                tags=extracted.get("tags", []),
+                source=WorkLogSource.CEO_ASSISTANT,
+            ),
+        )
+        return {
+            "answer": f"[OK] 已记录工作内容：\n\n事项: {record.subject}\nID: {record.id}",
+            "status": "ok",
+            "metadata": record.model_dump(mode="json"),
+            "_deterministic": True,
         }
-
-        from core.memory.models import MemoryItem, MemoryType
-        item = MemoryItem(
-            memory_type=MemoryType.EPISODIC,
-            content=episode_content,
-            importance=extracted.get("importance", 0.6),
-            metadata={
-                "session_id": request.workspace_key.session_id,
-                "agent_id": "ceo-assistant",
-                "source": "user_input",
-            },
-        )
-        await self._memory.save_memory(
-            memory_type=item.memory_type,
-            content=item.content,
-            importance=item.importance,
-            metadata=item.metadata,
-        )
-
-        # 构建回复
-        tags_str = ", ".join(extracted.get("tags", [])) if extracted.get("tags") else "无"
-        answer_parts = ["[OK] 已记录工作内容：", ""]
-        if extracted.get("subject"):
-            answer_parts.append(f"事项: {extracted['subject']}")
-        if extracted.get("target"):
-            answer_parts.append(f"对象: {extracted['target']}")
-        if extracted.get("status"):
-            answer_parts.append(f"状态: {extracted['status']}")
-        answer_parts.append(f"标签: [{tags_str}]")
-
-        return {"answer": "\n".join(answer_parts), "status": "ok", "metadata": extracted}
 
     async def _extract_work_entities(self, text: str) -> dict[str, Any]:
         """从自然语言中提取实体。
@@ -602,6 +595,50 @@ class CEOAssistant:
             result["subject"] = text[:100]
 
         return result
+
+    async def _handle_work_log_query(
+        self, request: ApplicationRequest
+    ) -> dict[str, Any]:
+        """Read Work Logs with deterministic filters and no side effects."""
+
+        if self._work_logs is None:
+            raise RuntimeError("Work Log service is not configured")
+        work_log_id, query = parse_work_log_query(
+            request.user_input,
+            now=self._clock.now(),
+            timezone_name=self._timezone_name,
+        )
+        if work_log_id is not None:
+            records = [
+                await self._work_logs.get(
+                    workspace_key=request.workspace_key,
+                    work_log_id=work_log_id,
+                )
+            ]
+        else:
+            records = list(
+                (
+                    await self._work_logs.list(
+                        workspace_key=request.workspace_key, query=query
+                    )
+                ).items
+            )
+        if not records:
+            answer = "没有找到符合条件的工作记录。"
+        else:
+            answer = "\n".join(
+                f"- {item.id} [{item.status.value}] {item.subject}"
+                for item in records
+            )
+        return {
+            "answer": answer,
+            "status": "ok",
+            "metadata": {
+                "count": len(records),
+                "items": [item.model_dump(mode="json") for item in records],
+            },
+            "_deterministic": True,
+        }
 
     # ---- 2. 待办任务 ----
 
@@ -1078,16 +1115,20 @@ class CEOAssistant:
 
         # 2. 最近工作记录
         episodes = []
-        if self._memory:
-            q = MemoryQuery(memory_type=MemoryType.EPISODIC, top_k=10)
-            results = await self._memory.retrieve_memory(q)
-            episodes = [r for r in results if r.content.get("type") == "work_log"]
+        if self._work_logs:
+            episodes = list(
+                (
+                    await self._work_logs.list(
+                        workspace_key=request.workspace_key,
+                        query=WorkLogQuery(limit=5),
+                    )
+                ).items
+            )
 
         if episodes:
             lines.append(f"最近工作记录 ({len(episodes)}):")
-            for e in episodes[:5]:
-                c = e.content
-                lines.append(f"  - {c.get('subject', '')[:60]} ({c.get('status', '')})")
+            for e in episodes:
+                lines.append(f"  - {e.subject[:60]} ({e.status.value})")
             lines.append("")
 
         # 3. 最近决策
@@ -1121,18 +1162,21 @@ class CEOAssistant:
         """处理多轮对话。"""
         user_input = request.user_input
 
-        # 尝试从 Memory 加载上下文
+        # Work Log context uses only the canonical WorkLogService.
         context_parts = []
-        if self._memory:
-            from core.memory.models import MemoryQuery, MemoryType
-            q = MemoryQuery(memory_type=MemoryType.EPISODIC, top_k=5)
-            recent = await self._memory.retrieve_memory(q)
+        if self._work_logs:
+            recent = (
+                await self._work_logs.list(
+                    workspace_key=request.workspace_key,
+                    query=WorkLogQuery(limit=3),
+                )
+            ).items
             if recent:
                 context_parts.append("最近工作记录:")
-                for r in recent[:3]:
-                    c = r.content
-                    if c.get("subject"):
-                        context_parts.append(f"- {c.get('date', '')}: {c.get('subject', '')[:80]}")
+                for record in recent:
+                    context_parts.append(
+                        f"- {record.occurred_at.date()}: {record.subject[:80]}"
+                    )
 
         context = "\n".join(context_parts) if context_parts else ""
 

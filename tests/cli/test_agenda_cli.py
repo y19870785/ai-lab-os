@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import os
 import subprocess
@@ -227,9 +228,18 @@ async def _seed_workspace_agenda(path):
             "normal": normal.id,
             "next_five": next_five.id,
             "foreign": foreign.id,
-            "today_log": today_log,
-            "yesterday_log": yesterday_log,
-            "foreign_log": foreign_log,
+            "today_log": (
+                "wl_legacy_"
+                + hashlib.sha256(today_log.encode("utf-8")).hexdigest()
+            ),
+            "yesterday_log": (
+                "wl_legacy_"
+                + hashlib.sha256(yesterday_log.encode("utf-8")).hexdigest()
+            ),
+            "foreign_log": (
+                "wl_legacy_"
+                + hashlib.sha256(foreign_log.encode("utf-8")).hexdigest()
+            ),
             "occurrence": occurrence.id,
         }
     finally:
@@ -262,6 +272,8 @@ def test_agenda_cli_all_views_preserve_workspace_and_persisted_state(tmp_path):
     completed_ids = {item["source_id"] for item in pages["completed"]["items"]}
     assert seeded["triggered"] in completed_ids
     assert seeded["today_log"] in completed_ids
+    # Incomplete Legacy ownership is intentionally projected to default/default/default.
+    assert seeded["foreign_log"] in completed_ids
     assert seeded["yesterday_log"] not in completed_ids
 
     next_ids = {item["source_id"] for item in pages["next"]["items"]}
@@ -271,7 +283,6 @@ def test_agenda_cli_all_views_preserve_workspace_and_persisted_state(tmp_path):
     for page in pages.values():
         page_ids = {item["source_id"] for item in page["items"]}
         assert seeded["foreign"] not in page_ids
-        assert seeded["foreign_log"] not in page_ids
 
     after = asyncio.run(_snapshot(tmp_path))
     assert after == before

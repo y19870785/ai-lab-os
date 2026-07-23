@@ -3,7 +3,10 @@
 验证完整业务流程：记录→任务→决策→简报→查询
 """
 
-import pytest, pytest_asyncio,  sys, os
+import pytest
+import pytest_asyncio
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
@@ -13,12 +16,13 @@ from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
 from core.memory.manager import MemoryManager
-from core.memory.models import MemoryType, MemoryQuery
+from core.memory.models import MemoryType
 from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
 from core.memory.storage.sqlite_decision import SQLiteDecisionStore
 from core.memory.session import SessionMemory
 from core.database import DatabaseManager
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
+from core.work_log import SQLiteWorkLogRepository, WorkLogService
 
 
 @pytest_asyncio.fixture
@@ -33,21 +37,33 @@ async def full_app(tmp_path):
     memory = MemoryManager(bus=bus)
     memory.register_store(MemoryType.SESSION, SessionMemory(3600, bus=bus))
 
-    es = SQLiteEpisodicStore(db_path=os.path.join(db_dir, "episodic.db"))
+    db_manager = DatabaseManager(db_dir)
+    ep_path = os.path.join(db_dir, "episodic.db")
+    es = SQLiteEpisodicStore(db_path=ep_path, db_manager=db_manager)
     await es.initialize()
     memory.register_store(MemoryType.EPISODIC, es)
+    work_logs = WorkLogService(
+        SQLiteWorkLogRepository(
+            db_manager, ep_path, timezone_name="Asia/Shanghai"
+        ),
+        clock=SystemClock(),
+        timezone_name="Asia/Shanghai",
+    )
+    await work_logs.initialize()
 
     ds = SQLiteDecisionStore(db_path=os.path.join(db_dir, "decision.db"))
     await ds.initialize()
     memory.register_store(MemoryType.DECISION, ds)
 
-    db_manager = DatabaseManager(db_dir)
     task_repo = SQLiteUserTaskRepository(db_manager, os.path.join(db_dir, "tasks.db"))
     task_service = UserTaskService(task_repo, bus=bus)
     await task_service.initialize()
     app = CEOAssistant(
         memory_manager=memory,
+        work_log_service=work_logs,
         user_task_service=task_service,
+        clock=SystemClock(),
+        timezone_name="Asia/Shanghai",
         task_intent_parser=TaskReminderIntentParser("Asia/Shanghai", SystemClock()),
         admission=PERMISSIVE_TEST_ADMISSION,
     )

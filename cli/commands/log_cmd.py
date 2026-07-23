@@ -1,6 +1,9 @@
-"""CEO Assistant CLI —— 工作记录命令。"""
+"""Compatibility alias for ``work-log create``."""
 
-from cli.runtime import execute_ceo_request
+from core.work_log import WorkLogCreateCommand, WorkLogSource
+from core.workspace.models import WorkspaceKey
+
+from cli.runtime import execute_work_log_operation
 
 
 async def run(args):
@@ -8,6 +11,13 @@ async def run(args):
     if not user_input:
         print("Usage: python -m cli log <工作内容>")
         return
-    response, mode = await execute_ceo_request(f"记录: {user_input}")
-    print(f"\n[CEO Assistant | {mode.upper()}]")
-    print(response.answer or response.error)
+    record = await execute_work_log_operation(
+        "create",
+        workspace_key=WorkspaceKey(),
+        command=WorkLogCreateCommand(
+            subject=user_input[:500],
+            raw_text=user_input,
+            source=WorkLogSource.CLI,
+        ),
+    )
+    print(f"[OK] {record.id} {record.subject}")

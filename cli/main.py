@@ -8,6 +8,7 @@ from cli.commands import reminders_cmd
 from cli.commands import reminder_cancel_cmd, reminder_reschedule_cmd
 from cli.commands import inbox_cmd
 from cli.commands import waiting_for_cmd
+from cli.commands import work_log_cmd
 from core.errors import FailureException
 
 
@@ -28,6 +29,7 @@ COMMANDS = {
     "reminder-reschedule": reminder_reschedule_cmd.run,
     "inbox": inbox_cmd.run,
     "waiting-for": waiting_for_cmd.run,
+    "work-log": work_log_cmd.run,
     "ceo": "ceo",  # 特殊处理：交互式 CLI，不走单次命令模式
 }
 
@@ -47,6 +49,7 @@ def main():
         print("单次命令：")
         print("  brief        每日简报")
         print("  log <内容>    记录工作")
+        print("  work-log <命令>  创建、查询工作记录")
         print("  task <内容>   创建/查看任务")
         print("  decide <内容>  记录决策")
         print("  ask <问题>    知识问答")
