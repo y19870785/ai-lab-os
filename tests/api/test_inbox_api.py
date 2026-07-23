@@ -165,3 +165,40 @@ def test_inbox_api_waiting_for_validation_fails_closed(tmp_path):
         assert invalid_zone.json()["code"] == "inbox.waiting_for.timezone_invalid"
         assert client.get(f"/inbox/{captured['id']}").json()["status"] == "pending"
         assert client.get("/waiting-for?view=all").json()["items"] == []
+
+
+def test_inbox_api_waiting_for_timezone_uses_system_default_or_explicit_value(
+    tmp_path,
+):
+    app = create_app(_settings(tmp_path), clock=MutableClock(NOW))
+    with TestClient(app) as client:
+        default_item = client.post(
+            "/inbox", json={"content": "使用系统默认时区"}
+        ).json()
+        explicit_item = client.post(
+            "/inbox", json={"content": "使用显式时区"}
+        ).json()
+        base_body = {
+            "subject": "蜂蜡检测方案",
+            "waiting_on": "张经理",
+            "next_review_at": (NOW + timedelta(days=1)).isoformat(),
+        }
+
+        default_result = client.post(
+            f"/inbox/{default_item['id']}/resolve/waiting-for",
+            json=base_body,
+        )
+        explicit_result = client.post(
+            f"/inbox/{explicit_item['id']}/resolve/waiting-for",
+            json={**base_body, "timezone": "UTC"},
+        )
+
+        assert default_result.status_code == explicit_result.status_code == 200
+        default_waiting = client.get(
+            f"/waiting-for/{default_result.json()['resolved_target_id']}"
+        ).json()
+        explicit_waiting = client.get(
+            f"/waiting-for/{explicit_result.json()['resolved_target_id']}"
+        ).json()
+        assert default_waiting["timezone"] == "Asia/Shanghai"
+        assert explicit_waiting["timezone"] == "UTC"

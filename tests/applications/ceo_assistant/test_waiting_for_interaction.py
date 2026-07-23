@@ -71,6 +71,29 @@ def test_waiting_for_intent_effect_contract_is_explicit():
             )
 
 
+@pytest.mark.parametrize(
+    "text",
+    (
+        "取消任务 task_demo",
+        "解决这个问题怎么做",
+        "把会议延后到明天",
+        "取消今天的安排",
+        "重新打开这个项目",
+        "催办客户尽快付款",
+    ),
+)
+def test_non_waiting_for_language_is_not_hijacked_by_lifecycle_intents(text):
+    lifecycle_intents = {
+        "waiting_for_follow_up",
+        "waiting_for_snooze",
+        "waiting_for_resolve",
+        "waiting_for_cancel",
+        "waiting_for_reopen",
+    }
+
+    assert decide_intent(text).intent not in lifecycle_intents
+
+
 def test_waiting_for_time_parser_reuses_supported_subset_and_fails_closed():
     clock = MutableClock(NOW)
     parsed = parse_waiting_for_time("明天下午三点再看", "Asia/Shanghai", clock)
@@ -83,9 +106,27 @@ def test_waiting_for_time_parser_reuses_supported_subset_and_fails_closed():
     assert exc.value.failure.code == "waiting_for.time_unsupported"
 
 
-def test_waiting_for_presenter_changes_only_message():
+@pytest.mark.parametrize(
+    ("code", "expected_message"),
+    (
+        ("inbox.not_found", "未找到该 Inbox 记录，请检查 Inbox ID。"),
+        (
+            "inbox.workspace_mismatch",
+            "当前 Workspace 无权访问或确认该 Inbox 记录。",
+        ),
+        (
+            "inbox.already_resolved",
+            "该 Inbox 已完成转换，不能再次转换为其他类型。",
+        ),
+        (
+            "waiting_for.resolve.conflict",
+            "解决操作发生状态或 revision 冲突；未自动重试。",
+        ),
+    ),
+)
+def test_waiting_for_presenter_changes_only_message(code, expected_message):
     failure = FailureInfo(
-        code="waiting_for.resolve.conflict",
+        code=code,
         category=ErrorCategory.CONFLICT,
         message="machine message",
         component="waiting_for",
@@ -95,8 +136,101 @@ def test_waiting_for_presenter_changes_only_message():
         details={"revision": 3},
     )
     presented = WaitingForUserErrorPresenter.present(failure)
-    assert presented.message != failure.message
+    assert presented.message == expected_message
     assert presented.model_copy(update={"message": failure.message}) == failure
+
+
+def test_cancel_task_does_not_read_or_write_waiting_for(tmp_path, monkeypatch):
+    with TestClient(create_app(_settings(tmp_path), clock=MutableClock(NOW))) as client:
+        service = client.app.state.system.waiting_for_service
+
+        async def unexpected_waiting_for_access(*args, **kwargs):
+            raise AssertionError("Waiting-For service must not be accessed")
+
+        for name in (
+            "list",
+            "get",
+            "record_follow_up",
+            "snooze",
+            "resolve",
+            "cancel",
+            "reopen",
+        ):
+            monkeypatch.setattr(service, name, unexpected_waiting_for_access)
+
+        response = client.post("/chat", json={"user_input": "取消任务 task_x"})
+
+        assert response.json()["code"] == "application.ceo_assistant.execute_failed"
+        assert "候选等待事项" not in response.text
+
+
+def test_waiting_for_confirm_errors_are_presented_in_chinese(tmp_path):
+    clock = MutableClock(NOW)
+    confirmation = (
+        "把 {item_id} 整理成等待事项："
+        "等待张经理回复蜂蜡检测方案，明天下午三点再看"
+    )
+    alpha = {"X-Workspace-ID": "alpha"}
+    beta = {"X-Workspace-ID": "beta"}
+
+    with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
+        missing = client.post(
+            "/chat",
+            json={"user_input": confirmation.format(item_id="inbox_missing")},
+        )
+
+        scoped_item = client.post(
+            "/inbox",
+            json={"content": "跨 Workspace 等待确认"},
+            headers=alpha,
+        ).json()
+        mismatch = client.post(
+            "/chat",
+            json={
+                "user_input": confirmation.format(item_id=scoped_item["id"])
+            },
+            headers=beta,
+        )
+
+        resolved_item = client.post(
+            "/inbox",
+            json={"content": "已转换等待确认"},
+            headers=alpha,
+        ).json()
+        client.post(
+            f"/inbox/{resolved_item['id']}/resolve/note",
+            headers=alpha,
+        )
+        already_resolved = client.post(
+            "/chat",
+            json={
+                "user_input": confirmation.format(item_id=resolved_item["id"])
+            },
+            headers=alpha,
+        )
+
+        assert missing.status_code == 404
+        assert missing.json()["code"] == "inbox.not_found"
+        assert missing.json()["message"] == "未找到该 Inbox 记录，请检查 Inbox ID。"
+
+        assert mismatch.status_code == 403
+        assert mismatch.json()["code"] == "inbox.workspace_mismatch"
+        assert mismatch.json()["message"] == (
+            "当前 Workspace 无权访问或确认该 Inbox 记录。"
+        )
+
+        assert already_resolved.status_code == 409
+        assert already_resolved.json()["code"] == "inbox.already_resolved"
+        assert already_resolved.json()["message"] == (
+            "该 Inbox 已完成转换，不能再次转换为其他类型。"
+        )
+        assert already_resolved.json()["details"] == {
+            "claim_state": "completed",
+            "claimed_type": "note",
+            "resolved_type": "note",
+            "resolved_target_id": None,
+            "target_id": None,
+        }
 
 
 def test_waiting_for_capture_confirm_read_and_lifecycle_are_deterministic(tmp_path):
@@ -144,7 +278,8 @@ def test_waiting_for_capture_confirm_read_and_lifecycle_are_deterministic(tmp_pa
             "/chat", json={"user_input": "解决蜂蜡检测方案：已经收到回复"}
         )
         assert fuzzy.status_code == 200
-        assert "请使用明确的 wf_ ID" in fuzzy.json()["answer"]
+        assert fuzzy.json()["metadata"]["intent"] == "chat"
+        assert "候选等待事项" not in fuzzy.json()["answer"]
         assert _counts(client.app.state.system) == list_before
 
         follow_up = client.post(

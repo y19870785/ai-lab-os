@@ -15,7 +15,7 @@ from core.workspace.models import WorkspaceKey
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def _run(tmp_path, *args):
+def _env(tmp_path):
     env = os.environ.copy()
     env.update({
         "AI_LAB_DATA_DIR": str(tmp_path),
@@ -29,10 +29,34 @@ def _run(tmp_path, *args):
     })
     for key in ("AI_LAB_LLM_API_KEY", "OPENAI_API_KEY", "DEEPSEEK_API_KEY"):
         env.pop(key, None)
+    return env
+
+
+def _run(tmp_path, *args):
     return subprocess.run(
         [sys.executable, "-m", "cli", "inbox", *args],
         cwd=ROOT,
-        env=env,
+        env=_env(tmp_path),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+    )
+
+
+def _show_waiting_for(tmp_path, waiting_for_id):
+    return subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cli",
+            "waiting-for",
+            "show",
+            waiting_for_id,
+            "--json",
+        ],
+        cwd=ROOT,
+        env=_env(tmp_path),
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -144,6 +168,47 @@ def test_inbox_cli_resolve_waiting_for_plain_json_and_validation(tmp_path):
     assert payload["resolved_target_id"].startswith("wf_inbox_")
     assert missing.returncode == 2
     assert "--expected-by or --next-review-at is required" in missing.stderr
+
+
+def test_inbox_cli_waiting_for_timezone_uses_system_default_or_explicit_value(
+    tmp_path,
+):
+    default_item = _add(tmp_path, "使用系统默认时区")
+    explicit_item = _add(tmp_path, "使用显式时区")
+    review_at = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+    common = (
+        "--subject",
+        "蜂蜡检测方案",
+        "--waiting-on",
+        "张经理",
+        "--next-review-at",
+        review_at,
+        "--json",
+    )
+
+    default_result = _run(
+        tmp_path,
+        "resolve-waiting-for",
+        default_item["id"],
+        *common,
+    )
+    explicit_result = _run(
+        tmp_path,
+        "resolve-waiting-for",
+        explicit_item["id"],
+        *common,
+        "--timezone",
+        "UTC",
+    )
+
+    assert default_result.returncode == explicit_result.returncode == 0
+    default_id = json.loads(default_result.stdout)["resolved_target_id"]
+    explicit_id = json.loads(explicit_result.stdout)["resolved_target_id"]
+    default_waiting = _show_waiting_for(tmp_path, default_id)
+    explicit_waiting = _show_waiting_for(tmp_path, explicit_id)
+    assert default_waiting.returncode == explicit_waiting.returncode == 0
+    assert json.loads(default_waiting.stdout)["timezone"] == "Asia/Shanghai"
+    assert json.loads(explicit_waiting.stdout)["timezone"] == "UTC"
 
 
 def test_inbox_runtime_uses_canonical_default_workspace(monkeypatch, tmp_path):
