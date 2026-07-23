@@ -1,6 +1,14 @@
 ﻿
 ## [Unreleased]
 
+### SP-018 Work Log Query Boundary & Context Closure（规划基线）
+- 定义唯一 `WorkLogService` 与类型化 Work Log create/get/list 查询边界，尚未实施。
+- 选择专用 Repository/Adapter 复用既有 `episodic.db / episodic_memories`；不创建 `work_logs.db`、新表或双写。
+- 规划完整 WorkspaceKey、`wl_...` canonical ID、确定性 legacy 只读投影与显式 `ut_/rem_/wf_/inbox_` context refs。
+- 规划让 CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 最终共享同一 WorkLogService。
+- RFC-027 状态为 Proposed / Planning Baseline；ADR-058～ADR-060 为 Accepted；ACC-018 A～O 均为 NOT_EXECUTED。
+- 状态保持 `IMPLEMENTATION_NOT_APPROVED / NOT_STARTED`；SP-019 未启动，产品版本、Tag 与 Release 不变。
+
 ### SP-017 Follow-up Interaction & Capture Closure
 - 通过 PR #43 以 Squash Merge 完成确定性 Waiting-For 读取、Inbox 捕获与确认，以及显式 lifecycle interaction。
 - 自然语言模糊表达只创建 pending Inbox；确认后复用持久化 Inbox-to-Waiting-For Saga，并以 Inbox ID 确定性派生唯一 `wf_...` ID。

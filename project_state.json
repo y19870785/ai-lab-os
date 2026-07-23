@@ -15,8 +15,8 @@
   "current_sp": null,
   "current_governance_task": null,
   "next_candidate_sp": "SP-018",
-  "next_candidate_name": "Structured Work Log Query & Context Linking",
-  "development_status": "sp_017_completed_and_archived",
+  "next_candidate_name": "Work Log Query Boundary & Context Closure",
+  "development_status": "sp_018_planning_baseline_defined_implementation_not_approved",
   "current_work": null,
   "updated_at": "2026-07-23",
   "governance_sources": {
@@ -286,6 +286,18 @@
       "rfc": "RFC-026",
       "adrs": ["ADR-056", "ADR-057"],
       "scope": "Deterministic Waiting-For interaction, Inbox capture confirmation, durable Inbox-to-Waiting-For conversion and explicit lifecycle commands"
+    },
+    "SP-018": {
+      "name": "Work Log Query Boundary & Context Closure",
+      "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "planning_baseline_defined": true,
+      "approved": false,
+      "implementation_started": false,
+      "implementation_complete": false,
+      "target_version": "0.35.0",
+      "rfc": "RFC-027",
+      "adrs": ["ADR-058", "ADR-059", "ADR-060"],
+      "scope": "Canonical Work Log service boundary, workspace-safe query, legacy compatibility and explicit context references"
     }
   },
   "acceptance_records": {
@@ -358,6 +370,31 @@
         "Manual acceptance A-O passed through real API, CLI, and CEO Assistant entrypoints with isolated persistent data.",
         "The first PowerShell attempt was an INVALID_ACCEPTANCE_HARNESS caused by missing explicit UTF-8 input and was not a product failure.",
         "No real Provider request occurred."
+      ]
+    },
+    "ACC-018": {
+      "status": "PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED",
+      "manual_acceptance": false,
+      "scenarios": {
+        "A": "NOT_EXECUTED",
+        "B": "NOT_EXECUTED",
+        "C": "NOT_EXECUTED",
+        "D": "NOT_EXECUTED",
+        "E": "NOT_EXECUTED",
+        "F": "NOT_EXECUTED",
+        "G": "NOT_EXECUTED",
+        "H": "NOT_EXECUTED",
+        "I": "NOT_EXECUTED",
+        "J": "NOT_EXECUTED",
+        "K": "NOT_EXECUTED",
+        "L": "NOT_EXECUTED",
+        "M": "NOT_EXECUTED",
+        "N": "NOT_EXECUTED",
+        "O": "NOT_EXECUTED"
+      },
+      "notes": [
+        "ACC-018 defines a future acceptance matrix only; no scenario has been executed.",
+        "Planning approval does not authorize SP-018 implementation."
       ]
     }
   },

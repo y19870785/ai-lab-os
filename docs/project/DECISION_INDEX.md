@@ -107,9 +107,13 @@
 | RFC-026 | Follow-up Interaction and Capture Closure | Adopted | 2026-07-23 |
 | ADR-056 | Deterministic Follow-up Interaction Boundary | Accepted | 2026-07-23 |
 | ADR-057 | Inbox-to-Waiting-For Resolution Saga | Accepted | 2026-07-23 |
+| RFC-027 | Work Log Query Boundary and Context Closure | Proposed / Planning Baseline | 2026-07-23 |
+| ADR-058 | WorkLogService over Existing Episodic Storage | Accepted | 2026-07-23 |
+| ADR-059 | Canonical Work Log ID and Read-Only Legacy Projection | Accepted | 2026-07-23 |
+| ADR-060 | Explicit Work Log Context References | Accepted | 2026-07-23 |
 
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
 
-> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016 与 SP-017 已完成并封存；ACC-014 A～L、ACC-016 A～J、ACC-017 A～O 全部 PASSED / FINAL。RFC-026 已 Adopted，ADR-056 与 ADR-057 已 Accepted；SP-018 与 SP-019 仍未批准、未启动。
+> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016 与 SP-017 已完成并封存；ACC-014 A～L、ACC-016 A～J、ACC-017 A～O 全部 PASSED / FINAL。SP-018 仅定义 Planning Baseline：RFC-027 为 Proposed / Planning Baseline，ADR-058～ADR-060 为 Accepted，ACC-018 未执行；SP-018 实施与 SP-019 均未批准、未启动。

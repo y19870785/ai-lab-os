@@ -20,7 +20,11 @@
 | ACC-017 | PASSED / FINAL（A～O 全部通过） |
 | RFC-026 | Adopted |
 | ADR-056 / ADR-057 | Accepted |
-| SP-018～SP-019 | Candidate only / NOT_APPROVED / NOT_STARTED |
+| SP-018 | PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| RFC-027 | Proposed / Planning Baseline |
+| ADR-058 / ADR-059 / ADR-060 | Accepted |
+| ACC-018 | PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED |
+| SP-019 | Candidate only / NOT_APPROVED / NOT_STARTED |
 
 根目录 `project_state.json` 是唯一机器可读仓库治理状态与稳定发布授权源；本页是便于人工阅读的摘要。当前 Git/GitHub 对象按需查询，运行时产品版本仍只来自 `pyproject.toml`。
 
@@ -46,4 +50,4 @@ SP-017 feature merge main `32bb9c0a939c65f2278fc2b6be8d072fb2e3656a` 的 post-me
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Current Product SP 为 None，Current Governance Task 为 None，Latest Completed SP 为 SP-017。SP-017 已合并、通过自动化与人工验收并封存。下一候选为 SP-018 — Structured Work Log Query & Context Linking，仍未批准、未启动；SP-019 同样未批准、未启动。当前产品版本仍为 `0.34.0`。
+Current Product SP 为 None，Current Governance Task 为 None，Latest Completed SP 为 SP-017。SP-018 — Work Log Query Boundary & Context Closure 已定义纯规划基线，但未批准实施、未启动；ACC-018 A～O 均为 NOT_EXECUTED。SP-019 同样未批准、未启动。当前产品版本仍为 `0.34.0`。

@@ -17,7 +17,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
 | Current governance task | None |
-| Next candidate | SP-018 — Structured Work Log Query & Context Linking / candidate only / not approved / not started |
+| Next candidate | SP-018 — Work Log Query Boundary & Context Closure / planning baseline / implementation not approved / not started |
 | Latest completed SP | SP-017 / manual acceptance passed / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
@@ -33,6 +33,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | Waiting-For | Integrated / Verified / Manual acceptance passed | SP-016 与 SP-017 completed / archived；独立 canonical domain、确定性交互与 `followups.db` |
 | Unified Inbox / Capture-to-Action | Integrated / Verified | workspace 隔离、持久化 resolution claim 与幂等已验收 |
 | SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
+| SP-018 planning | Planning baseline only / Not implemented | RFC-027 Proposed；ADR-058～060 Accepted；ACC-018 NOT_EXECUTED；生产代码未改变 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

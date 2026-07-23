@@ -54,16 +54,16 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 ## v0.35.0 候选方向
 
-SP-016 与 SP-017 已完成人工验收并封存；后续方向仍只是候选：
+SP-016 与 SP-017 已完成人工验收并封存。SP-018 只完成规划基线，实施尚未批准、尚未启动：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
 | SP-016 | Canonical Waiting-For Domain & Agenda Closure | COMPLETED / ARCHIVED |
 | SP-017 | Follow-up Interaction & Capture Closure — Deterministic Waiting-For interaction, Inbox capture confirmation, and durable Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |
-| SP-018 | Structured Work Log Query & Context Linking | CANDIDATE / NOT_APPROVED / NOT_STARTED |
+| SP-018 | Work Log Query Boundary & Context Closure | PLANNING_BASELINE / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 | SP-019 | Daily Review & Follow-up Brief | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 
-ACC-016 与 ACC-017 均为 PASSED / FINAL。SP-017 的 RFC-026 为 Adopted，ADR-056 与 ADR-057 为 Accepted。SP-018、SP-019 仍只是候选，均为 NOT_APPROVED / NOT_STARTED；每个候选都需要独立授权。
+ACC-016 与 ACC-017 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Proposed / Planning Baseline，ADR-058～ADR-060 为 Accepted，ACC-018 A～O 均为 NOT_EXECUTED。SP-018 实施仍需独立授权；SP-019 保持 CANDIDATE / NOT_APPROVED / NOT_STARTED，并且必须等待 SP-018 完成。
 
 ## 后续候选版本
 
