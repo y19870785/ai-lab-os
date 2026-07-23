@@ -165,9 +165,11 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["development_status"] == "sp_017_completed_and_archived"
+    assert state["development_status"] == (
+        "sp_018_planning_baseline_defined_implementation_not_approved"
+    )
     assert state["next_candidate_sp"] == "SP-018"
-    assert state["next_candidate_name"] == "Structured Work Log Query & Context Linking"
+    assert state["next_candidate_name"] == "Work Log Query Boundary & Context Closure"
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -223,7 +225,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
     assert (
-        "> Next Candidate Direction: Structured Work Log Query & Context Linking"
+        "> Next Candidate Direction: Work Log Query Boundary & Context Closure"
         in text["brain"]
     )
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
@@ -326,7 +328,7 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
     roadmap_rows = (
         "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
         "| SP-017 | Follow-up Interaction & Capture Closure —",
-        "| SP-018 | Structured Work Log Query & Context Linking |",
+        "| SP-018 | Work Log Query Boundary & Context Closure |",
         "| SP-019 | Daily Review & Follow-up Brief |",
     )
     positions = [roadmap.index(row) for row in roadmap_rows]
@@ -462,8 +464,10 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["latest_merged_sp"] == "SP-017"
     assert state["latest_completed_sp"] == "SP-017"
     assert state["next_candidate_sp"] == "SP-018"
-    assert state["next_candidate_name"] == "Structured Work Log Query & Context Linking"
-    assert state["development_status"] == "sp_017_completed_and_archived"
+    assert state["next_candidate_name"] == "Work Log Query Boundary & Context Closure"
+    assert state["development_status"] == (
+        "sp_018_planning_baseline_defined_implementation_not_approved"
+    )
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -507,7 +511,6 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert acc017["scenarios"] == {
         letter: "PASSED" for letter in "ABCDEFGHIJKLMNO"
     }
-    assert "SP-018" not in records
     assert "SP-019" not in records
 
     rfc = (
@@ -561,7 +564,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
 
     ordered_rows = (
         "| SP-017 | Follow-up Interaction & Capture Closure —",
-        "| SP-018 | Structured Work Log Query & Context Linking |",
+        "| SP-018 | Work Log Query Boundary & Context Closure |",
         "| SP-019 | Daily Review & Follow-up Brief |",
     )
     positions = [roadmap.index(row) for row in ordered_rows]
@@ -584,8 +587,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "Current SP: None",
         "RFC-026 Adopted",
         "ACC-017 Status: PASSED / FINAL",
-        "| SP-018 | Structured Work Log Query & Context Linking | "
-        "CANDIDATE / NOT_APPROVED / NOT_STARTED |",
+        "| SP-018 | Work Log Query Boundary & Context Closure | "
+        "PLANNING_BASELINE / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |",
         "| SP-019 | Daily Review & Follow-up Brief | "
         "CANDIDATE / NOT_APPROVED / NOT_STARTED |",
     )
@@ -603,3 +606,151 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "github_check_status",
     }
     assert transient_fields.isdisjoint(sp017)
+
+
+def test_sp018_planning_baseline_is_defined_without_implementation() -> None:
+    state = _load_state()
+    records = state["sp_records"]
+    sp018 = records["SP-018"]
+    acc018 = state["acceptance_records"]["ACC-018"]
+
+    assert state["latest_merged_sp"] == "SP-017"
+    assert state["latest_completed_sp"] == "SP-017"
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["next_candidate_sp"] == "SP-018"
+    assert state["next_candidate_name"] == "Work Log Query Boundary & Context Closure"
+    assert state["current_work"] is None
+    assert "next_action" not in state
+
+    assert sp018 == {
+        "name": "Work Log Query Boundary & Context Closure",
+        "status": (
+            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+        ),
+        "planning_baseline_defined": True,
+        "approved": False,
+        "implementation_started": False,
+        "implementation_complete": False,
+        "target_version": "0.35.0",
+        "rfc": "RFC-027",
+        "adrs": ["ADR-058", "ADR-059", "ADR-060"],
+        "scope": (
+            "Canonical Work Log service boundary, workspace-safe query, legacy "
+            "compatibility and explicit context references"
+        ),
+    }
+    assert {
+        "branch",
+        "planning_pr",
+        "planning_head",
+        "approved_head",
+        "draft_pr",
+        "github_check_status",
+    }.isdisjoint(sp018)
+
+    assert acc018["status"] == (
+        "PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED"
+    )
+    assert acc018["manual_acceptance"] is False
+    assert acc018["scenarios"] == {
+        letter: "NOT_EXECUTED" for letter in "ABCDEFGHIJKLMNO"
+    }
+
+    rfc = (
+        ROOT / "docs/rfc/027-work-log-query-boundary-context-closure.md"
+    ).read_text(encoding="utf-8-sig")
+    adr058 = (
+        ROOT / "docs/adr/ADR-058-work-log-service-over-episodic-storage.md"
+    ).read_text(encoding="utf-8-sig")
+    adr059 = (
+        ROOT / "docs/adr/ADR-059-canonical-work-log-id-and-legacy-projection.md"
+    ).read_text(encoding="utf-8-sig")
+    adr060 = (
+        ROOT / "docs/adr/ADR-060-explicit-work-log-context-references.md"
+    ).read_text(encoding="utf-8-sig")
+    acceptance = (
+        ROOT / "docs/acceptance/SP-018-work-log-query-boundary-context-closure.md"
+    ).read_text(encoding="utf-8-sig")
+    decision_index = (
+        ROOT / "docs/project/DECISION_INDEX.md"
+    ).read_text(encoding="utf-8-sig")
+    roadmap = (ROOT / "docs/project/ROADMAP.md").read_text(encoding="utf-8-sig")
+    brain = (ROOT / "docs/project/PROJECT_BRAIN.md").read_text(
+        encoding="utf-8-sig"
+    )
+
+    assert "Status: Proposed / Planning Baseline" in rfc
+    assert "SP-018 实施尚未批准、尚未启动" in rfc
+    assert all(
+        "Status: Accepted" in content for content in (adr058, adr059, adr060)
+    )
+    assert "NOT_EXECUTED" in acceptance
+    assert all(f"ACC-018-{letter}" in acceptance for letter in "ABCDEFGHIJKLMNO")
+    assert (
+        "| RFC-027 | Work Log Query Boundary and Context Closure | "
+        "Proposed / Planning Baseline |"
+    ) in decision_index
+    assert all(
+        f"| ADR-{number} |" in decision_index for number in ("058", "059", "060")
+    )
+    assert (
+        "| SP-018 | Work Log Query Boundary & Context Closure | "
+        "PLANNING_BASELINE / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
+    ) in roadmap
+    assert (
+        "| SP-019 | Daily Review & Follow-up Brief | "
+        "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+    ) in roadmap
+    assert "SP-018 Planning facts / not implemented" in brain
+    assert "不会创建 `work_logs.db`" in brain
+    assert "SP-019 必须等待 SP-018" in brain
+    assert "Legacy Work Log Projection Table" in rfc
+    assert "普通随机 Memory ID 仍不作为公开 alias" in rfc
+    assert "历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias" in rfc
+    assert "返回同一对象的 canonical `wl_legacy_" in rfc
+    assert "SP-018 没有业务结果 candidate cap" in rfc
+    assert "这些阈值只产生观测信号" in rfc
+    assert "Ordinary random Memory IDs" in adr059
+    assert "the only restricted compatibility lookup alias" in adr059
+    acc_d = acceptance.split("## ACC-018-D", maxsplit=1)[1].split(
+        "## ACC-018-E", maxsplit=1
+    )[0]
+    acc_f = acceptance.split("## ACC-018-F", maxsplit=1)[1].split(
+        "## ACC-018-G", maxsplit=1
+    )[0]
+    acc_g = acceptance.split("## ACC-018-G", maxsplit=1)[1].split(
+        "## ACC-018-H", maxsplit=1
+    )[0]
+    acc_l = acceptance.split("## ACC-018-L", maxsplit=1)[1].split(
+        "## ACC-018-M", maxsplit=1
+    )[0]
+    assert "WorkLogService 接受合法历史 `inbox_wl_...` alias" in acc_d
+    assert "数据量超过 slow-query/scanned-row observability warning threshold" in acc_f
+    assert "历史 Inbox row 投影为稳定 `wl_legacy_...`" in acc_g
+    assert "API、CLI、CEO Assistant、Agenda 与 Brief" in acc_l
+    assert "状态：PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED" in (
+        acceptance
+    )
+
+    planning_files = (
+        rfc,
+        adr058,
+        adr059,
+        adr060,
+        acceptance,
+        decision_index,
+        roadmap,
+        brain,
+    )
+    forbidden_implementation_claims = (
+        "SP-018 Status: APPROVED_FOR_IMPLEMENTATION",
+        "SP-018 Status: IN_PROGRESS",
+        "ACC-018 A～O：PASSED",
+        "RFC-027 | Work Log Query Boundary and Context Closure | Adopted",
+    )
+    assert all(
+        marker not in content
+        for marker in forbidden_implementation_claims
+        for content in planning_files
+    )
