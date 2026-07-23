@@ -1,22 +1,24 @@
 # AI-Lab Project Health
 
-**Last Updated:** 2026-07-22
+**Last Updated:** 2026-07-23
 **Current Source Version:** v0.34.0 Alpha / Release Authorized
 
 ## Summary
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiting-For 已集成、通过人工验收并封存，Daily Agenda 使用可选来源组合。SP-017 已获准实施并处于 IN_PROGRESS，尚未完成自动化验证或人工验收；这些能力与规划均不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiting-For、确定性 Follow-up Interaction 与 Inbox-to-Waiting-For conversion 已集成、通过人工验收并封存，Daily Agenda 使用可选来源组合。这些能力不等同于生产级多用户平台。
 
 | Metric | Current fact |
 |---|---|
 | Verified release baseline | `22f88d1da962fb436c48c19e5343fad8bf62f5f6` |
 | GitHub Quality Gate | run `29855987444` / SUCCESS |
 | pytest (non-real) | 1163 passed, 6 skipped, 27 warnings |
+| SP-017 post-merge main | `32bb9c0a939c65f2278fc2b6be8d072fb2e3656a` / run `30006958413` / SUCCESS |
+| SP-017 post-merge pytest (non-real) | 1239 passed, 6 skipped, 27 warnings |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current product SP | SP-017 / APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS |
+| Current product SP | None |
 | Current governance task | None |
 | Next candidate | SP-018 — Structured Work Log Query & Context Linking / candidate only / not approved / not started |
-| Latest completed SP | SP-016 / manual acceptance passed / archived |
+| Latest completed SP | SP-017 / manual acceptance passed / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
 ## Module health
@@ -28,9 +30,9 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。Canonical Waiti
 | UserTask | Integrated / Verified | Canonical domain 与 `tasks.db` |
 | Reminder / Scheduler | Integrated / Verified / Disabled by default | 外部通知和 Recurring Reminder 未实现 |
 | Intent Safety / Daily Agenda | Integrated / Verified / Optional-source composition | 确定性路由与聚合读取，不是通用 NLP |
-| Waiting-For | Integrated / Verified / Manual acceptance passed | SP-016 completed / archived；独立 canonical domain 与 `followups.db` |
+| Waiting-For | Integrated / Verified / Manual acceptance passed | SP-016 与 SP-017 completed / archived；独立 canonical domain、确定性交互与 `followups.db` |
 | Unified Inbox / Capture-to-Action | Integrated / Verified | workspace 隔离、持久化 resolution claim 与幂等已验收 |
-| SP-017 implementation | In progress / not yet verified | RFC-026 Adopted；ADR-056、ADR-057 Accepted；实施不得越过确定性写入边界 |
+| SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

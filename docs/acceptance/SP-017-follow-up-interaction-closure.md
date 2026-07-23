@@ -1,16 +1,26 @@
 # SP-017 Follow-up Interaction & Capture Closure 验收记录
 
-状态：LOCAL_AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / GITHUB_QUALITY_GATE_PASSED / INDEPENDENT_REVIEW_CHANGES_REQUESTED
+状态：LOCAL_AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / PR_QUALITY_GATE_PASSED / POST_MERGE_QUALITY_GATE_PASSED / INDEPENDENT_REVIEW_APPROVED / FINAL
 
 本地验收日期：2026-07-23（Asia/Shanghai）
 
-GitHub Run ID：`29948314665`
+Feature PR：#43
 
-GitHub Quality Gate：Ruff `SUCCESS`；pytest (non-real) `SUCCESS`
+Approved Head：`40319102eb7aaea90a24d8abdf106e406b680618`
 
-Independent Review：`REQUEST_CHANGES`
+Feature Merge Commit：`32bb9c0a939c65f2278fc2b6be8d072fb2e3656a`
 
-验收数据目录：`C:\Users\hechao\AppData\Local\Temp\ai-lab-acc017-d80012a4c1d945ff83971f42602c9747`
+Merged At：`2026-07-23T12:25:57Z`
+
+PR Quality Gate Run：`30006130019`
+
+Post-Merge main Quality Gate Run：`30006958413`
+
+Post-Merge main Quality Gate：Ruff `SUCCESS`；pytest (non-real) `SUCCESS`（`1239 passed, 6 skipped, 27 warnings`）
+
+Independent Review：`APPROVED`
+
+ACC-017 A～O：PASSED / FINAL
 
 首次内联验收因 PowerShell 管道未显式使用 UTF-8，中文输入被替换为 `?`，归类为 `INVALID_ACCEPTANCE_HARNESS`，不计作产品失败。显式设置 UTF-8 后重新从真实入口执行，A～O 全部通过。
 
@@ -76,7 +86,7 @@ Independent Review：`REQUEST_CHANGES`
 
 ### ACC-017-H：Lifecycle ID 边界
 
-模糊标题执行解决只返回候选；使用 `wf_...` 后 mutation 成功并增加 revision/event。
+不含 `wf_...` ID 的模糊 mutation 不进入 Waiting-For lifecycle mutation；使用显式 `wf_...` ID 后 mutation 成功并增加 revision/event。
 
 ### ACC-017-I：Revision 冲突
 
@@ -117,7 +127,7 @@ API 转换后 CLI 读取同一对象；CLI mutation 后 API 读取同一 revisio
 | E | PASSED | Note 后 Waiting-For 转换返回 `inbox.already_resolved` |
 | F | PASSED | 返回 missing fields 与 confirmation template，Inbox 保持 pending |
 | G | PASSED | 明天下午三点成功；下周有空时返回 `waiting_for.time_unsupported` 且零目标写入 |
-| H | PASSED | 模糊 mutation 只返回候选；显式 ID resolve 成功 |
+| H | PASSED | 模糊 mutation 不进入 Waiting-For lifecycle；显式 ID resolve 成功 |
 | I | PASSED | 旧 revision 返回 409，event 数不增加 |
 | J | PASSED | CLAIMED、target-created-unrecorded、TARGET_CREATED 三阶段恢复均只保留一个目标 |
 | K | PASSED | 两个独立 CLI 进程返回同一 ID，最终只有一个目标 |

@@ -1,10 +1,13 @@
 ﻿
 ## [Unreleased]
 
-### SP-017 Follow-up Interaction & Capture Closure（实施中）
-- Planning PR #42 已以 Squash Merge 合入，RFC-026 已 Adopted，ADR-056 与 ADR-057 保持 Accepted。
-- SP-017 状态为 `APPROVED_FOR_IMPLEMENTATION / IN_PROGRESS`；产品版本、Tag、Release 与发布授权保持不变。
-- 实现目标是确定性 Waiting-For 读取、Inbox 捕获与确认、显式 ID 生命周期操作；尚未完成验证或验收。
+### SP-017 Follow-up Interaction & Capture Closure
+- 通过 PR #43 以 Squash Merge 完成确定性 Waiting-For 读取、Inbox 捕获与确认，以及显式 lifecycle interaction。
+- 自然语言模糊表达只创建 pending Inbox；确认后复用持久化 Inbox-to-Waiting-For Saga，并以 Inbox ID 确定性派生唯一 `wf_...` ID。
+- Lifecycle mutation 只接受 canonical `wf_...` ID；重复确认、崩溃恢复和跨进程竞争保持幂等。
+- 中文确定性错误展示与 API/CLI 系统 `timezone_name` 缺省值保持一致。
+- ACC-017 A～O 已通过并封存；RFC-026 为 Adopted，ADR-056 与 ADR-057 为 Accepted。
+- 产品版本保持 `0.34.0`；`v0.34.0` Tag 与既有 Pre-release 均未改变。
 
 ### v0.34.0 Alpha / Release Authorized
 - Promoted the source product version from `0.33.0` to `0.34.0` without changing business behavior or database schemas.
