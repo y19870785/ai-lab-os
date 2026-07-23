@@ -526,8 +526,11 @@ def test_sp017_is_adopted_and_in_progress_without_completion_claims() -> None:
     assert "SP-016 人工验收待执行" not in decision_index
     assert (
         "LOCAL_AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / "
-        "GITHUB_QUALITY_GATE_PENDING"
+        "GITHUB_QUALITY_GATE_PASSED / INDEPENDENT_REVIEW_CHANGES_REQUESTED"
     ) in acceptance
+    assert "GitHub Run ID：`29948314665`" in acceptance
+    assert "GitHub Quality Gate：Ruff `SUCCESS`；pytest (non-real) `SUCCESS`" in acceptance
+    assert "Independent Review：`REQUEST_CHANGES`" in acceptance
     assert all(f"ACC-017-{letter}" in acceptance for letter in "ABCDEFGHIJKLMNO")
 
     ordered_rows = (
