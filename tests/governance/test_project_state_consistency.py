@@ -705,6 +705,33 @@ def test_sp018_planning_baseline_is_defined_without_implementation() -> None:
     assert "SP-018 Planning facts / not implemented" in brain
     assert "不会创建 `work_logs.db`" in brain
     assert "SP-019 必须等待 SP-018" in brain
+    assert "Legacy Work Log Projection Table" in rfc
+    assert "普通随机 Memory ID 仍不作为公开 alias" in rfc
+    assert "历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias" in rfc
+    assert "返回同一对象的 canonical `wl_legacy_" in rfc
+    assert "SP-018 没有业务结果 candidate cap" in rfc
+    assert "这些阈值只产生观测信号" in rfc
+    assert "Ordinary random Memory IDs" in adr059
+    assert "the only restricted compatibility lookup alias" in adr059
+    acc_d = acceptance.split("## ACC-018-D", maxsplit=1)[1].split(
+        "## ACC-018-E", maxsplit=1
+    )[0]
+    acc_f = acceptance.split("## ACC-018-F", maxsplit=1)[1].split(
+        "## ACC-018-G", maxsplit=1
+    )[0]
+    acc_g = acceptance.split("## ACC-018-G", maxsplit=1)[1].split(
+        "## ACC-018-H", maxsplit=1
+    )[0]
+    acc_l = acceptance.split("## ACC-018-L", maxsplit=1)[1].split(
+        "## ACC-018-M", maxsplit=1
+    )[0]
+    assert "WorkLogService 接受合法历史 `inbox_wl_...` alias" in acc_d
+    assert "数据量超过 slow-query/scanned-row observability warning threshold" in acc_f
+    assert "历史 Inbox row 投影为稳定 `wl_legacy_...`" in acc_g
+    assert "API、CLI、CEO Assistant、Agenda 与 Brief" in acc_l
+    assert "状态：PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED" in (
+        acceptance
+    )
 
     planning_files = (
         rfc,
