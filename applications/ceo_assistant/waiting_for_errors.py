@@ -9,6 +9,10 @@ class WaitingForUserErrorPresenter:
     """Change only user-facing messages; machine failure semantics stay immutable."""
 
     _MESSAGES = {
+        "inbox.not_found": "未找到该 Inbox 记录，请检查 Inbox ID。",
+        "inbox.workspace_mismatch": "当前 Workspace 无权访问或确认该 Inbox 记录。",
+        "inbox.already_resolved": "该 Inbox 已完成转换，不能再次转换为其他类型。",
+        "inbox.resolve_failed": "Inbox 转换失败，未写入新的 Waiting-For。",
         "inbox.waiting_for.fields_missing": (
             "确认等待事项需要 Inbox ID、subject、waiting_on，以及 expected_by "
             "或 next_review_at。请按返回的确认命令模板补全。"
@@ -20,6 +24,7 @@ class WaitingForUserErrorPresenter:
             "暂不支持该时间表达。请使用今天或明天的明确时间，"
             "例如“明天下午三点”，或带 offset 的 ISO-8601 时间。"
         ),
+        "waiting_for.create.conflict": "Waiting-For 创建发生冲突，未覆盖现有对象。",
         "waiting_for.get.not_found": "没有找到该 Waiting-For，请检查 canonical wf_ ID。",
         "waiting_for.events.not_found": "没有找到该 Waiting-For 的历史，请检查 canonical wf_ ID。",
         "waiting_for.follow_up.conflict": "当前状态或 revision 不允许催办；未自动重试。",
