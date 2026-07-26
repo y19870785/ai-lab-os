@@ -15,8 +15,8 @@
   "current_sp": null,
   "current_governance_task": null,
   "next_candidate_sp": "SP-019",
-  "next_candidate_name": "Daily Review & Follow-up Brief",
-  "development_status": "sp_018_completed_reconciled_archived",
+  "next_candidate_name": "Daily Review Read Model & Deterministic Follow-up View",
+  "development_status": "sp_019_planning_baseline_defined_implementation_not_approved_not_started",
   "current_work": null,
   "updated_at": "2026-07-26",
   "governance_sources": {
@@ -308,6 +308,9 @@
       "feature_merge_commit": "83ecb557fedd1d898712afc59ad13b3e0a684413",
       "merged_at": "2026-07-26T09:35:04Z",
       "reconciliation_pr": 47,
+      "reconciliation_merge_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
+      "reconciled_at": "2026-07-26T10:32:07Z",
+      "post_reconciliation_quality_gate_run": 30198434517,
       "review": "APPROVED",
       "acceptance": "ACC-018 A-O PASSED / FINAL",
       "post_merge_acceptance": "PASSED",
@@ -317,6 +320,24 @@
       "rfc": "RFC-027",
       "adrs": ["ADR-058", "ADR-059", "ADR-060"],
       "scope": "Canonical Work Log service boundary, workspace-safe query, legacy compatibility and explicit context references"
+    },
+    "SP-019": {
+      "name": "Daily Review Read Model & Deterministic Follow-up View",
+      "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "planning_baseline_defined": true,
+      "approved": false,
+      "implementation_started": false,
+      "implementation_complete": false,
+      "completed": false,
+      "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
+      "branch": "docs/sp-019-planning-baseline",
+      "planning_pr": 48,
+      "target_version": "0.35.0",
+      "rfc": "RFC-028",
+      "adrs": ["ADR-061", "ADR-062"],
+      "acceptance": "ACC-019 PLANNING_BASELINE / NOT_EXECUTED",
+      "user_task_workspace_prerequisite": "REQUIRED / IN_SCOPE AS PHASE 0 / NOT_STARTED",
+      "scope": "On-demand non-persistent Daily Review read model and deterministic follow-up view"
     }
   },
   "acceptance_records": {
@@ -421,6 +442,30 @@
         "Merged main commit 83ecb557fedd1d898712afc59ad13b3e0a684413 passed automatic push Quality Gate 30196719409, local full verification, and post-merge smoke.",
         "Acceptance and post-merge smoke made no real Provider calls.",
         "Acceptance-driver incidents labeled INVALID_ACCEPTANCE_HARNESS were harness errors, not product failures."
+      ]
+    },
+    "ACC-019": {
+      "status": "PLANNING_BASELINE / NOT_EXECUTED",
+      "manual_acceptance": false,
+      "scenarios": {
+        "A": "NOT_EXECUTED",
+        "B": "NOT_EXECUTED",
+        "C": "NOT_EXECUTED",
+        "D": "NOT_EXECUTED",
+        "E": "NOT_EXECUTED",
+        "F": "NOT_EXECUTED",
+        "G": "NOT_EXECUTED",
+        "H": "NOT_EXECUTED",
+        "I": "NOT_EXECUTED",
+        "J": "NOT_EXECUTED",
+        "K": "NOT_EXECUTED",
+        "L": "NOT_EXECUTED",
+        "M": "NOT_EXECUTED"
+      },
+      "notes": [
+        "This record defines acceptance scope only; no ACC-019 scenario has been executed.",
+        "UserTask Workspace Query Closure is a required SP-019 Phase 0 and implementation is not approved.",
+        "Planning baseline approval does not authorize implementation."
       ]
     }
   },

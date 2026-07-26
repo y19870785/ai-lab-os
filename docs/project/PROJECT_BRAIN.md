@@ -5,7 +5,7 @@
 > Current SP: None
 > Current Governance Task: None
 > Next Candidate SP: SP-019
-> Next Candidate Direction: Daily Review & Follow-up Brief
+> Next Candidate Direction: Daily Review Read Model & Deterministic Follow-up View
 > SP-016 Status: APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
 > ACC-016 Status: PASSED / FINAL
 > SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
@@ -14,7 +14,9 @@
 > SP-018 Status: APPROVED / MERGED / ACCEPTED / POST-MERGE VERIFIED / RECONCILED / ARCHIVED
 > ACC-018 Status: PASSED / FINAL
 > SP-018 Design: RFC-027 Adopted; ADR-058, ADR-059 and ADR-060 Accepted
-> Current main: `83ecb557fedd1d898712afc59ad13b3e0a684413` / Quality Gate run `30196719409`
+> SP-019 Status: PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
+> SP-019 Design: RFC-028, ADR-061 and ADR-062 Proposed / Planning Baseline
+> Current main: `4e0d730a8bfdefa6277c7526a028e7247d7ddc43` / Quality Gate run `30198434517`
 > Release Stage: v0.34.0 Alpha / RELEASE_AUTHORIZED
 > Verified Release Baseline: `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 > SP-015 Base Commit: `57444274abd4e568a6af72b218d50290de563654`
@@ -105,7 +107,9 @@ Mock Provider: only explicit mock/test profiles
 - 上下文关联只接受显式 `ut_`、`rem_`、`wf_`、`inbox_` ID；不使用 LLM 或相似文本猜测。
 - Feature PR #46 已以 Squash Merge 合入 `83ecb557fedd1d898712afc59ad13b3e0a684413`；ACC-018 A～O 在 Approved Head `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3` 完整通过。
 - 合并后的 main 通过自动 push Quality Gate `30196719409`、本地全量验证与 post-merge smoke；验收和 smoke 均未调用真实 Provider。
-- SP-019 仍是候选，未批准、未启动；SP-018 的完成与封存不构成 SP-019 实施授权。
+- SP-018A 对账 PR #47 已合并为 `4e0d730a8bfdefa6277c7526a028e7247d7ddc43`，自动 push Quality Gate `30198434517` 成功。
+- SP-019 规划基线已定义，但未批准、未启动实施；RFC-028、ADR-061、ADR-062 均为 Proposed / Planning Baseline。SP-018 的完成与封存及 SP-019 Planning PR 都不构成实施授权。
+- UserTask Workspace Query Closure 是 SP-019 内部必须先完成的 Phase 0；真实审计确认可使用现有 `metadata.workspace` JSON 和时间列完成，无需 Schema/Migration。当前只定义边界，未编码。
 
 ## 已封存产品能力
 
@@ -177,4 +181,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 仍为候选且未批准、未启动。
+SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification 与 SP-018A 对账；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 Planning Baseline 已定义，RFC-028、ADR-061、ADR-062 与 ACC-019 目录已建立，但 Implementation NOT APPROVED、Coding NOT STARTED。

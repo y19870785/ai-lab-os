@@ -165,10 +165,12 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_018_completed_reconciled_archived"
+        "sp_019_planning_baseline_defined_implementation_not_approved_not_started"
     )
     assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
+    assert state["next_candidate_name"] == (
+        "Daily Review Read Model & Deterministic Follow-up View"
+    )
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -224,7 +226,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
     assert (
-        "> Next Candidate Direction: Daily Review & Follow-up Brief"
+        "> Next Candidate Direction: Daily Review Read Model & "
+        "Deterministic Follow-up View"
         in text["brain"]
     )
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
@@ -328,7 +331,7 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
         "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
         "| SP-017 | Follow-up Interaction & Capture Closure —",
         "| SP-018 | Work Log Query Boundary & Context Closure |",
-        "| SP-019 | Daily Review & Follow-up Brief |",
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View |",
     )
     positions = [roadmap.index(row) for row in roadmap_rows]
     assert positions == sorted(positions)
@@ -463,9 +466,11 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["latest_merged_sp"] == "SP-018"
     assert state["latest_completed_sp"] == "SP-018"
     assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
+    assert state["next_candidate_name"] == (
+        "Daily Review Read Model & Deterministic Follow-up View"
+    )
     assert state["development_status"] == (
-        "sp_018_completed_reconciled_archived"
+        "sp_019_planning_baseline_defined_implementation_not_approved_not_started"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -510,7 +515,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert acc017["scenarios"] == {
         letter: "PASSED" for letter in "ABCDEFGHIJKLMNO"
     }
-    assert "SP-019" not in records
+    assert records["SP-019"]["approved"] is False
+    assert records["SP-019"]["implementation_started"] is False
 
     rfc = (
         ROOT / "docs/rfc/026-follow-up-interaction-capture-closure.md"
@@ -564,7 +570,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     ordered_rows = (
         "| SP-017 | Follow-up Interaction & Capture Closure —",
         "| SP-018 | Work Log Query Boundary & Context Closure |",
-        "| SP-019 | Daily Review & Follow-up Brief |",
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View |",
     )
     positions = [roadmap.index(row) for row in ordered_rows]
     assert positions == sorted(positions)
@@ -591,8 +597,9 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
             "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
         ),
         (
-            "| SP-019 | Daily Review & Follow-up Brief | "
-            "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+            "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
+            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+            "NOT_STARTED |"
         ),
     )
     assert all(marker in current_text for marker in required_markers)
@@ -622,7 +629,9 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
+    assert state["next_candidate_name"] == (
+        "Daily Review Read Model & Deterministic Follow-up View"
+    )
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -654,6 +663,11 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     )
     assert sp018["merged_at"] == "2026-07-26T09:35:04Z"
     assert sp018["reconciliation_pr"] == 47
+    assert sp018["reconciliation_merge_commit"] == (
+        "4e0d730a8bfdefa6277c7526a028e7247d7ddc43"
+    )
+    assert sp018["reconciled_at"] == "2026-07-26T10:32:07Z"
+    assert sp018["post_reconciliation_quality_gate_run"] == 30198434517
     assert sp018["review"] == "APPROVED"
     assert sp018["acceptance"] == "ACC-018 A-O PASSED / FINAL"
     assert sp018["post_merge_acceptance"] == "PASSED"
@@ -735,7 +749,9 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
         "Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`"
         in acceptance
     )
-    assert "SP-018A Reconciliation PR：#47（OPEN / DRAFT / NOT MERGED）" in acceptance
+    assert "SP-018A Reconciliation PR：#47（MERGED）" in acceptance
+    assert "4e0d730a8bfdefa6277c7526a028e7247d7ddc43" in acceptance
+    assert "30198434517" in acceptance
     assert "PR Quality Gate Run：`30195401115`" in acceptance
     assert "Post-Merge main Quality Gate Run：`30196719409`" in acceptance
     assert "Independent Review：`APPROVED`" in acceptance
@@ -753,12 +769,13 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
         "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
     ) in roadmap
     assert (
-        "| SP-019 | Daily Review & Follow-up Brief | "
-        "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
+        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+        "NOT_STARTED |"
     ) in roadmap
     assert "SP-018 永久产品事实" in brain
     assert "不会创建 `work_logs.db`" in brain
-    assert "SP-019 仍是候选，未批准、未启动" in brain
+    assert "SP-019 规划基线已定义，但未批准、未启动实施" in brain
     assert "Legacy Work Log Projection Table" in rfc
     assert "普通随机 Memory ID 仍不作为公开 alias" in rfc
     assert "历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias" in rfc
@@ -856,3 +873,280 @@ def test_sp018_product_entrypoints_use_the_canonical_work_log_boundary() -> None
     assert "save_memory" not in assistant_write
     assert "save_memory" not in inbox_write
     assert "retrieve_memory" not in agenda_read
+
+
+def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
+    state = _load_state()
+    sp019 = state["sp_records"]["SP-019"]
+    acc019 = state["acceptance_records"]["ACC-019"]
+
+    assert state["latest_merged_sp"] == "SP-018"
+    assert state["latest_completed_sp"] == "SP-018"
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_version"] == "0.34.0"
+    assert sp019 == {
+        "name": "Daily Review Read Model & Deterministic Follow-up View",
+        "status": (
+            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+            "NOT_STARTED"
+        ),
+        "planning_baseline_defined": True,
+        "approved": False,
+        "implementation_started": False,
+        "implementation_complete": False,
+        "completed": False,
+        "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
+        "branch": "docs/sp-019-planning-baseline",
+        "planning_pr": 48,
+        "target_version": "0.35.0",
+        "rfc": "RFC-028",
+        "adrs": ["ADR-061", "ADR-062"],
+        "acceptance": "ACC-019 PLANNING_BASELINE / NOT_EXECUTED",
+        "user_task_workspace_prerequisite": (
+            "REQUIRED / IN_SCOPE AS PHASE 0 / NOT_STARTED"
+        ),
+        "scope": (
+            "On-demand non-persistent Daily Review read model and "
+            "deterministic follow-up view"
+        ),
+    }
+    assert acc019["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
+    assert acc019["manual_acceptance"] is False
+    assert acc019["scenarios"] == {
+        letter: "NOT_EXECUTED" for letter in "ABCDEFGHIJKLM"
+    }
+
+    rfc = (
+        ROOT / "docs/rfc/028-daily-review-read-model-deterministic-follow-up.md"
+    ).read_text(encoding="utf-8-sig")
+    adr061 = (
+        ROOT / "docs/adr/ADR-061-daily-review-non-persistent-read-model.md"
+    ).read_text(encoding="utf-8-sig")
+    adr062 = (
+        ROOT
+        / "docs/adr/ADR-062-daily-review-source-failure-and-availability-semantics.md"
+    ).read_text(encoding="utf-8-sig")
+    acceptance = (
+        ROOT / "docs/acceptance/SP-019-daily-review-read-model.md"
+    ).read_text(encoding="utf-8-sig")
+    decision_index = (
+        ROOT / "docs/project/DECISION_INDEX.md"
+    ).read_text(encoding="utf-8-sig")
+    roadmap = (ROOT / "docs/project/ROADMAP.md").read_text(
+        encoding="utf-8-sig"
+    )
+
+    required_rfc_headings = (
+        "## 1. 当前状态审计（Current State Audit）",
+        "## 2. 用户问题（User Problem）",
+        "## 3. Daily Agenda 边界（Daily Agenda Boundary）",
+        "## 7. 日期与截至时点合同（Date and As-of Contract）",
+        "## 8. 输出模型（Output Model）",
+        "### 当前未闭环 Inbox（Current Pending Inbox）",
+        "## 11. 排序与去重（Sorting and Deduplication）",
+        "## 12. 数据源可用性（Source Availability）",
+        "## 13. 失败语义（Failure Semantics）",
+        "## 20. 实施阶段（Implementation Phases）",
+        "## 21. 非目标（Non-goals）",
+        "## 22. 风险（Risks）",
+        "## 23. 停止条件（Stop Conditions）",
+    )
+    assert all(heading in rfc for heading in required_rfc_headings)
+    assert "Status: Proposed / Planning Baseline" in rfc
+    assert "UserTask Workspace Query Closure" in rfc
+    assert "无需新 Schema、Migration" in rfc
+    assert "`daily_review.source_failed`" in rfc
+    assert "[as_of, as_of + 24 hours)" in rfc
+    assert (
+        "DailyReviewQuery\n"
+        "- review_date: today | yesterday\n"
+        "- limit: int = 50\n"
+        "- offset: int = 0"
+    ) in rfc
+    assert (
+        "合法范围保持为 `limit: 1..100`、`offset: >= 0`。默认值属于 "
+        "`DailyReviewQuery` 合同本身；API 与 CEO Assistant 必须构造同一个默认 "
+        "`DailyReviewQuery(review_date, limit=50, offset=0)`"
+    ) in rfc
+    assert (
+        "查询验证必须先于任何 canonical source 读取。`limit=0`、"
+        "`limit=101` 或 `offset=-1` 均返回 "
+        "`daily_review.query_invalid + ErrorCategory.VALIDATION`，且不得访问"
+        "任何 canonical source。"
+    ) in rfc
+    assert (
+        "page\n"
+        "- count\n"
+        "- total_count\n"
+        "- limit\n"
+        "- offset\n"
+        "- has_more"
+    ) in rfc
+    assert (
+        "deterministic classification\n"
+        "-> 按 (source_type, source_id) 去重并选定唯一 section\n"
+        "-> 按全局稳定排序键排序\n"
+        "-> 计算 total_count 与各 section_total_count\n"
+        "-> 对全局结果应用 offset / limit\n"
+        "-> 将当前 page items 按 section 分组"
+    ) in rfc
+    assert (
+        "GET /daily-review?date=today&limit=50&offset=0"
+    ) in rfc
+    classification_contract = rfc.split(
+        "## 9. 分类规则", maxsplit=1
+    )[1].split("## 10. Follow-up 原因码", maxsplit=1)[0]
+    assert "| Inbox pending at `as_of` |" not in classification_contract
+    assert (
+        "### 当前未闭环 Inbox（Current Pending Inbox）"
+        in classification_contract
+    )
+    assert (
+        "`pending_inbox` 是截至 `as_of` 的当前未闭环视图，不受 "
+        "`review_date` 的 `[period_start, period_end)` 日期事实窗口过滤。"
+    ) in classification_contract
+    assert (
+        "reason_code=inbox.pending\n"
+        "section=pending_inbox\n"
+        "effective_at=created_at\n"
+        "predicate=status pending at as_of"
+    ) in classification_contract
+    assert (
+        "同一个 Inbox item 只进入 `pending_inbox`，不得同时复制到 "
+        "`follow_ups`，也不得作为 `review_date` 日期事实。"
+    ) in classification_contract
+    assert (
+        "当前 pending Inbox items 必须计入全局 `total_count` 与 "
+        "`pending_inbox.section_total_count`，并参与同一套全局分页。"
+    ) in classification_contract
+    source_status_contract = (
+        rfc.split("## 12. 数据源可用性", maxsplit=1)[1]
+        .split("## 13. 失败语义", maxsplit=1)[0]
+        .split("```text", maxsplit=1)[1]
+        .split("```", maxsplit=1)[0]
+    )
+    assert source_status_contract.strip().splitlines() == [
+        "available",
+        "disabled",
+        "not_configured",
+    ]
+    assert "成功 payload 的 `source_status` 永远不包含 `failed`" in rfc
+    assert (
+        "| `daily_review.unavailable` | DISABLED | "
+        "配置显式关闭 DailyReviewService |"
+    ) in rfc
+    assert (
+        "| `daily_review.unavailable` | NOT_CONFIGURED | "
+        "Composition Root 未组合所需 DailyReviewService |"
+    ) in rfc
+    failure_contract = rfc.split(
+        "## 13. 失败语义", maxsplit=1
+    )[1].split("## 14. Workspace 合同", maxsplit=1)[0]
+    assert (
+        "`limit=0`、`limit=101` 与 `offset=-1` 均返回 "
+        "`daily_review.query_invalid + ErrorCategory.VALIDATION`；该失败路径"
+        "不得读取任何 canonical source，也不得返回部分 `DailyReview` payload。"
+    ) in failure_contract
+    entry_contract = rfc.split(
+        "## 15. 入口", maxsplit=1
+    )[1].split("## 16. 存储决策", maxsplit=1)[0]
+    assert (
+        "GET /daily-review?date=today\n"
+        "== GET /daily-review?date=today&limit=50&offset=0\n\n"
+        "GET /daily-review?date=yesterday\n"
+        "== GET /daily-review?date=yesterday&limit=50&offset=0"
+    ) in entry_contract
+    assert (
+        "API 与 CEO Assistant 必须构造同一个默认 `DailyReviewQuery`，"
+        "不得各自设置不同默认值"
+    ) in entry_contract
+    assert "Status: Proposed / Planning Baseline" in adr061
+    assert "非持久化" in adr061
+    assert "## 背景（Context）" in adr061
+    assert "## 决策（Decision）" in adr061
+    assert (
+        "日期事实由 `review_date` 控制；当前未闭环视图，包括 "
+        "`pending_inbox`，由 `as_of` 控制。"
+    ) in adr061
+    assert "Status: Proposed / Planning Baseline" in adr062
+    assert "成功返回的 `DailyReview.source_status`" in adr062
+    assert "不是成功 payload 的 `source_status` 值" in adr062
+    assert "category=DISABLED" in adr062
+    assert "category=NOT_CONFIGURED" in adr062
+    assert "## 治理状态（Governance）" in adr062
+    assert all(f"ACC-019-{letter}" in acceptance for letter in "ABCDEFGHIJKLM")
+    assert acceptance.count("状态：NOT_EXECUTED") == 13
+    assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
+    assert "Planning PR：#48（OPEN / DRAFT / NOT MERGED）" in acceptance
+    acc_d = acceptance.split("## ACC-019-D", maxsplit=1)[1].split(
+        "## ACC-019-E", maxsplit=1
+    )[0]
+    assert (
+        "创建时间早于 review period、但在 `as_of` 时仍为 pending 的 "
+        "Inbox item 必须出现在 `pending_inbox`"
+    ) in acc_d
+    acc_h = acceptance.split("## ACC-019-H", maxsplit=1)[1].split(
+        "## ACC-019-I", maxsplit=1
+    )[0]
+    assert (
+        "日期事实分类不得包含 Inbox pending；`inbox.pending` 是由 `as_of` "
+        "控制的当前未闭环视图，不得作为 `review_date` 日期事实。"
+    ) in acc_h
+    acc_i = acceptance.split("## ACC-019-I", maxsplit=1)[1].split(
+        "## ACC-019-J", maxsplit=1
+    )[0]
+    assert (
+        "`inbox.pending` 必须由 Inbox item 在 `as_of` 的当前 pending 状态"
+        "决定，不由 `review_date` 决定"
+    ) in acc_i
+    acc_j = acceptance.split("## ACC-019-J", maxsplit=1)[1].split(
+        "## ACC-019-K", maxsplit=1
+    )[0]
+    assert (
+        "同一个 Inbox item 只进入 `pending_inbox`，不得重复进入 `follow_ups`。"
+    ) in acc_j
+    acc_k = acceptance.split("## ACC-019-K", maxsplit=1)[1].split(
+        "## ACC-019-L", maxsplit=1
+    )[0]
+    assert "DailyReviewQuery(review_date, limit=50, offset=0)" in acc_k
+    assert (
+        "省略 `limit/offset` 与显式 `limit=50/offset=0` 构造完全相同的 "
+        "`DailyReviewQuery`"
+    ) in acc_k
+    assert (
+        "`limit=0`、`limit=101`、`offset=-1` 返回 "
+        "`daily_review.query_invalid + ErrorCategory.VALIDATION`，且不得访问"
+        "任何 canonical source"
+    ) in acc_k
+    assert (
+        "当前 pending Inbox items 计入全局 `total_count` 与 "
+        "`pending_inbox.section_total_count`，并参与同一套全局分页"
+    ) in acc_k
+    assert "跨页顺序稳定，无重复、无遗漏" in acc_k
+    assert "offset >= total_count" in acc_k
+    assert "page.count=0" in acc_k
+    acc_l = acceptance.split("## ACC-019-L", maxsplit=1)[1].split(
+        "## ACC-019-M", maxsplit=1
+    )[0]
+    assert (
+        "API 省略分页参数与显式 `limit=50/offset=0` 的结果一致"
+        in acc_l
+    )
+    assert (
+        "CEO Assistant 未提供结构化分页参数时必须使用同一个默认 "
+        "`DailyReviewQuery(review_date, limit=50, offset=0)`；其默认第一页"
+        "与 API 默认第一页必须返回相同当前 page 事实集合"
+    ) in acc_l
+    assert "GET /daily-review?date=today\n" in acc_l
+    assert "date=today&limit=50&offset=0" in acc_l
+    assert "## ACC-019-A — 基线与现有 Brief 替换" in acceptance
+    assert "## ACC-019-K — 全局分页与截断" in acceptance
+    assert "| RFC-028 |" in decision_index
+    assert "| ADR-061 |" in decision_index
+    assert "| ADR-062 |" in decision_index
+    assert (
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
+        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+        "NOT_STARTED |"
+    ) in roadmap
