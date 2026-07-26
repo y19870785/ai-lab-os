@@ -234,6 +234,83 @@ async def test_legacy_incomplete_workspace_is_default_read_only(
 
 
 @pytest.mark.asyncio
+async def test_malformed_metadata_respects_workspace_visibility_before_failure(
+    tmp_path: Path,
+) -> None:
+    manager, _, service, _ = await _stack(tmp_path)
+    local = await service.create(
+        workspace_key=LOCAL,
+        title="Visible local task",
+    )
+    corrupted = await service.create(
+        workspace_key=TENANT_B,
+        title="Corrupted foreign task",
+    )
+    with manager.lease("user_tasks") as conn:
+        conn.execute(
+            "UPDATE user_tasks SET metadata = ? WHERE id = ?",
+            ("{broken", corrupted.id),
+        )
+        conn.commit()
+        before = tuple(
+            conn.execute(
+                """
+                SELECT revision, status, updated_at, completed_at, cancelled_at,
+                       metadata
+                FROM user_tasks
+                WHERE id = ?
+                """,
+                (corrupted.id,),
+            ).fetchone()
+        )
+
+    visible = await service.list(workspace_key=LOCAL)
+    assert [task.id for task in visible] == [local.id]
+    assert await service.list(workspace_key=TENANT_B) == []
+
+    await _assert_not_found(
+        service.get(workspace_key=LOCAL, task_id=corrupted.id)
+    )
+    await _assert_not_found(
+        service.update(
+            workspace_key=LOCAL,
+            task_id=corrupted.id,
+            title="must not change",
+        )
+    )
+    await _assert_not_found(
+        service.complete(workspace_key=LOCAL, task_id=corrupted.id)
+    )
+    await _assert_not_found(
+        service.cancel(workspace_key=LOCAL, task_id=corrupted.id)
+    )
+    await _assert_not_found(
+        service.reopen(workspace_key=LOCAL, task_id=corrupted.id)
+    )
+
+    with pytest.raises(FailureException) as malformed:
+        await service.list(workspace_key=DEFAULT)
+    assert malformed.value.failure.category == ErrorCategory.PERSISTENCE_FAILURE
+    assert "{broken" not in malformed.value.failure.message
+    assert "metadata" not in malformed.value.failure.message.casefold()
+
+    with manager.lease("user_tasks") as conn:
+        after = tuple(
+            conn.execute(
+                """
+                SELECT revision, status, updated_at, completed_at, cancelled_at,
+                       metadata
+                FROM user_tasks
+                WHERE id = ?
+                """,
+                (corrupted.id,),
+            ).fetchone()
+        )
+    assert after == before
+    manager.close_all()
+
+
+@pytest.mark.asyncio
 async def test_terminal_ranges_are_utc_half_open(tmp_path: Path) -> None:
     manager, _, service, _ = await _stack(tmp_path)
     start = AS_OF - timedelta(hours=2)

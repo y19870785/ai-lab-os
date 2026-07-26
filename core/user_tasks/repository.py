@@ -112,6 +112,7 @@ class SQLiteUserTaskRepository:
         tenant_id, workspace_id, namespace = workspace_identity(workspace_key)
         sql = f"""
             CASE
+                WHEN json_valid(metadata) = 0 THEN 0
                 WHEN ({cls._COMPLETE_WORKSPACE_SQL}) = 1 THEN
                     CASE
                         WHEN json_extract(
@@ -143,6 +144,14 @@ class SQLiteUserTaskRepository:
             tenant_id,
             workspace_id,
             namespace,
+        )
+
+    @staticmethod
+    def _is_default_workspace(workspace_key: WorkspaceKey) -> bool:
+        return workspace_identity(workspace_key) == (
+            "default",
+            "default",
+            "default",
         )
 
     @staticmethod
@@ -185,7 +194,8 @@ class SQLiteUserTaskRepository:
         workspace_sql, workspace_params = self._workspace_predicate(workspace_key)
         try:
             with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
-                self._ensure_valid_metadata(conn, task_id=task_id)
+                if self._is_default_workspace(workspace_key):
+                    self._ensure_valid_metadata(conn, task_id=task_id)
                 row = conn.execute(
                     f"""
                     SELECT * FROM user_tasks
@@ -255,7 +265,8 @@ class SQLiteUserTaskRepository:
         params.extend((query.limit, query.offset))
         try:
             with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
-                self._ensure_valid_metadata(conn)
+                if self._is_default_workspace(workspace_key):
+                    self._ensure_valid_metadata(conn)
                 rows = conn.execute(sql, params).fetchall()
             self._last_error = None
             return [self._task(row) for row in rows]
@@ -285,7 +296,8 @@ class SQLiteUserTaskRepository:
                 self._manager.lease(self.LOGICAL_NAME, self._path) as conn,
                 transaction(conn),
             ):
-                self._ensure_valid_metadata(conn, task_id=task.id)
+                if self._is_default_workspace(workspace_key):
+                    self._ensure_valid_metadata(conn, task_id=task.id)
                 cursor = conn.execute(
                     f"""
                     UPDATE user_tasks SET {assignments}

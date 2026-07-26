@@ -37,20 +37,25 @@ def _service(system: SystemContainer):
     return system.user_task_service
 
 
-def _response(task) -> TaskResponse:
-    return TaskResponse(**task.model_dump(), overdue=task.is_overdue())
+def _response(task, *, service, request_as_of: datetime) -> TaskResponse:
+    return TaskResponse(
+        **task.model_dump(),
+        overdue=service.is_overdue(task, as_of=request_as_of),
+    )
 
 
 @router.post("", response_model=TaskResponse, status_code=201)
 async def create_task(req: TaskCreateRequest, request: Request,
                       system: SystemContainer = Depends(get_system)):
+    service = _service(system)
+    request_as_of = service.current_instant()
     data = req.model_dump()
-    task = await _service(system).create(
+    task = await service.create(
         workspace_key=_workspace(request),
         **data, source="api",
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task)
+    return _response(task, service=service, request_as_of=request_as_of)
 
 
 @router.get("", response_model=list[TaskResponse])
@@ -69,7 +74,9 @@ async def list_tasks(
     offset: int = Query(default=0, ge=0),
     system: SystemContainer = Depends(get_system),
 ):
-    tasks = await _service(system).list(
+    service = _service(system)
+    request_as_of = service.current_instant()
+    tasks = await service.list(
         workspace_key=_workspace(request),
         trace_id=getattr(request.state, "trace_id", ""),
         status=status,
@@ -83,19 +90,25 @@ async def list_tasks(
         overdue=overdue,
         limit=limit,
         offset=offset,
+        as_of=request_as_of,
     )
-    return [_response(task) for task in tasks]
+    return [
+        _response(task, service=service, request_as_of=request_as_of)
+        for task in tasks
+    ]
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task(task_id: str, request: Request,
                    system: SystemContainer = Depends(get_system)):
-    task = await _service(system).get(
+    service = _service(system)
+    request_as_of = service.current_instant()
+    task = await service.get(
         workspace_key=_workspace(request),
         task_id=task_id,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task)
+    return _response(task, service=service, request_as_of=request_as_of)
 
 
 @router.patch("/{task_id}", response_model=TaskResponse)
@@ -103,6 +116,7 @@ async def update_task(task_id: str, req: TaskUpdateRequest, request: Request,
                       system: SystemContainer = Depends(get_system)):
     changes = req.model_dump(exclude_unset=True)
     service = _service(system)
+    request_as_of = service.current_instant()
     if "revision" in changes:
         changes["expected_revision"] = changes.pop("revision")
     task = await service.update(
@@ -111,26 +125,30 @@ async def update_task(task_id: str, req: TaskUpdateRequest, request: Request,
         **changes,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task)
+    return _response(task, service=service, request_as_of=request_as_of)
 
 
 @router.post("/{task_id}/complete", response_model=TaskResponse)
 async def complete_task(task_id: str, request: Request,
                         system: SystemContainer = Depends(get_system)):
-    task = await _service(system).complete(
+    service = _service(system)
+    request_as_of = service.current_instant()
+    task = await service.complete(
         workspace_key=_workspace(request),
         task_id=task_id,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task)
+    return _response(task, service=service, request_as_of=request_as_of)
 
 
 @router.post("/{task_id}/cancel", response_model=TaskResponse)
 async def cancel_task(task_id: str, request: Request,
                       system: SystemContainer = Depends(get_system)):
-    task = await _service(system).cancel(
+    service = _service(system)
+    request_as_of = service.current_instant()
+    task = await service.cancel(
         workspace_key=_workspace(request),
         task_id=task_id,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task)
+    return _response(task, service=service, request_as_of=request_as_of)

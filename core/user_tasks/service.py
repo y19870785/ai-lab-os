@@ -168,6 +168,22 @@ class UserTaskService:
             raise ValueError("clock now() must include timezone information")
         return value.astimezone(UTC)
 
+    def current_instant(self) -> datetime:
+        """Return the service clock's current aware UTC instant."""
+
+        return self._now()
+
+    def is_overdue(
+        self,
+        task: UserTask,
+        *,
+        as_of: datetime | None = None,
+    ) -> bool:
+        """Evaluate overdue state against an explicit or service-owned instant."""
+
+        resolved_as_of = self._as_of(as_of) or self.current_instant()
+        return task.is_overdue(now=resolved_as_of)
+
     @staticmethod
     def _as_of(value: datetime | None) -> datetime | None:
         if value is None:
