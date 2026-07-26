@@ -35,8 +35,10 @@ class FakeMemoryManager:
 class FakeWorkLogService:
     def __init__(self, items=None):
         self._items = items or []
+        self.queries = []
 
     async def list(self, *, workspace_key, query):
+        self.queries.append(query)
         identity = (
             getattr(workspace_key, "tenant_id", "") or "default",
             getattr(workspace_key, "workspace_id", "") or "default",
@@ -53,14 +55,17 @@ class FakeWorkLogService:
             == identity
             and (query.date_from is None or item.occurred_at >= query.date_from)
             and (query.date_to is None or item.occurred_at < query.date_to)
+            and (query.status is None or item.status == query.status)
         ]
+        items.sort(key=lambda item: (item.occurred_at, item.id), reverse=True)
+        page_items = items[query.offset : query.offset + query.limit]
         return type(
             "Page",
             (),
             {
-                "items": tuple(items[query.offset : query.offset + query.limit]),
-                "has_more": query.offset + query.limit < len(items),
-                "count": len(items[query.offset : query.offset + query.limit]),
+                "items": tuple(page_items),
+                "has_more": query.offset + len(page_items) < len(items),
+                "count": len(page_items),
             },
         )()
 
@@ -85,7 +90,9 @@ def _fake_task(task_id, title, status, due_at=None):
                            "metadata": {"workspace": {"workspace_id": "default"}}})()
 
 
-def _fake_wl(item_id, date_str, subject, ws="default"):
+def _fake_wl(
+    item_id, date_str, subject, ws="default", status="completed"
+):
     from core.work_log import WorkLogRecord
     from core.workspace.models import WorkspaceKey
 
@@ -103,11 +110,12 @@ def _fake_wl(item_id, date_str, subject, ws="default"):
         timezone="Asia/Shanghai",
         subject=subject,
         raw_text=subject,
+        status=status,
         source="legacy",
         created_at=datetime.fromisoformat(date_str).replace(
             tzinfo=timezone.utc
         ),
-        schema_version=1,
+        schema_version=0 if item_id.startswith("wl_legacy_") else 1,
     )
 
 
@@ -193,6 +201,108 @@ async def test_wl_workspace_isolation(svc, clock):
     page = await svc.list(workspace_key=FakeWorkspace(), view="today")
     assert len(page.items) == 1
     assert page.items[0].title == "Default"
+
+
+@pytest.mark.asyncio
+async def test_completed_view_only_queries_completed_work_logs(svc):
+    svc._work_logs = FakeWorkLogService(
+        [
+            _fake_wl("wl_" + "1" * 32, "2026-07-17", "Done"),
+            _fake_wl(
+                "wl_" + "2" * 32,
+                "2026-07-17",
+                "Blocked",
+                status="blocked",
+            ),
+            _fake_wl(
+                "wl_" + "3" * 32,
+                "2026-07-17",
+                "Doing",
+                status="in_progress",
+            ),
+            _fake_wl(
+                "wl_" + "4" * 32,
+                "2026-07-17",
+                "Info",
+                status="informational",
+            ),
+        ]
+    )
+    page = await svc.list(workspace_key=FakeWorkspace(), view="completed")
+    assert [item.title for item in page.items] == ["Done"]
+    assert svc._work_logs.queries[0].status.value == "completed"
+
+
+@pytest.mark.asyncio
+async def test_today_maps_work_log_statuses_correctly(svc):
+    svc._work_logs = FakeWorkLogService(
+        [
+            _fake_wl("wl_" + "1" * 32, "2026-07-17", "Done"),
+            _fake_wl(
+                "wl_" + "2" * 32,
+                "2026-07-17",
+                "Blocked",
+                status="blocked",
+            ),
+            _fake_wl(
+                "wl_" + "3" * 32,
+                "2026-07-17",
+                "Doing",
+                status="in_progress",
+            ),
+            _fake_wl(
+                "wl_" + "4" * 32,
+                "2026-07-17",
+                "Info",
+                status="informational",
+            ),
+        ]
+    )
+    page = await svc.list(workspace_key=FakeWorkspace(), view="today")
+    kinds = {item.title: item.kind.value for item in page.items}
+    assert kinds == {
+        "Done": "completed",
+        "Blocked": "attention",
+        "Doing": "action",
+        "Info": "event",
+    }
+
+
+@pytest.mark.asyncio
+async def test_all_work_logs_has_no_365_day_cutoff(svc):
+    legacy_id = "wl_legacy_" + "a" * 64
+    svc._work_logs = FakeWorkLogService(
+        [
+            _fake_wl("wl_" + "1" * 32, "2024-01-01", "Old"),
+            _fake_wl(legacy_id, "2028-01-01", "Future"),
+        ]
+    )
+    page = await svc.list(workspace_key=FakeWorkspace(), view="all")
+    assert {item.source_id for item in page.items} == {
+        "wl_" + "1" * 32,
+        legacy_id,
+    }
+    query = svc._work_logs.queries[0]
+    assert query.date_from is None and query.date_to is None
+
+
+@pytest.mark.asyncio
+async def test_all_work_logs_uses_stable_pagination(svc):
+    svc._work_logs = FakeWorkLogService(
+        [
+            _fake_wl(f"wl_{index:032x}", "2026-07-17", f"Item {index}")
+            for index in range(205)
+        ]
+    )
+    page = await svc.list(
+        workspace_key=FakeWorkspace(), view="all", limit=100
+    )
+    assert len(page.items) == 100
+    assert [query.offset for query in svc._work_logs.queries] == [0, 200]
+    assert all(
+        query.date_from is None and query.date_to is None
+        for query in svc._work_logs.queries
+    )
 
 
 @pytest.mark.asyncio

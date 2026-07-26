@@ -90,13 +90,31 @@ class DailyAgendaService:
             items += await self._optional(self._user_tasks, "user_task", lambda: self._overdue_tasks(workspace_key, trace_id, now_utc), failures)
             items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.COMPLETED:
+            from core.work_log import WorkLogStatus
+
             items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_completed(workspace_key, trace_id, today_start, today_end), failures)
-            items += await self._optional(self._work_logs, "work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(
+                self._work_logs,
+                "work_log",
+                lambda: self._wl(
+                    workspace_key,
+                    trace_id,
+                    today_start,
+                    today_end,
+                    status=WorkLogStatus.COMPLETED,
+                ),
+                failures,
+            )
             items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.ALL:
             items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_all(workspace_key, trace_id), failures)
             items += await self._optional(self._user_tasks, "user_task", lambda: self._user_task_all(workspace_key, trace_id), failures)
-            items += await self._optional(self._work_logs, "work_log", lambda: self._wl(workspace_key, trace_id, today_start - timedelta(days=365), today_end + timedelta(days=365)), failures)
+            items += await self._optional(
+                self._work_logs,
+                "work_log",
+                lambda: self._wl(workspace_key, trace_id, None, None),
+                failures,
+            )
             items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         return items, failures
 
@@ -199,8 +217,8 @@ class DailyAgendaService:
             out += [_ui(t, kind) for t in tasks if self._belongs(t, wk)]
         return out
 
-    async def _wl(self, wk, tid, ts, te):
-        from core.work_log import WorkLogQuery
+    async def _wl(self, wk, tid, ts, te, *, status=None):
+        from core.work_log import WorkLogQuery, WorkLogStatus
 
         items = []
         offset = 0
@@ -208,7 +226,11 @@ class DailyAgendaService:
             page = await self._work_logs.list(
                 workspace_key=wk,
                 query=WorkLogQuery(
-                    date_from=ts, date_to=te, limit=200, offset=offset
+                    date_from=ts,
+                    date_to=te,
+                    status=status,
+                    limit=200,
+                    offset=offset,
                 ),
             )
             items.extend(page.items)
@@ -218,9 +240,15 @@ class DailyAgendaService:
         out = []
         wk_id = (wk.workspace_id or "default") if hasattr(wk, "workspace_id") else "default"
         for it in items:
+            kind = {
+                WorkLogStatus.COMPLETED: AgendaItemKind.COMPLETED,
+                WorkLogStatus.BLOCKED: AgendaItemKind.ATTENTION,
+                WorkLogStatus.IN_PROGRESS: AgendaItemKind.ACTION,
+                WorkLogStatus.INFORMATIONAL: AgendaItemKind.EVENT,
+            }[it.status]
             out.append(AgendaItem(
                 id=f"agenda-wl-{it.id}", source=AgendaItemSource.WORK_LOG,
-                kind=AgendaItemKind.COMPLETED, title=it.subject,
+                kind=kind, title=it.subject,
                 status=it.status.value, occurred_at=it.occurred_at,
                 timezone=it.timezone,
                 workspace_id=wk_id, source_id=it.id,
