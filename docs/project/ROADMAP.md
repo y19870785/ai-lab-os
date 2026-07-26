@@ -1,8 +1,8 @@
 # AI-Lab Roadmap
 
-**Last Updated:** 2026-07-23
+**Last Updated:** 2026-07-26
 **Current Version:** v0.34.0 Alpha / Release Authorized
-**Current SP:** SP-018
+**Current SP:** None
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -54,16 +54,16 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 ## v0.35.0 候选方向
 
-SP-016 与 SP-017 已完成人工验收并封存。SP-018 已在 Draft Head 实现并通过自动化验证，等待独立审查与后续人工验收：
+SP-016、SP-017 与 SP-018 已完成人工验收并封存。SP-019 仅是下一候选方向：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
 | SP-016 | Canonical Waiting-For Domain & Agenda Closure | COMPLETED / ARCHIVED |
 | SP-017 | Follow-up Interaction & Capture Closure — Deterministic Waiting-For interaction, Inbox capture confirmation, and durable Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |
-| SP-018 | Work Log Query Boundary & Context Closure | IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED |
+| SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
 | SP-019 | Daily Review & Follow-up Brief | CANDIDATE / NOT_APPROVED / NOT_STARTED |
 
-ACC-016 与 ACC-017 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted，ACC-018 A～O 均为 NOT_EXECUTED。SP-019 保持 CANDIDATE / NOT_APPROVED / NOT_STARTED，并且必须等待 SP-018 审查、合并、人工验收与对账完成。
+ACC-016、ACC-017 与 ACC-018 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 保持 CANDIDATE / NOT_APPROVED / NOT_STARTED；候选排序不代表批准、排期或启动。
 
 ## 后续候选版本
 

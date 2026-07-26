@@ -1,6 +1,6 @@
-# SP-018 Work Log Query Boundary & Context Closure 验收规划
+# SP-018 Work Log Query Boundary & Context Closure 验收记录
 
-状态：IMPLEMENTATION_DRAFT / NOT_EXECUTED
+状态：LOCAL_AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / PR_QUALITY_GATE_PASSED / POST_MERGE_QUALITY_GATE_PASSED / INDEPENDENT_REVIEW_APPROVED / FINAL
 
 规划日期：2026-07-23（Asia/Shanghai）
 
@@ -12,7 +12,24 @@ RFC：RFC-027 — Adopted
 
 ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
-> 本文定义 ACC-018 A～O 的未来人工验收矩阵。Draft Head 的自动化验证不等于人工验收；没有场景已执行或通过。
+> ACC-018 A～O 已在 Approved Head 上完整重跑并全部通过；Feature PR 与 post-merge main Quality Gate 均成功，合并后本地全量验证与 focused smoke 通过。
+
+## 审计基线
+
+- Planning PR：#45
+- Feature PR：#46
+- Approved Head：`e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`
+- Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`
+- Merged At：`2026-07-26T09:35:04Z`
+- PR Quality Gate Run：`30195401115`
+- Post-Merge main Quality Gate Run：`30196719409`（automatic `push` / SUCCESS）
+- Independent Review：`APPROVED`
+- ACC-018 A～O：PASSED / FINAL
+- Post-merge verification：PASSED
+
+首次 ACC-018 在 Head `41ffcba093f149e31dee06c987a5305c651c349a` 的场景 L 发现：显式非法 Work Log ID 会扩大为无过滤查询，因此该 Head 验收失败。随后通过修复 Head `dc3796c25e4db33521c9b266ec87c32974e7b159` 收紧显式非法 ID，并在 Approved Head `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3` 完成大小写不敏感候选修复；A～O 从头完整重跑并全部通过。小写、大写和混合大小写非法 ID 均以 `work_log.id_invalid` fail closed，且不调用 query/list fallback。
+
+验收与 post-merge smoke 均未调用真实 Provider。执行过程中标记为 `INVALID_ACCEPTANCE_HARNESS` 的事件是 driver、编码或 harness 问题，不是产品失败。
 
 ## 固定边界
 
@@ -63,19 +80,19 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - 重启后 get 返回相同对象；
 - 没有 `work_logs.db`、新表或双写。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-B：Workspace 隔离
 
 在不同 tenant_id、workspace_id、namespace 组合创建记录。逐项验证 create/get/list、ID lookup、filter 和分页均只返回完整三元组匹配的数据；仅 workspace_id 相同不能越权。canonical、historical Inbox alias 与 legacy digest lookup 均必须先完成 SQL Workspace scope，再解码、验证或投影；其他 Workspace 的 malformed row 不得影响当前 Workspace，也不得泄漏 projection failure。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-C：Today 与日期范围
 
 验证系统 timezone、显式合法 IANA timezone、UTC 转换、`[start,end)`、午夜边界、date_from/date_to 和无效/歧义时间 fail closed。America/New_York spring-forward 日必须为 23 小时、fall-back 日必须为 25 小时；naive legacy 不存在或歧义时间必须 projection_failed。不得用当前时间补造 legacy 时间。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-D：Canonical ID 查询
 
@@ -93,13 +110,13 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - Inbox alias Workspace mismatch fail closed；
 - 普通随机 Memory ID 仍不作为公开 alias。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-E：过滤组合
 
 覆盖 target、tags、status、text、context_ref 和 date range。验证条件间 AND、多 tags all-of、Unicode casefold substring、空字符串拒绝，以及过滤不会跨 Workspace。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-F：稳定排序和分页
 
@@ -117,7 +134,7 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - Workspace filter 在分页和计数前生效；
 - 不存在业务结果 candidate cap。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-G：Legacy 可读兼容
 
@@ -133,19 +150,19 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - alias 与 canonical 查询零写入、重启后身份不变；
 - 普通随机 Memory ID 仍被拒绝。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-H：Legacy Workspace fail closed
 
 验证缺少完整 Workspace 的旧记录只在 `default/default/default` 可见；只有 workspace_id 或 session metadata 不足以归属其他 scope。读取不得自动补齐或重新归属。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-I：Context refs
 
 显式保存和查询 `ut_`、`rem_`、`wf_`、`inbox_` 引用。验证 kind/prefix、重复、长度、非法前缀 fail closed；服务关闭时 `not_checked`，不存在或 Workspace 不匹配时 `unresolved`，且创建不被非事务性 existence check 阻塞。不得自动猜测。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-J：Agenda 统一消费
 
@@ -162,13 +179,13 @@ Daily Agenda 必须：
 - 不直接扫描 MemoryManager；
 - 查询前后零写入。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-K：Brief 统一消费
 
 Daily Brief 的 Work Log 数据必须来自 WorkLogService，具有正确 Workspace、稳定时间范围、排序与 ID。验证没有扩展 Task/Reminder/Waiting-For 完整复盘、自动建议、自动催办、自动写入或主动推送。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-L：API / CLI / CEO Assistant 一致
 
@@ -185,7 +202,7 @@ Daily Brief 的 Work Log 数据必须来自 WorkLogService，具有正确 Worksp
 - 已完成 Inbox resolution、API、CLI、CEO Assistant、Agenda 与 Brief 对同一 Work Log 返回一致 canonical `wl_legacy_...`；
 - Inbox 自身历史字段继续返回 `inbox_wl_...`，重复 resolve 不创建 `wl_...` 新行。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-M：查询零副作用
 
@@ -200,13 +217,13 @@ Daily Brief 的 Work Log 数据必须来自 WorkLogService，具有正确 Worksp
 
 必须证明零写、零 event append、零 write-back、零自动迁移、零 LLM side effect。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-N：重启和真实进程
 
 使用独立 CLI 进程与真实 Uvicorn API 进程，共享一个隔离 SQLite data dir，覆盖 create/list/get、Workspace、legacy/new、重启与并发读取。所有进程必须看到一致 ID、排序和字段。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## ACC-018-O：FailureInfo 与 Presenter
 
@@ -229,8 +246,8 @@ Daily Brief 的 Work Log 数据必须来自 WorkLogService，具有正确 Worksp
 
 验证 category、HTTP、CLI exit code、retryable、details、trace_id 一致；中文 Presenter 只能改变 message，不得改变机器字段。
 
-状态：NOT_EXECUTED
+状态：PASSED
 
 ## 通过条件
 
-只有 A～O 全部在 Approved Head 上真实执行通过，独立审查为 APPROVED，PR 与 post-merge main Quality Gate 均成功，并完成治理对账，ACC-018 才可更新为 `PASSED / FINAL`。任何部分覆盖、计划测试或旧 Memory 测试都不能替代该结论。
+A～O 已全部在 Approved Head 上真实执行通过，独立审查为 APPROVED，Feature PR 与 post-merge main Quality Gate 均成功，ACC-018 当前结论为 `PASSED / FINAL`。首次失败与修复链保留为审计历史，不再代表当前状态。

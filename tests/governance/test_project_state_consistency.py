@@ -69,19 +69,19 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    assert state["current_sp"] == "SP-018"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert _sp_number(state["next_candidate_sp"]) > _sp_number(
         state["latest_completed_sp"]
     )
 
 
-def test_sp015_release_baseline_is_archived_while_sp017_is_latest_work() -> None:
+def test_sp015_release_baseline_is_archived_while_sp018_is_latest_work() -> None:
     state = _load_state()
     sp015 = state["sp_records"]["SP-015"]
 
-    assert state["latest_merged_sp"] == "SP-017"
-    assert state["latest_completed_sp"] == "SP-017"
+    assert state["latest_merged_sp"] == "SP-018"
+    assert state["latest_completed_sp"] == "SP-018"
     assert sp015["status"] == (
         "APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
@@ -162,10 +162,10 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
-    assert state["current_sp"] == "SP-018"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_018_implemented_on_draft_head_automated_verification_passed"
+        "sp_018_completed_reconciled_archived"
     )
     assert state["next_candidate_sp"] == "SP-019"
     assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
@@ -229,8 +229,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     )
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
-    assert "Last Completed SP: SP-017" in text["brain"]
-    assert "Current SP: SP-018" in text["brain"]
+    assert "Last Completed SP: SP-018" in text["brain"]
+    assert "Current SP: None" in text["brain"]
     assert "ACC-016 Status: PASSED / FINAL" in text["brain"]
     assert "ACC-017 Status: PASSED / FINAL" in text["brain"]
     assert "Current governance task | None" in text["health"]
@@ -458,14 +458,14 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
 
-    assert state["current_sp"] == "SP-018"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["latest_merged_sp"] == "SP-017"
-    assert state["latest_completed_sp"] == "SP-017"
+    assert state["latest_merged_sp"] == "SP-018"
+    assert state["latest_completed_sp"] == "SP-018"
     assert state["next_candidate_sp"] == "SP-019"
     assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
     assert state["development_status"] == (
-        "sp_018_implemented_on_draft_head_automated_verification_passed"
+        "sp_018_completed_reconciled_archived"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -583,13 +583,12 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     )
     required_markers = (
         "SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED",
-        "Current SP: SP-018",
+        "Current SP: None",
         "RFC-026 Adopted",
         "ACC-017 Status: PASSED / FINAL",
         (
             "| SP-018 | Work Log Query Boundary & Context Closure | "
-            "IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / "
-            "MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED |"
+            "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
         ),
         (
             "| SP-019 | Daily Review & Follow-up Brief | "
@@ -612,15 +611,15 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert transient_fields.isdisjoint(sp017)
 
 
-def test_sp018_is_implemented_on_draft_without_manual_acceptance() -> None:
+def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     state = _load_state()
     records = state["sp_records"]
     sp018 = records["SP-018"]
     acc018 = state["acceptance_records"]["ACC-018"]
 
-    assert state["latest_merged_sp"] == "SP-017"
-    assert state["latest_completed_sp"] == "SP-017"
-    assert state["current_sp"] == "SP-018"
+    assert state["latest_merged_sp"] == "SP-018"
+    assert state["latest_completed_sp"] == "SP-018"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] == "SP-019"
     assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
@@ -629,40 +628,66 @@ def test_sp018_is_implemented_on_draft_without_manual_acceptance() -> None:
 
     assert sp018["name"] == "Work Log Query Boundary & Context Closure"
     assert sp018["status"] == (
-        "APPROVED_FOR_IMPLEMENTATION / IMPLEMENTED_ON_DRAFT_HEAD / "
-        "AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_NOT_EXECUTED / "
-        "NOT_MERGED"
+        "APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / "
+        "MANUAL_ACCEPTANCE_PASSED / POST_MERGE_VERIFIED / "
+        "RECONCILED / ARCHIVED"
     )
     assert sp018["planning_baseline_defined"] is True
     assert sp018["approved"] is True
     assert sp018["implementation_started"] is True
     assert sp018["implementation_complete"] is True
-    assert sp018["manual_acceptance_status"] == "NOT_EXECUTED"
+    assert sp018["manual_acceptance_status"] == "PASSED"
+    assert sp018["completed"] is True
+    assert sp018["reconciled"] is True
+    assert sp018["archived"] is True
     assert sp018["planning_pr"] == 45
     assert sp018["planning_head"] == "e485c99d9734a43665c0c891e886e91b59c577d6"
     assert sp018["planning_merge_commit"] == (
         "ee06f6a20004bdbf24fc94c8420c18cf1a3d45b3"
     )
+    assert sp018["feature_pr"] == 46
+    assert sp018["approved_head"] == (
+        "e941cadc783a6ac8a4bd3c75b55adf77e0a651a3"
+    )
+    assert sp018["feature_merge_commit"] == (
+        "83ecb557fedd1d898712afc59ad13b3e0a684413"
+    )
+    assert sp018["merged_at"] == "2026-07-26T09:35:04Z"
+    assert sp018["review"] == "APPROVED"
+    assert sp018["acceptance"] == "ACC-018 A-O PASSED / FINAL"
+    assert sp018["post_merge_acceptance"] == "PASSED"
+    assert sp018["main_quality_gate"] == "PASSED"
+    assert sp018["main_quality_gate_run"] == 30196719409
     assert sp018["target_version"] == "0.35.0"
     assert sp018["rfc"] == "RFC-027"
     assert sp018["adrs"] == ["ADR-058", "ADR-059", "ADR-060"]
     assert {
-        "feature_pr",
-        "approved_head",
         "draft_pr",
         "github_check_status",
         "merge_commit",
         "merged",
         "accepted",
-        "archived",
-        "reconciled",
     }.isdisjoint(sp018)
 
-    assert acc018["status"] == "IMPLEMENTATION_DRAFT / NOT_EXECUTED"
-    assert acc018["manual_acceptance"] is False
+    assert acc018["status"] == "PASSED / FINAL"
+    assert acc018["manual_acceptance"] is True
+    assert acc018["acceptance_head"] == (
+        "e941cadc783a6ac8a4bd3c75b55adf77e0a651a3"
+    )
+    assert acc018["post_merge_verified_commit"] == (
+        "83ecb557fedd1d898712afc59ad13b3e0a684413"
+    )
+    assert acc018["post_merge_quality_gate_run"] == 30196719409
     assert acc018["scenarios"] == {
-        letter: "NOT_EXECUTED" for letter in "ABCDEFGHIJKLMNO"
+        letter: "PASSED" for letter in "ABCDEFGHIJKLMNO"
     }
+    notes = "\n".join(acc018["notes"])
+    assert "41ffcba093f149e31dee06c987a5305c651c349a" in notes
+    assert "e941cadc783a6ac8a4bd3c75b55adf77e0a651a3" in notes
+    assert "30196719409" in notes
+    assert "without query or list fallback" in notes
+    assert "no real Provider calls" in notes
+    assert "INVALID_ACCEPTANCE_HARNESS" in notes
 
     rfc = (
         ROOT / "docs/rfc/027-work-log-query-boundary-context-closure.md"
@@ -688,12 +713,32 @@ def test_sp018_is_implemented_on_draft_without_manual_acceptance() -> None:
     )
 
     assert "Status: Adopted" in rfc
-    assert "ACC-018 人工验收尚未执行" in rfc
+    assert "ACC-018 A～O" in rfc
+    assert "30196719409" in rfc
     assert all(
         "Status: Accepted" in content for content in (adr058, adr059, adr060)
     )
-    assert "NOT_EXECUTED" in acceptance
+    assert (
+        "LOCAL_AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / "
+        "PR_QUALITY_GATE_PASSED / POST_MERGE_QUALITY_GATE_PASSED / "
+        "INDEPENDENT_REVIEW_APPROVED / FINAL"
+    ) in acceptance
     assert all(f"ACC-018-{letter}" in acceptance for letter in "ABCDEFGHIJKLMNO")
+    assert acceptance.count("状态：PASSED") == 15
+    assert "Feature PR：#46" in acceptance
+    assert (
+        "Approved Head：`e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`"
+        in acceptance
+    )
+    assert (
+        "Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`"
+        in acceptance
+    )
+    assert "PR Quality Gate Run：`30195401115`" in acceptance
+    assert "Post-Merge main Quality Gate Run：`30196719409`" in acceptance
+    assert "Independent Review：`APPROVED`" in acceptance
+    assert "ACC-018 A～O：PASSED / FINAL" in acceptance
+    assert "INVALID_ACCEPTANCE_HARNESS" in acceptance
     assert (
         "| RFC-027 | Work Log Query Boundary and Context Closure | "
         "Adopted |"
@@ -703,16 +748,15 @@ def test_sp018_is_implemented_on_draft_without_manual_acceptance() -> None:
     )
     assert (
         "| SP-018 | Work Log Query Boundary & Context Closure | "
-        "IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / "
-        "MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED |"
+        "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
     ) in roadmap
     assert (
         "| SP-019 | Daily Review & Follow-up Brief | "
         "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
     ) in roadmap
-    assert "SP-018 Draft implementation facts" in brain
+    assert "SP-018 永久产品事实" in brain
     assert "不会创建 `work_logs.db`" in brain
-    assert "SP-019 必须等待 SP-018" in brain
+    assert "SP-019 仍是候选，未批准、未启动" in brain
     assert "Legacy Work Log Projection Table" in rfc
     assert "普通随机 Memory ID 仍不作为公开 alias" in rfc
     assert "历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias" in rfc
@@ -737,11 +781,9 @@ def test_sp018_is_implemented_on_draft_without_manual_acceptance() -> None:
     assert "数据量超过 slow-query/scanned-row observability warning threshold" in acc_f
     assert "历史 Inbox row 投影为稳定 `wl_legacy_...`" in acc_g
     assert "API、CLI、CEO Assistant、Agenda 与 Brief" in acc_l
-    assert "状态：IMPLEMENTATION_DRAFT / NOT_EXECUTED" in (
-        acceptance
-    )
+    assert "状态：PASSED" in acceptance
 
-    planning_files = (
+    governance_files = (
         rfc,
         adr058,
         adr059,
@@ -751,15 +793,17 @@ def test_sp018_is_implemented_on_draft_without_manual_acceptance() -> None:
         roadmap,
         brain,
     )
-    forbidden_acceptance_claims = (
-        "ACC-018 A～O：PASSED",
-        "SP-018 Status: MANUAL_ACCEPTANCE_PASSED",
-        "SP-018 Status: IN_PROGRESS",
+    stale_state_markers = (
+        "SP-018 Draft implementation facts",
+        "MANUAL_ACCEPTANCE_NOT_EXECUTED",
+        "NOT_MERGED",
+        "ACC-018 人工验收尚未执行",
+        "状态：IMPLEMENTATION_DRAFT / NOT_EXECUTED",
     )
     assert all(
         marker not in content
-        for marker in forbidden_acceptance_claims
-        for content in planning_files
+        for marker in stale_state_markers
+        for content in governance_files
     )
 
 

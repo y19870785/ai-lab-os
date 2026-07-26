@@ -1,8 +1,8 @@
 # AI-Lab Project Brain —— 项目大脑
 
 > Product Version: v0.34.0
-> Last Completed SP: SP-017
-> Current SP: SP-018
+> Last Completed SP: SP-018
+> Current SP: None
 > Current Governance Task: None
 > Next Candidate SP: SP-019
 > Next Candidate Direction: Daily Review & Follow-up Brief
@@ -11,10 +11,10 @@
 > SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
 > ACC-017 Status: PASSED / FINAL
 > SP-017 Design: RFC-026 Adopted; ADR-056 and ADR-057 Accepted
-> SP-018 Status: APPROVED_FOR_IMPLEMENTATION / IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED
-> ACC-018 Status: IMPLEMENTATION_DRAFT / NOT_EXECUTED
+> SP-018 Status: APPROVED / MERGED / ACCEPTED / POST-MERGE VERIFIED / RECONCILED / ARCHIVED
+> ACC-018 Status: PASSED / FINAL
 > SP-018 Design: RFC-027 Adopted; ADR-058, ADR-059 and ADR-060 Accepted
-> Current main: `ee06f6a20004bdbf24fc94c8420c18cf1a3d45b3` / Quality Gate run `30019176278`
+> Current main: `83ecb557fedd1d898712afc59ad13b3e0a684413` / Quality Gate run `30196719409`
 > Release Stage: v0.34.0 Alpha / RELEASE_AUTHORIZED
 > Verified Release Baseline: `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 > SP-015 Base Commit: `57444274abd4e568a6af72b218d50290de563654`
@@ -96,15 +96,16 @@ Mock Provider: only explicit mock/test profiles
 - API 和 CLI 缺省 timezone 统一使用系统 `timezone_name`。
 - 显式 `POST /waiting-for` 和 `waiting-for create` 继续支持直接创建。
 
-### SP-018 Draft implementation facts
+### SP-018 永久产品事实
 
 - 唯一 `WorkLogService` 已在 Composition Root 中装配；CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 共用该边界。
 - `episodic.db / episodic_memories` 继续作为物理存储；不会创建 `work_logs.db`、第二张 Work Log 表或 SP-018 索引。
 - Work Log 查询以完整 `tenant_id + workspace_id + namespace` 为 Workspace identity，在 SQL 候选阶段先隔离。
 - 新记录使用 `wl_...` canonical ID；旧随机 Memory ID 通过确定性 `wl_legacy_...` 只读投影兼容，不写回。
 - 上下文关联只接受显式 `ut_`、`rem_`、`wf_`、`inbox_` ID；不使用 LLM 或相似文本猜测。
-- Draft Head 已通过自动化验证；ACC-018 A～O 仍为 NOT_EXECUTED，SP-018 尚未合并。
-- SP-019 必须等待 SP-018 审查、合并、人工验收和封存完成；本次实现不启动 SP-019。
+- Feature PR #46 已以 Squash Merge 合入 `83ecb557fedd1d898712afc59ad13b3e0a684413`；ACC-018 A～O 在 Approved Head `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3` 完整通过。
+- 合并后的 main 通过自动 push Quality Gate `30196719409`、本地全量验证与 post-merge smoke；验收和 smoke 均未调用真实 Provider。
+- SP-019 仍是候选，未批准、未启动；SP-018 的完成与封存不构成 SP-019 实施授权。
 
 ## 已封存产品能力
 
@@ -176,4 +177,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016 Canonical Waiting-For Domain & Agenda Closure 与 SP-017 Follow-up Interaction & Capture Closure 均已完成人工验收并封存；ACC-016、ACC-017 均为 PASSED / FINAL。Current Product SP 为 SP-018，Current Governance Task 为 None。SP-018 已在 Draft Head 实现并通过自动化验证；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted，ACC-018 为 NOT_EXECUTED。SP-019 仍为候选且未批准、未启动。
+SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 仍为候选且未批准、未启动。

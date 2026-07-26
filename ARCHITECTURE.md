@@ -6,7 +6,7 @@ v0.34.0 Alpha 在 v0.33.0 稳定化基础上收口 Canonical UserTask、Reminder
 
 v0.35 开发线新增独立 canonical Waiting-For domain：`core/waiting_for` 使用 DatabaseManager 管理的 `followups.db` 保存 CAS 快照与 append-only 事件。FastAPI、CLI 与 Daily Agenda 均通过 Composition Root 中同一个 `WaitingForService` 访问真相源；Daily Agenda 将 UserTask、Reminder、Waiting-For 与 Work Log 视为可选来源，未启用来源不阻断其他来源查询。
 
-SP-018 Draft 新增唯一 `core/work_log/WorkLogService` 与 `SQLiteWorkLogRepository`。它复用 DatabaseManager 管理的既有 `episodic.db / episodic_memories`，不创建新表或索引；新记录采用 `wl_<32 hex>`，Legacy 记录只读投影为 `wl_legacy_<sha256>`。public get/list 在 SQL Workspace scope 后才解码或投影，API/CLI/CEO 输入验证共享 WorkLogService FailureInfo；Agenda 按真实 status 聚合并对 ALL 稳定分页，Legacy naive DST 不存在或歧义时间 fail closed。CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 只通过该服务访问 Work Log；ACC-018 尚未执行，当前实现尚未合并。
+SP-018 新增唯一 `core/work_log/WorkLogService` 与 `SQLiteWorkLogRepository`。它复用 DatabaseManager 管理的既有 `episodic.db / episodic_memories`，不创建新表或索引；新记录采用 `wl_<32 hex>`，Legacy 记录只读投影为 `wl_legacy_<sha256>`。public get/list 在 SQL Workspace scope 后才解码或投影，API/CLI/CEO 输入验证共享 WorkLogService FailureInfo；Agenda 按真实 status 聚合并对 ALL 稳定分页，Legacy naive DST 不存在或歧义时间 fail closed。CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 只通过该服务访问 Work Log；ACC-018 A～O 与合并后验证均已通过。
 
 SP-017 已完成验收并封存。正式链路为 `CEO Assistant capture -> InboxService.resolve_to_waiting_for() -> WaitingForService.create()`，复用 `inbox_resolution_claims` 的 `CLAIMED -> TARGET_CREATED -> COMPLETED`，不新增 Saga 表或 Waiting-For lifecycle Schema；自然语言写入必须先捕获并通过 Inbox ID 确认，后续 mutation 必须使用 canonical `wf_...` ID。
 
