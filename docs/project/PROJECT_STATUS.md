@@ -24,11 +24,11 @@
 | RFC-027 | Adopted |
 | ADR-058 / ADR-059 / ADR-060 | Accepted |
 | ACC-018 | PASSED / FINAL（A～O 全部通过） |
-| SP-019 | PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| SP-019 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 | RFC-028 / ADR-061 / ADR-062 | Proposed / Planning Baseline |
 | ACC-019 | PLANNING_BASELINE / NOT_EXECUTED |
 
-根目录 `project_state.json` 是唯一机器可读仓库治理状态与稳定发布授权源；本页是便于人工阅读的摘要。当前 Git/GitHub 对象按需查询，运行时产品版本仍只来自 `pyproject.toml`。
+根目录 `project_state.json` 是唯一机器可读仓库治理状态与稳定发布授权源；本页是便于人工阅读的摘要。当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在治理文件中维护自指的 current-main 镜像；运行时产品版本仍只来自 `pyproject.toml`。
 
 ## Product baseline
 
@@ -46,6 +46,8 @@ SP-018 feature merge main `83ecb557fedd1d898712afc59ad13b3e0a684413` 的自动 p
 
 SP-018A reconciliation PR #47 已合并为 main `4e0d730a8bfdefa6277c7526a028e7247d7ddc43`；自动 push Quality Gate run `30198434517` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。
 
+SP-019 Planning PR #48 已由 Approved Planning Head `282dd939ff264b0f23d5070b6f632aa0442531ea` Squash Merge 为 main `e7fc5b1dd66ff7828c1697bfd5610f300599eee5`，合并时间 `2026-07-26T14:19:41Z`；自动 push Quality Gate run `30205853257` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。该规划合并不批准或启动 SP-019 Implementation。
+
 ## Release state
 
 - 源码版本：`0.34.0`
@@ -56,4 +58,4 @@ SP-018A reconciliation PR #47 已合并为 main `4e0d730a8bfdefa6277c7526a028e72
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Current Product SP 为 None，Current Governance Task 为 None，Latest Completed SP 为 SP-018。SP-018 已合并、验收、完成 post-merge verification 与对账并封存；ACC-018 A～O 均为 PASSED / FINAL。SP-019 Planning Baseline 已定义，UserTask Workspace Query Closure 被固定为内部 Phase 0，但 Implementation NOT APPROVED、Coding NOT STARTED，ACC-019 NOT_EXECUTED。当前产品版本仍为 `0.34.0`。
+Current Product SP 为 None，Current Governance Task 为 None，Latest Completed SP 为 SP-018。SP-018 已合并、验收、完成 post-merge verification 与对账并封存；ACC-018 A～O 均为 PASSED / FINAL。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，UserTask Workspace Query Closure 仍是内部 Phase 0；Implementation NOT APPROVED、Coding NOT STARTED，ACC-019 PLANNING_BASELINE / NOT_EXECUTED。当前产品版本仍为 `0.34.0`。

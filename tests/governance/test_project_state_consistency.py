@@ -165,7 +165,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_019_planning_baseline_defined_implementation_not_approved_not_started"
+        "sp_019_planning_baseline_approved_merged_reconciled_"
+        "implementation_not_approved_not_started"
     )
     assert state["next_candidate_sp"] == "SP-019"
     assert state["next_candidate_name"] == (
@@ -470,7 +471,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "Daily Review Read Model & Deterministic Follow-up View"
     )
     assert state["development_status"] == (
-        "sp_019_planning_baseline_defined_implementation_not_approved_not_started"
+        "sp_019_planning_baseline_approved_merged_reconciled_"
+        "implementation_not_approved_not_started"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -598,8 +600,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         ),
         (
             "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
-            "NOT_STARTED |"
+            "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
+            "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
         ),
     )
     assert all(marker in current_text for marker in required_markers)
@@ -770,12 +772,15 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     ) in roadmap
     assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
-        "NOT_STARTED |"
+        "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
+        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
     ) in roadmap
     assert "SP-018 永久产品事实" in brain
     assert "不会创建 `work_logs.db`" in brain
-    assert "SP-019 规划基线已定义，但未批准、未启动实施" in brain
+    assert (
+        "SP-019 Planning Baseline 已通过独立审查并由 PR #48 Squash Merge"
+        in brain
+    )
     assert "Legacy Work Log Projection Table" in rfc
     assert "普通随机 Memory ID 仍不作为公开 alias" in rfc
     assert "历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias" in rfc
@@ -875,7 +880,7 @@ def test_sp018_product_entrypoints_use_the_canonical_work_log_boundary() -> None
     assert "retrieve_memory" not in agenda_read
 
 
-def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
+def test_sp019_planning_merge_is_reconciled_without_implementation() -> None:
     state = _load_state()
     sp019 = state["sp_records"]["SP-019"]
     acc019 = state["acceptance_records"]["ACC-019"]
@@ -885,13 +890,18 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["current_version"] == "0.34.0"
+    assert state["development_status"] == (
+        "sp_019_planning_baseline_approved_merged_reconciled_"
+        "implementation_not_approved_not_started"
+    )
     assert sp019 == {
         "name": "Daily Review Read Model & Deterministic Follow-up View",
         "status": (
-            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
-            "NOT_STARTED"
+            "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
+            "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
         ),
         "planning_baseline_defined": True,
+        "planning_baseline_approved": True,
         "approved": False,
         "implementation_started": False,
         "implementation_complete": False,
@@ -899,6 +909,11 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
         "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
         "branch": "docs/sp-019-planning-baseline",
         "planning_pr": 48,
+        "planning_head": "282dd939ff264b0f23d5070b6f632aa0442531ea",
+        "planning_merge_commit": "e7fc5b1dd66ff7828c1697bfd5610f300599eee5",
+        "planning_merged_at": "2026-07-26T14:19:41Z",
+        "post_planning_quality_gate_run": 30205853257,
+        "planning_reconciliation_pr": 49,
         "target_version": "0.35.0",
         "rfc": "RFC-028",
         "adrs": ["ADR-061", "ADR-062"],
@@ -934,6 +949,15 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
         ROOT / "docs/project/DECISION_INDEX.md"
     ).read_text(encoding="utf-8-sig")
     roadmap = (ROOT / "docs/project/ROADMAP.md").read_text(
+        encoding="utf-8-sig"
+    )
+    brain = (ROOT / "docs/project/PROJECT_BRAIN.md").read_text(
+        encoding="utf-8-sig"
+    )
+    project_status = (ROOT / "docs/project/PROJECT_STATUS.md").read_text(
+        encoding="utf-8-sig"
+    )
+    project_health = (ROOT / "docs/project/PROJECT_HEALTH.md").read_text(
         encoding="utf-8-sig"
     )
 
@@ -1078,7 +1102,18 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
     assert all(f"ACC-019-{letter}" in acceptance for letter in "ABCDEFGHIJKLM")
     assert acceptance.count("状态：NOT_EXECUTED") == 13
     assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
-    assert "Planning PR：#48（OPEN / DRAFT / NOT MERGED）" in acceptance
+    planning_merge_contract = (
+        "Planning PR：#48（MERGED）\n\n"
+        "Approved Planning Head："
+        "`282dd939ff264b0f23d5070b6f632aa0442531ea`\n\n"
+        "Planning Merge Commit："
+        "`e7fc5b1dd66ff7828c1697bfd5610f300599eee5`\n\n"
+        "Planning Merged At：`2026-07-26T14:19:41Z`\n\n"
+        "Post-Planning main Quality Gate：`30205853257`（SUCCESS）\n\n"
+        "Independent Planning Review：APPROVED"
+    )
+    assert planning_merge_contract in acceptance
+    assert "Planning PR：#48（OPEN / DRAFT / NOT MERGED）" not in acceptance
     acc_d = acceptance.split("## ACC-019-D", maxsplit=1)[1].split(
         "## ACC-019-E", maxsplit=1
     )[0]
@@ -1147,6 +1182,40 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
     assert "| ADR-062 |" in decision_index
     assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
-        "NOT_STARTED |"
+        "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
+        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
     ) in roadmap
+    assert (
+        "> Current SP: None\n"
+        "> Current Governance Task: None\n"
+        "> Next Candidate SP: SP-019"
+    ) in brain
+    assert (
+        "> SP-019 Status: PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
+        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+    ) in brain
+    assert (
+        "> SP-019 Planning Merge Baseline: "
+        "`e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / "
+        "Quality Gate run `30205853257` / SUCCESS"
+    ) in brain
+    assert "> Current main:" not in brain
+    assert (
+        "Current Product SP 为 None，Current Governance Task 为 None，"
+        "Latest Completed SP 为 SP-018。"
+    ) in project_status
+    assert (
+        "| Current product SP | None |\n"
+        "| Current governance task | None |\n"
+        "| Next candidate | SP-019 — Daily Review Read Model & Deterministic "
+        "Follow-up View / planning baseline approved, merged and reconciled / "
+        "implementation not approved / not started |"
+    ) in project_health
+    assert "| Current main |" not in project_health
+    assert (
+        "| SP-019 planning merge baseline | "
+        "`e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / "
+        "run `30205853257` / SUCCESS |"
+    ) in project_health
+    assert "Current Governance Task: SP-019A" not in brain
+    assert "Current governance task | SP-019A" not in project_health
