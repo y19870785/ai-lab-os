@@ -1,6 +1,6 @@
 ﻿# AI-Lab Decision Index —— 设计决策索引
 
-> 当前源码版本：v0.34.0 Alpha | 更新日期：2026-07-23
+> 当前源码版本：v0.34.0 Alpha | 更新日期：2026-07-26
 
 ## RFC 列表
 
@@ -116,4 +116,4 @@
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
 
-> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016 与 SP-017 已完成并封存；ACC-014 A～L、ACC-016 A～J、ACC-017 A～O 全部 PASSED / FINAL。SP-018 已在 Draft Head 实现并通过自动化验证：RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted，ACC-018 仍未执行；SP-018 尚未合并，SP-019 未批准、未启动。
+> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016、SP-017 与 SP-018 已完成并封存；ACC-014 A～L、ACC-016 A～J、ACC-017 A～O、ACC-018 A～O 全部 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted；SP-019 未批准、未启动。

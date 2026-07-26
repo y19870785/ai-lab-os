@@ -2,7 +2,7 @@
 
 Status: Adopted
 
-> 本 RFC 已获采纳并由 SP-018 Draft Head 实现。自动化验证已通过；ACC-018 人工验收尚未执行，实现尚未合并。
+> 本 RFC 已获采纳并由 SP-018 实现。Feature PR #46 已合并；ACC-018 A～O、自动 main push Quality Gate、本地全量验证与 post-merge smoke 均已通过。
 
 ## 1. 背景
 
@@ -377,7 +377,7 @@ Repository 不得因 candidate cap 截断可见业务结果；SP-018 没有业�
 
 ## 24. 测试与 ACC-018
 
-ACC-018 A～O 规划覆盖 canonical create、Workspace、时间、ID、过滤、分页、legacy、context refs、Agenda、Brief、三入口一致、零副作用、重启真实进程与 FailureInfo。当前状态仅为 NOT_EXECUTED，不得引用规划测试作为通过证据。
+ACC-018 A～O 覆盖 canonical create、Workspace、时间、ID、过滤、分页、legacy、context refs、Agenda、Brief、三入口一致、零副作用、重启真实进程与 FailureInfo。全部场景已在 Approved Head `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3` 完整重跑并通过；merge commit `83ecb557fedd1d898712afc59ad13b3e0a684413` 随后通过自动 main push Quality Gate `30196719409` 与 post-merge verification。
 
 ## 25. 实施分阶段建议
 

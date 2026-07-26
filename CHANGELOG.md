@@ -1,15 +1,17 @@
 ﻿
 ## [Unreleased]
 
-### SP-018 Work Log Query Boundary & Context Closure（Draft Head）
+### SP-018 Work Log Query Boundary & Context Closure
 - 实现唯一 `WorkLogService` 与类型化 create/get/list 边界；CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 共享同一服务。
 - `SQLiteWorkLogRepository` 复用既有 `episodic.db / episodic_memories` 与 `DatabaseManager` connection ownership；没有 `work_logs.db`、新表、索引或迁移。
 - 新记录使用 `wl_<32 hex>`；旧随机 Memory ID 以稳定 `wl_legacy_<sha256>` 只读投影，历史 `inbox_wl_...` 仅作受限兼容 alias。
 - 完整 Workspace identity、精确分页、确定性过滤与显式 `ut_/rem_/wf_/inbox_` context refs 已由自动化测试覆盖；查询不写回、不发事件、不调用 LLM。
 - Review fixes 将 canonical/legacy/Inbox alias 的 public get 收紧为 SQL Workspace scope 先于解码与投影；Agenda 保留真实 Work Log status 并取消 ALL 的 ±365 天窗口。
 - API、CLI 与 CEO Assistant 的输入验证统一进入 WorkLogService FailureInfo；未知状态与 DST 不存在/歧义 legacy wall time均 fail closed，当地日历边界正确支持 23/25 小时日期。
-- RFC-027 为 Adopted；ADR-058～ADR-060 为 Accepted；ACC-018 A～O 仍全部 NOT_EXECUTED。
-- 状态为 `IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED`；SP-019 未启动，产品版本、Tag 与 Release 不变。
+- PR #46 已以 Squash Merge 合入 `83ecb557fedd1d898712afc59ad13b3e0a684413`；Approved Head 为 `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`。
+- ACC-018 A～O 已在 Approved Head 完整重跑并全部通过；merge commit 通过自动 main push Quality Gate `30196719409`、本地全量回归与 post-merge smoke。
+- RFC-027 为 Adopted；ADR-058～ADR-060 为 Accepted；SP-018 状态为 `APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED`。
+- SP-019 保持 candidate、未批准、未启动；产品版本、Tag 与 Release 不变。
 
 ### SP-017 Follow-up Interaction & Capture Closure
 - 通过 PR #43 以 Squash Merge 完成确定性 Waiting-For 读取、Inbox 捕获与确认，以及显式 lifecycle interaction。
