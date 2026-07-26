@@ -898,6 +898,7 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
         "completed": False,
         "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
         "branch": "docs/sp-019-planning-baseline",
+        "planning_pr": 48,
         "target_version": "0.35.0",
         "rfc": "RFC-028",
         "adrs": ["ADR-061", "ADR-062"],
@@ -974,6 +975,7 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
     assert all(f"ACC-019-{letter}" in acceptance for letter in "ABCDEFGHIJKLM")
     assert acceptance.count("状态：NOT_EXECUTED") == 13
     assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
+    assert "Planning PR：#48（OPEN / DRAFT / NOT MERGED）" in acceptance
     assert "| RFC-028 |" in decision_index
     assert "| ADR-061 |" in decision_index
     assert "| ADR-062 |" in decision_index

@@ -4,6 +4,8 @@
 
 规划日期：2026-07-26（Asia/Shanghai）
 
+Planning PR：#48（OPEN / DRAFT / NOT MERGED）
+
 目标开发线：v0.35.0
 
 当前源码版本：`0.34.0`

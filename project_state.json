@@ -331,6 +331,7 @@
       "completed": false,
       "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
       "branch": "docs/sp-019-planning-baseline",
+      "planning_pr": 48,
       "target_version": "0.35.0",
       "rfc": "RFC-028",
       "adrs": ["ADR-061", "ADR-062"],
