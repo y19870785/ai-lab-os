@@ -9,7 +9,9 @@ from zoneinfo import ZoneInfo
 
 from core.work_log import WorkLogStatus
 
-_ID = re.compile(r"(wl_[0-9a-f]{32}|wl_legacy_[0-9a-f]{64}|inbox_wl_[0-9a-f]{24})")
+_ID_CANDIDATE = re.compile(
+    r"(?<![A-Za-z0-9_])(?:wl_legacy_|inbox_wl_|wl_)[A-Za-z0-9_-]*"
+)
 _RANGE = re.compile(r"(\d{4}-\d{2}-\d{2})\s*到\s*(\d{4}-\d{2}-\d{2})")
 
 
@@ -28,9 +30,9 @@ def parse_work_log_query(
 ) -> tuple[str | None, dict[str, Any]]:
     """Return an exact id or a deterministic list query."""
 
-    identifier = _ID.search(text)
+    identifier = _ID_CANDIDATE.search(text)
     if identifier:
-        return identifier.group(1), {}
+        return identifier.group(0), {}
 
     zone = ZoneInfo(timezone_name)
     date_from = date_to = None
