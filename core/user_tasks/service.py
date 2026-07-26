@@ -243,6 +243,25 @@ class UserTaskService:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
             self._raise(exc, "get", trace_id)
 
+    async def find_visible(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        task_id: str,
+        trace_id: str = "",
+    ) -> UserTask | None:
+        """Probe read visibility without publishing an event for an expected miss."""
+
+        try:
+            return await self._repository.get(
+                normalize_workspace_key(workspace_key),
+                task_id,
+            )
+        except UserTaskNotFoundError:
+            return None
+        except Exception as exc:
+            self._raise(exc, "get", trace_id)
+
     async def list(
         self,
         *,

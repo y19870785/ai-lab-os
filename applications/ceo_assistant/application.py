@@ -40,13 +40,13 @@ from applications.models import (
     ApplicationRequest,
     ApplicationResponse,
 )
+from core.daily_review import DailyReviewDate, present_daily_review
 from core.errors import (
     ErrorCategory,
     FailureException,
     FailureInfo,
     failure_from_exception,
 )
-from core.memory.models import MemoryQuery, MemoryType
 from core.system.admission import WorkAdmission
 from core.work_log import (
     WorkLogQuery,
@@ -75,6 +75,7 @@ class CEOAssistant:
         reminder_inbox=None,
         reminder_management=None,
         daily_agenda=None,
+        daily_review_service=None,
         inbox_service=None,
         waiting_for_service=None,
         work_log_service=None,
@@ -95,6 +96,7 @@ class CEOAssistant:
         self._reminder_inbox = reminder_inbox
         self._reminder_management = reminder_management
         self._daily_agenda = daily_agenda
+        self._daily_review = daily_review_service
         self._inbox = inbox_service
         self._waiting_for = waiting_for_service
         self._work_logs = work_log_service
@@ -1095,69 +1097,49 @@ class CEOAssistant:
     # ---- 5. 每日简报 ----
 
     async def _handle_brief(self, request: ApplicationRequest) -> dict[str, Any]:
-        """生成每日简报。所有数据必须来自真实 Store。"""
-        today = datetime.now().strftime("%Y-%m-%d")  # noqa: DTZ005
-        lines = [f"[Brief] 每日简报 — {today}", "=" * 40, ""]
+        """Delegate the historical brief intent to the single Daily Review boundary."""
 
-        # 1. 待办任务
-        tasks = []
-        if self._user_tasks is not None:
-            from core.user_tasks import UserTaskQuery, UserTaskStatus
-            tasks = await self._user_tasks.list(
-                workspace_key=request.workspace_key,
-                query=UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=50),
+        if self._daily_review is None:
+            raise FailureException(FailureInfo(
+                code="daily_review.unavailable",
+                category=ErrorCategory.NOT_CONFIGURED,
+                message="Daily Review is not configured",
+                component="daily_review",
+                operation="get",
                 trace_id=request.workspace_key.trace_id,
-            )
-
-        if tasks:
-            lines.append(f"待办任务 ({len(tasks)}):")
-            for task in tasks:
-                lines.append(f"  [{task.priority.value}] {task.title}"
-                             + (f" — 截止: {task.due_at.isoformat()}" if task.due_at else ""))
-            lines.append("")
-
-        # 2. 最近工作记录
-        episodes = []
-        if self._work_logs:
-            episodes = list(
-                (
-                    await self._work_logs.list(
-                        workspace_key=request.workspace_key,
-                        query=WorkLogQuery(limit=5),
-                    )
-                ).items
-            )
-
-        if episodes:
-            lines.append(f"最近工作记录 ({len(episodes)}):")
-            for e in episodes:
-                lines.append(f"  - {e.subject[:60]} ({e.status.value})")
-            lines.append("")
-
-        # 3. 最近决策
-        decisions = []
-        if self._memory:
-            decisions = [r for r in (await self._memory.retrieve_memory(MemoryQuery(memory_type=MemoryType.DECISION, top_k=20))) 
-                        if r.content.get("type") == "decision"]
-        if decisions:
-            lines.append(f"最近决策 ({len(decisions)}):")
-            for d in decisions[:3]:
-                c = d.content
-                lines.append(f"  - {c.get('chosen', '')[:80]} (结果: {c.get('outcome_status', 'pending')})")
-            lines.append("")
-
-        # 4. 建议优先处理
-        if tasks:
-            lines.append("建议优先处理:")
-            priority_order = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
-            sorted_tasks = sorted(tasks, key=lambda task: priority_order[task.priority.value])[:3]
-            for i, task in enumerate(sorted_tasks):
-                lines.append(f"  {i+1}. {task.title[:60]} ({task.priority.value}优先级)")
-
-        if not tasks and not episodes and not decisions:
-            lines.append("今日暂无工作记录和任务。")
-
-        return {"answer": "\n".join(lines), "status": "ok"}
+            ))
+        text = request.user_input.strip()
+        yesterday_markers = (
+            "昨日简报",
+            "昨天简报",
+            "昨日总结",
+            "昨天总结",
+            "昨天做了什么",
+            "昨天做了哪些事",
+            "昨天的工作",
+        )
+        review_date = (
+            DailyReviewDate.YESTERDAY
+            if any(marker in text for marker in yesterday_markers)
+            else DailyReviewDate.TODAY
+        )
+        query = self._daily_review.query_from_input(
+            review_date=review_date,
+            trace_id=request.workspace_key.trace_id,
+        )
+        review = await self._daily_review.get(
+            workspace_key=request.workspace_key,
+            query=query,
+        )
+        return {
+            "answer": present_daily_review(review),
+            "status": "ok",
+            "metadata": {
+                "daily_review": review.model_dump(mode="json"),
+                "daily_review_query": query.model_dump(mode="json"),
+            },
+            "_deterministic": True,
+        }
 
     # ---- 6. 多轮对话 ----
 

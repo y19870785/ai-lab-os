@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, Field
 
 from core.clock import Clock
-from core.errors import ErrorCategory, FailureException
 from core.reminders.orchestration import build_reminder_status_view
 from core.workspace.models import WorkspaceKey
 
@@ -106,18 +105,13 @@ class ReminderInboxService:
                 break
             scan_offset += len(batch)
             for reminder in batch:
-                try:
-                    task = await self._user_tasks.get(
-                        workspace_key=workspace_key,
-                        task_id=reminder.user_task_id,
-                        trace_id=trace_id,
-                    )
-                except FailureException as exc:
-                    if (
-                        exc.failure.category == ErrorCategory.NOT_FOUND
-                    ):
-                        continue
-                    raise
+                task = await self._user_tasks.find_visible(
+                    workspace_key=workspace_key,
+                    task_id=reminder.user_task_id,
+                    trace_id=trace_id,
+                )
+                if task is None:
+                    continue
                 job = (
                     await self._scheduler.get_job(reminder.scheduler_job_id)
                     if reminder.scheduler_job_id else None
