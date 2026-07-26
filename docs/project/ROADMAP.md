@@ -61,9 +61,9 @@ SP-016、SP-017 与 SP-018 已完成人工验收并封存。SP-019 Planning Base
 | SP-016 | Canonical Waiting-For Domain & Agenda Closure | COMPLETED / ARCHIVED |
 | SP-017 | Follow-up Interaction & Capture Closure — Deterministic Waiting-For interaction, Inbox capture confirmation, and durable Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |
 | SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
-| SP-019 | Daily Review Read Model & Deterministic Follow-up View | PLANNING_BASELINE_APPROVED / MERGED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| SP-019 | Daily Review Read Model & Deterministic Follow-up View | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 
-ACC-016、ACC-017 与 ACC-018 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028、ADR-061、ADR-062 仍为 Proposed / Planning Baseline，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED；Planning Baseline 的 APPROVED / MERGED 不等于 Implementation 批准，Coding 仍为 NOT STARTED。UserTask Workspace Query Closure 是其内部 Phase 0，未完成前不得开始 Daily Review 聚合。
+ACC-016、ACC-017 与 ACC-018 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028、ADR-061、ADR-062 仍为 Proposed / Planning Baseline，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED；Planning Baseline 的 APPROVED / MERGED / RECONCILED 不等于 Implementation 批准，Coding 仍为 NOT STARTED。UserTask Workspace Query Closure 是其内部 Phase 0，未完成前不得开始 Daily Review 聚合。
 
 ## 后续候选版本
 
