@@ -943,6 +943,7 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
         "## 3. Daily Agenda 边界（Daily Agenda Boundary）",
         "## 7. 日期与截至时点合同（Date and As-of Contract）",
         "## 8. 输出模型（Output Model）",
+        "### 当前未闭环 Inbox（Current Pending Inbox）",
         "## 11. 排序与去重（Sorting and Deduplication）",
         "## 12. 数据源可用性（Source Availability）",
         "## 13. 失败语义（Failure Semantics）",
@@ -960,8 +961,19 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
     assert (
         "DailyReviewQuery\n"
         "- review_date: today | yesterday\n"
-        "- limit: int, 1..100\n"
-        "- offset: int, >= 0"
+        "- limit: int = 50\n"
+        "- offset: int = 0"
+    ) in rfc
+    assert (
+        "合法范围保持为 `limit: 1..100`、`offset: >= 0`。默认值属于 "
+        "`DailyReviewQuery` 合同本身；API 与 CEO Assistant 必须构造同一个默认 "
+        "`DailyReviewQuery(review_date, limit=50, offset=0)`"
+    ) in rfc
+    assert (
+        "查询验证必须先于任何 canonical source 读取。`limit=0`、"
+        "`limit=101` 或 `offset=-1` 均返回 "
+        "`daily_review.query_invalid + ErrorCategory.VALIDATION`，且不得访问"
+        "任何 canonical source。"
     ) in rfc
     assert (
         "page\n"
@@ -982,6 +994,32 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
     assert (
         "GET /daily-review?date=today&limit=50&offset=0"
     ) in rfc
+    classification_contract = rfc.split(
+        "## 9. 分类规则", maxsplit=1
+    )[1].split("## 10. Follow-up 原因码", maxsplit=1)[0]
+    assert "| Inbox pending at `as_of` |" not in classification_contract
+    assert (
+        "### 当前未闭环 Inbox（Current Pending Inbox）"
+        in classification_contract
+    )
+    assert (
+        "`pending_inbox` 是截至 `as_of` 的当前未闭环视图，不受 "
+        "`review_date` 的 `[period_start, period_end)` 日期事实窗口过滤。"
+    ) in classification_contract
+    assert (
+        "reason_code=inbox.pending\n"
+        "section=pending_inbox\n"
+        "effective_at=created_at\n"
+        "predicate=status pending at as_of"
+    ) in classification_contract
+    assert (
+        "同一个 Inbox item 只进入 `pending_inbox`，不得同时复制到 "
+        "`follow_ups`，也不得作为 `review_date` 日期事实。"
+    ) in classification_contract
+    assert (
+        "当前 pending Inbox items 必须计入全局 `total_count` 与 "
+        "`pending_inbox.section_total_count`，并参与同一套全局分页。"
+    ) in classification_contract
     source_status_contract = (
         rfc.split("## 12. 数据源可用性", maxsplit=1)[1]
         .split("## 13. 失败语义", maxsplit=1)[0]
@@ -1002,10 +1040,35 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
         "| `daily_review.unavailable` | NOT_CONFIGURED | "
         "Composition Root 未组合所需 DailyReviewService |"
     ) in rfc
+    failure_contract = rfc.split(
+        "## 13. 失败语义", maxsplit=1
+    )[1].split("## 14. Workspace 合同", maxsplit=1)[0]
+    assert (
+        "`limit=0`、`limit=101` 与 `offset=-1` 均返回 "
+        "`daily_review.query_invalid + ErrorCategory.VALIDATION`；该失败路径"
+        "不得读取任何 canonical source，也不得返回部分 `DailyReview` payload。"
+    ) in failure_contract
+    entry_contract = rfc.split(
+        "## 15. 入口", maxsplit=1
+    )[1].split("## 16. 存储决策", maxsplit=1)[0]
+    assert (
+        "GET /daily-review?date=today\n"
+        "== GET /daily-review?date=today&limit=50&offset=0\n\n"
+        "GET /daily-review?date=yesterday\n"
+        "== GET /daily-review?date=yesterday&limit=50&offset=0"
+    ) in entry_contract
+    assert (
+        "API 与 CEO Assistant 必须构造同一个默认 `DailyReviewQuery`，"
+        "不得各自设置不同默认值"
+    ) in entry_contract
     assert "Status: Proposed / Planning Baseline" in adr061
     assert "非持久化" in adr061
     assert "## 背景（Context）" in adr061
     assert "## 决策（Decision）" in adr061
+    assert (
+        "日期事实由 `review_date` 控制；当前未闭环视图，包括 "
+        "`pending_inbox`，由 `as_of` 控制。"
+    ) in adr061
     assert "Status: Proposed / Planning Baseline" in adr062
     assert "成功返回的 `DailyReview.source_status`" in adr062
     assert "不是成功 payload 的 `source_status` 值" in adr062
@@ -1016,17 +1079,66 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
     assert acceptance.count("状态：NOT_EXECUTED") == 13
     assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
     assert "Planning PR：#48（OPEN / DRAFT / NOT MERGED）" in acceptance
+    acc_d = acceptance.split("## ACC-019-D", maxsplit=1)[1].split(
+        "## ACC-019-E", maxsplit=1
+    )[0]
+    assert (
+        "创建时间早于 review period、但在 `as_of` 时仍为 pending 的 "
+        "Inbox item 必须出现在 `pending_inbox`"
+    ) in acc_d
+    acc_h = acceptance.split("## ACC-019-H", maxsplit=1)[1].split(
+        "## ACC-019-I", maxsplit=1
+    )[0]
+    assert (
+        "日期事实分类不得包含 Inbox pending；`inbox.pending` 是由 `as_of` "
+        "控制的当前未闭环视图，不得作为 `review_date` 日期事实。"
+    ) in acc_h
+    acc_i = acceptance.split("## ACC-019-I", maxsplit=1)[1].split(
+        "## ACC-019-J", maxsplit=1
+    )[0]
+    assert (
+        "`inbox.pending` 必须由 Inbox item 在 `as_of` 的当前 pending 状态"
+        "决定，不由 `review_date` 决定"
+    ) in acc_i
+    acc_j = acceptance.split("## ACC-019-J", maxsplit=1)[1].split(
+        "## ACC-019-K", maxsplit=1
+    )[0]
+    assert (
+        "同一个 Inbox item 只进入 `pending_inbox`，不得重复进入 `follow_ups`。"
+    ) in acc_j
     acc_k = acceptance.split("## ACC-019-K", maxsplit=1)[1].split(
         "## ACC-019-L", maxsplit=1
     )[0]
-    assert "DailyReviewQuery(review_date, limit, offset)" in acc_k
+    assert "DailyReviewQuery(review_date, limit=50, offset=0)" in acc_k
+    assert (
+        "省略 `limit/offset` 与显式 `limit=50/offset=0` 构造完全相同的 "
+        "`DailyReviewQuery`"
+    ) in acc_k
+    assert (
+        "`limit=0`、`limit=101`、`offset=-1` 返回 "
+        "`daily_review.query_invalid + ErrorCategory.VALIDATION`，且不得访问"
+        "任何 canonical source"
+    ) in acc_k
+    assert (
+        "当前 pending Inbox items 计入全局 `total_count` 与 "
+        "`pending_inbox.section_total_count`，并参与同一套全局分页"
+    ) in acc_k
     assert "跨页顺序稳定，无重复、无遗漏" in acc_k
     assert "offset >= total_count" in acc_k
     assert "page.count=0" in acc_k
     acc_l = acceptance.split("## ACC-019-L", maxsplit=1)[1].split(
         "## ACC-019-M", maxsplit=1
     )[0]
-    assert "相同 `DailyReviewQuery`" in acc_l
+    assert (
+        "API 省略分页参数与显式 `limit=50/offset=0` 的结果一致"
+        in acc_l
+    )
+    assert (
+        "CEO Assistant 未提供结构化分页参数时必须使用同一个默认 "
+        "`DailyReviewQuery(review_date, limit=50, offset=0)`；其默认第一页"
+        "与 API 默认第一页必须返回相同当前 page 事实集合"
+    ) in acc_l
+    assert "GET /daily-review?date=today\n" in acc_l
     assert "date=today&limit=50&offset=0" in acc_l
     assert "## ACC-019-A — 基线与现有 Brief 替换" in acceptance
     assert "## ACC-019-K — 全局分页与截断" in acceptance

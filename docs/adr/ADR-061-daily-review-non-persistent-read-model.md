@@ -25,7 +25,7 @@ DailyReviewService
 
 `DailyReviewService` 只能直接读取 `WorkLogService`、`WaitingForService`、`ReminderInboxService`、`InboxService` 与 `UserTaskService`。它不能读取 Daily Agenda 的聚合结果，不能绕过 Service 直读数据库，也不能扫描 MemoryManager。
 
-today/yesterday 使用系统 IANA timezone、注入 Clock 和本地午夜半开区间；`review_date` 决定事实窗口，`as_of` 决定当前 Follow-up。
+today/yesterday 使用系统 IANA timezone、注入 Clock 和本地午夜半开区间。日期事实由 `review_date` 控制；当前未闭环视图，包括 `pending_inbox`，由 `as_of` 控制。
 
 旧 brief READ intent 与兼容 handler 最终委托同一 `DailyReviewService`。Decision Memory 不进入首版。
 

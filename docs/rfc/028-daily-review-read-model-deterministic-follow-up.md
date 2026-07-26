@@ -138,9 +138,13 @@ DailyReview
 ```text
 DailyReviewQuery
 - review_date: today | yesterday
-- limit: int, 1..100
-- offset: int, >= 0
+- limit: int = 50
+- offset: int = 0
 ```
+
+合法范围保持为 `limit: 1..100`、`offset: >= 0`。默认值属于 `DailyReviewQuery` 合同本身；API 与 CEO Assistant 必须构造同一个默认 `DailyReviewQuery(review_date, limit=50, offset=0)`，不得在各自入口设置不同默认值。
+
+查询验证必须先于任何 canonical source 读取。`limit=0`、`limit=101` 或 `offset=-1` 均返回 `daily_review.query_invalid + ErrorCategory.VALIDATION`，且不得访问任何 canonical source。
 
 `DailyReview.page` 是整份 Review 唯一的全局分页元数据：
 
@@ -200,9 +204,21 @@ relevant_time_fields
 | Reminder `triggered_at` in period | completed | `reminder.triggered` | `triggered_at` |
 | Waiting-For `resolved_at` in period | completed | `waiting_for.resolved` | `resolved_at` |
 | Waiting-For `cancelled_at` in period | informational | `waiting_for.cancelled` | `cancelled_at` |
-| Inbox pending at `as_of` | pending_inbox | `inbox.pending` | `created_at` |
 
 当前状态不能反向伪造历史事实。只有可持久化时间字段证明发生在 review period 的 terminal transition 才进入日期事实 section。
+
+### 当前未闭环 Inbox（Current Pending Inbox）
+
+`pending_inbox` 是截至 `as_of` 的当前未闭环视图，不受 `review_date` 的 `[period_start, period_end)` 日期事实窗口过滤。只要 Inbox item 在 `as_of` 时仍为 pending，无论 `created_at` 属于 today、yesterday 或更早日期，都必须进入 `pending_inbox` 候选；不得用 `created_at` 排除较早创建但仍 pending 的 Inbox item。
+
+```text
+reason_code=inbox.pending
+section=pending_inbox
+effective_at=created_at
+predicate=status pending at as_of
+```
+
+`created_at` 只用于 `effective_at`、全局稳定排序与 `relevant_time_fields`。同一个 Inbox item 只进入 `pending_inbox`，不得同时复制到 `follow_ups`，也不得作为 `review_date` 日期事实。完成唯一 section 选择后，这些当前 pending Inbox items 必须计入全局 `total_count` 与 `pending_inbox.section_total_count`，并参与同一套全局分页。
 
 ## 10. Follow-up 原因码（Follow-up Reason Codes）
 
@@ -307,6 +323,8 @@ not_configured
 | `daily_review.source_failed` | DEPENDENCY_FAILURE | 已启用 canonical source 查询或投影失败 |
 | `daily_review.workspace_invalid` | VALIDATION | Workspace 三元组缺失或无效 |
 
+`DailyReviewQuery` 必须在 source evaluation 前完成验证。`limit=0`、`limit=101` 与 `offset=-1` 均返回 `daily_review.query_invalid + ErrorCategory.VALIDATION`；该失败路径不得读取任何 canonical source，也不得返回部分 `DailyReview` payload。
+
 所有失败使用 `FailureInfo(component="daily_review", operation="get")`。`daily_review.source_failed.details` 只允许 `source`、`upstream_code`、`upstream_category`；不得泄露数据库路径、原始异常、正文、内部 SQL 或 traceback。
 
 配置关闭与未组合必须分别保留 `ErrorCategory.DISABLED` 和 `ErrorCategory.NOT_CONFIGURED`，不得把单个 FailureInfo category 写成复合值 `DISABLED / NOT_CONFIGURED`。
@@ -336,7 +354,17 @@ GET /daily-review?date=today&limit=50&offset=0
 GET /daily-review?date=yesterday&limit=50&offset=0
 ```
 
-API query parameter `date` 映射到 `DailyReviewQuery.review_date`；`limit` 合法范围为 `1..100`，`offset >= 0`。API 与 CEO Assistant 在使用相同 `DailyReviewQuery` 时必须共享同一 Service、模型、全局分页、reason code、排序与 FailureInfo presenter。CLI 新入口延期。Daily Agenda 的所有入口不变。
+以下请求必须分别构造完全相同的 `DailyReviewQuery` 并返回相同结果：
+
+```text
+GET /daily-review?date=today
+== GET /daily-review?date=today&limit=50&offset=0
+
+GET /daily-review?date=yesterday
+== GET /daily-review?date=yesterday&limit=50&offset=0
+```
+
+API query parameter `date` 映射到 `DailyReviewQuery.review_date`；省略分页参数时使用 `limit=50`、`offset=0`。CEO Assistant deterministic READ intent 在用户没有提供结构化分页参数时同样使用 `limit=50`、`offset=0`。API 与 CEO Assistant 必须构造同一个默认 `DailyReviewQuery`，不得各自设置不同默认值，并共享同一 Service、模型、全局分页、reason code、排序与 FailureInfo presenter。CLI 新入口延期。Daily Agenda 的所有入口不变。
 
 ## 16. 存储决策（Storage Decision）
 

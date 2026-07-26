@@ -88,7 +88,7 @@ Planning PR 合并本身不批准实施。
 
 ## ACC-019-D — Review Date 与 As-of 分离
 
-验证 `review_date` 只决定日期事实窗口，`as_of` 只决定当前 Follow-up。yesterday 不得把当前 snapshot 伪装成昨日结束时 snapshot，当前 overdue/retrying 可以作为截至 as-of 的 Follow-up，但必须保留真实时间字段。
+验证 `review_date` 只决定日期事实窗口，`as_of` 只决定当前未闭环视图。yesterday 不得把当前 snapshot 伪装成昨日结束时 snapshot，当前 overdue/retrying 可以作为截至 as-of 的 Follow-up，但必须保留真实时间字段。创建时间早于 review period、但在 `as_of` 时仍为 pending 的 Inbox item 必须出现在 `pending_inbox`，证明 `review_date` 与 `as_of` 没有混用。
 
 状态：NOT_EXECUTED
 
@@ -119,7 +119,7 @@ Planning PR 合并本身不批准实施。
 - `reminder.triggered`
 - `waiting_for.resolved/cancelled`
 
-验证时间落入半开 period、section、reason_code、effective_at 和 relevant time fields。
+验证时间落入半开 period、section、reason_code、effective_at 和 relevant time fields。日期事实分类不得包含 Inbox pending；`inbox.pending` 是由 `as_of` 控制的当前未闭环视图，不得作为 `review_date` 日期事实。
 
 状态：NOT_EXECUTED
 
@@ -138,25 +138,28 @@ reminder.due_soon
 inbox.pending
 ```
 
-验证 due_soon 为 `[as_of, as_of + 24 hours)`，边界 instant、severity 决胜与无 LLM/importance 评分。
+验证 due_soon 为 `[as_of, as_of + 24 hours)`，边界 instant、severity 决胜与无 LLM/importance 评分。`inbox.pending` 必须由 Inbox item 在 `as_of` 的当前 pending 状态决定，不由 `review_date` 决定；较早创建但仍 pending 的 item 不得被 review period 排除。
 
 状态：NOT_EXECUTED
 
 ## ACC-019-J — 排序、去重与可追溯性
 
-构造相同时间、多个 reason 与重复来源，验证 section priority、reason severity、effective time、source priority、canonical ID 的稳定顺序；去重只按 `(source_type, source_id)`，每个对象只进入最高优先级 section。
+构造相同时间、多个 reason 与重复来源，验证 section priority、reason severity、effective time、source priority、canonical ID 的稳定顺序；去重只按 `(source_type, source_id)`，每个对象只进入最高优先级 section。同一个 Inbox item 只进入 `pending_inbox`，不得重复进入 `follow_ups`。
 
 状态：NOT_EXECUTED
 
 ## ACC-019-K — 全局分页与截断
 
-使用 `DailyReviewQuery(review_date, limit, offset)` 构造跨多个 source 与 section、总数超过 limit 的结果。验证处理顺序严格为“完整 canonical source 读取 -> 分类 -> canonical identity 去重 -> 全局稳定排序 -> total_count -> offset/limit -> 当前 page 按 section 分组”。
+使用 `DailyReviewQuery(review_date, limit=50, offset=0)` 构造跨多个 source 与 section、总数超过 limit 的结果。验证处理顺序严格为“完整 canonical source 读取 -> 分类 -> canonical identity 去重 -> 全局稳定排序 -> total_count -> offset/limit -> 当前 page 按 section 分组”。
 
-覆盖 `limit=1`、`limit=100`、非法 `limit=0/101`、`offset=0`、中间页、最后一页以及 `offset >= total_count` 空页。验证：
+覆盖默认 `limit=50/offset=0`、`limit=1`、`limit=100`、非法 `limit=0/101`、非法 `offset=-1`、中间页、最后一页以及 `offset >= total_count` 空页。验证：
 
+- 省略 `limit/offset` 与显式 `limit=50/offset=0` 构造完全相同的 `DailyReviewQuery`；
+- `limit=0`、`limit=101`、`offset=-1` 返回 `daily_review.query_invalid + ErrorCategory.VALIDATION`，且不得访问任何 canonical source；
 - `page.count`、`total_count`、`limit`、`offset`、`has_more` 精确；
 - 跨页顺序稳定，无重复、无遗漏；
 - 每个 section 的 `section_total_count` 是完整未分页结果中的数量；
+- 当前 pending Inbox items 计入全局 `total_count` 与 `pending_inbox.section_total_count`，并参与同一套全局分页；
 - `page_item_count` 等于当前 page 中该 section 的 items 长度；
 - 不存在六套独立 section offset，也不先对 source/section 截断；
 - offset 超出总数时所有 section items 为空、`page.count=0`、`has_more=false`。
@@ -170,11 +173,13 @@ inbox.pending
 对同一 Workspace、Clock 和 source snapshot 调用 CEO Assistant deterministic READ intent 与：
 
 ```text
+GET /daily-review?date=today
 GET /daily-review?date=today&limit=50&offset=0
+GET /daily-review?date=yesterday
 GET /daily-review?date=yesterday&limit=50&offset=0
 ```
 
-验证 CEO Assistant 与 API 在使用相同 `DailyReviewQuery` 时返回相同当前 page 事实集合、canonical ID、reason、全局分页 metadata、section counts、排序、source status 和 FailureInfo。API Workspace 来自现有安全 headers。
+验证 API 省略分页参数与显式 `limit=50/offset=0` 的结果一致。CEO Assistant 未提供结构化分页参数时必须使用同一个默认 `DailyReviewQuery(review_date, limit=50, offset=0)`；其默认第一页与 API 默认第一页必须返回相同当前 page 事实集合、canonical ID、reason、全局分页 metadata、section counts、排序、source status 和 FailureInfo。API Workspace 来自现有安全 headers。
 
 状态：NOT_EXECUTED
 
