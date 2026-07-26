@@ -4,7 +4,17 @@
 
 规划日期：2026-07-26（Asia/Shanghai）
 
-Planning PR：#48（OPEN / DRAFT / NOT MERGED）
+Planning PR：#48（MERGED）
+
+Approved Planning Head：`282dd939ff264b0f23d5070b6f632aa0442531ea`
+
+Planning Merge Commit：`e7fc5b1dd66ff7828c1697bfd5610f300599eee5`
+
+Planning Merged At：`2026-07-26T14:19:41Z`
+
+Post-Planning main Quality Gate：`30205853257`（SUCCESS）
+
+Independent Planning Review：APPROVED
 
 目标开发线：v0.35.0
 
@@ -192,7 +202,7 @@ GET /daily-review?date=yesterday&limit=50&offset=0
 ## 当前治理结论
 
 ```text
-SP-019 Planning Baseline: DEFINED
+SP-019 Planning Baseline: APPROVED / MERGED
 SP-019 Implementation: NOT APPROVED
 Coding: NOT STARTED
 ACC-019: PLANNING_BASELINE / NOT_EXECUTED
