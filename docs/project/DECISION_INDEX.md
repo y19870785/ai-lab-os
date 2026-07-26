@@ -111,9 +111,12 @@
 | ADR-058 | WorkLogService over Existing Episodic Storage | Accepted | 2026-07-23 |
 | ADR-059 | Canonical Work Log ID and Read-Only Legacy Projection | Accepted | 2026-07-23 |
 | ADR-060 | Explicit Work Log Context References | Accepted | 2026-07-23 |
+| RFC-028 | Daily Review Read Model and Deterministic Follow-up View | Proposed / Planning Baseline | 2026-07-26 |
+| ADR-061 | Daily Review as a Non-persistent Read Model | Proposed / Planning Baseline | 2026-07-26 |
+| ADR-062 | Daily Review Source Failure and Availability Semantics | Proposed / Planning Baseline | 2026-07-26 |
 
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
 
-> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016、SP-017 与 SP-018 已完成并封存；ACC-014 A～L、ACC-016 A～J、ACC-017 A～O、ACC-018 A～O 全部 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted；SP-019 未批准、未启动。
+> SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016、SP-017 与 SP-018 已完成并封存；ACC-014 A～L、ACC-016 A～J、ACC-017 A～O、ACC-018 A～O 全部 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028、ADR-061、ADR-062 只建立 Proposed / Planning Baseline；Implementation NOT APPROVED、Coding NOT STARTED。

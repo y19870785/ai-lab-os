@@ -21,7 +21,10 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 - Approved Head：`e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`
 - Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`
 - Merged At：`2026-07-26T09:35:04Z`
-- SP-018A Reconciliation PR：#47（OPEN / DRAFT / NOT MERGED）
+- SP-018A Reconciliation PR：#47（MERGED）
+- SP-018A Reconciliation Merge Commit：`4e0d730a8bfdefa6277c7526a028e7247d7ddc43`
+- SP-018A Reconciled At：`2026-07-26T10:32:07Z`
+- Post-Reconciliation main Quality Gate Run：`30198434517`（automatic `push` / SUCCESS）
 - PR Quality Gate Run：`30195401115`
 - Post-Merge main Quality Gate Run：`30196719409`（automatic `push` / SUCCESS）
 - Independent Review：`APPROVED`

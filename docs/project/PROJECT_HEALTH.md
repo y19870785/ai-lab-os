@@ -15,10 +15,11 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 canonica
 | SP-017 post-merge main | `32bb9c0a939c65f2278fc2b6be8d072fb2e3656a` / run `30006958413` / SUCCESS |
 | SP-017 post-merge pytest (non-real) | 1239 passed, 6 skipped, 27 warnings |
 | SP-018 post-merge main | `83ecb557fedd1d898712afc59ad13b3e0a684413` / run `30196719409` / SUCCESS |
+| Current reconciled main | `4e0d730a8bfdefa6277c7526a028e7247d7ddc43` / run `30198434517` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
 | Current governance task | None |
-| Next candidate | SP-019 — Daily Review & Follow-up Brief / not approved / not started |
+| Next candidate | SP-019 — Daily Review Read Model & Deterministic Follow-up View / planning baseline defined / implementation not approved / not started |
 | Latest completed SP | SP-018 / manual acceptance passed / post-merge verified / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
@@ -35,6 +36,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 canonica
 | Unified Inbox / Capture-to-Action | Integrated / Verified | workspace 隔离、持久化 resolution claim 与幂等已验收 |
 | SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
 | Work Log / SP-018 | Integrated / Verified / Archived | RFC-027 Adopted；ADR-058～060 Accepted；ACC-018 A～O PASSED / FINAL |
+| Daily Review / SP-019 | Planning only / Not implemented | RFC-028、ADR-061、ADR-062 Proposed；ACC-019 NOT_EXECUTED；UserTask Workspace query closure is Phase 0 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

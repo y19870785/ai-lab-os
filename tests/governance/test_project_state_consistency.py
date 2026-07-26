@@ -165,10 +165,12 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_018_completed_reconciled_archived"
+        "sp_019_planning_baseline_defined_implementation_not_approved_not_started"
     )
     assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
+    assert state["next_candidate_name"] == (
+        "Daily Review Read Model & Deterministic Follow-up View"
+    )
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -224,7 +226,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
     assert (
-        "> Next Candidate Direction: Daily Review & Follow-up Brief"
+        "> Next Candidate Direction: Daily Review Read Model & "
+        "Deterministic Follow-up View"
         in text["brain"]
     )
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
@@ -328,7 +331,7 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
         "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
         "| SP-017 | Follow-up Interaction & Capture Closure —",
         "| SP-018 | Work Log Query Boundary & Context Closure |",
-        "| SP-019 | Daily Review & Follow-up Brief |",
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View |",
     )
     positions = [roadmap.index(row) for row in roadmap_rows]
     assert positions == sorted(positions)
@@ -463,9 +466,11 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["latest_merged_sp"] == "SP-018"
     assert state["latest_completed_sp"] == "SP-018"
     assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
+    assert state["next_candidate_name"] == (
+        "Daily Review Read Model & Deterministic Follow-up View"
+    )
     assert state["development_status"] == (
-        "sp_018_completed_reconciled_archived"
+        "sp_019_planning_baseline_defined_implementation_not_approved_not_started"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -510,7 +515,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert acc017["scenarios"] == {
         letter: "PASSED" for letter in "ABCDEFGHIJKLMNO"
     }
-    assert "SP-019" not in records
+    assert records["SP-019"]["approved"] is False
+    assert records["SP-019"]["implementation_started"] is False
 
     rfc = (
         ROOT / "docs/rfc/026-follow-up-interaction-capture-closure.md"
@@ -564,7 +570,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     ordered_rows = (
         "| SP-017 | Follow-up Interaction & Capture Closure —",
         "| SP-018 | Work Log Query Boundary & Context Closure |",
-        "| SP-019 | Daily Review & Follow-up Brief |",
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View |",
     )
     positions = [roadmap.index(row) for row in ordered_rows]
     assert positions == sorted(positions)
@@ -591,8 +597,9 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
             "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
         ),
         (
-            "| SP-019 | Daily Review & Follow-up Brief | "
-            "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+            "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
+            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+            "NOT_STARTED |"
         ),
     )
     assert all(marker in current_text for marker in required_markers)
@@ -622,7 +629,9 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == "Daily Review & Follow-up Brief"
+    assert state["next_candidate_name"] == (
+        "Daily Review Read Model & Deterministic Follow-up View"
+    )
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -654,6 +663,11 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     )
     assert sp018["merged_at"] == "2026-07-26T09:35:04Z"
     assert sp018["reconciliation_pr"] == 47
+    assert sp018["reconciliation_merge_commit"] == (
+        "4e0d730a8bfdefa6277c7526a028e7247d7ddc43"
+    )
+    assert sp018["reconciled_at"] == "2026-07-26T10:32:07Z"
+    assert sp018["post_reconciliation_quality_gate_run"] == 30198434517
     assert sp018["review"] == "APPROVED"
     assert sp018["acceptance"] == "ACC-018 A-O PASSED / FINAL"
     assert sp018["post_merge_acceptance"] == "PASSED"
@@ -735,7 +749,9 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
         "Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`"
         in acceptance
     )
-    assert "SP-018A Reconciliation PR：#47（OPEN / DRAFT / NOT MERGED）" in acceptance
+    assert "SP-018A Reconciliation PR：#47（MERGED）" in acceptance
+    assert "4e0d730a8bfdefa6277c7526a028e7247d7ddc43" in acceptance
+    assert "30198434517" in acceptance
     assert "PR Quality Gate Run：`30195401115`" in acceptance
     assert "Post-Merge main Quality Gate Run：`30196719409`" in acceptance
     assert "Independent Review：`APPROVED`" in acceptance
@@ -753,12 +769,13 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
         "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
     ) in roadmap
     assert (
-        "| SP-019 | Daily Review & Follow-up Brief | "
-        "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
+        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+        "NOT_STARTED |"
     ) in roadmap
     assert "SP-018 永久产品事实" in brain
     assert "不会创建 `work_logs.db`" in brain
-    assert "SP-019 仍是候选，未批准、未启动" in brain
+    assert "SP-019 规划基线已定义，但未批准、未启动实施" in brain
     assert "Legacy Work Log Projection Table" in rfc
     assert "普通随机 Memory ID 仍不作为公开 alias" in rfc
     assert "历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias" in rfc
@@ -856,3 +873,112 @@ def test_sp018_product_entrypoints_use_the_canonical_work_log_boundary() -> None
     assert "save_memory" not in assistant_write
     assert "save_memory" not in inbox_write
     assert "retrieve_memory" not in agenda_read
+
+
+def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
+    state = _load_state()
+    sp019 = state["sp_records"]["SP-019"]
+    acc019 = state["acceptance_records"]["ACC-019"]
+
+    assert state["latest_merged_sp"] == "SP-018"
+    assert state["latest_completed_sp"] == "SP-018"
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_version"] == "0.34.0"
+    assert sp019 == {
+        "name": "Daily Review Read Model & Deterministic Follow-up View",
+        "status": (
+            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+            "NOT_STARTED"
+        ),
+        "planning_baseline_defined": True,
+        "approved": False,
+        "implementation_started": False,
+        "implementation_complete": False,
+        "completed": False,
+        "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
+        "branch": "docs/sp-019-planning-baseline",
+        "target_version": "0.35.0",
+        "rfc": "RFC-028",
+        "adrs": ["ADR-061", "ADR-062"],
+        "acceptance": "ACC-019 PLANNING_BASELINE / NOT_EXECUTED",
+        "user_task_workspace_prerequisite": (
+            "REQUIRED / IN_SCOPE AS PHASE 0 / NOT_STARTED"
+        ),
+        "scope": (
+            "On-demand non-persistent Daily Review read model and "
+            "deterministic follow-up view"
+        ),
+    }
+    assert acc019["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
+    assert acc019["manual_acceptance"] is False
+    assert acc019["scenarios"] == {
+        letter: "NOT_EXECUTED" for letter in "ABCDEFGHIJKLM"
+    }
+
+    rfc = (
+        ROOT / "docs/rfc/028-daily-review-read-model-deterministic-follow-up.md"
+    ).read_text(encoding="utf-8-sig")
+    adr061 = (
+        ROOT / "docs/adr/ADR-061-daily-review-non-persistent-read-model.md"
+    ).read_text(encoding="utf-8-sig")
+    adr062 = (
+        ROOT
+        / "docs/adr/ADR-062-daily-review-source-failure-and-availability-semantics.md"
+    ).read_text(encoding="utf-8-sig")
+    acceptance = (
+        ROOT / "docs/acceptance/SP-019-daily-review-read-model.md"
+    ).read_text(encoding="utf-8-sig")
+    decision_index = (
+        ROOT / "docs/project/DECISION_INDEX.md"
+    ).read_text(encoding="utf-8-sig")
+    roadmap = (ROOT / "docs/project/ROADMAP.md").read_text(
+        encoding="utf-8-sig"
+    )
+
+    required_rfc_sections = (
+        "Current State Audit",
+        "User Problem",
+        "Daily Agenda Boundary",
+        "Existing Daily Brief Replacement",
+        "Canonical Sources",
+        "UserTask Workspace Prerequisite",
+        "Date and As-of Contract",
+        "Output Model",
+        "Classification Rules",
+        "Follow-up Reason Codes",
+        "Sorting and Deduplication",
+        "Source Availability",
+        "Failure Semantics",
+        "Workspace Contract",
+        "Entry Points",
+        "Storage Decision",
+        "LLM Boundary",
+        "Side-effect Boundary",
+        "Alternatives Considered",
+        "Implementation Phases",
+        "Non-goals",
+        "Risks",
+        "Stop Conditions",
+    )
+    assert all("## " in rfc and title in rfc for title in required_rfc_sections)
+    assert "Status: Proposed / Planning Baseline" in rfc
+    assert "UserTask Workspace Query Closure" in rfc
+    assert "无需新 Schema、Migration" in rfc
+    assert "`daily_review.source_failed`" in rfc
+    assert "[as_of, as_of + 24 hours)" in rfc
+    assert "Status: Proposed / Planning Baseline" in adr061
+    assert "非持久化" in adr061
+    assert "Status: Proposed / Planning Baseline" in adr062
+    assert "enabled" not in adr062 or "fail closed" in adr062
+    assert all(f"ACC-019-{letter}" in acceptance for letter in "ABCDEFGHIJKLM")
+    assert acceptance.count("状态：NOT_EXECUTED") == 13
+    assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
+    assert "| RFC-028 |" in decision_index
+    assert "| ADR-061 |" in decision_index
+    assert "| ADR-062 |" in decision_index
+    assert (
+        "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
+        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+        "NOT_STARTED |"
+    ) in roadmap
