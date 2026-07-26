@@ -16,6 +16,7 @@ from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
 from core.clock import SystemClock
+from core.daily_review import DailyReviewService
 from core.database import DatabaseManager
 from core.memory.manager import MemoryManager
 from core.memory.models import MemoryType
@@ -44,11 +45,12 @@ async def full_app(tmp_path):
     es = SQLiteEpisodicStore(db_path=ep_path, db_manager=db_manager)
     await es.initialize()
     memory.register_store(MemoryType.EPISODIC, es)
+    clock = SystemClock()
     work_logs = WorkLogService(
         SQLiteWorkLogRepository(
             db_manager, ep_path, timezone_name="Asia/Shanghai"
         ),
-        clock=SystemClock(),
+        clock=clock,
         timezone_name="Asia/Shanghai",
     )
     await work_logs.initialize()
@@ -60,11 +62,21 @@ async def full_app(tmp_path):
     task_repo = SQLiteUserTaskRepository(db_manager, os.path.join(db_dir, "tasks.db"))
     task_service = UserTaskService(task_repo, bus=bus)
     await task_service.initialize()
+    daily_review = DailyReviewService(
+        work_log_service=work_logs,
+        waiting_for_service=None,
+        reminder_inbox=None,
+        inbox_service=None,
+        user_task_service=task_service,
+        clock=clock,
+        timezone_name="Asia/Shanghai",
+    )
     app = CEOAssistant(
         memory_manager=memory,
         work_log_service=work_logs,
         user_task_service=task_service,
-        clock=SystemClock(),
+        daily_review_service=daily_review,
+        clock=clock,
         timezone_name="Asia/Shanghai",
         task_intent_parser=TaskReminderIntentParser("Asia/Shanghai", SystemClock()),
         admission=PERMISSIVE_TEST_ADMISSION,
@@ -118,11 +130,12 @@ class TestEndToEnd:
         ))
         assert resp["status"] == "ok"
 
-        # 简报应有完整信息
+        # Daily Review only includes canonical date facts and current follow-ups.
         answer = resp["answer"]
-        assert "工作记录" in answer, f"简报应有工作记录: {answer[:300]}"
-        assert "待办" in answer, f"简报应有待办: {answer[:300]}"
-        assert "决策" in answer, f"简报应有决策: {answer[:300]}"
+        assert "和张经理确认蜂蜡检测方案" in answer
+        assert "完成客户报价" in answer
+        assert "跟进FDA检测结果" not in answer
+        assert "决策" not in answer
 
     @pytest.mark.asyncio
     async def test_conversation_memory(self, full_app):
@@ -146,7 +159,8 @@ class TestEndToEnd:
             application_name="ceo-assistant", user_input="简报",
         ))
         assert resp3["status"] == "ok" and len(resp3["answer"]) > 0
-        assert "待办" in resp3["answer"]
+        assert "和张经理开会讨论蜂蜡方案" in resp3["answer"]
+        assert "交报告" not in resp3["answer"]
 
     @pytest.mark.asyncio
     async def test_intent_routing_in_context(self, full_app):
