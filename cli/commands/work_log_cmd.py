@@ -4,12 +4,9 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime
 
 from cli.runtime import execute_work_log_operation
 from core.work_log import (
-    WorkLogCreateCommand,
-    WorkLogQuery,
     WorkLogSource,
     WorkLogStatus,
 )
@@ -32,10 +29,6 @@ def _workspace(options) -> WorkspaceKey:
     )
 
 
-def _datetime(value: str | None) -> datetime | None:
-    return datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
-
-
 async def run(args: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="python -m cli work-log")
     commands = parser.add_subparsers(dest="operation", required=True)
@@ -48,7 +41,6 @@ async def run(args: list[str]) -> int:
     create.add_argument("--target")
     create.add_argument(
         "--status",
-        choices=[item.value for item in WorkLogStatus],
         default=WorkLogStatus.COMPLETED.value,
     )
     create.add_argument("--tag", action="append", default=[])
@@ -59,11 +51,11 @@ async def run(args: list[str]) -> int:
     listing.add_argument("--date-to")
     listing.add_argument("--target")
     listing.add_argument("--tag", action="append", default=[])
-    listing.add_argument("--status", choices=[item.value for item in WorkLogStatus])
+    listing.add_argument("--status")
     listing.add_argument("--text")
     listing.add_argument("--context-ref")
-    listing.add_argument("--limit", type=int, default=50)
-    listing.add_argument("--offset", type=int, default=0)
+    listing.add_argument("--limit", default=50)
+    listing.add_argument("--offset", default=0)
     _add_workspace(listing)
 
     show = commands.add_parser("show")
@@ -76,32 +68,28 @@ async def run(args: list[str]) -> int:
         result = await execute_work_log_operation(
             "create",
             workspace_key=workspace,
-            command=WorkLogCreateCommand(
-                subject=options.subject,
-                raw_text=options.raw_text or options.subject,
-                occurred_at=_datetime(options.occurred_at),
-                timezone=options.timezone,
-                target=options.target,
-                status=options.status,
-                tags=options.tag,
-                source=WorkLogSource.CLI,
-            ),
+            subject=options.subject,
+            raw_text=options.raw_text or options.subject,
+            occurred_at=options.occurred_at,
+            timezone=options.timezone,
+            target=options.target,
+            status=options.status,
+            tags=options.tag,
+            source=WorkLogSource.CLI,
         )
     elif options.operation == "list":
         result = await execute_work_log_operation(
             "list",
             workspace_key=workspace,
-            query=WorkLogQuery(
-                date_from=_datetime(options.date_from),
-                date_to=_datetime(options.date_to),
-                target=options.target,
-                tags=options.tag,
-                status=options.status,
-                text=options.text,
-                context_ref=options.context_ref,
-                limit=options.limit,
-                offset=options.offset,
-            ),
+            date_from=options.date_from,
+            date_to=options.date_to,
+            target=options.target,
+            tags=options.tag,
+            status=options.status,
+            text=options.text,
+            context_ref=options.context_ref,
+            limit=options.limit,
+            offset=options.offset,
         )
     else:
         result = await execute_work_log_operation(

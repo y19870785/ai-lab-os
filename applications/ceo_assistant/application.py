@@ -41,10 +41,11 @@ from core.errors import (
 )
 from applications.ceo_assistant.work_log_intent import parse_work_log_query
 from core.work_log import (
-    WorkLogCreateCommand,
     WorkLogQuery,
+    WorkLogService,
     WorkLogSource,
     WorkLogStatus,
+    WorkLogUserErrorPresenter,
 )
 from core.memory.models import MemoryQuery, MemoryType
 from core.system.admission import WorkAdmission
@@ -238,6 +239,7 @@ class CEOAssistant:
         except FailureException as exc:
             presented = WaitingForUserErrorPresenter.present(exc.failure)
             presented = ReminderUserErrorPresenter.present(presented)
+            presented = WorkLogUserErrorPresenter.present(presented)
             raise FailureException(presented) from exc
         except Exception as exc:
             failure = failure_from_exception(
@@ -510,7 +512,9 @@ class CEOAssistant:
     async def _handle_work_log(self, request: ApplicationRequest) -> dict[str, Any]:
         """处理工作记录输入。"""
         if self._work_logs is None:
-            raise RuntimeError("Work Log service is not configured")
+            WorkLogService.raise_not_configured(
+                operation="create", trace_id=request.workspace_key.trace_id
+            )
         user_input = request.user_input
         # Strip common prefixes
         for prefix in ["记录:", "记录：", "记录 ", "log:", "log "]:
@@ -525,16 +529,14 @@ class CEOAssistant:
             else WorkLogStatus.COMPLETED
         )
         extracted = await self._extract_work_entities(user_input)
-        record = await self._work_logs.create(
+        record = await self._work_logs.create_from_input(
             workspace_key=request.workspace_key,
-            command=WorkLogCreateCommand(
-                subject=(extracted.get("subject") or user_input)[:500],
-                raw_text=user_input,
-                target=extracted.get("target") or None,
-                status=status,
-                tags=extracted.get("tags", []),
-                source=WorkLogSource.CEO_ASSISTANT,
-            ),
+            subject=(extracted.get("subject") or user_input)[:500],
+            raw_text=user_input,
+            target=extracted.get("target") or None,
+            status=status,
+            tags=extracted.get("tags", []),
+            source=WorkLogSource.CEO_ASSISTANT,
         )
         return {
             "answer": f"[OK] 已记录工作内容：\n\n事项: {record.subject}\nID: {record.id}",
@@ -602,8 +604,10 @@ class CEOAssistant:
         """Read Work Logs with deterministic filters and no side effects."""
 
         if self._work_logs is None:
-            raise RuntimeError("Work Log service is not configured")
-        work_log_id, query = parse_work_log_query(
+            WorkLogService.raise_not_configured(
+                operation="list", trace_id=request.workspace_key.trace_id
+            )
+        work_log_id, query_values = parse_work_log_query(
             request.user_input,
             now=self._clock.now(),
             timezone_name=self._timezone_name,
@@ -618,8 +622,8 @@ class CEOAssistant:
         else:
             records = list(
                 (
-                    await self._work_logs.list(
-                        workspace_key=request.workspace_key, query=query
+                    await self._work_logs.query_from_input(
+                        workspace_key=request.workspace_key, **query_values
                     )
                 ).items
             )

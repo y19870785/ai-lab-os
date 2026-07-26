@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import subprocess
 import sys
 
+import pytest
+
+from core.errors import FailureException
+from core.workspace.models import WorkspaceKey
 
 def _run(tmp_path, *args):
     environment = os.environ.copy()
@@ -93,3 +98,92 @@ def test_legacy_log_alias_and_failure_exit_code(tmp_path):
     invalid = _run(tmp_path, "work-log", "show", "raw-memory-id")
     assert invalid.returncode == 2
     assert "work_log.id_invalid" in invalid.stderr
+
+
+@pytest.mark.parametrize(
+    ("args", "expected_code"),
+    [
+        (
+            ("work-log", "create", "Invalid", "--timezone", "Mars/Olympus"),
+            "work_log.timezone_invalid",
+        ),
+        (
+            (
+                "work-log",
+                "create",
+                "Naive",
+                "--occurred-at",
+                "2026-07-23T10:00:00",
+            ),
+            "work_log.occurred_at_invalid",
+        ),
+        (
+            (
+                "work-log",
+                "list",
+                "--date-from",
+                "2026-07-24T00:00:00Z",
+                "--date-to",
+                "2026-07-23T00:00:00Z",
+            ),
+            "work_log.query_invalid",
+        ),
+        (
+            (
+                "work-log",
+                "list",
+                "--context-ref",
+                "inbox_wl_" + "a" * 24,
+            ),
+            "work_log.context_ref_invalid",
+        ),
+        (
+            ("work-log", "show", "raw-memory-id"),
+            "work_log.id_invalid",
+        ),
+        (
+            ("work-log", "list", "--limit", "201"),
+            "work_log.limit_invalid",
+        ),
+    ],
+)
+def test_work_log_invalid_input_has_stable_failure_and_no_traceback(
+    tmp_path, args, expected_code
+):
+    result = _run(tmp_path, *args)
+    assert result.returncode == 2
+    assert expected_code in result.stderr
+    assert "traceback" not in (result.stdout + result.stderr).casefold()
+
+
+def test_cli_runtime_not_configured_uses_stable_failure(
+    tmp_path, monkeypatch
+):
+    from cli import runtime
+
+    class System:
+        work_log_service = None
+
+        async def start(self):
+            pass
+
+        async def shutdown(self):
+            pass
+
+    monkeypatch.setattr(runtime, "load_system_settings", lambda: object())
+    monkeypatch.setattr(
+        runtime,
+        "create_system",
+        lambda _settings: asyncio.sleep(0, result=System()),
+    )
+    with pytest.raises(FailureException) as failure:
+        asyncio.run(
+            runtime.execute_work_log_operation(
+                "list",
+                workspace_key=WorkspaceKey(trace_id="cli-not-configured"),
+                limit=50,
+                offset=0,
+            )
+        )
+    assert failure.value.failure.code == "work_log.not_configured"
+    assert failure.value.failure.trace_id == "cli-not-configured"

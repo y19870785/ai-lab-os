@@ -1,18 +1,11 @@
 """Typed Work Log create and query routes."""
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
 from api.models import WorkLogCreateRequest
 from core.system.container import SystemContainer
-from core.work_log import (
-    WorkLogCreateCommand,
-    WorkLogQuery,
-    WorkLogSource,
-    WorkLogStatus,
-)
+from core.work_log import WorkLogService, WorkLogSource
 from core.workspace.models import WorkspaceKey
 
 router = APIRouter(prefix="/work-logs", tags=["work-logs"])
@@ -27,6 +20,18 @@ def _workspace(request: Request) -> WorkspaceKey:
     )
 
 
+def _service(
+    system: SystemContainer, request: Request, operation: str
+) -> WorkLogService:
+    service = getattr(system, "work_log_service", None)
+    if service is None:
+        WorkLogService.raise_not_configured(
+            operation=operation,
+            trace_id=_workspace(request).trace_id,
+        )
+    return service
+
+
 @router.post("")
 async def create_work_log(
     payload: WorkLogCreateRequest,
@@ -35,19 +40,27 @@ async def create_work_log(
 ):
     """Create through the canonical service; ``user_input`` is deprecated."""
 
-    record = await system.work_log_service.create(
+    compatibility = (
+        payload.user_input.strip()
+        if isinstance(payload.user_input, str)
+        else ""
+    )
+    subject = payload.subject
+    raw_text = payload.raw_text
+    if subject is None and raw_text is None and compatibility:
+        subject = compatibility[:500]
+        raw_text = compatibility
+    record = await _service(system, request, "create").create_from_input(
         workspace_key=_workspace(request),
-        command=WorkLogCreateCommand(
-            subject=payload.subject,
-            raw_text=payload.raw_text,
-            occurred_at=payload.occurred_at,
-            timezone=payload.timezone,
-            target=payload.target,
-            status=payload.status,
-            tags=payload.tags,
-            source=WorkLogSource.API,
-            context_refs=payload.context_refs,
-        ),
+        subject=subject,
+        raw_text=raw_text,
+        occurred_at=payload.occurred_at,
+        timezone=payload.timezone,
+        target=payload.target,
+        status=payload.status,
+        tags=payload.tags,
+        source=WorkLogSource.API,
+        context_refs=payload.context_refs,
     )
     if payload.user_input is not None:
         return {
@@ -67,30 +80,28 @@ async def create_work_log(
 @router.get("")
 async def list_work_logs(
     request: Request,
-    date_from: datetime | None = Query(default=None),
-    date_to: datetime | None = Query(default=None),
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
     target: str | None = Query(default=None),
     tags: list[str] = Query(default=[]),
-    status: WorkLogStatus | None = Query(default=None),
+    status: str | None = Query(default=None),
     text: str | None = Query(default=None),
     context_ref: str | None = Query(default=None),
-    limit: int = Query(default=50, ge=1, le=200),
-    offset: int = Query(default=0, ge=0, le=10_000),
+    limit: str | None = Query(default=None),
+    offset: str | None = Query(default=None),
     system: SystemContainer = Depends(get_system),
 ):
-    page = await system.work_log_service.list(
+    page = await _service(system, request, "list").query_from_input(
         workspace_key=_workspace(request),
-        query=WorkLogQuery(
-            date_from=date_from,
-            date_to=date_to,
-            target=target,
-            tags=tags,
-            status=status,
-            text=text,
-            context_ref=context_ref,
-            limit=limit,
-            offset=offset,
-        ),
+        date_from=date_from,
+        date_to=date_to,
+        target=target,
+        tags=tags,
+        status=status,
+        text=text,
+        context_ref=context_ref,
+        limit=50 if limit is None else limit,
+        offset=0 if offset is None else offset,
     )
     return page.model_dump(mode="json")
 
@@ -101,7 +112,7 @@ async def get_work_log(
     request: Request,
     system: SystemContainer = Depends(get_system),
 ):
-    record = await system.work_log_service.get(
+    record = await _service(system, request, "get").get(
         workspace_key=_workspace(request), work_log_id=work_log_id
     )
     return record.model_dump(mode="json")

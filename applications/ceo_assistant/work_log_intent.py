@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, time, timedelta, timezone
+from typing import Any
 from zoneinfo import ZoneInfo
 
-from core.work_log import WorkLogQuery, WorkLogStatus
+from core.work_log import WorkLogStatus
 
 _ID = re.compile(r"(wl_[0-9a-f]{32}|wl_legacy_[0-9a-f]{64}|inbox_wl_[0-9a-f]{24})")
 _RANGE = re.compile(r"(\d{4}-\d{2}-\d{2})\s*到\s*(\d{4}-\d{2}-\d{2})")
@@ -24,12 +25,12 @@ def is_work_log_query(text: str) -> bool:
 
 def parse_work_log_query(
     text: str, *, now: datetime, timezone_name: str
-) -> tuple[str | None, WorkLogQuery]:
+) -> tuple[str | None, dict[str, Any]]:
     """Return an exact id or a deterministic list query."""
 
     identifier = _ID.search(text)
     if identifier:
-        return identifier.group(1), WorkLogQuery()
+        return identifier.group(1), {}
 
     zone = ZoneInfo(timezone_name)
     date_from = date_to = None
@@ -38,7 +39,9 @@ def parse_work_log_query(
         date_from = datetime.combine(local, time.min, tzinfo=zone).astimezone(
             timezone.utc
         )
-        date_to = date_from + timedelta(days=1)
+        date_to = datetime.combine(
+            local + timedelta(days=1), time.min, tzinfo=zone
+        ).astimezone(timezone.utc)
     else:
         date_range = _RANGE.search(text)
         if date_range:
@@ -61,8 +64,8 @@ def parse_work_log_query(
     if tag_match:
         tags = (tag_match.group(1).strip(),)
 
-    status = None
-    status_match = re.search(r"状态为(.{1,32}?)的工作记录", text)
+    status: WorkLogStatus | str | None = None
+    status_match = re.search(r"状态为(.*?)的工作记录", text)
     if status_match:
         raw_status = status_match.group(1).strip().casefold()
         status = {
@@ -75,13 +78,13 @@ def parse_work_log_query(
             "blocked": WorkLogStatus.BLOCKED,
             "信息": WorkLogStatus.INFORMATIONAL,
             "informational": WorkLogStatus.INFORMATIONAL,
-        }.get(raw_status)
+        }.get(raw_status, raw_status)
 
-    return None, WorkLogQuery(
-        date_from=date_from,
-        date_to=date_to,
-        target=target,
-        tags=tags,
-        status=status,
-        limit=50,
-    )
+    return None, {
+        "date_from": date_from,
+        "date_to": date_to,
+        "target": target,
+        "tags": tags,
+        "status": status,
+        "limit": 50,
+    }

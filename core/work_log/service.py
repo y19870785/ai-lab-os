@@ -107,6 +107,26 @@ class WorkLogService:
             cause_type=WorkLogConflictError.__name__,
         )
 
+    async def create_from_input(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        **values: Any,
+    ) -> WorkLogRecord:
+        """Own transport-to-domain parsing and stable validation failures."""
+
+        workspace = canonical_workspace(workspace_key)
+        try:
+            command = WorkLogCreateCommand.model_validate(values)
+        except (ValueError, ValidationError) as exc:
+            self._raise_validation(
+                exc,
+                "create",
+                trace_id=workspace.trace_id,
+                model="create",
+            )
+        return await self.create(workspace_key=workspace, command=command)
+
     async def create_from_inbox(
         self,
         *,
@@ -223,6 +243,26 @@ class WorkLogService:
         except WorkLogRepositoryError as exc:
             self._raise_repository("list", exc, trace_id=workspace.trace_id)
 
+    async def query_from_input(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        **values: Any,
+    ) -> WorkLogPage:
+        """Own query parsing before any repository operation."""
+
+        workspace = canonical_workspace(workspace_key)
+        try:
+            query = WorkLogQuery.model_validate(values)
+        except (ValueError, ValidationError) as exc:
+            self._raise_validation(
+                exc,
+                "list",
+                trace_id=workspace.trace_id,
+                model="query",
+            )
+        return await self.list(workspace_key=workspace, query=query)
+
     async def _recover_inbox_target(
         self,
         workspace: WorkspaceKey,
@@ -260,21 +300,55 @@ class WorkLogService:
         return record
 
     def _raise_validation(
-        self, exc: Exception, operation: str, *, trace_id: str
+        self,
+        exc: Exception,
+        operation: str,
+        *,
+        trace_id: str,
+        model: str = "create",
     ) -> None:
+        fields: set[str] = set()
+        if isinstance(exc, ValidationError):
+            fields = {
+                str(issue["loc"][0])
+                for issue in exc.errors()
+                if issue.get("loc")
+            }
         text = str(exc).casefold()
-        if "subject" in text or "raw_text" in text:
+        if fields.intersection({"subject", "raw_text"}) or (
+            not fields and ("subject" in text or "raw_text" in text)
+        ):
             code = "work_log.subject_required"
-        elif "timezone" in text:
+        elif "timezone" in fields or (not fields and "timezone" in text):
             code = "work_log.timezone_invalid"
-        elif "occurred_at" in text or "datetime" in text:
+        elif "occurred_at" in fields or (
+            model == "create" and not fields and "datetime" in text
+        ):
             code = "work_log.occurred_at_invalid"
-        elif "context" in text:
+        elif fields.intersection({"context_ref", "context_refs"}) or (
+            not fields and "context" in text
+        ):
             code = "work_log.context_ref_invalid"
+        elif fields.intersection({"limit", "offset"}):
+            code = "work_log.limit_invalid"
         else:
             code = "work_log.query_invalid"
-        self._raise_mapped(
-            code, ErrorCategory.VALIDATION, operation, exc, trace_id
+        self._raise(
+            code,
+            ErrorCategory.VALIDATION,
+            operation,
+            trace_id=trace_id,
+            cause_type=exc.__class__.__name__,
+            details={"fields": sorted(fields)} if fields else {},
+        )
+
+    @classmethod
+    def raise_not_configured(cls, *, operation: str, trace_id: str) -> None:
+        cls._raise(
+            "work_log.not_configured",
+            ErrorCategory.NOT_CONFIGURED,
+            operation,
+            trace_id=trace_id,
         )
 
     def _raise_repository(

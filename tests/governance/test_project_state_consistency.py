@@ -770,19 +770,27 @@ def test_sp018_product_entrypoints_use_the_canonical_work_log_boundary() -> None
         "api": ROOT / "api/routes/work_logs.py",
         "cli": ROOT / "cli/commands/work_log_cmd.py",
         "legacy_cli": ROOT / "cli/commands/log_cmd.py",
+        "cli_runtime": ROOT / "cli/runtime.py",
     }
     text = {
         name: path.read_text(encoding="utf-8-sig")
         for name, path in paths.items()
     }
-    assert "self._work_logs.create(" in text["assistant"]
-    assert "self._work_logs.list(" in text["assistant"]
+    assert "self._work_logs.create_from_input(" in text["assistant"]
+    assert "self._work_logs.query_from_input(" in text["assistant"]
     assert "self._work_logs.get(" in text["assistant"]
     assert "self._work_logs.create_from_inbox(" in text["inbox"]
     assert "self._work_logs.list(" in text["agenda"]
-    assert "system.work_log_service" in text["api"]
+    assert '_service(system, request, "create").create_from_input(' in text["api"]
+    assert '_service(system, request, "list").query_from_input(' in text["api"]
     assert "execute_work_log_operation" in text["cli"]
     assert "execute_work_log_operation" in text["legacy_cli"]
+    assert "service.create_from_input(" in text["cli_runtime"]
+    assert "service.query_from_input(" in text["cli_runtime"]
+    assert "WorkLogCreateCommand(" not in text["api"]
+    assert "WorkLogQuery(" not in text["api"]
+    assert "WorkLogCreateCommand(" not in text["cli"]
+    assert "WorkLogQuery(" not in text["cli"]
     assert "MemoryManager" not in "\n".join(
         text[name] for name in ("api", "cli", "legacy_cli")
     )

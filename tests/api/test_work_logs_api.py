@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
 from api.app import create_app
@@ -117,3 +118,118 @@ def test_legacy_get_alias_and_get_are_zero_write(tmp_path):
                 ).fetchall()
             )
         assert after == before
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "payload", "params", "expected_code"),
+    [
+        (
+            "post",
+            "/work-logs",
+            {
+                "subject": "Invalid timezone",
+                "raw_text": "Invalid timezone",
+                "timezone": "Mars/Olympus",
+            },
+            None,
+            "work_log.timezone_invalid",
+        ),
+        (
+            "post",
+            "/work-logs",
+            {
+                "subject": "Naive",
+                "raw_text": "Naive",
+                "occurred_at": "2026-07-23T10:00:00",
+            },
+            None,
+            "work_log.occurred_at_invalid",
+        ),
+        (
+            "post",
+            "/work-logs",
+            {
+                "subject": "Context",
+                "raw_text": "Context",
+                "context_refs": [
+                    {
+                        "kind": "inbox",
+                        "target_id": "inbox_wl_" + "a" * 24,
+                    }
+                ],
+            },
+            None,
+            "work_log.context_ref_invalid",
+        ),
+        (
+            "post",
+            "/work-logs",
+            {"subject": " ", "raw_text": " "},
+            None,
+            "work_log.subject_required",
+        ),
+        (
+            "get",
+            "/work-logs",
+            None,
+            {
+                "date_from": "2026-07-24T00:00:00Z",
+                "date_to": "2026-07-23T00:00:00Z",
+            },
+            "work_log.query_invalid",
+        ),
+        (
+            "get",
+            "/work-logs/raw-memory-id",
+            None,
+            None,
+            "work_log.id_invalid",
+        ),
+        (
+            "get",
+            "/work-logs",
+            None,
+            {"limit": "201"},
+            "work_log.limit_invalid",
+        ),
+        (
+            "get",
+            "/work-logs",
+            None,
+            {"offset": "10001"},
+            "work_log.limit_invalid",
+        ),
+    ],
+)
+def test_invalid_inputs_use_stable_work_log_failures(
+    tmp_path, method, path, payload, params, expected_code
+):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        response = client.request(
+            method,
+            path,
+            json=payload,
+            params=params,
+        )
+    assert response.status_code >= 400
+    body = response.json()
+    assert body["code"] == expected_code
+    assert body["trace_id"]
+    assert body["retryable"] is False
+    assert "traceback" not in response.text.casefold()
+    assert "C:\\" not in response.text
+
+
+def test_not_configured_uses_work_log_failure(tmp_path):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        original = app.state.system.work_log_service
+        app.state.system.work_log_service = None
+        try:
+            response = client.get("/work-logs")
+        finally:
+            app.state.system.work_log_service = original
+    assert response.status_code == 503
+    assert response.json()["code"] == "work_log.not_configured"
+    assert response.json()["trace_id"]
