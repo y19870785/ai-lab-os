@@ -10,7 +10,8 @@ from zoneinfo import ZoneInfo
 from core.work_log import WorkLogStatus
 
 _ID_CANDIDATE = re.compile(
-    r"(?<![A-Za-z0-9_])(?:wl_legacy_|inbox_wl_|wl_)[A-Za-z0-9_-]*"
+    r"(?<![A-Za-z0-9_])(?:wl_legacy_|inbox_wl_|wl_)[A-Za-z0-9_-]*",
+    re.IGNORECASE,
 )
 _RANGE = re.compile(r"(\d{4}-\d{2}-\d{2})\s*到\s*(\d{4}-\d{2}-\d{2})")
 

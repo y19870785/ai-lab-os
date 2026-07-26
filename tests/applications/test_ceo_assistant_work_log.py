@@ -155,6 +155,24 @@ def test_supported_status_maps_deterministically(text, expected):
         "inbox_wl_" + "a" * 25,
         "inbox_wl_" + "a" * 23 + "z",
         "inbox_wl_" + "A" * 24,
+        "WL_",
+        "WL_bad",
+        "WL_" + "z" * 32,
+        "WL_0123456789abcdef0123456789abcdef",
+        "WL_LEGACY_",
+        "WL_LEGACY_bad",
+        "INBOX_WL_",
+        "INBOX_WL_bad",
+        "Wl_",
+        "wL_",
+        "Wl_bad",
+        "wL_" + "z" * 32,
+        "Wl_Legacy_bad",
+        "WL_legacy_bad",
+        "wl_LEGACY_bad",
+        "Inbox_Wl_bad",
+        "INBOX_wl_bad",
+        "inbox_WL_bad",
     ],
 )
 def test_explicit_work_log_id_candidates_are_preserved_for_service_validation(
@@ -177,6 +195,9 @@ def test_explicit_work_log_id_candidates_are_preserved_for_service_validation(
         ("查询工作日志 wl_bad？", "wl_bad"),
         ("帮我看看 wl_bad", "wl_bad"),
         ("查看这个工作记录 wl_bad，谢谢", "wl_bad"),
+        ("查看工作记录 WL_bad。", "WL_bad"),
+        ("查询工作日志 WL_bad？", "WL_bad"),
+        ("查看这个工作记录 INBOX_WL_bad，谢谢", "INBOX_WL_bad"),
     ],
 )
 def test_work_log_id_candidate_token_stops_before_punctuation(text, candidate):
@@ -234,6 +255,10 @@ def test_queries_without_work_log_id_candidates_remain_list_queries(query):
         "rem_reminder",
         "wf_follow_up",
         "inbox_capture",
+        "UT_task",
+        "REM_reminder",
+        "WF_followup",
+        "INBOX_item",
         "task-001",
         "raw-memory-id",
     ],
@@ -248,8 +273,19 @@ def test_other_identifier_prefixes_are_not_work_log_candidates(other_identifier)
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "WL_" + "z" * 32,
+        "WL_bad",
+        "WL_" + "a" * 32,
+        "WL_LEGACY_bad",
+        "INBOX_WL_bad",
+        "Wl_bad",
+    ],
+)
 async def test_explicit_invalid_id_fails_closed_without_query_or_side_effects(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, candidate
 ):
     system = await create_system(
         make_test_settings(tmp_path),
@@ -284,7 +320,7 @@ async def test_explicit_invalid_id_fails_closed_without_query_or_side_effects(
 
         async def observed_get(*args, **kwargs):
             calls["get"] += 1
-            assert kwargs["work_log_id"] == "wl_" + "z" * 32
+            assert kwargs["work_log_id"] == candidate
             return await original_get(*args, **kwargs)
 
         async def forbidden_query(*_args, **_kwargs):
@@ -316,7 +352,7 @@ async def test_explicit_invalid_id_fails_closed_without_query_or_side_effects(
             await system.application_runtime.execute(
                 ApplicationRequest(
                     application_name="ceo-assistant",
-                    user_input="查看工作记录 wl_" + "z" * 32,
+                    user_input=f"查看工作记录 {candidate}",
                     workspace_key=workspace,
                 )
             )
