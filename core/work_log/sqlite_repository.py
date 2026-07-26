@@ -169,27 +169,37 @@ class SQLiteWorkLogRepository:
         workspace = canonical_workspace(workspace_key)
         try:
             if CANONICAL_ID_PATTERN.fullmatch(work_log_id):
-                row = self._row_by_storage_id(work_log_id)
+                row = self._visible_identity_row(workspace, work_log_id)
                 record = self._project_row(row) if row is not None else None
+                if record is None and self._scoped_identity_exists(work_log_id):
+                    raise WorkLogWorkspaceMismatchError(
+                        "Work Log belongs to another workspace"
+                    )
             elif INBOX_ALIAS_PATTERN.fullmatch(work_log_id):
-                row = self._row_by_storage_id(work_log_id)
-                record = self._project_inbox_alias(row, work_log_id)
+                row = self._visible_identity_row(workspace, work_log_id)
+                record = (
+                    self._project_inbox_alias(row, work_log_id)
+                    if row is not None
+                    else None
+                )
+                if record is None and self._scoped_identity_exists(work_log_id):
+                    raise WorkLogWorkspaceMismatchError(
+                        "Work Log belongs to another workspace"
+                    )
             elif LEGACY_ID_PATTERN.fullmatch(work_log_id):
-                record = self._find_legacy_projection(work_log_id)
+                record = self._find_legacy_projection(workspace, work_log_id)
             else:
                 record = None
-        except (WorkLogNotFoundError, WorkLogLegacyProjectionError):
+        except (
+            WorkLogNotFoundError,
+            WorkLogLegacyProjectionError,
+            WorkLogWorkspaceMismatchError,
+        ):
             raise
         except sqlite3.Error as exc:
             raise WorkLogRepositoryError("Work Log lookup failed") from exc
         if record is None:
             raise WorkLogNotFoundError("Work Log was not found")
-        if self._workspace_identity(record.workspace_key) != self._workspace_identity(
-            workspace
-        ):
-            raise WorkLogWorkspaceMismatchError(
-                "Work Log belongs to another workspace"
-            )
         return record
 
     async def list(
@@ -225,17 +235,54 @@ class SQLiteWorkLogRepository:
                 (storage_id,),
             ).fetchone()
 
-    def _find_legacy_projection(self, canonical_id: str) -> WorkLogRecord | None:
+    def _visible_identity_row(
+        self, workspace: WorkspaceKey, storage_id: str
+    ) -> sqlite3.Row | None:
+        sql, params = self._visible_rows_sql(
+            workspace, require_complete_workspace=True
+        )
         with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
-            rows = conn.execute(
+            return conn.execute(
+                f"{sql} AND id=?",
+                (*params, storage_id),
+            ).fetchone()
+
+    def _scoped_identity_exists(self, storage_id: str) -> bool:
+        """Check only identity and scope fields, never private Work Log content."""
+
+        with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
+            row = conn.execute(
                 f"""
-                SELECT * FROM {self.TABLE}
-                WHERE memory_type='episodic'
+                SELECT
+                    id,
+                    memory_type,
+                    json_extract(content, '$.type') AS content_type,
+                    json_extract(content, '$.metadata.tenant_id') AS tenant_id,
+                    json_extract(content, '$.metadata.workspace_id') AS workspace_id,
+                    json_extract(content, '$.metadata.namespace') AS namespace
+                FROM {self.TABLE}
+                WHERE id=?
+                  AND memory_type='episodic'
                   AND json_valid(content)
                   AND json_type(content)='object'
                   AND json_extract(content, '$.type')='work_log'
-                """
-            ).fetchall()
+                  AND json_type(content, '$.metadata.tenant_id')='text'
+                  AND trim(json_extract(content, '$.metadata.tenant_id'))<>''
+                  AND json_type(content, '$.metadata.workspace_id')='text'
+                  AND trim(json_extract(content, '$.metadata.workspace_id'))<>''
+                  AND json_type(content, '$.metadata.namespace')='text'
+                  AND trim(json_extract(content, '$.metadata.namespace'))<>''
+                """,
+                (storage_id,),
+            ).fetchone()
+        return row is not None
+
+    def _find_legacy_projection(
+        self, workspace: WorkspaceKey, canonical_id: str
+    ) -> WorkLogRecord | None:
+        with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
+            sql, params = self._visible_rows_sql(workspace)
+            rows = conn.execute(sql, params).fetchall()
         for row in rows:
             if self._legacy_id(row["id"]) == canonical_id:
                 return self._project_row(row)
@@ -397,7 +444,10 @@ class SQLiteWorkLogRepository:
         return content
 
     def _visible_rows_sql(
-        self, workspace: WorkspaceKey
+        self,
+        workspace: WorkspaceKey,
+        *,
+        require_complete_workspace: bool = False,
     ) -> tuple[str, tuple[object, ...]]:
         complete = """
             json_type(content, '$.metadata.tenant_id')='text'
@@ -412,7 +462,9 @@ class SQLiteWorkLogRepository:
             AND json_extract(content, '$.metadata.workspace_id')=?
             AND json_extract(content, '$.metadata.namespace')=?
         """
-        if self._workspace_identity(workspace) == ("default", "default", "default"):
+        if require_complete_workspace:
+            scope = f"(({complete}) AND ({identity}))"
+        elif self._workspace_identity(workspace) == ("default", "default", "default"):
             scope = (
                 f"((({complete}) AND ({identity})) "
                 f"OR (({complete}) IS NOT TRUE))"
@@ -508,7 +560,10 @@ class SQLiteWorkLogRepository:
             ("timestamp", row["timestamp"]),
         )
         for field, value in candidates:
-            parsed = self._parse_legacy_datetime(value, zone)
+            try:
+                parsed = self._parse_legacy_datetime(value, zone)
+            except ValueError:
+                self._projection_failure(digest, field)
             if parsed is not None:
                 if field != "content.occurred_at":
                     notes.append(f"occurred_at_from_{field.replace('.', '_')}")
@@ -518,7 +573,10 @@ class SQLiteWorkLogRepository:
     def _legacy_created_at(
         self, row: sqlite3.Row, zone: ZoneInfo, digest: str
     ) -> datetime:
-        parsed = self._parse_legacy_datetime(row["timestamp"], zone)
+        try:
+            parsed = self._parse_legacy_datetime(row["timestamp"], zone)
+        except ValueError:
+            self._projection_failure(digest, "created_at")
         if parsed is None:
             self._projection_failure(digest, "created_at")
         return parsed
@@ -669,8 +727,32 @@ class SQLiteWorkLogRepository:
         else:
             return None
         if parsed.tzinfo is None or parsed.utcoffset() is None:
-            parsed = parsed.replace(tzinfo=zone)
+            parsed = SQLiteWorkLogRepository._localize_naive_fail_closed(
+                parsed, zone
+            )
         return parsed.astimezone(timezone.utc)
+
+    @staticmethod
+    def _localize_naive_fail_closed(
+        naive: datetime, zone: ZoneInfo
+    ) -> datetime:
+        """Localize only when a wall time has one unique UTC interpretation."""
+
+        valid: list[datetime] = []
+        for fold in (0, 1):
+            candidate = naive.replace(tzinfo=zone, fold=fold)
+            round_trip = candidate.astimezone(timezone.utc).astimezone(zone)
+            if (
+                round_trip.replace(tzinfo=None) == naive
+                and round_trip.fold == fold
+            ):
+                valid.append(candidate)
+        unique = {
+            candidate.astimezone(timezone.utc): candidate for candidate in valid
+        }
+        if len(unique) != 1:
+            raise ValueError("legacy local datetime is nonexistent or ambiguous")
+        return next(iter(unique.values()))
 
     @staticmethod
     def _content_or_none(row: sqlite3.Row) -> Any:

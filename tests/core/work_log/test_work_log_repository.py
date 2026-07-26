@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -20,6 +21,7 @@ from core.work_log import (
 from core.work_log.errors import (
     WorkLogConflictError,
     WorkLogLegacyProjectionError,
+    WorkLogNotFoundError,
     WorkLogWorkspaceMismatchError,
 )
 from core.workspace.models import WorkspaceKey
@@ -56,6 +58,48 @@ def _record(identifier, workspace, *, subject="完成验货", delta=0):
         created_at=NOW,
         schema_version=1,
     )
+
+
+def _legacy_content(
+    subject: str,
+    *,
+    workspace: WorkspaceKey | None = None,
+    occurred_at: str = "2026-07-23T08:00:00+00:00",
+    timezone_name: str = "UTC",
+):
+    content = {
+        "type": "work_log",
+        "occurred_at": occurred_at,
+        "timezone": timezone_name,
+        "subject": subject,
+    }
+    if workspace is not None:
+        content["metadata"] = {
+            "tenant_id": workspace.tenant_id,
+            "workspace_id": workspace.workspace_id,
+            "namespace": workspace.namespace,
+        }
+    return content
+
+
+def _insert_legacy(manager, identifier: str, content: dict):
+    with manager.lease("episodic") as conn:
+        conn.execute(
+            """
+            INSERT INTO episodic_memories
+            (id,memory_type,content,importance,timestamp,metadata)
+            VALUES (?,?,?,?,?,?)
+            """,
+            (
+                identifier,
+                "episodic",
+                json.dumps(content),
+                0.5,
+                NOW.isoformat(),
+                "{}",
+            ),
+        )
+        conn.commit()
 
 
 @pytest.mark.asyncio
@@ -126,6 +170,154 @@ async def test_full_workspace_isolation_and_no_schema_change(tmp_path):
             )
         assert after == before
         assert not (tmp_path / "work_logs.db").exists()
+    finally:
+        manager.close_all()
+
+
+@pytest.mark.asyncio
+async def test_get_scopes_canonical_before_decode(tmp_path, monkeypatch):
+    manager, _store, repository = await _repository(tmp_path)
+    alpha = WorkspaceKey(
+        tenant_id="tenant", workspace_id="alpha", namespace="ops"
+    )
+    beta = WorkspaceKey(
+        tenant_id="tenant", workspace_id="beta", namespace="ops"
+    )
+    record = _record("wl_" + "4" * 32, alpha)
+    try:
+        await repository.create(record)
+
+        def forbidden_decode(*_args, **_kwargs):
+            raise AssertionError("foreign canonical content was decoded")
+
+        monkeypatch.setattr(repository, "_decode_canonical", forbidden_decode)
+        with pytest.raises(WorkLogWorkspaceMismatchError):
+            await repository.get(beta, record.id)
+    finally:
+        manager.close_all()
+
+
+@pytest.mark.asyncio
+async def test_get_scopes_inbox_alias_before_projection(tmp_path, monkeypatch):
+    manager, _store, repository = await _repository(tmp_path)
+    alpha = WorkspaceKey(
+        tenant_id="tenant", workspace_id="alpha", namespace="ops"
+    )
+    beta = WorkspaceKey(
+        tenant_id="tenant", workspace_id="beta", namespace="ops"
+    )
+    inbox_item_id = "inbox_scoped"
+    alias = (
+        "inbox_wl_"
+        + hashlib.sha256(
+            f"inbox_wl|{inbox_item_id}".encode("utf-8")
+        ).hexdigest()[:24]
+    )
+    record = _record("wl_" + "5" * 32, alpha).model_copy(
+        update={
+            "source": WorkLogSource.INBOX,
+            "inbox_item_id": inbox_item_id,
+        }
+    )
+    try:
+        await repository.create_from_inbox(record, alias)
+
+        def forbidden_projection(*_args, **_kwargs):
+            raise AssertionError("foreign Inbox alias content was projected")
+
+        monkeypatch.setattr(
+            repository, "_project_inbox_alias", forbidden_projection
+        )
+        with pytest.raises(WorkLogWorkspaceMismatchError):
+            await repository.get(beta, alias)
+    finally:
+        manager.close_all()
+
+
+@pytest.mark.asyncio
+async def test_legacy_lookup_scans_only_visible_workspace(
+    tmp_path, monkeypatch
+):
+    manager, _store, repository = await _repository(tmp_path)
+    alpha = WorkspaceKey(
+        tenant_id="tenant", workspace_id="alpha", namespace="ops"
+    )
+    beta = WorkspaceKey(
+        tenant_id="tenant", workspace_id="beta", namespace="ops"
+    )
+    own_id = "legacy-alpha"
+    foreign_id = "legacy-beta"
+    _insert_legacy(manager, own_id, _legacy_content("Alpha", workspace=alpha))
+    _insert_legacy(manager, foreign_id, _legacy_content("Beta", workspace=beta))
+    original = repository._project_row
+
+    def guarded_projection(row):
+        if row["id"] == foreign_id:
+            raise AssertionError("foreign legacy content was projected")
+        return original(row)
+
+    monkeypatch.setattr(repository, "_project_row", guarded_projection)
+    own_public_id = "wl_legacy_" + hashlib.sha256(own_id.encode()).hexdigest()
+    foreign_public_id = (
+        "wl_legacy_" + hashlib.sha256(foreign_id.encode()).hexdigest()
+    )
+    try:
+        assert (await repository.get(alpha, own_public_id)).subject == "Alpha"
+        with pytest.raises(WorkLogNotFoundError):
+            await repository.get(alpha, foreign_public_id)
+    finally:
+        manager.close_all()
+
+
+@pytest.mark.asyncio
+async def test_foreign_malformed_row_does_not_fail_visible_query(tmp_path):
+    manager, _store, repository = await _repository(tmp_path)
+    alpha = WorkspaceKey(
+        tenant_id="tenant", workspace_id="alpha", namespace="ops"
+    )
+    beta = WorkspaceKey(
+        tenant_id="tenant", workspace_id="beta", namespace="ops"
+    )
+    _insert_legacy(
+        manager,
+        "foreign-malformed",
+        {
+            "type": "work_log",
+            "metadata": {
+                "tenant_id": beta.tenant_id,
+                "workspace_id": beta.workspace_id,
+                "namespace": beta.namespace,
+            },
+            "occurred_at": "not-a-date",
+        },
+    )
+    try:
+        assert (await repository.list(alpha, WorkLogQuery())).items == ()
+        foreign_public_id = (
+            "wl_legacy_"
+            + hashlib.sha256(b"foreign-malformed").hexdigest()
+        )
+        with pytest.raises(WorkLogNotFoundError):
+            await repository.get(alpha, foreign_public_id)
+    finally:
+        manager.close_all()
+
+
+@pytest.mark.asyncio
+async def test_default_workspace_legacy_visibility(tmp_path):
+    manager, _store, repository = await _repository(tmp_path)
+    foreign = WorkspaceKey(
+        tenant_id="tenant", workspace_id="alpha", namespace="ops"
+    )
+    _insert_legacy(manager, "legacy-default", _legacy_content("Default"))
+    _insert_legacy(
+        manager,
+        "legacy-foreign",
+        _legacy_content("Foreign", workspace=foreign),
+    )
+    try:
+        page = await repository.list(WorkspaceKey(), WorkLogQuery())
+        assert [item.subject for item in page.items] == ["Default"]
     finally:
         manager.close_all()
 
@@ -276,3 +468,58 @@ async def test_standalone_repository_closes_only_its_own_manager(tmp_path):
     assert (await standalone.health_check())["status"] == "healthy"
     await standalone.close()
     assert (await standalone.health_check())["status"] == "not_initialized"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("local_time", "expected_field"),
+    [
+        ("2026-03-08T02:30:00", "content.occurred_at"),
+        ("2026-11-01T01:30:00", "content.occurred_at"),
+    ],
+)
+async def test_dst_nonexistent_and_ambiguous_legacy_times_fail(
+    tmp_path, local_time, expected_field
+):
+    manager, _store, repository = await _repository(tmp_path)
+    _insert_legacy(
+        manager,
+        f"dst-{local_time}",
+        _legacy_content(
+            "DST",
+            occurred_at=local_time,
+            timezone_name="America/New_York",
+        ),
+    )
+    try:
+        with pytest.raises(WorkLogLegacyProjectionError) as failure:
+            await repository.list(WorkspaceKey(), WorkLogQuery())
+        assert failure.value.field == expected_field
+    finally:
+        manager.close_all()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("local_time", "expected_utc"),
+    [
+        ("2026-03-08T01:30:00", "2026-03-08T06:30:00+00:00"),
+        ("2026-03-08T03:30:00", "2026-03-08T07:30:00+00:00"),
+    ],
+)
+async def test_dst_valid_legacy_times_project(tmp_path, local_time, expected_utc):
+    manager, _store, repository = await _repository(tmp_path)
+    _insert_legacy(
+        manager,
+        f"dst-valid-{local_time}",
+        _legacy_content(
+            "DST valid",
+            occurred_at=local_time,
+            timezone_name="America/New_York",
+        ),
+    )
+    try:
+        page = await repository.list(WorkspaceKey(), WorkLogQuery())
+        assert page.items[0].occurred_at.isoformat() == expected_utc
+    finally:
+        manager.close_all()
