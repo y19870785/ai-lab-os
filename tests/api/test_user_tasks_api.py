@@ -1,10 +1,14 @@
+import inspect
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
 
 from api.app import create_app
+from api.routes import tasks as task_routes
 from core.system import make_test_settings
 from core.user_tasks.exceptions import UserTaskPersistenceError
+from tests.helpers.clock import MutableClock
 
 
 def test_real_user_task_api_and_persistence(tmp_path):
@@ -130,3 +134,162 @@ def test_user_task_api_corrupt_row_is_server_failure_without_leak(tmp_path):
         assert response.json()["component"] == "user_tasks"
         assert "private-value" not in response.text
         assert "metadata" not in response.text.lower()
+
+
+def test_user_task_api_full_workspace_headers_and_foreign_ids_are_isolated(
+    tmp_path,
+):
+    app = create_app(make_test_settings(tmp_path))
+    alpha = {
+        "X-Tenant-ID": "tenant-a",
+        "X-Workspace-ID": "alpha",
+        "X-Namespace": "ops",
+    }
+    beta = {
+        "X-Tenant-ID": "tenant-b",
+        "X-Workspace-ID": "alpha",
+        "X-Namespace": "ops",
+    }
+    with TestClient(app) as client:
+        created = client.post(
+            "/tasks",
+            headers=alpha,
+            json={
+                "title": "Alpha only",
+                "metadata": {
+                    "business": "kept",
+                    "workspace": {
+                        "tenant_id": "attacker",
+                        "workspace_id": "attacker",
+                        "namespace": "attacker",
+                    },
+                },
+            },
+        )
+        assert created.status_code == 201
+        task = created.json()
+        task_id = task["id"]
+        assert task["metadata"] == {
+            "business": "kept",
+            "workspace": {
+                "tenant_id": "tenant-a",
+                "workspace_id": "alpha",
+                "namespace": "ops",
+            },
+        }
+        assert [item["id"] for item in client.get("/tasks", headers=alpha).json()] == [
+            task_id
+        ]
+        assert client.get("/tasks", headers=beta).json() == []
+
+        for method, path, payload in (
+            ("get", f"/tasks/{task_id}", None),
+            ("patch", f"/tasks/{task_id}", {"title": "leak"}),
+            ("post", f"/tasks/{task_id}/complete", None),
+            ("post", f"/tasks/{task_id}/cancel", None),
+        ):
+            kwargs = {"headers": beta}
+            if payload is not None:
+                kwargs["json"] = payload
+            response = getattr(client, method)(path, **kwargs)
+            assert response.status_code == 404
+            assert "alpha only" not in response.text.casefold()
+            assert "tenant-a" not in response.text
+        unchanged = client.get(f"/tasks/{task_id}", headers=alpha).json()
+        assert unchanged["title"] == "Alpha only"
+        assert unchanged["status"] == "active"
+        assert unchanged["revision"] == 1
+
+
+def test_user_task_api_offset_and_terminal_range_contract(tmp_path):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        completed = []
+        for title in ("First", "Second"):
+            task_id = client.post("/tasks", json={"title": title}).json()["id"]
+            completed.append(
+                client.post(f"/tasks/{task_id}/complete").json()
+            )
+        page = client.get(
+            "/tasks",
+            params={"status": "completed", "limit": 1, "offset": 1},
+        )
+        assert page.status_code == 200
+        assert len(page.json()) == 1
+        assert page.json()[0]["id"] in {task["id"] for task in completed}
+
+        instant = completed[0]["completed_at"]
+        ranged = client.get(
+            "/tasks",
+            params={
+                "completed_from": instant,
+                "completed_to": "2100-01-01T00:00:00Z",
+            },
+        )
+        assert ranged.status_code == 200
+        assert completed[0]["id"] in {task["id"] for task in ranged.json()}
+
+        invalid = client.get(
+            "/tasks",
+            params={
+                "cancelled_from": "2026-07-27T08:00:00Z",
+                "cancelled_to": "2026-07-27T08:00:00Z",
+            },
+        )
+        assert invalid.status_code == 400
+        assert invalid.json()["component"] == "user_tasks"
+
+
+def test_user_task_api_overdue_uses_one_injected_request_instant(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 16, tzinfo=UTC))
+    due_at = clock.now() + timedelta(days=1)
+    app = create_app(make_test_settings(tmp_path), clock=clock)
+    with TestClient(app) as client:
+        future = client.post(
+            "/tasks",
+            json={
+                "title": "Future against frozen clock",
+                "due_at": due_at.isoformat(),
+            },
+        )
+        assert future.status_code == 201
+        assert future.json()["overdue"] is False
+
+        boundary = client.post(
+            "/tasks",
+            json={
+                "title": "Boundary against frozen clock",
+                "due_at": clock.now().isoformat(),
+            },
+        )
+        assert boundary.status_code == 201
+        assert boundary.json()["overdue"] is False
+
+        service = client.app.state.system.user_task_service
+        original_current_instant = service.current_instant
+        current_instant_calls = 0
+
+        def counted_current_instant():
+            nonlocal current_instant_calls
+            current_instant_calls += 1
+            return original_current_instant()
+
+        service.current_instant = counted_current_instant
+        not_overdue = client.get("/tasks", params={"overdue": "false"})
+        assert not_overdue.status_code == 200
+        assert current_instant_calls == 1
+        assert {task["id"] for task in not_overdue.json()} == {
+            future.json()["id"],
+            boundary.json()["id"],
+        }
+        assert all(task["overdue"] is False for task in not_overdue.json())
+
+        clock.advance(timedelta(days=2))
+        current_instant_calls = 0
+        overdue = client.get("/tasks", params={"overdue": "true"})
+        assert overdue.status_code == 200
+        assert current_instant_calls == 1
+        assert future.json()["id"] in {task["id"] for task in overdue.json()}
+        assert all(task["overdue"] is True for task in overdue.json())
+
+    assert ".is_overdue()" not in inspect.getsource(task_routes)

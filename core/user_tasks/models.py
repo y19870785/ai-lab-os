@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 from uuid import uuid4
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class UserTaskStatus(str, Enum):
@@ -26,7 +26,7 @@ class UserTaskPriority(str, Enum):
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _aware_utc(value: datetime | None) -> datetime | None:
@@ -34,7 +34,7 @@ def _aware_utc(value: datetime | None) -> datetime | None:
         return None
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("datetime values must include timezone information")
-    return value.astimezone(timezone.utc)
+    return value.astimezone(UTC)
 
 
 def _contains_sensitive_key(value: Any) -> bool:
@@ -126,13 +126,37 @@ class UserTaskQuery(BaseModel):
     priority: UserTaskPriority | None = None
     due_from: datetime | None = None
     due_to: datetime | None = None
+    completed_from: datetime | None = None
+    completed_to: datetime | None = None
+    cancelled_from: datetime | None = None
+    cancelled_to: datetime | None = None
     overdue: bool | None = None
     limit: int = Field(default=100, ge=1, le=500)
+    offset: int = Field(default=0, ge=0)
 
-    @field_validator("due_from", "due_to")
+    @field_validator(
+        "due_from",
+        "due_to",
+        "completed_from",
+        "completed_to",
+        "cancelled_from",
+        "cancelled_to",
+    )
     @classmethod
     def normalize_query_datetimes(cls, value: datetime | None) -> datetime | None:
         return _aware_utc(value)
+
+    @model_validator(mode="after")
+    def validate_terminal_ranges(self) -> UserTaskQuery:
+        for lower_name, upper_name in (
+            ("completed_from", "completed_to"),
+            ("cancelled_from", "cancelled_to"),
+        ):
+            lower = getattr(self, lower_name)
+            upper = getattr(self, upper_name)
+            if lower is not None and upper is not None and lower >= upper:
+                raise ValueError(f"{lower_name} must be earlier than {upper_name}")
+        return self
 
 
 class LegacyImportResult(BaseModel):

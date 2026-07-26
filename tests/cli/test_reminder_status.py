@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from cli.commands import reminder_status_cmd
 from core.system import create_system, load_system_settings
+from core.workspace.models import WorkspaceKey
 
 
 def _configure(monkeypatch, tmp_path) -> None:
@@ -23,11 +24,13 @@ async def _create_persisted_reminder():
     await system.start()
     try:
         task = await system.user_task_service.create(
+            workspace_key=WorkspaceKey(),
             title="CLI status acceptance",
-            due_at=datetime.now(timezone.utc) + timedelta(minutes=10),
+            due_at=datetime.now(UTC) + timedelta(minutes=10),
             timezone="Asia/Shanghai",
         )
         reminder = await system.reminder_bridge.create(
+            workspace_key=WorkspaceKey(),
             user_task_id=task.id,
             remind_at=task.due_at,
             timezone_name=task.timezone,

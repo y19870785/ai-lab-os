@@ -5,9 +5,10 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from core.system import create_system, load_system_settings
+from core.workspace.models import WorkspaceKey
 
 
 def _env(tmp_path) -> dict[str, str]:
@@ -34,13 +35,15 @@ async def _seed(env):
         system = await create_system(load_system_settings(load_dotenv=False))
         await system.start()
         try:
-            due = datetime.now(timezone.utc) + timedelta(days=1)
+            due = datetime.now(UTC) + timedelta(days=1)
             reminders = []
             for title in ("联系张经理确认蜂蜡检测方案", "整理中文报价"):
                 task = await system.user_task_service.create(
+                    workspace_key=WorkspaceKey(),
                     title=title, due_at=due, timezone="Asia/Shanghai"
                 )
                 reminders.append(await system.reminder_bridge.create(
+                    workspace_key=WorkspaceKey(),
                     user_task_id=task.id,
                     remind_at=due,
                     timezone_name="Asia/Shanghai",
@@ -86,7 +89,7 @@ def test_cli_management_commands_emit_clean_utf8_and_json(tmp_path):
     assert cancelled.stderr == b""
     assert json.loads(cancelled.stdout.decode("utf-8"))["current"]["status"] == "cancelled"
 
-    target = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+    target = (datetime.now(UTC) + timedelta(days=2)).isoformat()
     changed = _run(
         env,
         "reminder-reschedule", second.id,

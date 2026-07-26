@@ -1,5 +1,7 @@
 """Truthful Reminder API backed by the shared SystemContainer."""
 
+# ruff: noqa: B008
+
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
@@ -10,7 +12,6 @@ from api.models import (
     ReminderUpdateRequest,
 )
 from core.errors import ErrorCategory, FailureException, FailureInfo
-from core.system.container import SystemContainer
 from core.reminders import (
     ReminderInboxPage,
     ReminderInboxStatus,
@@ -18,8 +19,8 @@ from core.reminders import (
     ReminderInboxView,
     ReminderStatusView,
 )
+from core.system.container import SystemContainer
 from core.workspace.models import WorkspaceKey
-
 
 router = APIRouter(tags=["reminders"])
 
@@ -111,6 +112,7 @@ async def create_reminder(
 ):
     _, bridge = _services(system)
     reminder = await bridge.create(
+        workspace_key=_workspace(request),
         user_task_id=task_id,
         remind_at=body.remind_at,
         timezone_name=body.timezone,
@@ -127,7 +129,11 @@ async def list_task_reminders(
     system: SystemContainer = Depends(get_system),
 ):
     service, _ = _services(system)
-    reminders = await service.list_for_task(task_id, _trace(request))
+    reminders = await service.list_for_task(
+        workspace_key=_workspace(request),
+        task_id=task_id,
+        trace_id=_trace(request),
+    )
     return [_response(reminder) for reminder in reminders]
 
 

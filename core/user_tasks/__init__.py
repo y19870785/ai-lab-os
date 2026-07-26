@@ -7,10 +7,11 @@ from core.user_tasks.models import (
     UserTaskQuery,
     UserTaskStatus,
 )
+from core.user_tasks.protocol import UserTaskRepository
 from core.user_tasks.repository import SQLiteUserTaskRepository
 from core.user_tasks.service import UserTaskService
 
 __all__ = [
     "LegacyImportResult", "SQLiteUserTaskRepository", "UserTask", "UserTaskPriority",
-    "UserTaskQuery", "UserTaskService", "UserTaskStatus",
+    "UserTaskQuery", "UserTaskRepository", "UserTaskService", "UserTaskStatus",
 ]

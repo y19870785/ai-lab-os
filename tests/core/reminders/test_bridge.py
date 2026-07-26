@@ -1,9 +1,10 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from core.database import DatabaseManager
+from core.errors import ErrorCategory, FailureException
 from core.reminders import (
     ReminderActionHandler,
     ReminderSchedulerBridge,
@@ -17,20 +18,20 @@ from core.reminders.exceptions import (
     ReminderPersistenceError,
     ReminderUnavailableError,
 )
-from core.errors import ErrorCategory, FailureException
-from core.scheduler.exceptions import SchedulerPersistenceError
 from core.scheduler.config import SchedulerConfig
+from core.scheduler.exceptions import SchedulerPersistenceError
 from core.scheduler.handlers import ActionHandlerRegistry
 from core.scheduler.jobs import JobExecutor
+from core.scheduler.models import JobRun, JobRunStatus, JobStatus
 from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.runtime import SchedulerRuntime
-from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
-from core.scheduler.models import JobRun, JobRunStatus, JobStatus
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService, UserTaskStatus
-
+from core.workspace.models import WorkspaceKey
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
+WORKSPACE = WorkspaceKey()
 
 
 async def _stack(tmp_path):
@@ -72,10 +73,11 @@ async def _settle(runtime):
 
 async def test_create_trigger_and_repeated_ticks_produce_one_occurrence(tmp_path):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Follow up")
+    task = await tasks.create(workspace_key=WORKSPACE, title="Follow up")
     reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(milliseconds=10),
+        remind_at=datetime.now(UTC) + timedelta(milliseconds=10),
         timezone_name="Asia/Shanghai",
     )
     await asyncio.sleep(0.02)
@@ -96,10 +98,13 @@ async def test_create_trigger_and_repeated_ticks_produce_one_occurrence(tmp_path
 
 async def test_running_job_reschedule_returns_conflict_without_modifying_reminder(tmp_path):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Running reschedule")
+    task = await tasks.create(
+        workspace_key=WORKSPACE, title="Running reschedule"
+    )
     reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        remind_at=datetime.now(UTC) + timedelta(hours=1),
         timezone_name="UTC",
         trace_id="trace-running",
     )
@@ -136,10 +141,13 @@ async def test_reschedule_trigger_interleaving_cannot_commit_old_occurrence(
     tmp_path, monkeypatch
 ):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Reschedule race")
+    task = await tasks.create(
+        workspace_key=WORKSPACE, title="Reschedule race"
+    )
     reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        remind_at=datetime.now(UTC) + timedelta(hours=1),
         timezone_name="UTC",
     )
     old_scheduled_at = reminder.remind_at
@@ -180,17 +188,21 @@ async def test_reschedule_trigger_interleaving_cannot_commit_old_occurrence(
 
 async def test_reconciliation_repairs_scheduled_reminders_with_terminal_jobs(tmp_path):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Terminal job drift")
+    task = await tasks.create(
+        workspace_key=WORKSPACE, title="Terminal job drift"
+    )
     cancelled_reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=2),
+        remind_at=datetime.now(UTC) + timedelta(hours=2),
         timezone_name="UTC",
     )
     assert await scheduler.cancel_job(cancelled_reminder.scheduler_job_id)
 
     failed_reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=3),
+        remind_at=datetime.now(UTC) + timedelta(hours=3),
         timezone_name="UTC",
     )
     claim_now = failed_reminder.remind_at + timedelta(seconds=1)
@@ -226,10 +238,11 @@ async def test_reconciliation_repairs_scheduled_reminders_with_terminal_jobs(tmp
 
 async def test_reconciliation_is_idempotent_when_pending_schedule_has_no_job(tmp_path):
     manager, tasks, repository, reminders, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Reconcile")
+    task = await tasks.create(workspace_key=WORKSPACE, title="Reconcile")
     pending = await reminders.create_pending(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        remind_at=datetime.now(UTC) + timedelta(hours=1),
         timezone_name="UTC",
     )
 
@@ -249,10 +262,11 @@ async def test_reconciliation_is_idempotent_when_pending_schedule_has_no_job(tmp
 
 async def test_repeated_complete_retries_failed_reminder_cancellation(tmp_path, monkeypatch):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Lifecycle")
+    task = await tasks.create(workspace_key=WORKSPACE, title="Lifecycle")
     reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        remind_at=datetime.now(UTC) + timedelta(hours=1),
         timezone_name="UTC",
     )
     original_cancel = bridge.cancel
@@ -267,13 +281,17 @@ async def test_repeated_complete_retries_failed_reminder_cancellation(tmp_path, 
 
     monkeypatch.setattr(bridge, "cancel", fail_once)
     with pytest.raises(FailureException):
-        await tasks.complete(task.id)
+        await tasks.complete(workspace_key=WORKSPACE, task_id=task.id)
 
-    assert (await tasks.get(task.id)).status == UserTaskStatus.COMPLETED
+    assert (
+        await tasks.get(workspace_key=WORKSPACE, task_id=task.id)
+    ).status == UserTaskStatus.COMPLETED
     assert (await repository.get(reminder.id)).status == ReminderStatus.PENDING_CANCEL
     assert (await tasks.health())["status"] == "degraded"
 
-    completed = await tasks.complete(task.id)
+    completed = await tasks.complete(
+        workspace_key=WORKSPACE, task_id=task.id
+    )
     assert completed.status == UserTaskStatus.COMPLETED
     assert attempts == 2
     assert (await repository.get(reminder.id)).status == ReminderStatus.CANCELLED
@@ -286,10 +304,13 @@ async def test_handler_success_then_job_save_failure_recovers_without_duplicate_
     tmp_path, monkeypatch
 ):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Failure window")
+    task = await tasks.create(
+        workspace_key=WORKSPACE, title="Failure window"
+    )
     reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(milliseconds=10),
+        remind_at=datetime.now(UTC) + timedelta(milliseconds=10),
         timezone_name="UTC",
     )
     original_finalize = scheduler._persistence.finalize_claim
@@ -328,7 +349,9 @@ async def test_handler_success_then_job_save_failure_recovers_without_duplicate_
 
 async def test_reminder_state_save_failure_leaves_recoverable_evidence(tmp_path, monkeypatch):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Saga evidence")
+    task = await tasks.create(
+        workspace_key=WORKSPACE, title="Saga evidence"
+    )
     original_update = repository.update
     attempts = 0
 
@@ -342,8 +365,9 @@ async def test_reminder_state_save_failure_leaves_recoverable_evidence(tmp_path,
     monkeypatch.setattr(repository, "update", fail_once)
     with pytest.raises(FailureException) as captured:
         await bridge.create(
+            workspace_key=WORKSPACE,
             user_task_id=task.id,
-            remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+            remind_at=datetime.now(UTC) + timedelta(hours=1),
             timezone_name="UTC",
         )
 
@@ -369,10 +393,13 @@ async def test_retry_exhaustion_persists_failed_job_reminder_and_one_occurrence(
     tmp_path, monkeypatch
 ):
     manager, tasks, repository, _, scheduler, bridge = await _stack(tmp_path)
-    task = await tasks.create(title="Retry exhaustion")
+    task = await tasks.create(
+        workspace_key=WORKSPACE, title="Retry exhaustion"
+    )
     reminder = await bridge.create(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(milliseconds=50),
+        remind_at=datetime.now(UTC) + timedelta(milliseconds=50),
         timezone_name="UTC",
     )
 

@@ -3,10 +3,10 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from api.app import create_app
 from applications.models import ApplicationRequest
@@ -47,7 +47,7 @@ def _wait_for_retry_count(client: TestClient, system, job_id: str, expected: int
 
 
 def test_natural_language_reminder_persists_restarts_and_triggers_once(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     settings = _settings(tmp_path)
     request = {"user_input": "今天下午3点提醒我联系张经理确认蜂蜡检测方案"}
     headers = {"Idempotency-Key": "acceptance-request-001"}
@@ -90,7 +90,7 @@ def test_natural_language_reminder_persists_restarts_and_triggers_once(tmp_path)
 
 
 def test_task_only_does_not_require_reminder_components(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     with TestClient(create_app(make_test_settings(tmp_path), clock=clock)) as client:
         response = client.post("/chat", json={"user_input": "添加任务：联系张经理"})
         assert response.status_code == 200
@@ -99,7 +99,7 @@ def test_task_only_does_not_require_reminder_components(tmp_path):
 
 
 def test_two_reminders_without_idempotency_key_create_distinct_chains(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
     request = {"user_input": "明天下午3点提醒我联系张经理"}
 
@@ -118,7 +118,7 @@ def test_two_reminders_without_idempotency_key_create_distinct_chains(tmp_path):
 
 
 def test_generated_idempotency_key_is_never_empty(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
 
     with TestClient(app) as client:
@@ -134,7 +134,7 @@ def test_generated_idempotency_key_is_never_empty(tmp_path):
 
 
 def test_explicit_idempotency_key_still_reuses_chain(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
     request = {"user_input": "明天下午3点提醒我联系张经理"}
     headers = {"Idempotency-Key": "explicit-retry-key"}
@@ -149,7 +149,7 @@ def test_explicit_idempotency_key_still_reuses_chain(tmp_path):
 
 
 def test_task_with_time_does_not_create_reminder(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
 
     with TestClient(app) as client:
@@ -165,7 +165,7 @@ def test_task_with_time_does_not_create_reminder(tmp_path):
 
 
 def test_reminder_with_time_creates_full_chain(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
 
     with TestClient(app) as client:
@@ -183,7 +183,7 @@ def test_reminder_with_time_creates_full_chain(tmp_path):
 def test_chinese_numeral_reminder_creates_one_idempotent_chain_without_inbox(
     tmp_path,
 ):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
     request = {"user_input": "提醒我明天下午三点开会"}
     headers = {"Idempotency-Key": "acc-014-scenario-k"}
@@ -216,7 +216,7 @@ def test_chinese_numeral_reminder_creates_one_idempotent_chain_without_inbox(
 
 
 def test_unsupported_task_time_does_not_claim_reminder_success(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
 
     with TestClient(app) as client:
@@ -235,7 +235,7 @@ def test_unsupported_task_time_does_not_claim_reminder_success(tmp_path):
 
 
 def test_api_rejects_unsupported_and_past_reminder_times(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         unsupported = client.post(
             "/chat", json={"user_input": "下周提醒我联系张经理"}
@@ -250,7 +250,7 @@ def test_api_rejects_unsupported_and_past_reminder_times(tmp_path):
 
 
 def test_idempotency_key_cannot_be_reused_for_another_reminder(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         headers = {"Idempotency-Key": "same-key"}
         first = client.post(
@@ -269,7 +269,7 @@ def test_idempotency_key_cannot_be_reused_for_another_reminder(tmp_path):
 
 
 def test_cancelled_reminder_does_not_trigger_and_status_is_visible(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
     with TestClient(app) as client:
         created = client.post(
@@ -289,7 +289,7 @@ def test_cancelled_reminder_does_not_trigger_and_status_is_visible(tmp_path):
 
 
 def test_reminder_disabled_fails_without_creating_task(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(make_test_settings(tmp_path), clock=clock)
     with TestClient(app) as client:
         response = client.post(
@@ -303,7 +303,7 @@ def test_reminder_disabled_fails_without_creating_task(tmp_path):
 
 
 def test_trigger_failure_is_visible_and_never_reported_as_triggered(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
     with TestClient(app) as client:
         created = client.post(
@@ -339,7 +339,7 @@ def test_trigger_failure_is_visible_and_never_reported_as_triggered(tmp_path):
 
 
 def test_bridge_failure_is_not_reported_as_scheduled(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     app = create_app(_settings(tmp_path), clock=clock)
     with TestClient(app) as client:
         async def injected_schedule_failure(**_kwargs):
@@ -369,7 +369,7 @@ def test_bridge_failure_is_not_reported_as_scheduled(tmp_path):
 
 @pytest.mark.asyncio
 async def test_concurrent_idempotent_retries_create_one_reminder(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
     system = await create_system(_settings(tmp_path), clock=clock)
     await system.start()
     try:
@@ -388,7 +388,8 @@ async def test_concurrent_idempotent_retries_create_one_reminder(tmp_path):
         assert first.metadata["task_id"] == second.metadata["task_id"]
         assert first.metadata["reminder_id"] == second.metadata["reminder_id"]
         reminders = await system.reminder_service.list_for_task(
-            first.metadata["task_id"]
+            workspace_key=WorkspaceKey(),
+            task_id=first.metadata["task_id"],
         )
         assert len(reminders) == 1
     finally:

@@ -863,7 +863,8 @@ class CEOAssistant:
         if any(kw in user_input for kw in ["查看", "有什么", "列表", "查询", "当前任务", "待办列表"]):
             from core.user_tasks import UserTaskQuery, UserTaskStatus
             tasks = await self._user_tasks.list(
-                UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=100),
+                workspace_key=request.workspace_key,
+                query=UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=100),
                 trace_id=request.workspace_key.trace_id,
             )
             if not tasks:
@@ -880,7 +881,9 @@ class CEOAssistant:
             if task_id_match is None:
                 raise ValueError("完成任务需要明确的 task ID")
             task = await self._user_tasks.complete(
-                task_id_match.group(0), request.workspace_key.trace_id
+                workspace_key=request.workspace_key,
+                task_id=task_id_match.group(0),
+                trace_id=request.workspace_key.trace_id,
             )
             return {"answer": f"[OK] 已完成任务：{task.title}", "status": "ok",
                     "metadata": {"task_id": task.id}}
@@ -888,7 +891,9 @@ class CEOAssistant:
             if task_id_match is None:
                 raise ValueError("取消任务需要明确的 task ID")
             task = await self._user_tasks.cancel(
-                task_id_match.group(0), request.workspace_key.trace_id
+                workspace_key=request.workspace_key,
+                task_id=task_id_match.group(0),
+                trace_id=request.workspace_key.trace_id,
             )
             return {"answer": f"[OK] 已取消任务：{task.title}", "status": "ok",
                     "metadata": {"task_id": task.id}}
@@ -935,16 +940,7 @@ class CEOAssistant:
                 description=user_input,
                 session_id=request.workspace_key.session_id,
                 trace_id=request.workspace_key.trace_id,
-                workspace_scope="|".join((  # noqa: FLY002
-                    request.workspace_key.tenant_id,
-                    request.workspace_key.workspace_id,
-                    request.workspace_key.namespace,
-                )),
-                workspace={
-                    "tenant_id": request.workspace_key.tenant_id or "default",
-                    "workspace_id": request.workspace_key.workspace_id or "default",
-                    "namespace": request.workspace_key.namespace or "default",
-                },
+                workspace_key=request.workspace_key,
                 idempotency_key=idempotency_key,
             )
             metadata = result.model_dump(mode="json")
@@ -960,6 +956,7 @@ class CEOAssistant:
             }
 
         task = await self._user_tasks.create(
+            workspace_key=request.workspace_key,
             title=parsed.title, description=user_input, priority=priority, due_at=parsed.due_at,
             timezone=parsed.timezone, source="ceo_assistant",
             session_id=request.workspace_key.session_id, agent_id="ceo-assistant",
@@ -967,11 +964,6 @@ class CEOAssistant:
             metadata={
                 "intent": "task",
                 "time_unparsed": parsed.time_unparsed,
-                "workspace": {
-                    "tenant_id": request.workspace_key.tenant_id or "default",
-                    "workspace_id": request.workspace_key.workspace_id or "default",
-                    "namespace": request.workspace_key.namespace or "default",
-                },
             },
         )
         due_line = f"\n截止: {task.due_at.isoformat()}" if task.due_at else ""
@@ -1112,7 +1104,8 @@ class CEOAssistant:
         if self._user_tasks is not None:
             from core.user_tasks import UserTaskQuery, UserTaskStatus
             tasks = await self._user_tasks.list(
-                UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=50),
+                workspace_key=request.workspace_key,
+                query=UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=50),
                 trace_id=request.workspace_key.trace_id,
             )
 

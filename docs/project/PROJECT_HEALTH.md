@@ -17,9 +17,11 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 canonica
 | SP-018 post-merge main | `83ecb557fedd1d898712afc59ad13b3e0a684413` / run `30196719409` / SUCCESS |
 | SP-019 planning merge baseline | `e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / run `30205853257` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current product SP | None |
+| Current product SP | SP-019 |
 | Current governance task | None |
-| Next candidate | SP-019 — Daily Review Read Model & Deterministic Follow-up View / planning baseline approved, merged and reconciled / implementation not approved / not started |
+| Next candidate | None — SP-019 is current |
+| SP-019 Phase 0 | UserTask Workspace Query Closure / IMPLEMENTED / PENDING ACCEPTANCE |
+| SP-019 Daily Review | NOT STARTED |
 | Latest completed SP | SP-018 / manual acceptance passed / post-merge verified / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 

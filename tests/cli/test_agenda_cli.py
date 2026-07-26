@@ -10,8 +10,8 @@ from zoneinfo import ZoneInfo
 
 from core.errors import ErrorCategory, FailureInfo
 from core.memory.models import MemoryQuery, MemoryType
-from core.reminders.inbox import normalized_workspace
 from core.system import create_system, make_test_settings
+from core.user_tasks.workspace import canonical_workspace_metadata
 from core.workspace.models import WorkspaceKey
 
 
@@ -98,7 +98,7 @@ def test_query_daily_agenda_uses_canonical_default_workspace(monkeypatch, tmp_pa
     asyncio.run(runtime.query_daily_agenda(view="all"))
 
     assert isinstance(captured["workspace_key"], WorkspaceKey)
-    assert normalized_workspace(captured["workspace_key"]) == {
+    assert canonical_workspace_metadata(captured["workspace_key"]) == {
         "tenant_id": "default",
         "workspace_id": "default",
         "namespace": "default",
@@ -117,7 +117,10 @@ async def _snapshot(path):
     )
     await system.start()
     try:
-        tasks = await system.user_task_service.list(limit=500)
+        tasks = await system.user_task_service.list(
+            workspace_key=WorkspaceKey(),
+            limit=500,
+        )
         reminders = await system.reminder_service.list_page(limit=500, offset=0)
         memories = await system.memory_manager.retrieve_memory(
             MemoryQuery(memory_type=MemoryType.EPISODIC, top_k=1000)
@@ -150,22 +153,17 @@ async def _seed_workspace_agenda(path):
 
         async def task(title, *, due_at=None, workspace="default"):
             return await system.user_task_service.create(
+                workspace_key=WorkspaceKey(workspace_id=workspace),
                 title=title,
                 due_at=due_at,
                 timezone="Asia/Shanghai",
                 source="test",
-                metadata={
-                    "workspace": {
-                        "tenant_id": "default",
-                        "workspace_id": workspace,
-                        "namespace": "default",
-                    }
-                },
             )
 
         async def reminder(title, when, *, workspace="default"):
             created_task = await task(title, due_at=when, workspace=workspace)
             created_reminder = await system.reminder_bridge.create(
+                workspace_key=WorkspaceKey(workspace_id=workspace),
                 user_task_id=created_task.id,
                 remind_at=when,
                 timezone_name="Asia/Shanghai",

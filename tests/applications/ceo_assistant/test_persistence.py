@@ -27,6 +27,7 @@ from core.memory.storage.sqlite_decision import SQLiteDecisionStore
 from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
 from core.work_log import SQLiteWorkLogRepository, WorkLogService
+from core.workspace.models import WorkspaceKey
 from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 
 
@@ -121,7 +122,7 @@ class TestPersistence:
         manager2 = DatabaseManager(db_dir)
         service2 = UserTaskService(SQLiteUserTaskRepository(manager2, task_path), bus=bus2)
         await service2.initialize()
-        tasks = await service2.list()
+        tasks = await service2.list(workspace_key=WorkspaceKey())
         assert len(tasks) >= 1, f"任务持久化失败: {len(tasks)} 条"
 
         await bus2.stop()

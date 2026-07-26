@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta, timezone
+from datetime import UTC, datetime, time, timedelta
 from enum import Enum
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, Field
 
 from core.clock import Clock
+from core.errors import ErrorCategory, FailureException
 from core.reminders.orchestration import build_reminder_status_view
 from core.workspace.models import WorkspaceKey
 
@@ -53,31 +54,6 @@ class ReminderInboxPage(BaseModel):
     count: int = Field(ge=0)
     has_more: bool
     filter: dict[str, Any] = Field(default_factory=dict)
-
-
-def normalized_workspace(key: WorkspaceKey) -> dict[str, str]:
-    return {
-        "tenant_id": key.tenant_id or "default",
-        "workspace_id": key.workspace_id or "default",
-        "namespace": key.namespace or "default",
-    }
-
-
-def task_belongs_to_workspace(task, key: WorkspaceKey) -> bool:
-    expected = normalized_workspace(key)
-    stored = task.metadata.get("workspace")
-    if not isinstance(stored, dict):
-        return expected == {
-            "tenant_id": "default",
-            "workspace_id": "default",
-            "namespace": "default",
-        }
-    actual = {
-        "tenant_id": str(stored.get("tenant_id") or "default"),
-        "workspace_id": str(stored.get("workspace_id") or "default"),
-        "namespace": str(stored.get("namespace") or "default"),
-    }
-    return actual == expected
 
 
 class ReminderInboxService:
@@ -130,9 +106,18 @@ class ReminderInboxService:
                 break
             scan_offset += len(batch)
             for reminder in batch:
-                task = await self._user_tasks.get(reminder.user_task_id, trace_id)
-                if not task_belongs_to_workspace(task, workspace_key):
-                    continue
+                try:
+                    task = await self._user_tasks.get(
+                        workspace_key=workspace_key,
+                        task_id=reminder.user_task_id,
+                        trace_id=trace_id,
+                    )
+                except FailureException as exc:
+                    if (
+                        exc.failure.category == ErrorCategory.NOT_FOUND
+                    ):
+                        continue
+                    raise
                 job = (
                     await self._scheduler.get_job(reminder.scheduler_job_id)
                     if reminder.scheduler_job_id else None
@@ -187,12 +172,12 @@ class ReminderInboxService:
         self, time_scope: ReminderInboxTimeScope | None
     ) -> tuple[datetime | None, datetime | None]:
         if time_scope == ReminderInboxTimeScope.UPCOMING:
-            return self._clock.now().astimezone(timezone.utc), None
+            return self._clock.now().astimezone(UTC), None
         if time_scope == ReminderInboxTimeScope.TODAY:
             local_now = self._clock.now().astimezone(self._zone)
             local_start = datetime.combine(local_now.date(), time.min, tzinfo=self._zone)
             return (
-                local_start.astimezone(timezone.utc),
-                (local_start + timedelta(days=1)).astimezone(timezone.utc),
+                local_start.astimezone(UTC),
+                (local_start + timedelta(days=1)).astimezone(UTC),
             )
         return None, None

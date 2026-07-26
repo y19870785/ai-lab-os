@@ -15,6 +15,12 @@ from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.reminders.models import Reminder, ReminderOccurrenceStatus, ReminderStatus
 from core.scheduler.models import JobStatus
 from core.user_tasks import UserTaskPriority
+from core.user_tasks.workspace import (
+    canonical_workspace_metadata,
+    normalize_workspace_key,
+    workspace_identity,
+)
+from core.workspace.models import WorkspaceKey
 
 
 class ReminderScheduleResult(BaseModel):
@@ -114,13 +120,14 @@ class NaturalLanguageReminderOrchestrator:
         description: str,
         session_id: str,
         trace_id: str,
-        workspace_scope: str,
+        workspace_key: WorkspaceKey,
         idempotency_key: str,
-        workspace: dict[str, str] | None = None,
     ) -> ReminderScheduleResult:
+        normalized_workspace = normalize_workspace_key(workspace_key)
+        workspace_scope = "|".join(workspace_identity(normalized_workspace))
         key_hash = hashlib.sha256(idempotency_key.encode("utf-8")).hexdigest()
         task_id = "ut_nlr_" + hashlib.sha256(
-            f"{workspace_scope}|{key_hash}".encode("utf-8")
+            f"{workspace_scope}|{key_hash}".encode()
         ).hexdigest()[:24]
         lock = self._idempotency_locks.setdefault(task_id, asyncio.Lock())
         async with lock:
@@ -133,11 +140,7 @@ class NaturalLanguageReminderOrchestrator:
                 session_id=session_id,
                 trace_id=trace_id,
                 workspace_scope=workspace_scope,
-                workspace=workspace or {
-                    "tenant_id": "default",
-                    "workspace_id": "default",
-                    "namespace": "default",
-                },
+                workspace_key=normalized_workspace,
                 idempotency_key=idempotency_key,
             )
 
@@ -152,25 +155,25 @@ class NaturalLanguageReminderOrchestrator:
         session_id: str,
         trace_id: str,
         workspace_scope: str,
-        workspace: dict[str, str],
+        workspace_key: WorkspaceKey,
         idempotency_key: str,
     ) -> ReminderScheduleResult:
         key_hash = hashlib.sha256(idempotency_key.encode("utf-8")).hexdigest()
         intent_hash = hashlib.sha256(
-            f"{workspace_scope}|{title}|{due_at.isoformat()}|{timezone_name}".encode("utf-8")
+            f"{workspace_scope}|{title}|{due_at.isoformat()}|{timezone_name}".encode()
         ).hexdigest()
         task_id = "ut_nlr_" + hashlib.sha256(
-            f"{workspace_scope}|{key_hash}".encode("utf-8")
+            f"{workspace_scope}|{key_hash}".encode()
         ).hexdigest()[:24]
         metadata = {
             "intent": "reminder",
             "idempotency_hash": key_hash,
             "intent_hash": intent_hash,
             "scheduling_status": "pending",
-            "workspace": workspace,
         }
         try:
             task = await self._user_tasks.create(
+                workspace_key=workspace_key,
                 task_id=task_id,
                 title=title,
                 description=description,
@@ -186,7 +189,11 @@ class NaturalLanguageReminderOrchestrator:
         except FailureException as exc:
             if exc.failure.category != ErrorCategory.CONFLICT:
                 raise
-            task = await self._user_tasks.get(task_id, trace_id)
+            task = await self._user_tasks.get(
+                workspace_key=workspace_key,
+                task_id=task_id,
+                trace_id=trace_id,
+            )
             if task.metadata.get("intent_hash") != intent_hash:
                 raise FailureException(FailureInfo(
                     code="reminder.idempotency_conflict",
@@ -198,19 +205,33 @@ class NaturalLanguageReminderOrchestrator:
                     trace_id=trace_id,
                 )) from exc
 
-        reminders = await self._reminders.list_for_task(task.id, trace_id)
+        reminders = await self._reminders.list_for_task(
+            workspace_key=workspace_key,
+            task_id=task.id,
+            trace_id=trace_id,
+        )
         reminder = self._matching_reminder(reminders, intent_hash)
         if reminder is None:
             try:
                 reminder = await self._bridge.create(
+                    workspace_key=workspace_key,
                     user_task_id=task.id,
                     remind_at=due_at,
                     timezone_name=timezone_name,
                     trace_id=trace_id,
-                    metadata={"intent_hash": intent_hash, "idempotency_hash": key_hash},
+                    metadata={
+                        "intent_hash": intent_hash,
+                        "idempotency_hash": key_hash,
+                        "workspace": canonical_workspace_metadata(workspace_key),
+                    },
                 )
             except FailureException as exc:
-                await self._record_failure(task, exc.failure, trace_id)
+                await self._record_failure(
+                    workspace_key,
+                    task,
+                    exc.failure,
+                    trace_id,
+                )
                 raise FailureException(FailureInfo(
                     code="reminder.scheduling_failed",
                     category=exc.failure.category,
@@ -247,7 +268,12 @@ class NaturalLanguageReminderOrchestrator:
                 trace_id=trace_id,
                 details={"reminder_id": reminder.id},
             ))
-        task = await self._record_scheduled(task, reminder, trace_id)
+        task = await self._record_scheduled(
+            workspace_key,
+            task,
+            reminder,
+            trace_id,
+        )
         return ReminderScheduleResult(
             task_id=task.id,
             reminder_id=reminder.id,
@@ -258,9 +284,19 @@ class NaturalLanguageReminderOrchestrator:
             timezone=reminder.timezone,
         )
 
-    async def status(self, reminder_id: str, trace_id: str = "") -> ReminderStatusView:
+    async def status(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        reminder_id: str,
+        trace_id: str = "",
+    ) -> ReminderStatusView:
         reminder = await self._reminders.get(reminder_id, trace_id)
-        task = await self._user_tasks.get(reminder.user_task_id, trace_id)
+        task = await self._user_tasks.get(
+            workspace_key=workspace_key,
+            task_id=reminder.user_task_id,
+            trace_id=trace_id,
+        )
         job = (
             await self._scheduler.get_job(reminder.scheduler_job_id)
             if reminder.scheduler_job_id else None
@@ -276,7 +312,13 @@ class NaturalLanguageReminderOrchestrator:
             None,
         )
 
-    async def _record_scheduled(self, task, reminder: Reminder, trace_id: str):
+    async def _record_scheduled(
+        self,
+        workspace_key: WorkspaceKey,
+        task,
+        reminder: Reminder,
+        trace_id: str,
+    ):
         metadata = dict(task.metadata)
         metadata.update({
             "scheduling_status": "scheduled",
@@ -284,10 +326,20 @@ class NaturalLanguageReminderOrchestrator:
             "scheduler_job_id": reminder.scheduler_job_id,
         })
         return await self._user_tasks.update(
-            task.id, metadata=metadata, expected_revision=task.revision, trace_id=trace_id
+            workspace_key=workspace_key,
+            task_id=task.id,
+            metadata=metadata,
+            expected_revision=task.revision,
+            trace_id=trace_id,
         )
 
-    async def _record_failure(self, task, failure: FailureInfo, trace_id: str) -> None:
+    async def _record_failure(
+        self,
+        workspace_key: WorkspaceKey,
+        task,
+        failure: FailureInfo,
+        trace_id: str,
+    ) -> None:
         metadata: dict[str, Any] = dict(task.metadata)
         metadata.update({
             "scheduling_status": "failed",
@@ -295,5 +347,9 @@ class NaturalLanguageReminderOrchestrator:
             "reminder_id": failure.details.get("reminder_id"),
         })
         await self._user_tasks.update(
-            task.id, metadata=metadata, expected_revision=task.revision, trace_id=trace_id
+            workspace_key=workspace_key,
+            task_id=task.id,
+            metadata=metadata,
+            expected_revision=task.revision,
+            trace_id=trace_id,
         )

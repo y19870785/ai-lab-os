@@ -12,11 +12,11 @@
   "source_baseline": "independently verified main before the final publication commit",
   "latest_merged_sp": "SP-018",
   "latest_completed_sp": "SP-018",
-  "current_sp": null,
+  "current_sp": "SP-019",
   "current_governance_task": null,
-  "next_candidate_sp": "SP-019",
-  "next_candidate_name": "Daily Review Read Model & Deterministic Follow-up View",
-  "development_status": "sp_019_planning_baseline_approved_merged_reconciled_implementation_not_approved_not_started",
+  "next_candidate_sp": null,
+  "next_candidate_name": null,
+  "development_status": "sp_019_implementation_approved_phase_0_implemented_pending_acceptance_daily_review_not_started",
   "current_work": null,
   "updated_at": "2026-07-26",
   "governance_sources": {
@@ -323,13 +323,16 @@
     },
     "SP-019": {
       "name": "Daily Review Read Model & Deterministic Follow-up View",
-      "status": "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "status": "IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / PENDING_ACCEPTANCE / DAILY_REVIEW_NOT_STARTED",
       "planning_baseline_defined": true,
       "planning_baseline_approved": true,
-      "approved": false,
-      "implementation_started": false,
+      "approved": true,
+      "implementation_started": true,
       "implementation_complete": false,
       "completed": false,
+      "implementation_base": "1fe8a26b01f3bb636d486435d54adece35ea7aea",
+      "phase_0_status": "IMPLEMENTED / PENDING_ACCEPTANCE",
+      "daily_review_status": "NOT_STARTED",
       "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
       "branch": "docs/sp-019-planning-baseline",
       "planning_pr": 48,
@@ -342,7 +345,7 @@
       "rfc": "RFC-028",
       "adrs": ["ADR-061", "ADR-062"],
       "acceptance": "ACC-019 PLANNING_BASELINE / NOT_EXECUTED",
-      "user_task_workspace_prerequisite": "REQUIRED / IN_SCOPE AS PHASE 0 / NOT_STARTED",
+      "user_task_workspace_prerequisite": "IMPLEMENTED / PENDING_ACCEPTANCE",
       "scope": "On-demand non-persistent Daily Review read model and deterministic follow-up view"
     }
   },
@@ -470,13 +473,13 @@
       },
       "notes": [
         "This record defines acceptance scope only; no ACC-019 scenario has been executed.",
-        "UserTask Workspace Query Closure is a required SP-019 Phase 0 and implementation is not approved.",
-        "Planning baseline approval does not authorize implementation."
+        "UserTask Workspace Query Closure is SP-019 Phase 0 and is implemented on the Draft branch pending independent review and acceptance.",
+        "Phase 0 implementation does not execute ACC-019 or start Daily Review implementation."
       ]
     }
   },
   "module_status": {
-    "UserTask": "Integrated / Verified",
+    "UserTask": "Integrated / Workspace query closure implemented / Pending acceptance",
     "Reminder_Core": "Integrated / Verified / Disabled by default",
     "Reminder_Management": "Integrated / Verified",
     "Intent_Safety": "Integrated / Verified",

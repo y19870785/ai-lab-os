@@ -58,4 +58,4 @@ SP-019 Planning PR #48 已由 Approved Planning Head `282dd939ff264b0f23d5070b6f
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Current Product SP 为 None，Current Governance Task 为 None，Latest Completed SP 为 SP-018。SP-018 已合并、验收、完成 post-merge verification 与对账并封存；ACC-018 A～O 均为 PASSED / FINAL。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，UserTask Workspace Query Closure 仍是内部 Phase 0；Implementation NOT APPROVED、Coding NOT STARTED，ACC-019 PLANNING_BASELINE / NOT_EXECUTED。当前产品版本仍为 `0.34.0`。
+Current Product SP 为 SP-019，Current Governance Task 为 None，Latest Completed SP 为 SP-018。SP-018 已合并、验收、完成 post-merge verification 与对账并封存；ACC-018 A～O 均为 PASSED / FINAL。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Owner 已批准 Implementation；Phase 0 UserTask Workspace Query Closure 已在 Draft 分支实现并处于 PENDING ACCEPTANCE。Daily Review Implementation 仍为 NOT STARTED，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED。当前产品版本仍为 `0.34.0`。

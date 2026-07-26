@@ -1,15 +1,18 @@
 """UserTask application service and lifecycle policy."""
 
+# ruff: noqa: BLE001
+
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, time, timezone
+from datetime import UTC, datetime, time
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
 from core.bus.event import Event
+from core.clock import Clock, SystemClock
 from core.errors import ErrorCategory, FailureException, failure_from_exception
 from core.memory.models import MemoryQuery, MemoryType
 from core.user_tasks.exceptions import (
@@ -23,10 +26,14 @@ from core.user_tasks.models import (
     UserTaskPriority,
     UserTaskQuery,
     UserTaskStatus,
-    utc_now,
 )
-from core.user_tasks.repository import SQLiteUserTaskRepository
-
+from core.user_tasks.protocol import UserTaskRepository
+from core.user_tasks.workspace import (
+    canonical_workspace_metadata,
+    normalize_workspace_key,
+    workspace_key_from_evidence,
+)
+from core.workspace.models import WorkspaceKey
 
 _UNSET = object()
 _LEGACY_PAGE_SIZE = 500
@@ -85,18 +92,24 @@ def _legacy_datetime(value: Any, timezone_name: str, *, date_end: bool = False) 
         if date_end and len(text) == 10:
             parsed = datetime.combine(datetime.fromisoformat(text).date(), time(23, 59, 59))
         else:
-            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(text)
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         parsed = parsed.replace(tzinfo=zone)
-    return parsed.astimezone(timezone.utc)
+    return parsed.astimezone(UTC)
 
 
 class UserTaskService:
     COMPONENT = "user_tasks"
 
-    def __init__(self, repository: SQLiteUserTaskRepository, bus=None) -> None:
+    def __init__(
+        self,
+        repository: UserTaskRepository,
+        bus=None,
+        clock: Clock | None = None,
+    ) -> None:
         self._repository = repository
         self._bus = bus
+        self._clock = clock or SystemClock()
         self._degraded = False
         self._lifecycle_degraded = False
         self._lifecycle_coordinator = None
@@ -149,7 +162,38 @@ class UserTaskService:
         ).model_copy(update={"message": f"UserTask {operation} failed"})
         raise FailureException(failure) from exc
 
-    async def create(self, *, title: str, description: str = "",
+    def _now(self) -> datetime:
+        value = self._clock.now()
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("clock now() must include timezone information")
+        return value.astimezone(UTC)
+
+    def current_instant(self) -> datetime:
+        """Return the service clock's current aware UTC instant."""
+
+        return self._now()
+
+    def is_overdue(
+        self,
+        task: UserTask,
+        *,
+        as_of: datetime | None = None,
+    ) -> bool:
+        """Evaluate overdue state against an explicit or service-owned instant."""
+
+        resolved_as_of = self._as_of(as_of) or self.current_instant()
+        return task.is_overdue(now=resolved_as_of)
+
+    @staticmethod
+    def _as_of(value: datetime | None) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("as_of must include timezone information")
+        return value.astimezone(UTC)
+
+    async def create(self, *, workspace_key: WorkspaceKey,
+                     title: str, description: str = "",
                      priority: UserTaskPriority = UserTaskPriority.MEDIUM,
                      due_at: datetime | None = None, timezone: str = "UTC",
                      status: UserTaskStatus = UserTaskStatus.ACTIVE,
@@ -160,13 +204,19 @@ class UserTaskService:
                      trace_id: str = "", metadata: dict[str, Any] | None = None,
                      task_id: str | None = None, legacy_source_id: str | None = None) -> UserTask:
         try:
+            normalized_workspace = normalize_workspace_key(workspace_key)
+            task_metadata = dict(metadata or {})
+            task_metadata["workspace"] = canonical_workspace_metadata(
+                normalized_workspace
+            )
+            created = created_at or self._now()
             task = UserTask(
                 **({"id": task_id} if task_id else {}), title=title, description=description,
                 priority=priority, due_at=due_at, timezone=timezone, status=status,
-                **({"created_at": created_at, "updated_at": created_at} if created_at else {}),
+                created_at=created, updated_at=created,
                 completed_at=completed_at, cancelled_at=cancelled_at, source=source,
                 session_id=session_id, agent_id=agent_id, trace_id=trace_id,
-                metadata=metadata or {}, legacy_source_id=legacy_source_id,
+                metadata=task_metadata, legacy_source_id=legacy_source_id,
             )
             result = await self._repository.create(task)
             await self._publish("user_task.created", result.id, trace_id)
@@ -177,27 +227,55 @@ class UserTaskService:
             )
             self._raise(exc, "create", trace_id)
 
-    async def get(self, task_id: str, trace_id: str = "") -> UserTask:
+    async def get(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        task_id: str,
+        trace_id: str = "",
+    ) -> UserTask:
         try:
-            return await self._repository.get(task_id)
+            return await self._repository.get(
+                normalize_workspace_key(workspace_key),
+                task_id,
+            )
         except Exception as exc:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
             self._raise(exc, "get", trace_id)
 
     async def list(
         self,
+        *,
+        workspace_key: WorkspaceKey,
         query: UserTaskQuery | None = None,
         trace_id: str = "",
-        *,
         status: UserTaskStatus | None = None,
         priority: UserTaskPriority | None = None,
         due_from: datetime | None = None,
         due_to: datetime | None = None,
+        completed_from: datetime | None = None,
+        completed_to: datetime | None = None,
+        cancelled_from: datetime | None = None,
+        cancelled_to: datetime | None = None,
         overdue: bool | None = None,
         limit: int | None = None,
+        offset: int | None = None,
+        as_of: datetime | None = None,
     ) -> list[UserTask]:
         try:
-            raw_filters = (status, priority, due_from, due_to, overdue, limit)
+            raw_filters = (
+                status,
+                priority,
+                due_from,
+                due_to,
+                completed_from,
+                completed_to,
+                cancelled_from,
+                cancelled_to,
+                overdue,
+                limit,
+                offset,
+            )
             if query is not None and any(value is not None for value in raw_filters):
                 raise ValueError("query model and raw filters are mutually exclusive")
             spec = query or UserTaskQuery(
@@ -205,52 +283,103 @@ class UserTaskService:
                 priority=priority,
                 due_from=due_from,
                 due_to=due_to,
+                completed_from=completed_from,
+                completed_to=completed_to,
+                cancelled_from=cancelled_from,
+                cancelled_to=cancelled_to,
                 overdue=overdue,
                 limit=100 if limit is None else limit,
+                offset=0 if offset is None else offset,
             )
-            return await self._repository.list(spec)
+            resolved_as_of = self._as_of(as_of)
+            if spec.overdue is not None and resolved_as_of is None:
+                resolved_as_of = self._now()
+            return await self._repository.list(
+                normalize_workspace_key(workspace_key),
+                spec,
+                as_of=resolved_as_of,
+            )
         except Exception as exc:
             await self._publish("user_task.failed", "query", trace_id, "failed")
             self._raise(exc, "list", trace_id)
 
-    async def update(self, task_id: str, *, title: str | None = None,
+    async def update(self, *, workspace_key: WorkspaceKey,
+                     task_id: str, title: str | None = None,
                      description: str | None = None, priority: UserTaskPriority | None = None,
                      due_at: datetime | None | object = _UNSET, timezone: str | None = None,
                      metadata: dict[str, Any] | None = None, expected_revision: int | None = None,
                      trace_id: str = "") -> UserTask:
-        current = await self.get(task_id, trace_id)
+        normalized_workspace = normalize_workspace_key(workspace_key)
+        current = await self.get(
+            workspace_key=normalized_workspace,
+            task_id=task_id,
+            trace_id=trace_id,
+        )
         if current.status != UserTaskStatus.ACTIVE:
             self._raise(UserTaskConflictError("terminal task cannot be edited"), "update", trace_id)
-        changes: dict[str, Any] = {"updated_at": utc_now(), "trace_id": trace_id or current.trace_id}
-        for key, value in (("title", title), ("description", description), ("priority", priority),
-                           ("timezone", timezone), ("metadata", metadata)):
+        changes: dict[str, Any] = {
+            "updated_at": self._now(),
+            "trace_id": trace_id or current.trace_id,
+        }
+        for key, value in (
+            ("title", title),
+            ("description", description),
+            ("priority", priority),
+            ("timezone", timezone),
+        ):
             if value is not None:
                 changes[key] = value
+        if metadata is not None:
+            task_metadata = dict(metadata)
+            task_metadata["workspace"] = canonical_workspace_metadata(
+                normalized_workspace
+            )
+            changes["metadata"] = task_metadata
         if due_at is not _UNSET:
             changes["due_at"] = due_at
         try:
             candidate = UserTask.model_validate({**current.model_dump(), **changes})
             revision = current.revision if expected_revision is None else expected_revision
-            result = await self._repository.update(candidate, revision)
+            result = await self._repository.update(
+                normalized_workspace,
+                candidate,
+                revision,
+            )
             await self._publish("user_task.updated", result.id, trace_id)
             return result
         except Exception as exc:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
             self._raise(exc, "update", trace_id)
 
-    async def _transition(self, task_id: str, target: UserTaskStatus, trace_id: str) -> UserTask:
-        current = await self.get(task_id, trace_id)
+    async def _transition(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        task_id: str,
+        target: UserTaskStatus,
+        trace_id: str,
+    ) -> UserTask:
+        normalized_workspace = normalize_workspace_key(workspace_key)
+        current = await self.get(
+            workspace_key=normalized_workspace,
+            task_id=task_id,
+            trace_id=trace_id,
+        )
         if current.status == target:
             await self._coordinate_terminal(current, trace_id)
             return current
         if current.status != UserTaskStatus.ACTIVE:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
             self._raise(UserTaskConflictError("invalid terminal state transition"), target.value, trace_id)
-        now = utc_now()
+        now = self._now()
         changes = {"status": target, "updated_at": now, "trace_id": trace_id or current.trace_id}
         changes["completed_at" if target == UserTaskStatus.COMPLETED else "cancelled_at"] = now
         try:
-            result = await self._repository.update(current.model_copy(update=changes), current.revision)
+            result = await self._repository.update(
+                normalized_workspace,
+                current.model_copy(update=changes),
+                current.revision,
+            )
             await self._publish(f"user_task.{target.value}", result.id, trace_id)
         except Exception as exc:
             await self._publish("user_task.failed", task_id, trace_id, "failed")
@@ -258,22 +387,59 @@ class UserTaskService:
         await self._coordinate_terminal(result, trace_id)
         return result
 
-    async def complete(self, task_id: str, trace_id: str = "") -> UserTask:
-        return await self._transition(task_id, UserTaskStatus.COMPLETED, trace_id)
+    async def complete(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        task_id: str,
+        trace_id: str = "",
+    ) -> UserTask:
+        return await self._transition(
+            workspace_key=workspace_key,
+            task_id=task_id,
+            target=UserTaskStatus.COMPLETED,
+            trace_id=trace_id,
+        )
 
-    async def cancel(self, task_id: str, trace_id: str = "") -> UserTask:
-        return await self._transition(task_id, UserTaskStatus.CANCELLED, trace_id)
+    async def cancel(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        task_id: str,
+        trace_id: str = "",
+    ) -> UserTask:
+        return await self._transition(
+            workspace_key=workspace_key,
+            task_id=task_id,
+            target=UserTaskStatus.CANCELLED,
+            trace_id=trace_id,
+        )
 
-    async def reopen(self, task_id: str, trace_id: str = "") -> UserTask:
-        current = await self.get(task_id, trace_id)
+    async def reopen(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        task_id: str,
+        trace_id: str = "",
+    ) -> UserTask:
+        normalized_workspace = normalize_workspace_key(workspace_key)
+        current = await self.get(
+            workspace_key=normalized_workspace,
+            task_id=task_id,
+            trace_id=trace_id,
+        )
         if current.status == UserTaskStatus.ACTIVE:
             return current
         candidate = current.model_copy(update={
-            "status": UserTaskStatus.ACTIVE, "updated_at": utc_now(),
+            "status": UserTaskStatus.ACTIVE, "updated_at": self._now(),
             "completed_at": None, "cancelled_at": None,
         })
         try:
-            result = await self._repository.update(candidate, current.revision)
+            result = await self._repository.update(
+                normalized_workspace,
+                candidate,
+                current.revision,
+            )
             await self._publish("user_task.reopened", result.id, trace_id)
             return result
         except Exception as exc:
@@ -311,7 +477,7 @@ class UserTaskService:
                 try:
                     content = getattr(item, "content", None)
                     if not isinstance(content, dict):
-                        raise ValueError("legacy task content must be an object")
+                        raise TypeError("legacy task content must be an object")
                     if content.get("type") != "task":
                         result.skipped += 1
                         continue
@@ -334,7 +500,7 @@ class UserTaskService:
                     )
                     created_at = _legacy_datetime(
                         getattr(item, "timestamp", None), timezone_name
-                    ) or utc_now()
+                    ) or self._now()
                     completed_at = _legacy_datetime(
                         content.get("completed_at") or item_metadata.get("completed_at"),
                         timezone_name,
@@ -344,7 +510,15 @@ class UserTaskService:
                         timezone_name,
                     )
                     task_id = "ut_legacy_" + hashlib.sha256(legacy_id.encode()).hexdigest()[:24]
+                    workspace_evidence = content.get("workspace")
+                    if not isinstance(workspace_evidence, dict):
+                        workspace_evidence = item_metadata.get("workspace")
+                    workspace_key = workspace_key_from_evidence(
+                        workspace_evidence,
+                        trace_id=trace_id,
+                    )
                     await self.create(
+                        workspace_key=workspace_key,
                         task_id=task_id,
                         title=title,
                         description=str(content.get("raw_text", "")),

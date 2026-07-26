@@ -195,27 +195,66 @@ class DailyAgendaService:
 
     async def _user_task_actions(self, wk, tid, ws, we, require_due):
         from core.user_tasks import UserTaskQuery, UserTaskStatus
-        tasks = await self._user_tasks.list(UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=200), trace_id=tid)
-        out = []
-        for t in tasks:
-            if not self._belongs(t, wk):
-                continue
-            if t.due_at and ws <= t.due_at < we:
-                out.append(_ui(t, AgendaItemKind.ACTION))
-        return out
+
+        tasks = await self._user_task_pages(
+            wk,
+            tid,
+            UserTaskQuery(
+                status=UserTaskStatus.ACTIVE,
+                due_from=ws,
+                due_to=we,
+            ),
+        )
+        return [
+            _ui(task, AgendaItemKind.ACTION)
+            for task in tasks
+            if task.due_at is not None and ws <= task.due_at < we
+        ]
 
     async def _overdue_tasks(self, wk, tid, now_utc):
-        from core.user_tasks import UserTaskQuery, UserTaskStatus
-        tasks = await self._user_tasks.list(UserTaskQuery(status=UserTaskStatus.ACTIVE, limit=200), trace_id=tid)
-        return [_ui(t, AgendaItemKind.ATTENTION, status_override="overdue") for t in tasks if t.due_at and t.due_at < now_utc and self._belongs(t, wk)]
+        from core.user_tasks import UserTaskQuery
+
+        tasks = await self._user_task_pages(
+            wk,
+            tid,
+            UserTaskQuery(overdue=True),
+            as_of=now_utc,
+        )
+        return [
+            _ui(task, AgendaItemKind.ATTENTION, status_override="overdue")
+            for task in tasks
+        ]
 
     async def _user_task_all(self, wk, tid):
         out = []
         for status_str, kind in [("active", AgendaItemKind.ACTION), ("completed", AgendaItemKind.COMPLETED), ("cancelled", AgendaItemKind.COMPLETED)]:
             from core.user_tasks import UserTaskQuery, UserTaskStatus
-            tasks = await self._user_tasks.list(UserTaskQuery(status=UserTaskStatus(status_str), limit=200), trace_id=tid)
-            out += [_ui(t, kind) for t in tasks if self._belongs(t, wk)]
+            tasks = await self._user_task_pages(
+                wk,
+                tid,
+                UserTaskQuery(status=UserTaskStatus(status_str)),
+            )
+            out += [_ui(task, kind) for task in tasks]
         return out
+
+    async def _user_task_pages(self, wk, tid, query, *, as_of=None):
+        tasks = []
+        offset = 0
+        while True:
+            page_query = query.model_copy(
+                update={"limit": 500, "offset": offset}
+            )
+            page = await self._user_tasks.list(
+                workspace_key=wk,
+                query=page_query,
+                as_of=as_of,
+                trace_id=tid,
+            )
+            tasks.extend(page)
+            if len(page) < page_query.limit:
+                break
+            offset += len(page)
+        return tasks
 
     async def _wl(self, wk, tid, ts, te, *, status=None):
         from core.work_log import WorkLogQuery, WorkLogStatus
@@ -270,11 +309,6 @@ class DailyAgendaService:
         if view == AgendaView.NEXT:
             return now_utc, now_utc + timedelta(hours=wh)
         return ts - timedelta(days=365), te + timedelta(days=365)
-
-    @staticmethod
-    def _belongs(task, wk) -> bool:
-        ws = task.metadata.get("workspace") if isinstance(task.metadata, dict) else {}
-        return ws.get("workspace_id", "default") == ((wk.workspace_id or "default") if hasattr(wk, "workspace_id") else "default")
 
     @staticmethod
     def _sort_key(item: AgendaItem):

@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -20,8 +20,7 @@ from core.inbox.exceptions import (
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
-
-NOW = datetime(2026, 7, 19, 4, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 19, 4, 0, tzinfo=UTC)
 
 
 class FakeUserTasks:
@@ -45,7 +44,7 @@ class FakeUserTasks:
         self.tasks[task_id] = task
         return task
 
-    async def get(self, task_id, _trace_id=""):
+    async def get(self, *, workspace_key, task_id, trace_id=""):
         return self.tasks[task_id]
 
 
