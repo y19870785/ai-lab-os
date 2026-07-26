@@ -1,5 +1,7 @@
 # AI-Lab OS
 
+> SP-018 Draft：Work Log 查询先完成完整 Workspace SQL scope，再解码或投影；API、CLI、CEO Assistant 共享稳定 FailureInfo，Agenda 与 DST 边界保持 fail-closed 合同。ACC-018 尚未执行。
+
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
 **当前版本：v0.34.0 Alpha / Release Authorized**
