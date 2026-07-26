@@ -1,6 +1,6 @@
 """CEO Assistant Work Log create/query boundary tests."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -19,7 +19,7 @@ from core.workspace.models import WorkspaceKey
 from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from tests.helpers.clock import MutableClock
 
-NOW = datetime(2026, 7, 23, 8, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 23, 8, 0, tzinfo=UTC)
 
 
 def test_work_log_intent_effects_are_narrow():
@@ -227,13 +227,13 @@ async def test_repository_failures_preserve_machine_fields(
     ("now", "expected_hours", "expected_start", "expected_end"),
     [
         (
-            datetime(2026, 3, 8, 12, 0, tzinfo=timezone.utc),
+            datetime(2026, 3, 8, 12, 0, tzinfo=UTC),
             23,
             "2026-03-08T05:00:00+00:00",
             "2026-03-09T04:00:00+00:00",
         ),
         (
-            datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc),
+            datetime(2026, 11, 1, 12, 0, tzinfo=UTC),
             25,
             "2026-11-01T04:00:00+00:00",
             "2026-11-02T05:00:00+00:00",

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import hashlib
-from datetime import datetime, timedelta, timezone
+import json
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -26,7 +26,7 @@ from core.work_log.errors import (
 )
 from core.workspace.models import WorkspaceKey
 
-NOW = datetime(2026, 7, 23, 8, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 23, 8, 0, tzinfo=UTC)
 
 
 async def _repository(tmp_path):
@@ -210,7 +210,7 @@ async def test_get_scopes_inbox_alias_before_projection(tmp_path, monkeypatch):
     alias = (
         "inbox_wl_"
         + hashlib.sha256(
-            f"inbox_wl|{inbox_item_id}".encode("utf-8")
+            f"inbox_wl|{inbox_item_id}".encode()
         ).hexdigest()[:24]
     )
     record = _record("wl_" + "5" * 32, alpha).model_copy(

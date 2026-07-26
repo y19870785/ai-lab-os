@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Self
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -11,7 +11,6 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from core.workspace.models import WorkspaceKey
-
 
 CANONICAL_ID_PATTERN = re.compile(r"^wl_[0-9a-f]{32}$")
 LEGACY_ID_PATTERN = re.compile(r"^wl_legacy_[0-9a-f]{64}$")
@@ -127,7 +126,7 @@ def normalize_tags(values: list[str] | tuple[str, ...]) -> tuple[str, ...]:
 def _aware_utc(value: datetime) -> datetime:
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("datetime must be timezone-aware")
-    return value.astimezone(timezone.utc)
+    return value.astimezone(UTC)
 
 
 def _iana_timezone(value: str) -> str:

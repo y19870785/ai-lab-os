@@ -1,13 +1,15 @@
 ﻿"""API Models。"""
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Any
 
-from core.user_tasks import UserTaskPriority, UserTaskStatus
-from core.reminders import ReminderOccurrenceStatus, ReminderStatus
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from core.inbox import InboxResolvedType, InboxStatus, InboxSuggestedType
+from core.reminders import ReminderOccurrenceStatus, ReminderStatus
+from core.user_tasks import UserTaskPriority, UserTaskStatus
 from core.waiting_for import WaitingForEventType, WaitingForStatus, WaitingForView
 from core.work_log import WorkLogStatus
+
 
 class ChatRequest(BaseModel):
     user_input: str = ""

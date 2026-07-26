@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, time, timedelta, timezone
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -37,22 +37,22 @@ def parse_work_log_query(
     if "今天" in text:
         local = now.astimezone(zone).date()
         date_from = datetime.combine(local, time.min, tzinfo=zone).astimezone(
-            timezone.utc
+            UTC
         )
         date_to = datetime.combine(
             local + timedelta(days=1), time.min, tzinfo=zone
-        ).astimezone(timezone.utc)
+        ).astimezone(UTC)
     else:
         date_range = _RANGE.search(text)
         if date_range:
             start = datetime.fromisoformat(date_range.group(1)).date()
             end = datetime.fromisoformat(date_range.group(2)).date()
             date_from = datetime.combine(start, time.min, tzinfo=zone).astimezone(
-                timezone.utc
+                UTC
             )
             date_to = datetime.combine(
                 end + timedelta(days=1), time.min, tzinfo=zone
-            ).astimezone(timezone.utc)
+            ).astimezone(UTC)
 
     target = None
     target_match = re.search(r"查看(.{1,80}?)相关的工作记录", text)

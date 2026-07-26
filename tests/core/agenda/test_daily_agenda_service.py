@@ -1,8 +1,10 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, timezone
+
 from core.agenda.service import DailyAgendaService
-from tests.helpers.clock import MutableClock
 from core.errors import ErrorCategory, FailureException
+from tests.helpers.clock import MutableClock
 
 
 class FakeUserTaskService:
@@ -105,7 +107,7 @@ def _fake_wl(
             trace_id="",
         ),
         occurred_at=datetime.fromisoformat(date_str).replace(
-            tzinfo=timezone.utc
+            tzinfo=UTC
         ),
         timezone="Asia/Shanghai",
         subject=subject,
@@ -113,7 +115,7 @@ def _fake_wl(
         status=status,
         source="legacy",
         created_at=datetime.fromisoformat(date_str).replace(
-            tzinfo=timezone.utc
+            tzinfo=UTC
         ),
         schema_version=0 if item_id.startswith("wl_legacy_") else 1,
     )
@@ -137,7 +139,7 @@ def _fake_waiting_for(clock, subject, **changes):
 
 @pytest.fixture
 def clock():
-    return MutableClock(datetime(2026, 7, 17, 10, 0, tzinfo=timezone.utc))
+    return MutableClock(datetime(2026, 7, 17, 10, 0, tzinfo=UTC))
 
 
 @pytest.fixture
@@ -158,7 +160,7 @@ class FakeWorkspace:
 
 @pytest.mark.asyncio
 async def test_today_active_task_with_due_at_in_window(svc, clock):
-    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Review", "active", due_at=datetime(2026, 7, 17, 14, 0, tzinfo=timezone.utc))])
+    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Review", "active", due_at=datetime(2026, 7, 17, 14, 0, tzinfo=UTC))])
     page = await svc.list(workspace_key=FakeWorkspace(), view="today")
     assert len(page.items) == 1
     assert page.items[0].title == "Review"
@@ -173,21 +175,21 @@ async def test_today_active_task_no_due_at_excluded(svc, clock):
 
 @pytest.mark.asyncio
 async def test_today_active_task_outside_window_excluded(svc, clock):
-    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Future", "active", due_at=datetime(2026, 7, 18, 10, 0, tzinfo=timezone.utc))])
+    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Future", "active", due_at=datetime(2026, 7, 18, 10, 0, tzinfo=UTC))])
     page = await svc.list(workspace_key=FakeWorkspace(), view="today")
     assert len(page.items) == 0
 
 
 @pytest.mark.asyncio
 async def test_next_past_due_task_excluded(svc, clock):
-    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Past", "active", due_at=datetime(2026, 7, 17, 8, 0, tzinfo=timezone.utc))])
+    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Past", "active", due_at=datetime(2026, 7, 17, 8, 0, tzinfo=UTC))])
     page = await svc.list(workspace_key=FakeWorkspace(), view="next", window_hours=3)
     assert len(page.items) == 0
 
 
 @pytest.mark.asyncio
 async def test_next_in_window_task_included(svc, clock):
-    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Soon", "active", due_at=datetime(2026, 7, 17, 12, 0, tzinfo=timezone.utc))])
+    svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Soon", "active", due_at=datetime(2026, 7, 17, 12, 0, tzinfo=UTC))])
     page = await svc.list(workspace_key=FakeWorkspace(), view="next", window_hours=3)
     assert len(page.items) == 1
 

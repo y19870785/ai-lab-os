@@ -13,6 +13,7 @@ import pytest
 from core.errors import FailureException
 from core.workspace.models import WorkspaceKey
 
+
 def _run(tmp_path, *args):
     environment = os.environ.copy()
     environment.update(

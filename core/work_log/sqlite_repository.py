@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -131,9 +131,11 @@ class SQLiteWorkLogRepository:
         if record.inbox_item_id:
             outer_metadata["inbox_item_id"] = record.inbox_item_id
         try:
-            with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
-                with transaction(conn):
-                    conn.execute(
+            with (
+                self._manager.lease(self.LOGICAL_NAME, self._path) as conn,
+                transaction(conn),
+            ):
+                conn.execute(
                         f"""
                         INSERT INTO {self.TABLE}
                         (id, memory_type, content, importance, embedding,
@@ -308,7 +310,7 @@ class SQLiteWorkLogRepository:
         expected = (
             "inbox_wl_"
             + hashlib.sha256(
-                f"inbox_wl|{inbox_item_id}".encode("utf-8")
+                f"inbox_wl|{inbox_item_id}".encode()
             ).hexdigest()[:24]
         )
         if expected != alias:
@@ -330,7 +332,7 @@ class SQLiteWorkLogRepository:
         try:
             workspace = content["metadata"]
             if not isinstance(workspace, dict):
-                raise ValueError("canonical workspace is invalid")
+                raise TypeError("canonical workspace is invalid")
             return WorkLogRecord(
                 id=row["id"],
                 workspace_key=WorkspaceKey(
@@ -504,11 +506,9 @@ class SQLiteWorkLogRepository:
             ).casefold()
             if needle not in haystack:
                 return False
-        if query.context_ref is not None and not any(
+        return query.context_ref is None or any(
             ref.target_id == query.context_ref for ref in record.context_refs
-        ):
-            return False
-        return True
+        )
 
     def _legacy_workspace(self, content: dict[str, Any]) -> WorkspaceKey:
         metadata = content.get("metadata")
@@ -721,7 +721,7 @@ class SQLiteWorkLogRepository:
                 if len(raw) == 10:
                     parsed = datetime.combine(date.fromisoformat(raw), time.min)
                 else:
-                    parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+                    parsed = datetime.fromisoformat(raw)
             except ValueError:
                 return None
         else:
@@ -730,7 +730,7 @@ class SQLiteWorkLogRepository:
             parsed = SQLiteWorkLogRepository._localize_naive_fail_closed(
                 parsed, zone
             )
-        return parsed.astimezone(timezone.utc)
+        return parsed.astimezone(UTC)
 
     @staticmethod
     def _localize_naive_fail_closed(
@@ -741,14 +741,14 @@ class SQLiteWorkLogRepository:
         valid: list[datetime] = []
         for fold in (0, 1):
             candidate = naive.replace(tzinfo=zone, fold=fold)
-            round_trip = candidate.astimezone(timezone.utc).astimezone(zone)
+            round_trip = candidate.astimezone(UTC).astimezone(zone)
             if (
                 round_trip.replace(tzinfo=None) == naive
                 and round_trip.fold == fold
             ):
                 valid.append(candidate)
         unique = {
-            candidate.astimezone(timezone.utc): candidate for candidate in valid
+            candidate.astimezone(UTC): candidate for candidate in valid
         }
         if len(unique) != 1:
             raise ValueError("legacy local datetime is nonexistent or ambiguous")

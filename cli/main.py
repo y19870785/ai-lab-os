@@ -1,16 +1,27 @@
 """AI-Lab CLI —— 命令行入口。"""
-import sys
 import asyncio
-from cli.commands import agenda_cmd, health_cmd, chat_cmd, run_cmd, inspect_cmd
-from cli.commands import brief_cmd, log_cmd, task_cmd, decide_cmd, ask_cmd
-from cli.commands import reminder_status_cmd
-from cli.commands import reminders_cmd
-from cli.commands import reminder_cancel_cmd, reminder_reschedule_cmd
-from cli.commands import inbox_cmd
-from cli.commands import waiting_for_cmd
-from cli.commands import work_log_cmd
-from core.errors import FailureException
+import sys
 
+from cli.commands import (
+    agenda_cmd,
+    ask_cmd,
+    brief_cmd,
+    chat_cmd,
+    decide_cmd,
+    health_cmd,
+    inbox_cmd,
+    inspect_cmd,
+    log_cmd,
+    reminder_cancel_cmd,
+    reminder_reschedule_cmd,
+    reminder_status_cmd,
+    reminders_cmd,
+    run_cmd,
+    task_cmd,
+    waiting_for_cmd,
+    work_log_cmd,
+)
+from core.errors import FailureException
 
 COMMANDS = {
     "health": health_cmd.run,

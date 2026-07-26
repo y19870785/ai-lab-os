@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from core.agenda.models import (
     AgendaItem,
@@ -15,7 +16,6 @@ from core.agenda.models import (
 )
 from core.clock import Clock
 from core.errors import ErrorCategory, FailureException, FailureInfo
-from zoneinfo import ZoneInfo
 
 _VALID_LIMIT_RANGE = range(1, 101)
 _VALID_WINDOW_RANGE = range(1, 169)
@@ -57,7 +57,7 @@ class DailyAgendaService:
         window_hours = window_hours or (3 if view == AgendaView.NEXT else 24)
         if window_hours not in _VALID_WINDOW_RANGE:
             self._raise("agenda.window_invalid", "window_hours must be 1-168", trace_id)
-        now_utc = self._clock.now().astimezone(timezone.utc)
+        now_utc = self._clock.now().astimezone(UTC)
         today_start, today_end = self._today_bounds(now_utc)
         window_start, window_end = self._window_bounds(now_utc, view, window_hours, today_start, today_end)
         items, failures = await self._collect(view, workspace_key, trace_id, now_utc, today_start, today_end, window_start, window_end)
@@ -253,14 +253,14 @@ class DailyAgendaService:
                 timezone=it.timezone,
                 workspace_id=wk_id, source_id=it.id,
             ))
-        out.sort(key=lambda x: x.occurred_at or datetime.min.replace(tzinfo=timezone.utc))
+        out.sort(key=lambda x: x.occurred_at or datetime.min.replace(tzinfo=UTC))
         return out
 
     def _today_bounds(self, now_utc):
         local = now_utc.astimezone(self._zone)
         ls = local.replace(hour=0, minute=0, second=0, microsecond=0)
         le = ls + timedelta(days=1)
-        return ls.astimezone(timezone.utc), le.astimezone(timezone.utc)
+        return ls.astimezone(UTC), le.astimezone(UTC)
 
     def _window_bounds(self, now_utc, view, wh, ts, te):
         if view in (AgendaView.TODAY, AgendaView.COMPLETED):
@@ -280,15 +280,15 @@ class DailyAgendaService:
     def _sort_key(item: AgendaItem):
         if item.source == AgendaItemSource.WAITING_FOR:
             if item.kind == AgendaItemKind.COMPLETED:
-                eff = item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+                eff = item.occurred_at or datetime.min.replace(tzinfo=UTC)
             else:
                 candidates = [
                     value for value in (item.scheduled_for, item.due_at)
                     if value is not None
                 ]
-                eff = min(candidates) if candidates else datetime.min.replace(tzinfo=timezone.utc)
+                eff = min(candidates) if candidates else datetime.min.replace(tzinfo=UTC)
         else:
-            eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+            eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=UTC)
         return (eff, kind_priority(item.kind), source_priority(item.source), item.source_id)
 
     @staticmethod
@@ -309,7 +309,7 @@ class DailyAgendaService:
     async def _safe(source: str, fn, failures: list[str]):
         try:
             return await fn()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - optional source boundary
             from core.errors import FailureException
             if isinstance(exc, FailureException):
                 f = exc.failure

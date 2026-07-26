@@ -1,6 +1,6 @@
 """Work Log domain contract tests."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -34,7 +34,7 @@ def test_create_normalizes_tags_and_accepts_context_refs():
     ("field", "value"),
     [
         ("timezone", "Not/AZone"),
-        ("occurred_at", datetime(2026, 7, 23)),
+        ("occurred_at", datetime(2026, 7, 23)),  # noqa: DTZ001
         ("context_refs", [{"kind": "reminder", "target_id": "ut_wrong"}]),
     ],
 )
@@ -53,8 +53,8 @@ def test_query_enforces_range_limit_and_sort():
         WorkLogQuery(limit=201)
     with pytest.raises(ValidationError):
         WorkLogQuery(
-            date_from=datetime(2026, 7, 24, tzinfo=timezone.utc),
-            date_to=datetime(2026, 7, 23, tzinfo=timezone.utc),
+            date_from=datetime(2026, 7, 24, tzinfo=UTC),
+            date_to=datetime(2026, 7, 23, tzinfo=UTC),
         )
     with pytest.raises(ValidationError):
         WorkLogQuery(sort="importance")

@@ -5,7 +5,6 @@ import re
 import tomllib
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "project_state.json"
 
@@ -587,11 +586,15 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "Current SP: SP-018",
         "RFC-026 Adopted",
         "ACC-017 Status: PASSED / FINAL",
-        "| SP-018 | Work Log Query Boundary & Context Closure | "
-        "IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / "
-        "MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED |",
-        "| SP-019 | Daily Review & Follow-up Brief | "
-        "CANDIDATE / NOT_APPROVED / NOT_STARTED |",
+        (
+            "| SP-018 | Work Log Query Boundary & Context Closure | "
+            "IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / "
+            "MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED |"
+        ),
+        (
+            "| SP-019 | Daily Review & Follow-up Brief | "
+            "CANDIDATE / NOT_APPROVED / NOT_STARTED |"
+        ),
     )
     assert all(marker in current_text for marker in required_markers)
     forbidden_markers = (

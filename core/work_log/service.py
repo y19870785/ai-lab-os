@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import timezone
-from typing import Any
+from datetime import UTC
+from typing import Any, ClassVar
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import ValidationError
@@ -72,7 +72,7 @@ class WorkLogService:
         command: WorkLogCreateCommand,
     ) -> WorkLogRecord:
         workspace = canonical_workspace(workspace_key)
-        now = self._clock.now().astimezone(timezone.utc)
+        now = self._clock.now().astimezone(UTC)
         zone = command.timezone or self._timezone_name
         record_args = {
             "workspace_key": workspace,
@@ -148,7 +148,7 @@ class WorkLogService:
         generated_id = (
             "wl_"
             + hashlib.sha256(
-                f"work_log|{inbox_item_id}".encode("utf-8")
+                f"work_log|{inbox_item_id}".encode()
             ).hexdigest()[:32]
         )
         target_id = reserved_id or generated_id
@@ -162,7 +162,7 @@ class WorkLogService:
                 "create_from_inbox",
                 trace_id=workspace.trace_id,
             )
-        now = self._clock.now().astimezone(timezone.utc)
+        now = self._clock.now().astimezone(UTC)
         try:
             record = WorkLogRecord(
                 id=generated_id,
@@ -468,7 +468,7 @@ class WorkLogService:
 class WorkLogUserErrorPresenter:
     """Localize only the human message while preserving failure semantics."""
 
-    _MESSAGES = {
+    _MESSAGES: ClassVar[dict[str, str]] = {
         "work_log.not_configured": "工作记录服务尚未配置。",
         "work_log.not_found": "未找到这条工作记录。",
         "work_log.workspace_mismatch": "这条工作记录不属于当前工作区。",

@@ -4,7 +4,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -33,7 +33,8 @@ def _run_agenda(args_str, tmp_path, extra_env=None):
     python_executable = sys.executable
     cmd = [python_executable, "-m", "cli", "agenda"] + args_str.split()
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env=env,
-                          encoding="utf-8", cwd=str(Path(__file__).parent.parent.parent))
+                          encoding="utf-8", cwd=str(Path(__file__).parent.parent.parent),
+                          check=False)
     return proc
 
 
@@ -143,7 +144,7 @@ async def _seed_workspace_agenda(path):
     )
     await system.start()
     try:
-        now = datetime.now(timezone.utc).replace(microsecond=0)
+        now = datetime.now(UTC).replace(microsecond=0)
         business_timezone = ZoneInfo("Asia/Shanghai")
         business_date = now.astimezone(business_timezone).date()
 

@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, timezone
 import hashlib
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -9,8 +9,7 @@ from core.system import create_system, make_test_settings
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
-
-NOW = datetime(2026, 7, 19, 4, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 19, 4, 0, tzinfo=UTC)
 
 
 async def _system(tmp_path):
@@ -187,7 +186,7 @@ async def test_historical_work_log_claim_preserves_alias_during_recovery(tmp_pat
         alias = (
             "inbox_wl_"
             + hashlib.sha256(
-                f"inbox_wl|{item.id}".encode("utf-8")
+                f"inbox_wl|{item.id}".encode()
             ).hexdigest()[:24]
         )
         await system.inbox_repository.claim_resolution(

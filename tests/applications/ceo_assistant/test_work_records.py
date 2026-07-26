@@ -8,22 +8,24 @@
 - 重复记录处理
 """
 
+import os
+import sys
+
 import pytest
 import pytest_asyncio
-import sys
-import os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
-from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from core.bus.bus import get_bus
-from core.memory.manager import MemoryManager
-from core.memory.models import MemoryType
-from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
-from core.memory.session import SessionMemory
 from core.clock import SystemClock
 from core.database import DatabaseManager
+from core.memory.manager import MemoryManager
+from core.memory.models import MemoryType
+from core.memory.session import SessionMemory
+from core.memory.storage.sqlite_episodic import SQLiteEpisodicStore
 from core.work_log import SQLiteWorkLogRepository, WorkLogQuery, WorkLogService
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 
 
 @pytest_asyncio.fixture

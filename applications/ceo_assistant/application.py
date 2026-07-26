@@ -10,14 +10,13 @@ AI-Lab 首个真实业务应用。支持：
 """
 
 from __future__ import annotations
+
 import re
 import time
 import uuid
 from datetime import datetime
 from typing import Any
 
-from applications.models import ApplicationInfo, ApplicationManifest, ApplicationRequest, ApplicationResponse
-from applications.config import ApplicationConfig
 from applications.ceo_assistant.intent import (
     IntentDecision,
     IntentEffect,
@@ -33,13 +32,22 @@ from applications.ceo_assistant.waiting_for_intent import (
     parse_waiting_for_confirmation,
     parse_waiting_for_time,
 )
+from applications.ceo_assistant.work_log_intent import parse_work_log_query
+from applications.config import ApplicationConfig
+from applications.models import (
+    ApplicationInfo,
+    ApplicationManifest,
+    ApplicationRequest,
+    ApplicationResponse,
+)
 from core.errors import (
     ErrorCategory,
     FailureException,
     FailureInfo,
     failure_from_exception,
 )
-from applications.ceo_assistant.work_log_intent import parse_work_log_query
+from core.memory.models import MemoryQuery, MemoryType
+from core.system.admission import WorkAdmission
 from core.work_log import (
     WorkLogQuery,
     WorkLogService,
@@ -47,8 +55,6 @@ from core.work_log import (
     WorkLogStatus,
     WorkLogUserErrorPresenter,
 )
-from core.memory.models import MemoryQuery, MemoryType
-from core.system.admission import WorkAdmission
 
 
 class CEOAssistant:
@@ -552,7 +558,7 @@ class CEOAssistant:
         """
         # 规则提取 (fallback)
         result = {
-            "date": datetime.now().strftime("%Y-%m-%d"),
+            "date": datetime.now().strftime("%Y-%m-%d"),  # noqa: DTZ005
             "target": "",
             "subject": "",
             "status": "",
@@ -929,7 +935,7 @@ class CEOAssistant:
                 description=user_input,
                 session_id=request.workspace_key.session_id,
                 trace_id=request.workspace_key.trace_id,
-                workspace_scope="|".join((
+                workspace_scope="|".join((  # noqa: FLY002
                     request.workspace_key.tenant_id,
                     request.workspace_key.workspace_id,
                     request.workspace_key.namespace,
@@ -1098,7 +1104,7 @@ class CEOAssistant:
 
     async def _handle_brief(self, request: ApplicationRequest) -> dict[str, Any]:
         """生成每日简报。所有数据必须来自真实 Store。"""
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = datetime.now().strftime("%Y-%m-%d")  # noqa: DTZ005
         lines = [f"[Brief] 每日简报 — {today}", "=" * 40, ""]
 
         # 1. 待办任务

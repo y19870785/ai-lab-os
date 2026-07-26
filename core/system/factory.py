@@ -7,6 +7,7 @@ from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
 from applications.config import ApplicationConfig
 from applications.registry import ApplicationRegistry
 from applications.runtime import ApplicationRuntime
+from core.agenda import DailyAgendaService
 from core.agents.config import AgentConfig
 from core.agents.models import AgentInfo
 from core.agents.runtime import DefaultAgentRuntime
@@ -14,6 +15,7 @@ from core.bus.bus import MemoryBus
 from core.clock import Clock, SystemClock
 from core.coordination.orchestrator import AgentOrchestrator
 from core.database.manager import DatabaseManager
+from core.inbox import InboxService, SQLiteInboxRepository
 from core.knowledge.manager import KnowledgeManager
 from core.knowledge.sqlite_store import SQLiteKnowledgeStore
 from core.memory.manager import MemoryManager
@@ -31,14 +33,24 @@ from core.providers.models import ProviderType
 from core.providers.registry import ProviderRegistry
 from core.providers.vector.chroma import ChromaVectorProvider
 from core.providers.vector.mock import MockVectorProvider
+from core.reminders import (
+    NaturalLanguageReminderOrchestrator,
+    ReminderActionHandler,
+    ReminderInboxService,
+    ReminderManagementService,
+    ReminderSchedulerBridge,
+    ReminderService,
+    SQLiteReminderRepository,
+    UserTaskReminderLifecycleCoordinator,
+)
 from core.scheduler.config import SchedulerConfig
 from core.scheduler.handlers import ActionHandlerRegistry
 from core.scheduler.jobs import JobExecutor
 from core.scheduler.persistence import SchedulerPersistence
 from core.scheduler.registry import SchedulerRegistry
 from core.scheduler.runtime import SchedulerRuntime
-from core.system.container import SystemContainer
 from core.system.admission import WorkAdmissionGate
+from core.system.container import SystemContainer
 from core.system.exceptions import ProviderNotConfiguredError
 from core.system.lifecycle import LifecycleStateMachine
 from core.system.settings import SystemSettings
@@ -48,24 +60,12 @@ from core.tools.builtin.calculator import CalculatorTool
 from core.tools.builtin.echo import EchoTool
 from core.tools.executor import ToolExecutor
 from core.tools.registry import ToolRegistry
+from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
+from core.waiting_for import SQLiteWaitingForRepository, WaitingForService
+from core.work_log import SQLiteWorkLogRepository, WorkLogService
 from core.workflow.executor import WorkflowExecutor
 from core.workflow.registry import WorkflowRegistry
 from core.workflow.runtime import WorkflowRuntime
-from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
-from core.agenda import DailyAgendaService
-from core.waiting_for import SQLiteWaitingForRepository, WaitingForService
-from core.inbox import InboxService, SQLiteInboxRepository
-from core.work_log import SQLiteWorkLogRepository, WorkLogService
-from core.reminders import (
-    ReminderActionHandler,
-    NaturalLanguageReminderOrchestrator,
-    ReminderSchedulerBridge,
-    ReminderInboxService,
-    ReminderManagementService,
-    ReminderService,
-    SQLiteReminderRepository,
-    UserTaskReminderLifecycleCoordinator,
-)
 
 
 def _validate_provider_settings(settings: SystemSettings) -> None:

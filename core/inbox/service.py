@@ -5,8 +5,9 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import weakref
+from collections.abc import Awaitable, Callable
 from datetime import datetime
-from typing import Any, Awaitable, Callable
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
@@ -70,7 +71,7 @@ class InboxService:
     async def initialize(self) -> None:
         try:
             await self._repository.initialize()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - repository boundary
             self._raise("inbox.resolve_failed", ErrorCategory.PERSISTENCE_FAILURE, "initialize", exc)
 
     async def close(self) -> None:
@@ -94,7 +95,7 @@ class InboxService:
 
     @staticmethod
     def _target_id(prefix: str, item_id: str) -> str:
-        digest = hashlib.sha256(f"{prefix}|{item_id}".encode("utf-8")).hexdigest()[:24]
+        digest = hashlib.sha256(f"{prefix}|{item_id}".encode()).hexdigest()[:24]
         return f"{prefix}_{digest}"
 
     @staticmethod
@@ -184,7 +185,7 @@ class InboxService:
                 exc,
                 trace_id=workspace_key.trace_id,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - service boundary
             self._raise(
                 "inbox.resolve_failed",
                 ErrorCategory.PERSISTENCE_FAILURE,
@@ -222,7 +223,7 @@ class InboxService:
                 exc,
                 trace_id=workspace_key.trace_id,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - service boundary
             self._raise(
                 "inbox.resolve_failed",
                 ErrorCategory.PERSISTENCE_FAILURE,
@@ -251,7 +252,7 @@ class InboxService:
                 exc,
                 trace_id=workspace_key.trace_id,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - service boundary
             self._raise(
                 "inbox.resolve_failed",
                 ErrorCategory.PERSISTENCE_FAILURE,
@@ -451,7 +452,7 @@ class InboxService:
                     exc,
                     trace_id=workspace_key.trace_id,
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - saga boundary
                 await self._publish("inbox.resolve_failed", item)
                 self._raise(
                     "inbox.resolve_failed",
@@ -572,7 +573,7 @@ class InboxService:
         work_log_id = (
             "wl_"
             + hashlib.sha256(
-                f"work_log|{inbox_item_id}".encode("utf-8")
+                f"work_log|{inbox_item_id}".encode()
             ).hexdigest()[:32]
         )
 

@@ -1,5 +1,7 @@
 """Typed Work Log create and query routes."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
@@ -36,7 +38,7 @@ def _service(
 async def create_work_log(
     payload: WorkLogCreateRequest,
     request: Request,
-    system: SystemContainer = Depends(get_system),
+    system: Annotated[SystemContainer, Depends(get_system)],
 ):
     """Create through the canonical service; ``user_input`` is deprecated."""
 
@@ -80,23 +82,23 @@ async def create_work_log(
 @router.get("")
 async def list_work_logs(
     request: Request,
+    system: Annotated[SystemContainer, Depends(get_system)],
     date_from: str | None = Query(default=None),
     date_to: str | None = Query(default=None),
     target: str | None = Query(default=None),
-    tags: list[str] = Query(default=[]),
+    tags: Annotated[list[str] | None, Query()] = None,
     status: str | None = Query(default=None),
     text: str | None = Query(default=None),
     context_ref: str | None = Query(default=None),
     limit: str | None = Query(default=None),
     offset: str | None = Query(default=None),
-    system: SystemContainer = Depends(get_system),
 ):
     page = await _service(system, request, "list").query_from_input(
         workspace_key=_workspace(request),
         date_from=date_from,
         date_to=date_to,
         target=target,
-        tags=tags,
+        tags=tags or [],
         status=status,
         text=text,
         context_ref=context_ref,
@@ -110,7 +112,7 @@ async def list_work_logs(
 async def get_work_log(
     work_log_id: str,
     request: Request,
-    system: SystemContainer = Depends(get_system),
+    system: Annotated[SystemContainer, Depends(get_system)],
 ):
     record = await _service(system, request, "get").get(
         workspace_key=_workspace(request), work_log_id=work_log_id

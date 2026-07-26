@@ -1,9 +1,8 @@
 """Compatibility alias for ``work-log create``."""
 
+from cli.runtime import execute_work_log_operation
 from core.work_log import WorkLogSource
 from core.workspace.models import WorkspaceKey
-
-from cli.runtime import execute_work_log_operation
 
 
 async def run(args):

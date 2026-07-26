@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from applications.models import ApplicationRequest, ApplicationResponse
-from core.system import create_system, load_system_settings
 from core.errors import ErrorCategory, FailureException, FailureInfo
+from core.system import create_system, load_system_settings
 from core.work_log import WorkLogService
 from core.workspace.models import WorkspaceKey
 

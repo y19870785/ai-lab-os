@@ -9,46 +9,44 @@ from dataclasses import dataclass, field
 from applications.ceo_assistant.application import CEOAssistant
 from applications.registry import ApplicationRegistry
 from applications.runtime import ApplicationRuntime
+from core.agenda import DailyAgendaService
+from core.agents.models import AgentStatus
 from core.agents.runtime import DefaultAgentRuntime
 from core.bus.bus import MemoryBus
 from core.clock import Clock
 from core.coordination.orchestrator import AgentOrchestrator
 from core.database.manager import DatabaseManager
+from core.errors import RuntimeStatus
+from core.inbox import InboxService, SQLiteInboxRepository
 from core.knowledge.manager import KnowledgeManager
 from core.memory.manager import MemoryManager
 from core.memory.protocol import MemoryStore
 from core.providers.base import BaseProvider
 from core.providers.factory import ProviderFactory
 from core.providers.llm.protocol import LLMProvider
+from core.providers.models import ProviderStatus
 from core.providers.registry import ProviderRegistry
+from core.reminders import (
+    NaturalLanguageReminderOrchestrator,
+    ReminderInboxService,
+    ReminderManagementService,
+    ReminderSchedulerBridge,
+    ReminderService,
+    SQLiteReminderRepository,
+)
 from core.scheduler.runtime import SchedulerRuntime
-from core.errors import RuntimeStatus
 from core.system.admission import WorkAdmissionGate
 from core.system.exceptions import SystemInitializationError
-from core.system.lifecycle import (
-    LifecycleStateMachine, SystemLifecycleState
-)
+from core.system.lifecycle import LifecycleStateMachine, SystemLifecycleState
 from core.system.settings import SystemSettings
 from core.task.runtime import TaskRuntime
 from core.tools.executor import ToolExecutor
 from core.tools.protocol import ToolProtocol
 from core.tools.registry import ToolRegistry
-from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
-from core.agenda import DailyAgendaService
-from core.inbox import InboxService, SQLiteInboxRepository
 from core.waiting_for import SQLiteWaitingForRepository, WaitingForService
 from core.work_log import SQLiteWorkLogRepository, WorkLogService
-from core.reminders import (
-    ReminderSchedulerBridge,
-    ReminderInboxService,
-    ReminderManagementService,
-    NaturalLanguageReminderOrchestrator,
-    ReminderService,
-    SQLiteReminderRepository,
-)
-from core.agents.models import AgentStatus
-from core.providers.models import ProviderStatus
+from core.workflow.runtime import WorkflowRuntime
 
 logger = logging.getLogger("ai-lab.system")
 

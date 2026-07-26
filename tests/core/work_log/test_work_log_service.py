@@ -1,7 +1,7 @@
 """Canonical WorkLogService behavior and FailureInfo tests."""
 
-from datetime import datetime, timezone
 import hashlib
+from datetime import UTC, datetime
 
 import pytest
 
@@ -11,7 +11,7 @@ from core.work_log import WorkLogCreateCommand, WorkLogQuery, WorkLogSource
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
-NOW = datetime(2026, 7, 23, 8, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 23, 8, 0, tzinfo=UTC)
 
 
 @pytest.mark.asyncio
@@ -93,7 +93,7 @@ async def test_historical_inbox_alias_recovers_and_projects_one_legacy_object(
     alias = (
         "inbox_wl_"
         + hashlib.sha256(
-            f"inbox_wl|{inbox_item_id}".encode("utf-8")
+            f"inbox_wl|{inbox_item_id}".encode()
         ).hexdigest()[:24]
     )
     try:
