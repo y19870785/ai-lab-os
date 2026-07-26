@@ -19,7 +19,6 @@ from core.user_tasks import (
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
-
 AS_OF = datetime(2026, 7, 27, 8, 0, tzinfo=UTC)
 DEFAULT = WorkspaceKey()
 TENANT_B = WorkspaceKey(
@@ -414,7 +413,7 @@ async def test_query_validation_precedes_repository_access() -> None:
         await service.list(
             workspace_key=LOCAL,
             overdue=True,
-            as_of=datetime(2026, 7, 27, 8, 0),
+            as_of=datetime(2026, 7, 27, 8, 0),  # noqa: DTZ001 - rejection case
         )
     assert naive_as_of.value.failure.category == ErrorCategory.VALIDATION
     assert not repository.list_called
