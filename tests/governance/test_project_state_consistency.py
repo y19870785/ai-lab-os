@@ -653,6 +653,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
         "83ecb557fedd1d898712afc59ad13b3e0a684413"
     )
     assert sp018["merged_at"] == "2026-07-26T09:35:04Z"
+    assert sp018["reconciliation_pr"] == 47
     assert sp018["review"] == "APPROVED"
     assert sp018["acceptance"] == "ACC-018 A-O PASSED / FINAL"
     assert sp018["post_merge_acceptance"] == "PASSED"
@@ -734,6 +735,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
         "Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`"
         in acceptance
     )
+    assert "SP-018A Reconciliation PR：#47（OPEN / DRAFT / NOT MERGED）" in acceptance
     assert "PR Quality Gate Run：`30195401115`" in acceptance
     assert "Post-Merge main Quality Gate Run：`30196719409`" in acceptance
     assert "Independent Review：`APPROVED`" in acceptance

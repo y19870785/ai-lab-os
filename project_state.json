@@ -307,6 +307,7 @@
       "approved_head": "e941cadc783a6ac8a4bd3c75b55adf77e0a651a3",
       "feature_merge_commit": "83ecb557fedd1d898712afc59ad13b3e0a684413",
       "merged_at": "2026-07-26T09:35:04Z",
+      "reconciliation_pr": 47,
       "review": "APPROVED",
       "acceptance": "ACC-018 A-O PASSED / FINAL",
       "post_merge_acceptance": "PASSED",
