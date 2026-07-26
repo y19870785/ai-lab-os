@@ -2,25 +2,41 @@
 
 from __future__ import annotations
 
+import asyncio
 import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from api.app import create_app
+from applications.models import ApplicationRequest
+from core.daily_review import DailyReviewQuery
+from core.errors import ErrorCategory, FailureException
 from core.system import make_test_settings
+from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
 LOCAL = {
-    "X-Tenant-ID": "tenant-local",
-    "X-Workspace-ID": "workspace-shared",
-    "X-Namespace": "operations",
+    "X-Tenant-ID": "tenant-a",
+    "X-Workspace-ID": "workspace-a",
+    "X-Namespace": "namespace-a",
 }
-FOREIGN = {
-    "X-Tenant-ID": "tenant-foreign",
-    "X-Workspace-ID": "workspace-shared",
-    "X-Namespace": "operations",
+FOREIGN_TENANT = {
+    "X-Tenant-ID": "tenant-b",
+    "X-Workspace-ID": "workspace-a",
+    "X-Namespace": "namespace-a",
+}
+FOREIGN_WORKSPACE = {
+    "X-Tenant-ID": "tenant-a",
+    "X-Workspace-ID": "workspace-b",
+    "X-Namespace": "namespace-a",
+}
+FOREIGN_NAMESPACE = {
+    "X-Tenant-ID": "tenant-a",
+    "X-Workspace-ID": "workspace-a",
+    "X-Namespace": "namespace-b",
 }
 
 
@@ -45,11 +61,16 @@ def _database_snapshot(sqlite_dir: Path) -> dict[str, dict[str, list[tuple]]]:
 
 
 def _create_source_snapshot(client: TestClient, headers: dict[str, str]):
+    scope = "/".join((
+        headers["X-Tenant-ID"],
+        headers["X-Workspace-ID"],
+        headers["X-Namespace"],
+    ))
     work_log = client.post(
         "/work-logs",
         headers=headers,
         json={
-            "subject": f"Fact {headers['X-Tenant-ID']}",
+            "subject": f"Fact {scope}",
             "raw_text": "canonical fact",
             "occurred_at": "2026-07-27T10:00:00Z",
             "timezone": "UTC",
@@ -62,7 +83,7 @@ def _create_source_snapshot(client: TestClient, headers: dict[str, str]):
         "/tasks",
         headers=headers,
         json={
-            "title": f"Due task {headers['X-Tenant-ID']}",
+            "title": f"Due task {scope}",
             "due_at": "2026-07-27T13:00:00Z",
             "timezone": "UTC",
         },
@@ -72,7 +93,7 @@ def _create_source_snapshot(client: TestClient, headers: dict[str, str]):
     reminder_task = client.post(
         "/tasks",
         headers=headers,
-        json={"title": f"Reminder task {headers['X-Tenant-ID']}"},
+        json={"title": f"Reminder task {scope}"},
     )
     assert reminder_task.status_code == 201
     reminder = client.post(
@@ -89,7 +110,7 @@ def _create_source_snapshot(client: TestClient, headers: dict[str, str]):
         "/waiting-for",
         headers=headers,
         json={
-            "subject": f"Waiting {headers['X-Tenant-ID']}",
+            "subject": f"Waiting {scope}",
             "waiting_on": "external",
             "expected_by": "2026-07-27T11:00:00Z",
             "timezone": "UTC",
@@ -100,7 +121,7 @@ def _create_source_snapshot(client: TestClient, headers: dict[str, str]):
     inbox = client.post(
         "/inbox",
         headers=headers,
-        json={"content": f"Inbox {headers['X-Tenant-ID']}"},
+        json={"content": f"Inbox {scope}"},
     )
     assert inbox.status_code == 201
 
@@ -128,6 +149,29 @@ def _all_item_ids(review: dict) -> list[str]:
     ]
 
 
+def _section_totals(review: dict) -> dict[str, int]:
+    return {
+        section: review[section]["section_total_count"]
+        for section in (
+            "blocked",
+            "follow_ups",
+            "in_progress",
+            "completed",
+            "informational",
+            "pending_inbox",
+        )
+    }
+
+
+def _workspace(headers: dict[str, str]) -> WorkspaceKey:
+    return WorkspaceKey(
+        tenant_id=headers["X-Tenant-ID"],
+        workspace_id=headers["X-Workspace-ID"],
+        namespace=headers["X-Namespace"],
+        trace_id=headers.get("X-Trace-ID", ""),
+    )
+
+
 def test_real_sources_api_ceo_restart_and_zero_side_effects(tmp_path):
     settings = make_test_settings(
         tmp_path,
@@ -139,8 +183,27 @@ def test_real_sources_api_ceo_restart_and_zero_side_effects(tmp_path):
     first_structured: dict
 
     with TestClient(create_app(settings, clock=clock)) as client:
-        local_ids = _create_source_snapshot(client, LOCAL)
-        foreign_ids = _create_source_snapshot(client, FOREIGN)
+        ids_by_scope = {
+            "local": _create_source_snapshot(client, LOCAL),
+            "foreign_tenant": _create_source_snapshot(
+                client,
+                FOREIGN_TENANT,
+            ),
+            "foreign_workspace": _create_source_snapshot(
+                client,
+                FOREIGN_WORKSPACE,
+            ),
+            "foreign_namespace": _create_source_snapshot(
+                client,
+                FOREIGN_NAMESPACE,
+            ),
+        }
+        local_ids = ids_by_scope["local"]
+        foreign_ids = set().union(
+            ids_by_scope["foreign_tenant"],
+            ids_by_scope["foreign_workspace"],
+            ids_by_scope["foreign_namespace"],
+        )
         system = client.app.state.system
         published = []
 
@@ -166,7 +229,6 @@ def test_real_sources_api_ceo_restart_and_zero_side_effects(tmp_path):
             headers=LOCAL,
         )
         ceo = client.get("/brief", headers=LOCAL)
-        after = _database_snapshot(settings.sqlite_dir)
 
         assert api_default.status_code == api_explicit.status_code == 200
         assert ceo.status_code == 200
@@ -176,6 +238,48 @@ def test_real_sources_api_ceo_restart_and_zero_side_effects(tmp_path):
         assert set(_all_item_ids(first_structured)) == local_ids
         assert foreign_ids.isdisjoint(_all_item_ids(first_structured))
         assert first_structured["page"]["total_count"] == 5
+        assert first_structured["page"]["has_more"] is False
+        assert _section_totals(first_structured) == {
+            "blocked": 0,
+            "follow_ups": 3,
+            "in_progress": 0,
+            "completed": 1,
+            "informational": 0,
+            "pending_inbox": 1,
+        }
+        local_tail = client.get(
+            "/daily-review",
+            params={"date": "today", "limit": 1, "offset": 4},
+            headers=LOCAL,
+        ).json()
+        assert local_tail["page"] == {
+            "count": 1,
+            "total_count": 5,
+            "limit": 1,
+            "offset": 4,
+            "has_more": False,
+        }
+        assert set(_all_item_ids(local_tail)).issubset(local_ids)
+        assert foreign_ids.isdisjoint(_all_item_ids(local_tail))
+        for name, headers in (
+            ("foreign_tenant", FOREIGN_TENANT),
+            ("foreign_workspace", FOREIGN_WORKSPACE),
+            ("foreign_namespace", FOREIGN_NAMESPACE),
+        ):
+            scoped = client.get(
+                "/daily-review",
+                params={"date": "today"},
+                headers=headers,
+            )
+            assert scoped.status_code == 200
+            scoped_review = scoped.json()
+            assert set(_all_item_ids(scoped_review)) == ids_by_scope[name]
+            assert scoped_review["page"]["total_count"] == 5
+            assert scoped_review["page"]["has_more"] is False
+            assert _section_totals(scoped_review) == _section_totals(
+                first_structured
+            )
+        after = _database_snapshot(settings.sqlite_dir)
         assert before == after
         assert published == []
 
@@ -188,3 +292,77 @@ def test_real_sources_api_ceo_restart_and_zero_side_effects(tmp_path):
 
     assert restarted.status_code == 200
     assert restarted.json() == first_structured
+
+
+def test_api_brief_and_ceo_source_failure_contracts_are_identical(tmp_path):
+    settings = make_test_settings(
+        tmp_path,
+        enable_scheduler=True,
+        enable_reminders=True,
+        timezone_name="UTC",
+    )
+    clock = MutableClock(datetime(2026, 7, 27, 12, tzinfo=UTC))
+    headers = {
+        **LOCAL,
+        "X-Trace-ID": "trace-daily-review-parity",
+    }
+
+    with TestClient(create_app(settings, clock=clock)) as client:
+        system = client.app.state.system
+
+        async def fail_work_log(*args, **kwargs):
+            raise RuntimeError("private source failure")
+
+        system.work_log_service.list = fail_work_log
+        api_response = client.get(
+            "/daily-review",
+            params={"date": "today"},
+            headers=headers,
+        )
+        brief_response = client.get("/brief", headers=headers)
+
+        workspace = _workspace(headers)
+        with pytest.raises(FailureException) as service_exc:
+            asyncio.run(system.daily_review.get(
+                workspace_key=workspace,
+                query=DailyReviewQuery(review_date="today"),
+            ))
+        with pytest.raises(FailureException) as ceo_exc:
+            asyncio.run(system.application_runtime.execute(
+                ApplicationRequest(
+                    application_name="ceo-assistant",
+                    user_input="今日简报",
+                    workspace_key=workspace,
+                ),
+            ))
+
+    assert api_response.status_code == brief_response.status_code == 503
+    observable_fields = (
+        "code",
+        "component",
+        "retryable",
+        "details",
+        "trace_id",
+    )
+    assert {
+        field: api_response.json()[field]
+        for field in observable_fields
+    } == {
+        field: brief_response.json()[field]
+        for field in observable_fields
+    } == {
+        "code": "daily_review.source_failed",
+        "component": "daily_review",
+        "retryable": True,
+        "details": {
+            "source": "work_log",
+            "upstream_code": "work_log.unhandled_failure",
+            "upstream_category": "internal",
+        },
+        "trace_id": "trace-daily-review-parity",
+    }
+    service_failure = service_exc.value.failure
+    ceo_failure = ceo_exc.value.failure
+    assert service_failure == ceo_failure
+    assert service_failure.category == ErrorCategory.DEPENDENCY_FAILURE
+    assert service_failure.operation == "get"

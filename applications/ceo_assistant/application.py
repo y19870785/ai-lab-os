@@ -22,6 +22,7 @@ from applications.ceo_assistant.intent import (
     IntentEffect,
     decide_intent,
     extract_inbox_capture_content,
+    resolve_daily_review_date,
 )
 from applications.ceo_assistant.reminder_errors import ReminderUserErrorPresenter
 from applications.ceo_assistant.waiting_for_errors import WaitingForUserErrorPresenter
@@ -40,7 +41,7 @@ from applications.models import (
     ApplicationRequest,
     ApplicationResponse,
 )
-from core.daily_review import DailyReviewDate, present_daily_review
+from core.daily_review import present_daily_review
 from core.errors import (
     ErrorCategory,
     FailureException,
@@ -1108,20 +1109,9 @@ class CEOAssistant:
                 operation="get",
                 trace_id=request.workspace_key.trace_id,
             ))
-        text = request.user_input.strip()
-        yesterday_markers = (
-            "昨日简报",
-            "昨天简报",
-            "昨日总结",
-            "昨天总结",
-            "昨天做了什么",
-            "昨天做了哪些事",
-            "昨天的工作",
-        )
-        review_date = (
-            DailyReviewDate.YESTERDAY
-            if any(marker in text for marker in yesterday_markers)
-            else DailyReviewDate.TODAY
+        review_date = resolve_daily_review_date(
+            request.user_input,
+            trace_id=request.workspace_key.trace_id,
         )
         query = self._daily_review.query_from_input(
             review_date=review_date,

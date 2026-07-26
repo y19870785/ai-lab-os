@@ -181,6 +181,7 @@ class DailyReviewService:
                 period_start=period_start,
                 period_end=period_end,
             ),
+            trace_id=workspace.trace_id,
         )
         await self._evaluate(
             DailyReviewSourceType.WAITING_FOR,
@@ -193,6 +194,7 @@ class DailyReviewService:
                 period_end=period_end,
                 as_of=instant,
             ),
+            trace_id=workspace.trace_id,
         )
         await self._evaluate(
             DailyReviewSourceType.REMINDER,
@@ -206,6 +208,7 @@ class DailyReviewService:
                 as_of=instant,
                 due_soon_end=due_soon_end,
             ),
+            trace_id=workspace.trace_id,
             configured_enabled=self._reminders_enabled,
         )
         await self._evaluate(
@@ -214,6 +217,7 @@ class DailyReviewService:
             statuses,
             candidates,
             lambda: self._collect_inbox(workspace, as_of=instant),
+            trace_id=workspace.trace_id,
         )
         await self._evaluate(
             DailyReviewSourceType.USER_TASK,
@@ -227,6 +231,7 @@ class DailyReviewService:
                 as_of=instant,
                 due_soon_end=due_soon_end,
             ),
+            trace_id=workspace.trace_id,
             configured_enabled=self._user_tasks_enabled,
         )
 
@@ -249,6 +254,7 @@ class DailyReviewService:
         output: list[_Candidate],
         loader: Callable[[], Awaitable[list[_Candidate]]],
         *,
+        trace_id: str,
         configured_enabled: bool = True,
     ) -> None:
         if not configured_enabled:
@@ -260,9 +266,9 @@ class DailyReviewService:
         try:
             output.extend(await loader())
         except FailureException as exc:
-            self._raise_source(source, exc)
+            self._raise_source(source, exc, trace_id=trace_id)
         except Exception as exc:  # noqa: BLE001 - fail-closed source boundary
-            self._raise_source(source, exc)
+            self._raise_source(source, exc, trace_id=trace_id)
         statuses[source] = DailyReviewSourceStatus.AVAILABLE
 
     async def _collect_work_logs(
@@ -897,22 +903,24 @@ class DailyReviewService:
         self,
         source: DailyReviewSourceType,
         exc: Exception,
+        *,
+        trace_id: str,
     ) -> None:
         if isinstance(exc, FailureException):
             upstream_code = exc.failure.code
             upstream_category = exc.failure.category.value
             cause_type = exc.failure.cause_type or type(exc).__name__
-            trace_id = exc.failure.trace_id
+            failure_trace_id = exc.failure.trace_id or trace_id
         else:
             upstream_code = f"{source.value}.unhandled_failure"
             upstream_category = ErrorCategory.INTERNAL.value
             cause_type = type(exc).__name__
-            trace_id = ""
+            failure_trace_id = trace_id
         self._raise(
             code="daily_review.source_failed",
             category=ErrorCategory.DEPENDENCY_FAILURE,
             message="Daily Review source failed",
-            trace_id=trace_id,
+            trace_id=failure_trace_id,
             cause_type=cause_type,
             details={
                 "source": source.value,

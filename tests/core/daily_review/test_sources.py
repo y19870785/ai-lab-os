@@ -147,6 +147,7 @@ async def test_each_enabled_source_runtime_failure_fails_closed(
     failure = exc_info.value.failure
     assert failure.code == "daily_review.source_failed"
     assert failure.category == ErrorCategory.DEPENDENCY_FAILURE
+    assert failure.trace_id == WORKSPACE.trace_id
     assert failure.details == {
         "source": source_name,
         "upstream_code": f"{source_name}.unhandled_failure",
@@ -158,13 +159,24 @@ async def test_each_enabled_source_runtime_failure_fails_closed(
 
 
 @pytest.mark.asyncio
-async def test_upstream_failure_preserves_only_safe_contract_fields():
+@pytest.mark.parametrize(
+    ("upstream_trace_id", "expected_trace_id"),
+    [
+        ("", WORKSPACE.trace_id),
+        ("trace-upstream", "trace-upstream"),
+    ],
+)
+async def test_upstream_failure_preserves_trace_and_only_safe_contract_fields(
+    upstream_trace_id,
+    expected_trace_id,
+):
     upstream = FailureException(FailureInfo(
         code="work_log.repository_failed",
         category=ErrorCategory.PERSISTENCE_FAILURE,
         message="raw sqlite failure",
         component="work_log",
         operation="list",
+        trace_id=upstream_trace_id,
         details={"metadata": "secret", "sql": "select *"},
     ))
     sources = empty_sources()
@@ -179,10 +191,51 @@ async def test_upstream_failure_preserves_only_safe_contract_fields():
             query=DailyReviewQuery(review_date="today"),
         )
 
-    assert exc_info.value.failure.details == {
+    failure = exc_info.value.failure
+    assert failure.trace_id == expected_trace_id
+    assert failure.details == {
         "source": "work_log",
         "upstream_code": "work_log.repository_failed",
         "upstream_category": "persistence_failure",
+    }
+
+
+@pytest.mark.asyncio
+async def test_all_sources_receive_the_same_complete_workspace_triple():
+    sources = empty_sources()
+    await make_service(
+        FrozenCountingClock(datetime(2026, 7, 27, 12, tzinfo=UTC)),
+        sources,
+    ).get(
+        workspace_key=WORKSPACE,
+        query=DailyReviewQuery(review_date="today"),
+    )
+
+    source_calls = (
+        sources.work_logs.calls
+        + sources.waiting_for.calls
+        + sources.reminders.calls
+        + sources.inbox.calls
+        + sources.user_tasks.calls
+    )
+    assert sources.work_logs.calls
+    assert sources.waiting_for.calls
+    assert sources.reminders.calls
+    assert sources.inbox.calls
+    assert sources.user_tasks.calls
+    assert {
+        (
+            call["workspace_key"].tenant_id,
+            call["workspace_key"].workspace_id,
+            call["workspace_key"].namespace,
+        )
+        for call in source_calls
+    } == {
+        (
+            WORKSPACE.tenant_id,
+            WORKSPACE.workspace_id,
+            WORKSPACE.namespace,
+        ),
     }
 
 
