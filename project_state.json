@@ -16,7 +16,7 @@
   "current_governance_task": null,
   "next_candidate_sp": null,
   "next_candidate_name": null,
-  "development_status": "sp_019_implementation_approved_phase_0_implemented_pending_acceptance_daily_review_not_started",
+  "development_status": "sp_019_implementation_approved_phase_0_accepted_daily_review_implemented_pending_independent_review",
   "current_work": null,
   "updated_at": "2026-07-26",
   "governance_sources": {
@@ -323,18 +323,23 @@
     },
     "SP-019": {
       "name": "Daily Review Read Model & Deterministic Follow-up View",
-      "status": "IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / PENDING_ACCEPTANCE / DAILY_REVIEW_NOT_STARTED",
+      "status": "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_IMPLEMENTED / PENDING_INDEPENDENT_REVIEW",
       "planning_baseline_defined": true,
       "planning_baseline_approved": true,
       "approved": true,
       "implementation_started": true,
       "implementation_complete": false,
       "completed": false,
-      "implementation_base": "1fe8a26b01f3bb636d486435d54adece35ea7aea",
-      "phase_0_status": "IMPLEMENTED / PENDING_ACCEPTANCE",
-      "daily_review_status": "NOT_STARTED",
+      "implementation_base": "410ded0533943d23c622fa6788f37a3c06e99ad1",
+      "phase_0_status": "APPROVED / MERGED / POST_MERGE_VERIFIED / ACCEPTED",
+      "phase_0_pr": 50,
+      "phase_0_approved_head": "9dff57f34e26106cb72da9ecf92ab8e208347e07",
+      "phase_0_merge_commit": "410ded0533943d23c622fa6788f37a3c06e99ad1",
+      "phase_0_merged_at": "2026-07-26T17:04:49Z",
+      "phase_0_post_merge_quality_gate_run": 30211823590,
+      "daily_review_status": "IMPLEMENTED / PENDING_INDEPENDENT_REVIEW",
       "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
-      "branch": "docs/sp-019-planning-baseline",
+      "branch": "feat/sp-019-daily-review-read-model",
       "planning_pr": 48,
       "planning_head": "282dd939ff264b0f23d5070b6f632aa0442531ea",
       "planning_merge_commit": "e7fc5b1dd66ff7828c1697bfd5610f300599eee5",
@@ -345,7 +350,7 @@
       "rfc": "RFC-028",
       "adrs": ["ADR-061", "ADR-062"],
       "acceptance": "ACC-019 PLANNING_BASELINE / NOT_EXECUTED",
-      "user_task_workspace_prerequisite": "IMPLEMENTED / PENDING_ACCEPTANCE",
+      "user_task_workspace_prerequisite": "ACCEPTED",
       "scope": "On-demand non-persistent Daily Review read model and deterministic follow-up view"
     }
   },
@@ -473,17 +478,18 @@
       },
       "notes": [
         "This record defines acceptance scope only; no ACC-019 scenario has been executed.",
-        "UserTask Workspace Query Closure is SP-019 Phase 0 and is implemented on the Draft branch pending independent review and acceptance.",
-        "Phase 0 implementation does not execute ACC-019 or start Daily Review implementation."
+        "UserTask Workspace Query Closure is SP-019 Phase 0 and is accepted after merge and post-merge verification.",
+        "Daily Review is implemented on the Draft branch pending independent review; this does not execute ACC-019."
       ]
     }
   },
   "module_status": {
-    "UserTask": "Integrated / Workspace query closure implemented / Pending acceptance",
+    "UserTask": "Integrated / Workspace query closure accepted",
     "Reminder_Core": "Integrated / Verified / Disabled by default",
     "Reminder_Management": "Integrated / Verified",
     "Intent_Safety": "Integrated / Verified",
     "Daily_Agenda": "Integrated / Verified / Optional-source composition",
+    "Daily_Review": "Implemented on Draft / Pending independent review",
     "Waiting_For": "Integrated / Verified / Manual acceptance passed",
     "Unified_Inbox": "Integrated / Verified / Manual acceptance passed",
     "Capture_to_Action": "Integrated / Verified",

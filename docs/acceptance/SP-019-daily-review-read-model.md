@@ -24,11 +24,13 @@ RFC：RFC-028 — Proposed / Planning Baseline
 
 ADR：ADR-061、ADR-062 — Proposed / Planning Baseline
 
-Implementation：NOT APPROVED
+Owner approval：GRANTED
 
-Coding：NOT STARTED
+Phase 0：ACCEPTED
 
-> 本文只定义未来验收目录与证据要求。本轮没有执行 ACC-019，也不得把 Planning Baseline 描述为产品实现或验收通过。
+Implementation：IMPLEMENTED ON DRAFT / PENDING REVIEW
+
+> 本文定义正式验收目录与证据要求。Daily Review 已在实施 Draft 完成自动化覆盖，但本轮没有执行正式 ACC-019，A～M 仍全部为 NOT_EXECUTED。
 
 ## 启动门禁
 
@@ -202,8 +204,9 @@ GET /daily-review?date=yesterday&limit=50&offset=0
 ## 当前治理结论
 
 ```text
-SP-019 Planning Baseline: APPROVED / MERGED
-SP-019 Implementation: NOT APPROVED
-Coding: NOT STARTED
+SP-019 Planning Baseline: APPROVED / MERGED / RECONCILED
+SP-019 Implementation: OWNER APPROVED
+SP-019 Phase 0: ACCEPTED
+Daily Review: IMPLEMENTED ON DRAFT / PENDING INDEPENDENT REVIEW
 ACC-019: PLANNING_BASELINE / NOT_EXECUTED
 ```

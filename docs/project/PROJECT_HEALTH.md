@@ -5,7 +5,7 @@
 
 ## Summary
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 canonical Work Log 查询边界已合并，ACC-018 A～O 与 post-merge verification 均已通过。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，但 Implementation 仍为 NOT APPROVED / NOT STARTED。这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 canonical Work Log 查询边界已合并，ACC-018 A～O 与 post-merge verification 均已通过。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Implementation 已获批准，Phase 0 已验收；Daily Review 主体已在 Draft 分支实现并等待独立审查，ACC-019 尚未执行。这些能力不等同于生产级多用户平台。
 
 | Metric | Current fact |
 |---|---|
@@ -20,8 +20,8 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 canonica
 | Current product SP | SP-019 |
 | Current governance task | None |
 | Next candidate | None — SP-019 is current |
-| SP-019 Phase 0 | UserTask Workspace Query Closure / IMPLEMENTED / PENDING ACCEPTANCE |
-| SP-019 Daily Review | NOT STARTED |
+| SP-019 Phase 0 | UserTask Workspace Query Closure / ACCEPTED |
+| SP-019 Daily Review | IMPLEMENTED / PENDING INDEPENDENT REVIEW |
 | Latest completed SP | SP-018 / manual acceptance passed / post-merge verified / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
 
@@ -40,7 +40,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-018 canonica
 | Unified Inbox / Capture-to-Action | Integrated / Verified | workspace 隔离、持久化 resolution claim 与幂等已验收 |
 | SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
 | Work Log / SP-018 | Integrated / Verified / Archived | RFC-027 Adopted；ADR-058～060 Accepted；ACC-018 A～O PASSED / FINAL |
-| Daily Review / SP-019 | Planning baseline approved, merged and reconciled / Not implemented | RFC-028、ADR-061、ADR-062 Proposed / Planning Baseline；ACC-019 PLANNING_BASELINE / NOT_EXECUTED；UserTask Workspace query closure is Phase 0 |
+| Daily Review / SP-019 | Implemented on Draft branch / Pending independent review | RFC-028、ADR-061、ADR-062 Proposed / Planning Baseline；ACC-019 PLANNING_BASELINE / NOT_EXECUTED；UserTask Workspace query closure Phase 0 accepted |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

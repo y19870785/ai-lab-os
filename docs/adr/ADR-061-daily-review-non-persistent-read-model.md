@@ -46,4 +46,4 @@ today/yesterday 使用系统 IANA timezone、注入 Clock 和本地午夜半开�
 
 ## 治理状态（Governance）
 
-本 ADR 仅建立 Planning Baseline。状态为 Proposed，不批准或启动 SP-019 实施。
+本 ADR 状态仍为 Proposed。Owner 已批准 SP-019 实施，Phase 0 已接受；非持久化 Daily Review read model 已在实施 Draft 完成并等待独立审查。该事实不等于 ADR Accepted/Final，也不等于 ACC-019 已执行。

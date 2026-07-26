@@ -69,4 +69,4 @@ category=NOT_CONFIGURED
 
 ## 治理状态（Governance）
 
-本 ADR 仅建立 Planning Baseline。状态为 Proposed，不批准或启动 SP-019 实施。
+本 ADR 状态仍为 Proposed。Owner 已批准 SP-019 实施，Phase 0 已接受；source availability 与 fail-closed 语义已在实施 Draft 完成并等待独立审查。该事实不等于 ADR Accepted/Final，也不等于 ACC-019 已执行。

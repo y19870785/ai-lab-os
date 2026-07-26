@@ -24,7 +24,7 @@
 | RFC-027 | Adopted |
 | ADR-058 / ADR-059 / ADR-060 | Accepted |
 | ACC-018 | PASSED / FINAL（A～O 全部通过） |
-| SP-019 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| SP-019 | IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_IMPLEMENTED / PENDING_INDEPENDENT_REVIEW |
 | RFC-028 / ADR-061 / ADR-062 | Proposed / Planning Baseline |
 | ACC-019 | PLANNING_BASELINE / NOT_EXECUTED |
 
@@ -46,7 +46,7 @@ SP-018 feature merge main `83ecb557fedd1d898712afc59ad13b3e0a684413` 的自动 p
 
 SP-018A reconciliation PR #47 已合并为 main `4e0d730a8bfdefa6277c7526a028e7247d7ddc43`；自动 push Quality Gate run `30198434517` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。
 
-SP-019 Planning PR #48 已由 Approved Planning Head `282dd939ff264b0f23d5070b6f632aa0442531ea` Squash Merge 为 main `e7fc5b1dd66ff7828c1697bfd5610f300599eee5`，合并时间 `2026-07-26T14:19:41Z`；自动 push Quality Gate run `30205853257` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。该规划合并不批准或启动 SP-019 Implementation。
+SP-019 Planning PR #48 已由 Approved Planning Head `282dd939ff264b0f23d5070b6f632aa0442531ea` Squash Merge 为 main `e7fc5b1dd66ff7828c1697bfd5610f300599eee5`，合并时间 `2026-07-26T14:19:41Z`；自动 push Quality Gate run `30205853257` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。后续 Owner 已批准 SP-019 Implementation，Phase 0 PR #50 已合并、通过 post-merge Quality Gate 并完成独立验收。
 
 ## Release state
 
@@ -58,4 +58,4 @@ SP-019 Planning PR #48 已由 Approved Planning Head `282dd939ff264b0f23d5070b6f
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Current Product SP 为 SP-019，Current Governance Task 为 None，Latest Completed SP 为 SP-018。SP-018 已合并、验收、完成 post-merge verification 与对账并封存；ACC-018 A～O 均为 PASSED / FINAL。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Owner 已批准 Implementation；Phase 0 UserTask Workspace Query Closure 已在 Draft 分支实现并处于 PENDING ACCEPTANCE。Daily Review Implementation 仍为 NOT STARTED，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED。当前产品版本仍为 `0.34.0`。
+Current Product SP 为 SP-019，Current Governance Task 为 None，Latest Completed SP 为 SP-018。SP-018 已合并、验收、完成 post-merge verification 与对账并封存；ACC-018 A～O 均为 PASSED / FINAL。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Owner 已批准 Implementation；Phase 0 UserTask Workspace Query Closure 已 ACCEPTED。Daily Review 主体已在 Draft 分支实现并处于 PENDING INDEPENDENT REVIEW，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED。当前产品版本仍为 `0.34.0`。
