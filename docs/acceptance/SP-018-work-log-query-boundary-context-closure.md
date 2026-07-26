@@ -1,6 +1,6 @@
 # SP-018 Work Log Query Boundary & Context Closure 验收规划
 
-状态：PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED
+状态：IMPLEMENTATION_DRAFT / NOT_EXECUTED
 
 规划日期：2026-07-23（Asia/Shanghai）
 
@@ -8,11 +8,11 @@
 
 当前源码版本：`0.34.0`
 
-RFC：RFC-027 — Proposed / Planning Baseline
+RFC：RFC-027 — Adopted
 
 ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
-> 本文仅定义 ACC-018 A～O 的未来验收矩阵。没有场景已执行或通过；规划 PR 不批准 SP-018 实施。
+> 本文定义 ACC-018 A～O 的未来人工验收矩阵。Draft Head 的自动化验证不等于人工验收；没有场景已执行或通过。
 
 ## 固定边界
 
@@ -67,13 +67,13 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
 ## ACC-018-B：Workspace 隔离
 
-在不同 tenant_id、workspace_id、namespace 组合创建记录。逐项验证 create/get/list、ID lookup、filter 和分页均只返回完整三元组匹配的数据；仅 workspace_id 相同不能越权。
+在不同 tenant_id、workspace_id、namespace 组合创建记录。逐项验证 create/get/list、ID lookup、filter 和分页均只返回完整三元组匹配的数据；仅 workspace_id 相同不能越权。canonical、historical Inbox alias 与 legacy digest lookup 均必须先完成 SQL Workspace scope，再解码、验证或投影；其他 Workspace 的 malformed row 不得影响当前 Workspace，也不得泄漏 projection failure。
 
 状态：NOT_EXECUTED
 
 ## ACC-018-C：Today 与日期范围
 
-验证系统 timezone、显式合法 IANA timezone、UTC 转换、`[start,end)`、午夜边界、DST 边界、date_from/date_to 和无效/歧义时间 fail closed。不得用当前时间补造 legacy 时间。
+验证系统 timezone、显式合法 IANA timezone、UTC 转换、`[start,end)`、午夜边界、date_from/date_to 和无效/歧义时间 fail closed。America/New_York spring-forward 日必须为 23 小时、fall-back 日必须为 25 小时；naive legacy 不存在或歧义时间必须 projection_failed。不得用当前时间补造 legacy 时间。
 
 状态：NOT_EXECUTED
 
@@ -154,7 +154,9 @@ Daily Agenda 必须：
 - 通过 WorkLogService；
 - 传完整 WorkspaceKey；
 - TODAY/COMPLETED 使用当天半开区间；
-- ALL 使用稳定查询；
+- COMPLETED 只请求并显示 `status=completed`；
+- TODAY 明确映射 completed/blocked/in_progress/informational，禁止全部标记 completed；
+- ALL 不设置任意日期窗口，并以每页 200 条稳定读取全部可见 Work Log；
 - legacy/new 都可显示；
 - source_id 使用 canonical `wl_...`；
 - 不直接扫描 MemoryManager；
@@ -175,6 +177,8 @@ Daily Brief 的 Work Log 数据必须来自 WorkLogService，具有正确 Worksp
 - 同一 Service 与 episodic.db；
 - 同一 canonical ID、Workspace、字段、排序、分页；
 - 相同 FailureInfo code；
+- API/CLI/CEO 的 ValidationError 均在 WorkLogService 边界映射，不退化为 `api.request.validation_failed`、`api.request.failed` 或 traceback；
+- 明确但未知/空的 status 返回 `work_log.query_invalid`，且不调用无过滤 repository list；
 - API Workspace headers 生效；
 - `python -m cli log` 兼容 alias 不形成第二写路径；
 - 明确 query intent 为 READ；

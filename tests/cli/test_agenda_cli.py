@@ -1,9 +1,10 @@
 import asyncio
+import hashlib
 import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -32,7 +33,8 @@ def _run_agenda(args_str, tmp_path, extra_env=None):
     python_executable = sys.executable
     cmd = [python_executable, "-m", "cli", "agenda"] + args_str.split()
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env=env,
-                          encoding="utf-8", cwd=str(Path(__file__).parent.parent.parent))
+                          encoding="utf-8", cwd=str(Path(__file__).parent.parent.parent),
+                          check=False)
     return proc
 
 
@@ -142,7 +144,7 @@ async def _seed_workspace_agenda(path):
     )
     await system.start()
     try:
-        now = datetime.now(timezone.utc).replace(microsecond=0)
+        now = datetime.now(UTC).replace(microsecond=0)
         business_timezone = ZoneInfo("Asia/Shanghai")
         business_date = now.astimezone(business_timezone).date()
 
@@ -227,9 +229,18 @@ async def _seed_workspace_agenda(path):
             "normal": normal.id,
             "next_five": next_five.id,
             "foreign": foreign.id,
-            "today_log": today_log,
-            "yesterday_log": yesterday_log,
-            "foreign_log": foreign_log,
+            "today_log": (
+                "wl_legacy_"
+                + hashlib.sha256(today_log.encode("utf-8")).hexdigest()
+            ),
+            "yesterday_log": (
+                "wl_legacy_"
+                + hashlib.sha256(yesterday_log.encode("utf-8")).hexdigest()
+            ),
+            "foreign_log": (
+                "wl_legacy_"
+                + hashlib.sha256(foreign_log.encode("utf-8")).hexdigest()
+            ),
             "occurrence": occurrence.id,
         }
     finally:
@@ -261,8 +272,18 @@ def test_agenda_cli_all_views_preserve_workspace_and_persisted_state(tmp_path):
 
     completed_ids = {item["source_id"] for item in pages["completed"]["items"]}
     assert seeded["triggered"] in completed_ids
-    assert seeded["today_log"] in completed_ids
+    assert seeded["today_log"] not in completed_ids
+    assert seeded["foreign_log"] not in completed_ids
     assert seeded["yesterday_log"] not in completed_ids
+
+    today_by_id = {
+        item["source_id"]: item for item in pages["today"]["items"]
+    }
+    # Incomplete Legacy ownership projects to default/default/default, while
+    # missing status projects to informational rather than completed.
+    assert today_by_id[seeded["today_log"]]["kind"] == "event"
+    assert today_by_id[seeded["foreign_log"]]["kind"] == "event"
+    assert seeded["yesterday_log"] not in today_by_id
 
     next_ids = {item["source_id"] for item in pages["next"]["items"]}
     assert seeded["normal"] in next_ids
@@ -271,7 +292,6 @@ def test_agenda_cli_all_views_preserve_workspace_and_persisted_state(tmp_path):
     for page in pages.values():
         page_ids = {item["source_id"] for item in page["items"]}
         assert seeded["foreign"] not in page_ids
-        assert seeded["foreign_log"] not in page_ids
 
     after = asyncio.run(_snapshot(tmp_path))
     assert after == before

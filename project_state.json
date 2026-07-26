@@ -12,11 +12,11 @@
   "source_baseline": "independently verified main before the final publication commit",
   "latest_merged_sp": "SP-017",
   "latest_completed_sp": "SP-017",
-  "current_sp": null,
+  "current_sp": "SP-018",
   "current_governance_task": null,
-  "next_candidate_sp": "SP-018",
-  "next_candidate_name": "Work Log Query Boundary & Context Closure",
-  "development_status": "sp_018_planning_baseline_defined_implementation_not_approved",
+  "next_candidate_sp": "SP-019",
+  "next_candidate_name": "Daily Review & Follow-up Brief",
+  "development_status": "sp_018_implemented_on_draft_head_automated_verification_passed",
   "current_work": null,
   "updated_at": "2026-07-23",
   "governance_sources": {
@@ -289,11 +289,17 @@
     },
     "SP-018": {
       "name": "Work Log Query Boundary & Context Closure",
-      "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "status": "APPROVED_FOR_IMPLEMENTATION / IMPLEMENTED_ON_DRAFT_HEAD / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_NOT_EXECUTED / NOT_MERGED",
       "planning_baseline_defined": true,
-      "approved": false,
-      "implementation_started": false,
-      "implementation_complete": false,
+      "approved": true,
+      "implementation_started": true,
+      "implementation_complete": true,
+      "manual_acceptance_status": "NOT_EXECUTED",
+      "base_commit": "ee06f6a20004bdbf24fc94c8420c18cf1a3d45b3",
+      "branch": "feat/sp-018-work-log-query-boundary",
+      "planning_pr": 45,
+      "planning_head": "e485c99d9734a43665c0c891e886e91b59c577d6",
+      "planning_merge_commit": "ee06f6a20004bdbf24fc94c8420c18cf1a3d45b3",
       "target_version": "0.35.0",
       "rfc": "RFC-027",
       "adrs": ["ADR-058", "ADR-059", "ADR-060"],
@@ -373,7 +379,7 @@
       ]
     },
     "ACC-018": {
-      "status": "PLANNING_BASELINE / NOT_EXECUTED / IMPLEMENTATION_NOT_APPROVED",
+      "status": "IMPLEMENTATION_DRAFT / NOT_EXECUTED",
       "manual_acceptance": false,
       "scenarios": {
         "A": "NOT_EXECUTED",
@@ -393,8 +399,8 @@
         "O": "NOT_EXECUTED"
       },
       "notes": [
-        "ACC-018 defines a future acceptance matrix only; no scenario has been executed.",
-        "Planning approval does not authorize SP-018 implementation."
+        "ACC-018 remains a future manual acceptance matrix; no scenario has been executed.",
+        "Automated implementation verification does not constitute manual acceptance."
       ]
     }
   },
@@ -407,6 +413,7 @@
     "Waiting_For": "Integrated / Verified / Manual acceptance passed",
     "Unified_Inbox": "Integrated / Verified / Manual acceptance passed",
     "Capture_to_Action": "Integrated / Verified",
+    "Work_Log": "Implemented on Draft Head / Automated verification passed / Manual acceptance not executed",
     "Knowledge": "Implemented / Disabled; real main path incomplete",
     "Coordination": "Implemented / Disabled; not connected to the CEO Assistant main path",
     "Web_UI": "Not Implemented",

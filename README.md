@@ -1,5 +1,7 @@
 # AI-Lab OS
 
+> SP-018 Draft：Work Log 查询先完成完整 Workspace SQL scope，再解码或投影；API、CLI、CEO Assistant 共享稳定 FailureInfo，Agenda 与 DST 边界保持 fail-closed 合同。ACC-018 尚未执行。
+
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
 **当前版本：v0.34.0 Alpha / Release Authorized**
@@ -17,7 +19,8 @@ AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业�
 - Reminder Core：持久化 Reminder、Scheduler Job 与站内状态；支持今天/明天的确定性时间子集。
 - Reminder Management：列表、详情、取消、改期、workspace 校验和幂等语义。
 - Intent Safety：读、写、聊天显式分离；模糊查询优先只读。
-- Daily Agenda：统一读取 UserTask、Reminder 与 Work Log。
+- Work Log（SP-018 Draft）：统一 create/get/list、完整 Workspace identity、canonical/legacy ID、API/CLI/CEO/Inbox 入口与只读查询；ACC-018 尚未执行。
+- Daily Agenda：统一读取 UserTask、Reminder、Waiting-For 与 canonical Work Log。
 - Unified Inbox / Capture-to-Action：捕获待整理事项，并显式转化为 UserTask、Reminder、Work Log、Note 或 Dismiss。
 - Waiting-For Follow-up Interaction：自然语言先捕获 Inbox，再以 Inbox ID 确认创建；显式 `wf_...` ID 支持确定性生命周期操作，已通过 ACC-017 A～O 并封存。
 - API、CLI 与 CEO Assistant：共享 canonical Composition Root 和领域服务。

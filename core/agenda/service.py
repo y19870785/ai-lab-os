@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from core.agenda.models import (
     AgendaItem,
@@ -15,7 +16,6 @@ from core.agenda.models import (
 )
 from core.clock import Clock
 from core.errors import ErrorCategory, FailureException, FailureInfo
-from zoneinfo import ZoneInfo
 
 _VALID_LIMIT_RANGE = range(1, 101)
 _VALID_WINDOW_RANGE = range(1, 169)
@@ -32,6 +32,7 @@ class DailyAgendaService:
         user_tasks=None,
         reminder_inbox=None,
         memory_manager=None,
+        work_log_service=None,
         waiting_for=None,
         *,
         timezone_name: str,
@@ -40,6 +41,7 @@ class DailyAgendaService:
         self._user_tasks = user_tasks
         self._reminder_inbox = reminder_inbox
         self._memory = memory_manager
+        self._work_logs = work_log_service
         self._waiting_for = waiting_for
         self._zone = ZoneInfo(timezone_name)
         self._clock = clock
@@ -55,7 +57,7 @@ class DailyAgendaService:
         window_hours = window_hours or (3 if view == AgendaView.NEXT else 24)
         if window_hours not in _VALID_WINDOW_RANGE:
             self._raise("agenda.window_invalid", "window_hours must be 1-168", trace_id)
-        now_utc = self._clock.now().astimezone(timezone.utc)
+        now_utc = self._clock.now().astimezone(UTC)
         today_start, today_end = self._today_bounds(now_utc)
         window_start, window_end = self._window_bounds(now_utc, view, window_hours, today_start, today_end)
         items, failures = await self._collect(view, workspace_key, trace_id, now_utc, today_start, today_end, window_start, window_end)
@@ -77,7 +79,7 @@ class DailyAgendaService:
         if view == AgendaView.TODAY:
             items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_today(workspace_key, trace_id, today_start, today_end), failures)
             items += await self._optional(self._user_tasks, "user_task", lambda: self._user_task_actions(workspace_key, trace_id, today_start, today_end, False), failures)
-            items += await self._optional(self._memory, "work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(self._work_logs, "work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
             items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.NEXT:
             items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_actions(workspace_key, trace_id, window_start, window_end), failures)
@@ -88,13 +90,31 @@ class DailyAgendaService:
             items += await self._optional(self._user_tasks, "user_task", lambda: self._overdue_tasks(workspace_key, trace_id, now_utc), failures)
             items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.COMPLETED:
+            from core.work_log import WorkLogStatus
+
             items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_completed(workspace_key, trace_id, today_start, today_end), failures)
-            items += await self._optional(self._memory, "work_log", lambda: self._wl(workspace_key, trace_id, today_start, today_end), failures)
+            items += await self._optional(
+                self._work_logs,
+                "work_log",
+                lambda: self._wl(
+                    workspace_key,
+                    trace_id,
+                    today_start,
+                    today_end,
+                    status=WorkLogStatus.COMPLETED,
+                ),
+                failures,
+            )
             items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         elif view == AgendaView.ALL:
             items += await self._optional(self._reminder_inbox, "reminder", lambda: self._reminder_all(workspace_key, trace_id), failures)
             items += await self._optional(self._user_tasks, "user_task", lambda: self._user_task_all(workspace_key, trace_id), failures)
-            items += await self._optional(self._memory, "work_log", lambda: self._wl(workspace_key, trace_id, today_start - timedelta(days=365), today_end + timedelta(days=365)), failures)
+            items += await self._optional(
+                self._work_logs,
+                "work_log",
+                lambda: self._wl(workspace_key, trace_id, None, None),
+                failures,
+            )
             items += await self._optional(self._waiting_for, "waiting_for", lambda: self._waiting_for_items(workspace_key, trace_id, view, now_utc, today_start, today_end, window_start, window_end), failures)
         return items, failures
 
@@ -197,44 +217,50 @@ class DailyAgendaService:
             out += [_ui(t, kind) for t in tasks if self._belongs(t, wk)]
         return out
 
-    async def _wl(self, wk, tid, ts, te):
-        from core.memory.models import MemoryQuery, MemoryType
-        items = await self._memory.retrieve_memory(MemoryQuery(memory_type=MemoryType.EPISODIC, top_k=200))
+    async def _wl(self, wk, tid, ts, te, *, status=None):
+        from core.work_log import WorkLogQuery, WorkLogStatus
+
+        items = []
+        offset = 0
+        while True:
+            page = await self._work_logs.list(
+                workspace_key=wk,
+                query=WorkLogQuery(
+                    date_from=ts,
+                    date_to=te,
+                    status=status,
+                    limit=200,
+                    offset=offset,
+                ),
+            )
+            items.extend(page.items)
+            if not page.has_more:
+                break
+            offset += page.count
         out = []
         wk_id = (wk.workspace_id or "default") if hasattr(wk, "workspace_id") else "default"
         for it in items:
-            content = it.content or {}
-            if content.get("type") != "work_log":
-                continue
-            meta = content.get("metadata") or {}
-            item_ws = meta.get("workspace_id", "default")
-            if item_ws != wk_id:
-                continue
-            ts_val = None
-            raw = content.get("date") or ""
-            try:
-                ts_val = datetime.fromisoformat(str(raw))
-                if ts_val.tzinfo is None:
-                    ts_val = ts_val.replace(tzinfo=self._zone)
-                ts_val = ts_val.astimezone(timezone.utc)
-            except (ValueError, TypeError):
-                pass
-            if ts_val is None or not (ts <= ts_val < te):
-                continue
+            kind = {
+                WorkLogStatus.COMPLETED: AgendaItemKind.COMPLETED,
+                WorkLogStatus.BLOCKED: AgendaItemKind.ATTENTION,
+                WorkLogStatus.IN_PROGRESS: AgendaItemKind.ACTION,
+                WorkLogStatus.INFORMATIONAL: AgendaItemKind.EVENT,
+            }[it.status]
             out.append(AgendaItem(
-                id=f"agenda-wl-{it.id}", source=AgendaItemSource.WORK_LOG, kind=AgendaItemKind.COMPLETED,
-                title=content.get("subject", "") or content.get("raw_text", "") or str(content)[:120],
-                status="completed", occurred_at=ts_val, timezone=self._zone.key,
+                id=f"agenda-wl-{it.id}", source=AgendaItemSource.WORK_LOG,
+                kind=kind, title=it.subject,
+                status=it.status.value, occurred_at=it.occurred_at,
+                timezone=it.timezone,
                 workspace_id=wk_id, source_id=it.id,
             ))
-        out.sort(key=lambda x: x.occurred_at or datetime.min.replace(tzinfo=timezone.utc))
+        out.sort(key=lambda x: x.occurred_at or datetime.min.replace(tzinfo=UTC))
         return out
 
     def _today_bounds(self, now_utc):
         local = now_utc.astimezone(self._zone)
         ls = local.replace(hour=0, minute=0, second=0, microsecond=0)
         le = ls + timedelta(days=1)
-        return ls.astimezone(timezone.utc), le.astimezone(timezone.utc)
+        return ls.astimezone(UTC), le.astimezone(UTC)
 
     def _window_bounds(self, now_utc, view, wh, ts, te):
         if view in (AgendaView.TODAY, AgendaView.COMPLETED):
@@ -254,15 +280,15 @@ class DailyAgendaService:
     def _sort_key(item: AgendaItem):
         if item.source == AgendaItemSource.WAITING_FOR:
             if item.kind == AgendaItemKind.COMPLETED:
-                eff = item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+                eff = item.occurred_at or datetime.min.replace(tzinfo=UTC)
             else:
                 candidates = [
                     value for value in (item.scheduled_for, item.due_at)
                     if value is not None
                 ]
-                eff = min(candidates) if candidates else datetime.min.replace(tzinfo=timezone.utc)
+                eff = min(candidates) if candidates else datetime.min.replace(tzinfo=UTC)
         else:
-            eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=timezone.utc)
+            eff = item.scheduled_for or item.due_at or item.occurred_at or datetime.min.replace(tzinfo=UTC)
         return (eff, kind_priority(item.kind), source_priority(item.source), item.source_id)
 
     @staticmethod
@@ -283,7 +309,7 @@ class DailyAgendaService:
     async def _safe(source: str, fn, failures: list[str]):
         try:
             return await fn()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - optional source boundary
             from core.errors import FailureException
             if isinstance(exc, FailureException):
                 f = exc.failure

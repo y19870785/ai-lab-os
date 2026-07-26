@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from applications.models import ApplicationRequest, ApplicationResponse
-from core.system import create_system, load_system_settings
 from core.errors import ErrorCategory, FailureException, FailureInfo
+from core.system import create_system, load_system_settings
+from core.work_log import WorkLogService
 from core.workspace.models import WorkspaceKey
 
 
@@ -20,6 +21,39 @@ async def execute_ceo_request(user_input: str) -> tuple[ApplicationResponse, str
             user_input=user_input,
         ))
         return response, settings.provider_mode
+    finally:
+        await system.shutdown()
+
+
+async def execute_work_log_operation(
+    operation: str, *, workspace_key: WorkspaceKey, **values
+):
+    """Execute one Work Log operation through the shared Composition Root."""
+
+    settings = load_system_settings()
+    system = await create_system(settings)
+    await system.start()
+    try:
+        service = system.work_log_service
+        if service is None:
+            WorkLogService.raise_not_configured(
+                operation=operation,
+                trace_id=workspace_key.trace_id,
+            )
+        if operation == "create":
+            return await service.create_from_input(
+                workspace_key=workspace_key, **values
+            )
+        if operation == "list":
+            return await service.query_from_input(
+                workspace_key=workspace_key, **values
+            )
+        if operation == "show":
+            return await service.get(
+                workspace_key=workspace_key,
+                work_log_id=values["work_log_id"],
+            )
+        raise ValueError(f"Unsupported Work Log operation: {operation}")
     finally:
         await system.shutdown()
 

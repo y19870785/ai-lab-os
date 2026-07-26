@@ -9,45 +9,44 @@ from dataclasses import dataclass, field
 from applications.ceo_assistant.application import CEOAssistant
 from applications.registry import ApplicationRegistry
 from applications.runtime import ApplicationRuntime
+from core.agenda import DailyAgendaService
+from core.agents.models import AgentStatus
 from core.agents.runtime import DefaultAgentRuntime
 from core.bus.bus import MemoryBus
 from core.clock import Clock
 from core.coordination.orchestrator import AgentOrchestrator
 from core.database.manager import DatabaseManager
+from core.errors import RuntimeStatus
+from core.inbox import InboxService, SQLiteInboxRepository
 from core.knowledge.manager import KnowledgeManager
 from core.memory.manager import MemoryManager
 from core.memory.protocol import MemoryStore
 from core.providers.base import BaseProvider
 from core.providers.factory import ProviderFactory
 from core.providers.llm.protocol import LLMProvider
+from core.providers.models import ProviderStatus
 from core.providers.registry import ProviderRegistry
+from core.reminders import (
+    NaturalLanguageReminderOrchestrator,
+    ReminderInboxService,
+    ReminderManagementService,
+    ReminderSchedulerBridge,
+    ReminderService,
+    SQLiteReminderRepository,
+)
 from core.scheduler.runtime import SchedulerRuntime
-from core.errors import RuntimeStatus
 from core.system.admission import WorkAdmissionGate
 from core.system.exceptions import SystemInitializationError
-from core.system.lifecycle import (
-    LifecycleStateMachine, SystemLifecycleState
-)
+from core.system.lifecycle import LifecycleStateMachine, SystemLifecycleState
 from core.system.settings import SystemSettings
 from core.task.runtime import TaskRuntime
 from core.tools.executor import ToolExecutor
 from core.tools.protocol import ToolProtocol
 from core.tools.registry import ToolRegistry
-from core.workflow.runtime import WorkflowRuntime
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
-from core.agenda import DailyAgendaService
-from core.inbox import InboxService, SQLiteInboxRepository
 from core.waiting_for import SQLiteWaitingForRepository, WaitingForService
-from core.reminders import (
-    ReminderSchedulerBridge,
-    ReminderInboxService,
-    ReminderManagementService,
-    NaturalLanguageReminderOrchestrator,
-    ReminderService,
-    SQLiteReminderRepository,
-)
-from core.agents.models import AgentStatus
-from core.providers.models import ProviderStatus
+from core.work_log import SQLiteWorkLogRepository, WorkLogService
+from core.workflow.runtime import WorkflowRuntime
 
 logger = logging.getLogger("ai-lab.system")
 
@@ -65,6 +64,8 @@ class SystemContainer:
     providers: tuple[BaseProvider, ...]
     memory_manager: MemoryManager
     memory_stores: tuple[MemoryStore, ...]
+    work_log_repository: SQLiteWorkLogRepository
+    work_log_service: WorkLogService
     knowledge_manager: KnowledgeManager | None
     tool_registry: ToolRegistry
     tool_executor: ToolExecutor
@@ -123,6 +124,9 @@ class SystemContainer:
             for store in self.memory_stores:
                 await store.initialize()
             logger.info("memory.initialized")
+
+            await self.work_log_service.initialize()
+            logger.info("work_log.initialized")
 
             if self.user_task_service is not None:
                 await self.user_task_service.initialize()
@@ -226,6 +230,7 @@ class SystemContainer:
             await close_component("reminder_service", self.reminder_service.close)
         await close_component("waiting_for_service", self.waiting_for_service.close)
         await close_component("inbox_service", self.inbox_service.close)
+        await close_component("work_log_service", self.work_log_service.close)
         if self.user_task_service is not None:
             await close_component("user_task_service", self.user_task_service.close)
         await close_component("workflow_runtime", self.workflow_runtime.shutdown)
@@ -314,6 +319,7 @@ class SystemContainer:
         )
         inbox_health = await self.inbox_repository.health_check()
         waiting_for_health = await self.waiting_for_service.health()
+        work_log_health = await self.work_log_service.health_check()
         reminder_status = RuntimeStatus.DISABLED.value
         if self.reminder_service is not None:
             statuses = {
@@ -342,6 +348,7 @@ class SystemContainer:
             },
             "database": database_health,
             "memory": memory_health,
+            "work_log": work_log_health,
             "knowledge": {
                 "status": (
                     RuntimeStatus.DISABLED.value
@@ -405,6 +412,7 @@ class SystemContainer:
             "agent", "workflow", "task",
             "inbox",
             "waiting_for",
+            "work_log",
         }
         if self.settings.enable_scheduler:
             critical.add("scheduler")

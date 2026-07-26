@@ -1,8 +1,8 @@
 # RFC-027 — Work Log Query Boundary & Context Closure
 
-Status: Proposed / Planning Baseline
+Status: Adopted
 
-> 本 RFC 仅定义 SP-018 规划基线。SP-018 实施尚未批准、尚未启动；本文中的模型、服务、API、CLI 和迁移路径均未实现。
+> 本 RFC 已获采纳并由 SP-018 Draft Head 实现。自动化验证已通过；ACC-018 人工验收尚未执行，实现尚未合并。
 
 ## 1. 背景
 
@@ -150,7 +150,7 @@ wl_legacy_<64 lowercase sha256 hex of legacy memory id>
 
 新记录的 `episodic_memories.id` 与 `WorkLogRecord.id` 相同。随机 ID 冲突时重新生成并以 insert-only 重试；Inbox 确定性 ID 冲突只在来源一致时恢复，否则返回 conflict，禁止覆盖。Legacy digest 使用完整 SHA-256，避免截断碰撞；底层 legacy ID 只保留在投影字段，不作为公开 API ID。
 
-历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias，不是新的 canonical ID。`get(workspace_key, inbox_wl_...)` 必须精确定位同 ID 的 legacy episodic row，并同时验证：
+历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias，不是新的 canonical ID。`get(workspace_key, inbox_wl_...)` 必须先在 SQL 中同时限定同 ID、`type=work_log` 与完整 Workspace identity；只有可见候选才能验证：
 
 - `content` 是 dict 且 `content.type == "work_log"`；
 - row ID、`source`、`inbox_item_id` 等历史来源证据彼此一致，能证明它是 Inbox-origin Work Log；
@@ -164,7 +164,7 @@ wl_legacy_<64 lowercase sha256 hex of legacy memory id>
 - `occurred_at` 持久化为 UTC aware ISO-8601，同时保存原 IANA timezone。
 - 用户日期范围在请求 timezone 中建立边界，再转为 UTC 半开区间 `[start, end)`。
 - today 使用系统 `timezone_name`，除非显式入口合同允许合法 IANA timezone。
-- DST 由 `zoneinfo` 处理；不存在/歧义本地时间 fail closed。
+- DST 由 `zoneinfo` 处理；naive legacy wall time 必须分别验证 fold=0/fold=1 的 local→UTC→local round-trip，零个有效解释视为不存在、两个不同 UTC 解释视为歧义，均以 `work_log.legacy_projection_failed` fail closed。
 - Legacy 投影优先级：可解析 `content.occurred_at` → 可解析 `content.date` → `MemoryItem.timestamp`。
 - 只有日期的 legacy 值按系统 timezone 当地零点解释；绝不使用“当前时间”补造历史。
 - 投影记录其时间来源，无法获得有效时间时返回 `work_log.legacy_projection_failed`，而非静默猜测。
@@ -178,6 +178,8 @@ WorkLogService.list(workspace_key, query)
 ```
 
 `list` 支持 `date_from/date_to/target/tags/status/text/context_ref/limit/offset/sort`。过滤条件之间为 AND；多个 tags 默认 all-of。文本查询只对 subject/raw_text/target 做 trimmed Unicode casefold substring，不做模糊相似度或 LLM 检索。空字符串无效。
+
+API、CLI 与 CEO Assistant 的未可信输入必须由 WorkLogService 统一构造 `WorkLogCreateCommand` / `WorkLogQuery` 并映射 ValidationError。明确提供但无法映射的 status（包括空状态）返回 `work_log.query_invalid`，禁止移除 status filter 后扩大为查询全部。
 
 默认 `limit=50`，范围 1～200；offset 范围 0～10000。默认且唯一首期排序：
 
@@ -219,7 +221,7 @@ WorkLogService
 - 不建立第二张表、不双写、不发布“已创建”成功直到同一行提交完成；
 - 可抽取共享 row codec，但不得重写整个 Memory Layer。
 
-首期允许在现有 JSON 列上使用 `json_extract`；不修改 Schema。Workspace SQL predicate 必须先于任何 Python 投影。若性能证据显示需要索引，必须另立 Schema 变更任务，不能在 SP-018 偷带。
+首期允许在现有 JSON 列上使用 `json_extract`；不修改 Schema。所有 public get/list 必须先在 SQL 中限定 `type=work_log` 与请求 Workspace，再解码 canonical 或投影 legacy。canonical `wl_...` 与历史 `inbox_wl_...` 使用 scoped identity lookup；`wl_legacy_...` 只在已通过 Workspace predicate 的候选行中计算 digest。若 scoped lookup 未命中，canonical/Inbox alias 只允许用 `id/memory_type/content.type/Workspace 三元组` 做 existence 判断，不得读取其他 Workspace 正文。若性能证据显示需要索引，必须另立 Schema 变更任务，不能在 SP-018 偷带。
 
 ## 13. Legacy 兼容
 
@@ -321,18 +323,19 @@ WorkLogInteractionHandler
 WorkLogUserErrorPresenter
 ```
 
-明确写入才 create；查询全部是 `IntentEffect.READ`、零副作用。支持 today、ID、target、tag、status、日期范围的确定性解析。模糊查询返回列表、示例或要求补充过滤条件，绝不降级成写入。LLM 可生成普通聊天文本，但不能决定持久化查询、字段、context ref 或成功。
+明确写入才 create；查询全部是 `IntentEffect.READ`、零副作用。支持 today、ID、target、tag、status、日期范围的确定性解析。明确但未知或空的 status 必须 `work_log.query_invalid`，不得回落为无过滤查询。模糊查询返回列表、示例或要求补充过滤条件，绝不降级成写入。LLM 可生成普通聊天文本，但不能决定持久化查询、字段、context ref 或成功。
 
 ## 19. Daily Agenda
 
 实施后 Work Log 来源改为 WorkLogService：
 
-- TODAY/COMPLETED：查询当天 `[start,end)`；
-- ALL：使用明确上限和稳定分页，不再硬编码前后 365 天扫描；
+- TODAY：查询当天 `[start,end)`，并映射 completed→completed、blocked→attention、in_progress→action、informational→event；
+- COMPLETED：查询当天 `[start,end)` 且显式 `status=completed`；
+- ALL：不设置 date_from/date_to，以每页 200 条稳定分页读取全部可见 Work Log，不再硬编码前后 365 天；
 - NEXT/ATTENTION：保持现有无 Work Log 来源语义，除非独立产品决策；
 - 传完整 WorkspaceKey；
 - legacy/new 使用相同投影；
-- `source_id` 使用 canonical `wl_...`；
+- `source_id` 使用公开 canonical identity（新记录 `wl_...`、legacy 投影 `wl_legacy_...`）；
 - Agenda 保持只读聚合，不把 Agenda 逻辑放入 WorkLogService。
 
 ## 20. Daily Brief

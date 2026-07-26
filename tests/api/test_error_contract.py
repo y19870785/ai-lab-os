@@ -103,18 +103,22 @@ def test_fastapi_validation_uses_common_400_contract(tmp_path):
 def test_ceo_application_failure_is_non_2xx_and_does_not_leak_error(tmp_path):
     app = create_app(make_test_settings(tmp_path))
     with TestClient(app) as client:
-        async def fail_save_memory(*args, **kwargs):
-            raise OSError("database C:/private/customer.sqlite is unavailable")
+        from core.work_log.errors import WorkLogRepositoryError
 
-        app.state.system.ceo_assistant._memory.save_memory = fail_save_memory
+        async def fail_create(*args, **kwargs):
+            raise WorkLogRepositoryError(
+                "database C:/private/customer.sqlite is unavailable"
+            )
+
+        app.state.system.work_log_repository.create = fail_create
         response = client.post("/work-logs", json={
             "user_input": "完成客户报价复核",
         })
 
     _assert_error_contract(
         response,
-        503,
-        "application.ceo_assistant.execute_failed",
+        500,
+        "work_log.repository_failed",
     )
     assert "answer" not in response.json()
     assert "C:/private" not in response.text

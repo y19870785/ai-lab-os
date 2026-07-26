@@ -1,12 +1,15 @@
 ﻿"""API Models。"""
 from datetime import datetime
-from pydantic import BaseModel, Field, model_validator
 from typing import Any
 
-from core.user_tasks import UserTaskPriority, UserTaskStatus
-from core.reminders import ReminderOccurrenceStatus, ReminderStatus
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from core.inbox import InboxResolvedType, InboxStatus, InboxSuggestedType
+from core.reminders import ReminderOccurrenceStatus, ReminderStatus
+from core.user_tasks import UserTaskPriority, UserTaskStatus
 from core.waiting_for import WaitingForEventType, WaitingForStatus, WaitingForView
+from core.work_log import WorkLogStatus
+
 
 class ChatRequest(BaseModel):
     user_input: str = ""
@@ -22,6 +25,29 @@ class ChatResponse(BaseModel):
     trace_id: str = ""
     latency_ms: float = 0.0
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class WorkLogCreateRequest(BaseModel):
+    """Typed create contract plus the historical ChatRequest input adapter."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    subject: Any = None
+    raw_text: Any = None
+    occurred_at: Any = None
+    timezone: Any = None
+    target: Any = None
+    status: Any = WorkLogStatus.COMPLETED.value
+    tags: Any = Field(default_factory=list)
+    context_refs: Any = Field(default_factory=list)
+    user_input: Any = Field(
+        default=None,
+        description="Deprecated ChatRequest compatibility field.",
+    )
+    application_name: str | None = None
+    session_id: str | None = None
+    idempotency_key: str | None = None
+    stream: bool | None = None
 
 class TaskCreateRequest(BaseModel):
     title: str
