@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -16,12 +16,11 @@ from core.system import create_system, make_test_settings
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
-
 pytestmark = pytest.mark.asyncio(loop_scope="function")
 
 
 async def _system(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 17, 0, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 17, 0, 0, tzinfo=UTC))
     settings = make_test_settings(
         tmp_path,
         enable_scheduler=True,
@@ -35,19 +34,18 @@ async def _system(tmp_path):
 
 
 async def _create(system, title, due_at, workspace="default"):
+    key = WorkspaceKey(
+        tenant_id="tenant-a" if workspace != "default" else "default",
+        workspace_id=workspace,
+    )
     task = await system.user_task_service.create(
+        workspace_key=key,
         title=title,
         due_at=due_at,
         timezone="Asia/Shanghai",
-        metadata={
-            "workspace": {
-                "tenant_id": "tenant-a" if workspace != "default" else "default",
-                "workspace_id": workspace,
-                "namespace": "default",
-            }
-        },
     )
     return await system.reminder_bridge.create(
+        workspace_key=key,
         user_task_id=task.id,
         remind_at=due_at,
         timezone_name="Asia/Shanghai",

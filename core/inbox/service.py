@@ -488,12 +488,12 @@ class InboxService:
             if not task_id:
                 raise RuntimeError("UserTask claim target is missing")
             metadata = {
-                "workspace": self._workspace_dict(workspace_key),
                 "inbox_item_id": item.id,
                 "inbox_source": item.source,
             }
             try:
                 task = await self._user_tasks.create(
+                    workspace_key=workspace_key,
                     task_id=task_id,
                     title=title,
                     description=description,
@@ -508,7 +508,11 @@ class InboxService:
             except FailureException as exc:
                 if exc.failure.category != ErrorCategory.CONFLICT:
                     raise
-                task = await self._user_tasks.get(task_id, workspace_key.trace_id)
+                task = await self._user_tasks.get(
+                    workspace_key=workspace_key,
+                    task_id=task_id,
+                    trace_id=workspace_key.trace_id,
+                )
                 if task.metadata.get("inbox_item_id") != item.id:
                     raise
             return task.id
@@ -538,7 +542,6 @@ class InboxService:
         async def create(item: InboxItem, claim: InboxResolutionClaim) -> str:
             if self._reminder_orchestrator is None:
                 raise RuntimeError("Reminder service is not configured")
-            workspace = self._workspace_dict(workspace_key)
             result = await self._reminder_orchestrator.create_for_task(
                 title=title,
                 due_at=scheduled_at,
@@ -547,9 +550,8 @@ class InboxService:
                 description=description,
                 session_id=workspace_key.session_id,
                 trace_id=workspace_key.trace_id,
-                workspace_scope=self._workspace_scope(workspace_key),
+                workspace_key=workspace_key,
                 idempotency_key=claim.target_key or idempotency_key,
-                workspace=workspace,
             )
             return result.reminder_id
 

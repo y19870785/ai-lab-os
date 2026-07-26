@@ -2,10 +2,10 @@
 
 > Product Version: v0.34.0
 > Last Completed SP: SP-018
-> Current SP: None
+> Current SP: SP-019
 > Current Governance Task: None
-> Next Candidate SP: SP-019
-> Next Candidate Direction: Daily Review Read Model & Deterministic Follow-up View
+> Next Candidate SP: None
+> Next Candidate Direction: None while SP-019 is current
 > SP-016 Status: APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
 > ACC-016 Status: PASSED / FINAL
 > SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
@@ -14,7 +14,7 @@
 > SP-018 Status: APPROVED / MERGED / ACCEPTED / POST-MERGE VERIFIED / RECONCILED / ARCHIVED
 > ACC-018 Status: PASSED / FINAL
 > SP-018 Design: RFC-027 Adopted; ADR-058, ADR-059 and ADR-060 Accepted
-> SP-019 Status: PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
+> SP-019 Status: IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / PENDING_ACCEPTANCE / DAILY_REVIEW_NOT_STARTED
 > SP-019 Design: RFC-028, ADR-061 and ADR-062 Proposed / Planning Baseline
 > SP-019 Planning Merge Baseline: `e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / Quality Gate run `30205853257` / SUCCESS
 > Release Stage: v0.34.0 Alpha / RELEASE_AUTHORIZED
@@ -183,4 +183,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification 与 SP-018A 对账；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，RFC-028、ADR-061、ADR-062 仍为 Proposed / Planning Baseline，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED；Implementation NOT APPROVED、Coding NOT STARTED。
+SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 SP-019，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification 与 SP-018A 对账；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Owner 已批准 Implementation；Phase 0 UserTask Workspace Query Closure 已在 Draft 分支实现并等待独立审查与验收。RFC-028、ADR-061、ADR-062 仍为 Proposed / Planning Baseline，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED，Daily Review Implementation 仍为 NOT STARTED。

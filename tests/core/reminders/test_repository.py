@@ -1,21 +1,24 @@
-from datetime import datetime, timedelta, timezone
+# ruff: noqa: DTZ005
+
 import asyncio
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
 
-from core.database import DatabaseManager
 from core.bus import MemoryBus
+from core.database import DatabaseManager
 from core.reminders import Reminder, ReminderOccurrenceStatus, ReminderStatus
 from core.reminders.exceptions import ReminderConflictError
 from core.reminders.handler import ReminderActionHandler
 from core.reminders.repository import SQLiteReminderRepository
-from core.scheduler.models import Job, JobInfo, JobRun
 from core.reminders.service import ReminderService
+from core.scheduler.models import Job, JobInfo, JobRun
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
-
+from core.workspace.models import WorkspaceKey
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
+WORKSPACE = WorkspaceKey()
 
 
 async def _repository(tmp_path):
@@ -35,7 +38,7 @@ async def test_naive_datetime_and_invalid_timezone_are_rejected():
     with pytest.raises(ValidationError):
         Reminder(
             user_task_id="task-1",
-            remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+            remind_at=datetime.now(UTC) + timedelta(hours=1),
             timezone="Mars/Olympus",
         )
 
@@ -44,7 +47,7 @@ async def test_trigger_is_effectively_once_at_database_boundary(tmp_path):
     manager, repository = await _repository(tmp_path)
     reminder = Reminder(
         user_task_id="task-1",
-        remind_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+        remind_at=datetime.now(UTC) + timedelta(seconds=1),
         timezone="Asia/Shanghai",
         status=ReminderStatus.SCHEDULED,
     )
@@ -75,7 +78,7 @@ async def test_event_failure_does_not_roll_back_trigger(tmp_path):
     manager, repository = await _repository(tmp_path)
     reminder = Reminder(
         user_task_id="task-1",
-        remind_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+        remind_at=datetime.now(UTC) + timedelta(seconds=1),
         timezone="UTC",
         status=ReminderStatus.SCHEDULED,
     )
@@ -106,7 +109,10 @@ async def test_service_post_commit_event_hook_failure_keeps_business_result(
     task_repository = SQLiteUserTaskRepository(manager, tmp_path / "tasks.db")
     tasks = UserTaskService(task_repository)
     await tasks.initialize()
-    task = await tasks.create(title="Event failure remains truthful")
+    task = await tasks.create(
+        workspace_key=WORKSPACE,
+        title="Event failure remains truthful",
+    )
     repository = SQLiteReminderRepository(manager, tmp_path / "reminders.db")
     bus = MemoryBus()
     await bus.start()
@@ -118,8 +124,9 @@ async def test_service_post_commit_event_hook_failure_keeps_business_result(
     service = ReminderService(repository, tasks, bus)
     await service.initialize()
     reminder = await service.create_pending(
+        workspace_key=WORKSPACE,
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        remind_at=datetime.now(UTC) + timedelta(hours=1),
         timezone_name="UTC",
     )
     scheduled = await service.transition(reminder, ReminderStatus.SCHEDULED)
@@ -139,7 +146,7 @@ async def test_repository_restart_preserves_reminder_and_occurrence(tmp_path):
     await first_repository.initialize()
     reminder = Reminder(
         user_task_id="task-1",
-        remind_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+        remind_at=datetime.now(UTC) + timedelta(seconds=1),
         timezone="UTC",
         status=ReminderStatus.SCHEDULED,
     )
@@ -165,7 +172,7 @@ async def test_cancel_state_and_trigger_race_remains_consistent_across_connectio
     await repository_b.initialize()
     reminder = Reminder(
         user_task_id="task-race",
-        remind_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+        remind_at=datetime.now(UTC) + timedelta(seconds=1),
         timezone="UTC",
         status=ReminderStatus.SCHEDULED,
     )

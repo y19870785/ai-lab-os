@@ -69,11 +69,9 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-019"
     assert state["current_governance_task"] is None
-    assert _sp_number(state["next_candidate_sp"]) > _sp_number(
-        state["latest_completed_sp"]
-    )
+    assert state["next_candidate_sp"] is None
 
 
 def test_sp015_release_baseline_is_archived_while_sp018_is_latest_work() -> None:
@@ -162,16 +160,14 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-019"
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_019_planning_baseline_approved_merged_reconciled_"
-        "implementation_not_approved_not_started"
+        "sp_019_implementation_approved_phase_0_implemented_"
+        "pending_acceptance_daily_review_not_started"
     )
-    assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == (
-        "Daily Review Read Model & Deterministic Follow-up View"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -226,15 +222,11 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
-    assert (
-        "> Next Candidate Direction: Daily Review Read Model & "
-        "Deterministic Follow-up View"
-        in text["brain"]
-    )
+    assert "> Next Candidate Direction: None while SP-019 is current" in text["brain"]
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
     assert "Last Completed SP: SP-018" in text["brain"]
-    assert "Current SP: None" in text["brain"]
+    assert "Current SP: SP-019" in text["brain"]
     assert "ACC-016 Status: PASSED / FINAL" in text["brain"]
     assert "ACC-017 Status: PASSED / FINAL" in text["brain"]
     assert "Current governance task | None" in text["health"]
@@ -462,17 +454,15 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
 
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-019"
     assert state["current_governance_task"] is None
     assert state["latest_merged_sp"] == "SP-018"
     assert state["latest_completed_sp"] == "SP-018"
-    assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == (
-        "Daily Review Read Model & Deterministic Follow-up View"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "sp_019_planning_baseline_approved_merged_reconciled_"
-        "implementation_not_approved_not_started"
+        "sp_019_implementation_approved_phase_0_implemented_"
+        "pending_acceptance_daily_review_not_started"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -517,8 +507,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert acc017["scenarios"] == {
         letter: "PASSED" for letter in "ABCDEFGHIJKLMNO"
     }
-    assert records["SP-019"]["approved"] is False
-    assert records["SP-019"]["implementation_started"] is False
+    assert records["SP-019"]["approved"] is True
+    assert records["SP-019"]["implementation_started"] is True
 
     rfc = (
         ROOT / "docs/rfc/026-follow-up-interaction-capture-closure.md"
@@ -591,7 +581,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     )
     required_markers = (
         "SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED",
-        "Current SP: None",
+        "Current SP: SP-019",
         "RFC-026 Adopted",
         "ACC-017 Status: PASSED / FINAL",
         (
@@ -600,8 +590,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         ),
         (
             "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-            "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
-            "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
+            "IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / "
+            "PENDING_ACCEPTANCE / DAILY_REVIEW_NOT_STARTED |"
         ),
     )
     assert all(marker in current_text for marker in required_markers)
@@ -628,12 +618,10 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
 
     assert state["latest_merged_sp"] == "SP-018"
     assert state["latest_completed_sp"] == "SP-018"
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-019"
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] == "SP-019"
-    assert state["next_candidate_name"] == (
-        "Daily Review Read Model & Deterministic Follow-up View"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -772,8 +760,8 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     ) in roadmap
     assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
-        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
+        "IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / PENDING_ACCEPTANCE / "
+        "DAILY_REVIEW_NOT_STARTED |"
     ) in roadmap
     assert "SP-018 永久产品事实" in brain
     assert "不会创建 `work_logs.db`" in brain
@@ -880,32 +868,37 @@ def test_sp018_product_entrypoints_use_the_canonical_work_log_boundary() -> None
     assert "retrieve_memory" not in agenda_read
 
 
-def test_sp019_planning_merge_is_reconciled_without_implementation() -> None:
+def test_sp019_phase_0_is_implemented_pending_acceptance() -> None:
     state = _load_state()
     sp019 = state["sp_records"]["SP-019"]
     acc019 = state["acceptance_records"]["ACC-019"]
 
     assert state["latest_merged_sp"] == "SP-018"
     assert state["latest_completed_sp"] == "SP-018"
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-019"
     assert state["current_governance_task"] is None
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert state["current_version"] == "0.34.0"
     assert state["development_status"] == (
-        "sp_019_planning_baseline_approved_merged_reconciled_"
-        "implementation_not_approved_not_started"
+        "sp_019_implementation_approved_phase_0_implemented_"
+        "pending_acceptance_daily_review_not_started"
     )
     assert sp019 == {
         "name": "Daily Review Read Model & Deterministic Follow-up View",
         "status": (
-            "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
-            "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+            "IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / "
+            "PENDING_ACCEPTANCE / DAILY_REVIEW_NOT_STARTED"
         ),
         "planning_baseline_defined": True,
         "planning_baseline_approved": True,
-        "approved": False,
-        "implementation_started": False,
+        "approved": True,
+        "implementation_started": True,
         "implementation_complete": False,
         "completed": False,
+        "implementation_base": "1fe8a26b01f3bb636d486435d54adece35ea7aea",
+        "phase_0_status": "IMPLEMENTED / PENDING_ACCEPTANCE",
+        "daily_review_status": "NOT_STARTED",
         "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
         "branch": "docs/sp-019-planning-baseline",
         "planning_pr": 48,
@@ -919,7 +912,7 @@ def test_sp019_planning_merge_is_reconciled_without_implementation() -> None:
         "adrs": ["ADR-061", "ADR-062"],
         "acceptance": "ACC-019 PLANNING_BASELINE / NOT_EXECUTED",
         "user_task_workspace_prerequisite": (
-            "REQUIRED / IN_SCOPE AS PHASE 0 / NOT_STARTED"
+            "IMPLEMENTED / PENDING_ACCEPTANCE"
         ),
         "scope": (
             "On-demand non-persistent Daily Review read model and "
@@ -1182,17 +1175,17 @@ def test_sp019_planning_merge_is_reconciled_without_implementation() -> None:
     assert "| ADR-062 |" in decision_index
     assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
-        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
+        "IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / PENDING_ACCEPTANCE / "
+        "DAILY_REVIEW_NOT_STARTED |"
     ) in roadmap
     assert (
-        "> Current SP: None\n"
+        "> Current SP: SP-019\n"
         "> Current Governance Task: None\n"
-        "> Next Candidate SP: SP-019"
+        "> Next Candidate SP: None"
     ) in brain
     assert (
-        "> SP-019 Status: PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
-        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+        "> SP-019 Status: IMPLEMENTATION_APPROVED / PHASE_0_IMPLEMENTED / "
+        "PENDING_ACCEPTANCE / DAILY_REVIEW_NOT_STARTED"
     ) in brain
     assert (
         "> SP-019 Planning Merge Baseline: "
@@ -1200,17 +1193,20 @@ def test_sp019_planning_merge_is_reconciled_without_implementation() -> None:
         "Quality Gate run `30205853257` / SUCCESS"
     ) in brain
     assert "> Current main:" not in brain
+    assert "Current Product SP 为 SP-019" in project_status
+    assert "Current Governance Task 为 None" in project_status
+    assert "Latest Completed SP 为 SP-018" in project_status
+    assert "Daily Review Implementation 仍为 NOT STARTED" in project_status
     assert (
-        "Current Product SP 为 None，Current Governance Task 为 None，"
-        "Latest Completed SP 为 SP-018。"
-    ) in project_status
-    assert (
-        "| Current product SP | None |\n"
+        "| Current product SP | SP-019 |\n"
         "| Current governance task | None |\n"
-        "| Next candidate | SP-019 — Daily Review Read Model & Deterministic "
-        "Follow-up View / planning baseline approved, merged and reconciled / "
-        "implementation not approved / not started |"
+        "| Next candidate | None — SP-019 is current |"
     ) in project_health
+    assert (
+        "| SP-019 Phase 0 | UserTask Workspace Query Closure / "
+        "IMPLEMENTED / PENDING ACCEPTANCE |"
+    ) in project_health
+    assert "| SP-019 Daily Review | NOT STARTED |" in project_health
     assert "| Current main |" not in project_health
     assert (
         "| SP-019 planning merge baseline | "

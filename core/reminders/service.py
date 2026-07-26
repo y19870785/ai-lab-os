@@ -1,5 +1,7 @@
 """Reminder domain service; scheduling orchestration lives in the bridge."""
 
+# ruff: noqa: BLE001
+
 from __future__ import annotations
 
 import logging
@@ -23,7 +25,8 @@ from core.reminders.exceptions import (
 )
 from core.reminders.models import Reminder, ReminderStatus, utc_now
 from core.user_tasks import UserTaskStatus
-
+from core.user_tasks.workspace import canonical_workspace_metadata
+from core.workspace.models import WorkspaceKey
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,6 +94,7 @@ class ReminderService:
     async def create_pending(
         self,
         *,
+        workspace_key: WorkspaceKey,
         user_task_id: str,
         remind_at: datetime,
         timezone_name: str,
@@ -98,15 +102,23 @@ class ReminderService:
         metadata: dict[str, Any] | None = None,
     ) -> Reminder:
         try:
-            task = await self._user_tasks.get(user_task_id, trace_id)
+            task = await self._user_tasks.get(
+                workspace_key=workspace_key,
+                task_id=user_task_id,
+                trace_id=trace_id,
+            )
             if task.status != UserTaskStatus.ACTIVE:
                 raise ReminderConflictError("Terminal UserTask cannot receive a Reminder")
+            reminder_metadata = dict(metadata or {})
+            reminder_metadata["workspace"] = canonical_workspace_metadata(
+                workspace_key
+            )
             reminder = Reminder(
                 user_task_id=user_task_id,
                 remind_at=remind_at,
                 timezone=timezone_name,
                 trace_id=trace_id,
-                metadata=metadata or {},
+                metadata=reminder_metadata,
             )
             if reminder.remind_at <= self._clock.now():
                 raise ValueError("remind_at must be in the future")
@@ -122,9 +134,19 @@ class ReminderService:
         except Exception as exc:
             self._raise(exc, "get", trace_id, reminder_id=reminder_id)
 
-    async def list_for_task(self, task_id: str, trace_id: str = "") -> list[Reminder]:
+    async def list_for_task(
+        self,
+        *,
+        workspace_key: WorkspaceKey,
+        task_id: str,
+        trace_id: str = "",
+    ) -> list[Reminder]:
         try:
-            await self._user_tasks.get(task_id, trace_id)
+            await self._user_tasks.get(
+                workspace_key=workspace_key,
+                task_id=task_id,
+                trace_id=trace_id,
+            )
             return await self._repository.list_for_task(task_id)
         except Exception as exc:
             self._raise(exc, "list", trace_id)

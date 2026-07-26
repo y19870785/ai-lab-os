@@ -12,21 +12,23 @@ import sys
 
 import pytest
 import pytest_asyncio
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from applications.ceo_assistant.application import CEOAssistant
 from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
-from core.clock import SystemClock
-from core.errors import FailureException
-from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
-from core.memory.manager import MemoryManager
-from core.memory.models import MemoryType, MemoryQuery
-from core.memory.storage.sqlite_decision import SQLiteDecisionStore
-from core.memory.session import SessionMemory
+from core.clock import SystemClock
 from core.database import DatabaseManager
+from core.errors import FailureException
+from core.memory.manager import MemoryManager
+from core.memory.models import MemoryQuery, MemoryType
+from core.memory.session import SessionMemory
+from core.memory.storage.sqlite_decision import SQLiteDecisionStore
 from core.user_tasks import SQLiteUserTaskRepository, UserTaskService
+from core.workspace.models import WorkspaceKey
+from tests.helpers.admission import PERMISSIVE_TEST_ADMISSION
 
 
 @pytest_asyncio.fixture
@@ -78,7 +80,11 @@ class TestTasks:
         assert resp.status == "ok", f"状态出错: {resp.error}"
         assert "已创建任务" in resp.answer, f"回复应含任务确认: {resp.answer}"
 
-        assert len(await app_with_decision._user_tasks.list()) == 1
+        assert len(
+            await app_with_decision._user_tasks.list(
+                workspace_key=WorkspaceKey()
+            )
+        ) == 1
         q = MemoryQuery(memory_type=MemoryType.DECISION, top_k=10)
         assert not [i for i in await app_with_decision._memory.retrieve_memory(q)
                     if i.content.get("type") == "task"]
@@ -158,5 +164,65 @@ class TestTasks:
                 application_name="ceo-assistant", user_input=text,
             ))
 
-        tasks = await app_with_decision._user_tasks.list()
+        tasks = await app_with_decision._user_tasks.list(
+            workspace_key=WorkspaceKey()
+        )
         assert len(tasks) >= 3, f"应有至少3个任务: {len(tasks)}"
+
+    @pytest.mark.asyncio
+    async def test_task_workspace_create_list_and_foreign_mutation_are_isolated(
+        self, app_with_decision
+    ):
+        alpha = WorkspaceKey(
+            tenant_id="tenant-a",
+            workspace_id="alpha",
+            namespace="ops",
+            trace_id="trace-alpha",
+        )
+        beta = WorkspaceKey(
+            tenant_id="tenant-b",
+            workspace_id="alpha",
+            namespace="ops",
+            trace_id="trace-beta",
+        )
+        created = await app_with_decision.run(
+            ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="添加任务：Alpha私有任务",
+                workspace_key=alpha,
+            )
+        )
+        task_id = created.metadata["id"]
+        assert created.metadata["metadata"]["workspace"] == {
+            "tenant_id": "tenant-a",
+            "workspace_id": "alpha",
+            "namespace": "ops",
+        }
+
+        alpha_list = await app_with_decision.run(
+            ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="查看我的待办列表",
+                workspace_key=alpha,
+            )
+        )
+        beta_list = await app_with_decision.run(
+            ApplicationRequest(
+                application_name="ceo-assistant",
+                user_input="查看我的待办列表",
+                workspace_key=beta,
+            )
+        )
+        assert "Alpha私有任务" in alpha_list.answer
+        assert "Alpha私有任务" not in beta_list.answer
+
+        for action in ("完成任务", "取消任务"):
+            with pytest.raises(FailureException) as foreign:
+                await app_with_decision.run(
+                    ApplicationRequest(
+                        application_name="ceo-assistant",
+                        user_input=f"{action} {task_id}",
+                        workspace_key=beta,
+                    )
+                )
+            assert foreign.value.failure.category.value == "not_found"

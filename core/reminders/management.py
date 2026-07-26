@@ -4,16 +4,11 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import BaseModel
 
 from core.errors import ErrorCategory, FailureException, FailureInfo
-from core.reminders.inbox import (
-    ReminderInboxStatus,
-    ReminderInboxView,
-    task_belongs_to_workspace,
-)
 from core.reminders.models import Reminder, ReminderStatus
 from core.reminders.orchestration import ReminderStatusView, build_reminder_status_view
 from core.user_tasks import UserTask
@@ -82,7 +77,11 @@ class ReminderManagementService:
     ) -> ReminderResolution:
         try:
             reminder = await self._reminders.get(reminder_id, trace_id)
-            task = await self._user_tasks.get(reminder.user_task_id, trace_id)
+            task = await self._user_tasks.get(
+                workspace_key=workspace_key,
+                task_id=reminder.user_task_id,
+                trace_id=trace_id,
+            )
         except FailureException as exc:
             if exc.failure.category == ErrorCategory.NOT_FOUND:
                 self._raise(
@@ -90,11 +89,6 @@ class ReminderManagementService:
                     "Reminder was not found", "resolve", trace_id,
                 )
             raise
-        if not task_belongs_to_workspace(task, workspace_key):
-            self._raise(
-                "reminder.not_found", ErrorCategory.NOT_FOUND,
-                "Reminder was not found", "resolve", trace_id,
-            )
         return ReminderResolution(reminder, task, await self._view(reminder, task, trace_id))
 
     async def resolve(
@@ -242,7 +236,7 @@ class ReminderManagementService:
                 details={"reminder_id": resolution.reminder.id},
             )
 
-        target = remind_at.astimezone(timezone.utc).isoformat()
+        target = remind_at.astimezone(UTC).isoformat()
         operation_metadata = {
             "target": target,
             "previous_failure_code": (

@@ -197,7 +197,11 @@ async def create_system(
         user_task_repository = SQLiteUserTaskRepository(
             database_manager, settings.sqlite_dir / "tasks.db"
         )
-        user_task_service = UserTaskService(user_task_repository, bus=event_bus)
+        user_task_service = UserTaskService(
+            user_task_repository,
+            bus=event_bus,
+            clock=clock,
+        )
 
     inbox_repository = SQLiteInboxRepository(
         database_manager, settings.sqlite_dir / "inbox.db"

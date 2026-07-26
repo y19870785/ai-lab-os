@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from core.errors import ErrorCategory, FailureInfo
 from core.reminders import ReminderInboxStatus, ReminderInboxTimeScope, ReminderStatus
@@ -11,13 +11,19 @@ from tests.helpers.clock import MutableClock
 
 
 async def _create(system, title, due_at, workspace):
+    key = WorkspaceKey(
+        tenant_id=workspace.get("tenant_id", "default"),
+        workspace_id=workspace.get("workspace_id", "default"),
+        namespace=workspace.get("namespace", "default"),
+    )
     task = await system.user_task_service.create(
+        workspace_key=key,
         title=title,
         due_at=due_at,
         timezone="Asia/Shanghai",
-        metadata={"workspace": workspace},
     )
     return await system.reminder_bridge.create(
+        workspace_key=key,
         user_task_id=task.id,
         remind_at=due_at,
         timezone_name="Asia/Shanghai",
@@ -26,7 +32,7 @@ async def _create(system, title, due_at, workspace):
 
 def test_inbox_uses_stable_database_pagination_and_workspace_isolation(tmp_path):
     async def scenario():
-        clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+        clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
         settings = make_test_settings(
             tmp_path, enable_scheduler=True, enable_reminders=True,
             timezone_name="Asia/Shanghai",
@@ -64,7 +70,7 @@ def test_inbox_uses_stable_database_pagination_and_workspace_isolation(tmp_path)
 
 def test_inbox_status_filter_uses_shared_aggregated_status(tmp_path):
     async def scenario():
-        clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=timezone.utc))
+        clock = MutableClock(datetime(2026, 7, 16, 6, 0, tzinfo=UTC))
         settings = make_test_settings(
             tmp_path, enable_scheduler=True, enable_reminders=True,
             timezone_name="Asia/Shanghai",

@@ -130,3 +130,107 @@ def test_user_task_api_corrupt_row_is_server_failure_without_leak(tmp_path):
         assert response.json()["component"] == "user_tasks"
         assert "private-value" not in response.text
         assert "metadata" not in response.text.lower()
+
+
+def test_user_task_api_full_workspace_headers_and_foreign_ids_are_isolated(
+    tmp_path,
+):
+    app = create_app(make_test_settings(tmp_path))
+    alpha = {
+        "X-Tenant-ID": "tenant-a",
+        "X-Workspace-ID": "alpha",
+        "X-Namespace": "ops",
+    }
+    beta = {
+        "X-Tenant-ID": "tenant-b",
+        "X-Workspace-ID": "alpha",
+        "X-Namespace": "ops",
+    }
+    with TestClient(app) as client:
+        created = client.post(
+            "/tasks",
+            headers=alpha,
+            json={
+                "title": "Alpha only",
+                "metadata": {
+                    "business": "kept",
+                    "workspace": {
+                        "tenant_id": "attacker",
+                        "workspace_id": "attacker",
+                        "namespace": "attacker",
+                    },
+                },
+            },
+        )
+        assert created.status_code == 201
+        task = created.json()
+        task_id = task["id"]
+        assert task["metadata"] == {
+            "business": "kept",
+            "workspace": {
+                "tenant_id": "tenant-a",
+                "workspace_id": "alpha",
+                "namespace": "ops",
+            },
+        }
+        assert [item["id"] for item in client.get("/tasks", headers=alpha).json()] == [
+            task_id
+        ]
+        assert client.get("/tasks", headers=beta).json() == []
+
+        for method, path, payload in (
+            ("get", f"/tasks/{task_id}", None),
+            ("patch", f"/tasks/{task_id}", {"title": "leak"}),
+            ("post", f"/tasks/{task_id}/complete", None),
+            ("post", f"/tasks/{task_id}/cancel", None),
+        ):
+            kwargs = {"headers": beta}
+            if payload is not None:
+                kwargs["json"] = payload
+            response = getattr(client, method)(path, **kwargs)
+            assert response.status_code == 404
+            assert "alpha only" not in response.text.casefold()
+            assert "tenant-a" not in response.text
+        unchanged = client.get(f"/tasks/{task_id}", headers=alpha).json()
+        assert unchanged["title"] == "Alpha only"
+        assert unchanged["status"] == "active"
+        assert unchanged["revision"] == 1
+
+
+def test_user_task_api_offset_and_terminal_range_contract(tmp_path):
+    app = create_app(make_test_settings(tmp_path))
+    with TestClient(app) as client:
+        completed = []
+        for title in ("First", "Second"):
+            task_id = client.post("/tasks", json={"title": title}).json()["id"]
+            completed.append(
+                client.post(f"/tasks/{task_id}/complete").json()
+            )
+        page = client.get(
+            "/tasks",
+            params={"status": "completed", "limit": 1, "offset": 1},
+        )
+        assert page.status_code == 200
+        assert len(page.json()) == 1
+        assert page.json()[0]["id"] in {task["id"] for task in completed}
+
+        instant = completed[0]["completed_at"]
+        ranged = client.get(
+            "/tasks",
+            params={
+                "completed_from": instant,
+                "completed_to": "2100-01-01T00:00:00Z",
+            },
+        )
+        assert ranged.status_code == 200
+        assert completed[0]["id"] in {task["id"] for task in ranged.json()}
+
+        invalid = client.get(
+            "/tasks",
+            params={
+                "cancelled_from": "2026-07-27T08:00:00Z",
+                "cancelled_to": "2026-07-27T08:00:00Z",
+            },
+        )
+        assert invalid.status_code == 400
+        assert invalid.json()["component"] == "user_tasks"

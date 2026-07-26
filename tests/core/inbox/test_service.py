@@ -76,13 +76,19 @@ async def test_resolve_to_task_is_idempotent_and_workspace_scoped(tmp_path):
             title="跟进客户",
             due_at=NOW + timedelta(days=1),
         )
-        tasks_before = await system.user_task_service.list(limit=100)
+        tasks_before = await system.user_task_service.list(
+            workspace_key=workspace,
+            limit=100,
+        )
 
         with pytest.raises(FailureException) as repeat:
             await system.inbox_service.resolve_to_task(
                 workspace_key=workspace, inbox_item_id=item.id, title="跟进客户"
             )
-        tasks_after = await system.user_task_service.list(limit=100)
+        tasks_after = await system.user_task_service.list(
+            workspace_key=workspace,
+            limit=100,
+        )
         with pytest.raises(FailureException) as mismatch:
             await system.inbox_service.get(
                 workspace_key=WorkspaceKey(workspace_id="beta"), inbox_item_id=item.id

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
@@ -9,8 +9,7 @@ from core.system import make_test_settings
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
-
-NOW = datetime(2026, 7, 19, 4, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 19, 4, 0, tzinfo=UTC)
 
 
 def _settings(path):
@@ -32,7 +31,10 @@ def _snapshot(system):
             status="all",
             limit=200,
         )
-        tasks = await system.user_task_service.list(limit=200)
+        tasks = await system.user_task_service.list(
+            workspace_key=WorkspaceKey(),
+            limit=200,
+        )
         reminders = await system.reminder_service.list_page(limit=200, offset=0)
         memories = await system.memory_stores[1].query(
             MemoryQuery(memory_type=MemoryType.EPISODIC, top_k=200)

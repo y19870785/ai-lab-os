@@ -1,5 +1,7 @@
 """Saga bridge between durable Reminders and Scheduler jobs."""
 
+# ruff: noqa: BLE001
+
 from __future__ import annotations
 
 import logging
@@ -16,7 +18,8 @@ from core.reminders.exceptions import ReminderConflictError, ReminderUnavailable
 from core.reminders.models import ReconciliationResult, Reminder, ReminderStatus
 from core.scheduler.models import JobStatus, ScheduleRequest, Trigger, TriggerType
 from core.user_tasks import UserTaskStatus
-
+from core.user_tasks.workspace import workspace_key_from_evidence
+from core.workspace.models import WorkspaceKey
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,6 +123,7 @@ class ReminderSchedulerBridge:
     async def create(
         self,
         *,
+        workspace_key: WorkspaceKey,
         user_task_id: str,
         remind_at: datetime,
         timezone_name: str,
@@ -127,6 +131,7 @@ class ReminderSchedulerBridge:
         metadata: dict | None = None,
     ) -> Reminder:
         reminder = await self._service.create_pending(
+            workspace_key=workspace_key,
             user_task_id=user_task_id,
             remind_at=remind_at,
             timezone_name=timezone_name,
@@ -333,7 +338,15 @@ class ReminderSchedulerBridge:
         reminders = await self._repository.list_by_statuses(statuses)
         for reminder in reminders:
             try:
-                task = await self._user_tasks.get(reminder.user_task_id, reminder.trace_id)
+                workspace_key = workspace_key_from_evidence(
+                    reminder.metadata.get("workspace"),
+                    trace_id=reminder.trace_id,
+                )
+                task = await self._user_tasks.get(
+                    workspace_key=workspace_key,
+                    task_id=reminder.user_task_id,
+                    trace_id=reminder.trace_id,
+                )
                 if task.status in {UserTaskStatus.COMPLETED, UserTaskStatus.CANCELLED}:
                     if reminder.status not in {
                         ReminderStatus.TRIGGERED,

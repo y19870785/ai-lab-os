@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -10,14 +10,12 @@ from fastapi.testclient import TestClient
 from api.app import create_app
 from core.errors import FailureException
 from core.inbox import InboxStatus
-from core.system import create_system
-from core.system import make_test_settings
+from core.system import create_system, make_test_settings
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 
-
 ROOT = Path(__file__).resolve().parents[2]
-NOW = datetime(2026, 7, 19, 4, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 19, 4, 0, tzinfo=UTC)
 
 
 def _settings(path):
@@ -52,6 +50,7 @@ def _cli(path, *args):
         text=True,
         encoding="utf-8",
         timeout=60,
+        check=False,
     )
 
 
@@ -82,7 +81,7 @@ def test_assistant_capture_cli_list_api_task_resolution_reaches_agenda(tmp_path)
 def test_api_capture_cli_reminder_resolution_is_visible_to_assistant(tmp_path):
     with TestClient(create_app(_settings(tmp_path), clock=MutableClock(NOW))) as client:
         item = client.post("/inbox", json={"content": "联系包装供应商"}).json()
-        scheduled = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+        scheduled = (datetime.now(UTC) + timedelta(days=2)).isoformat()
 
         resolved = _cli(
             tmp_path,
@@ -128,7 +127,13 @@ def test_resolved_target_and_idempotency_survive_restart(tmp_path):
             restored = await second.inbox_service.get(
                 workspace_key=workspace, inbox_item_id=item.id
             )
-            before = {task.id for task in await second.user_task_service.list(limit=100)}
+            before = {
+                task.id
+                for task in await second.user_task_service.list(
+                    workspace_key=workspace,
+                    limit=100,
+                )
+            }
             try:
                 await second.inbox_service.resolve_to_task(
                     workspace_key=workspace,
@@ -139,7 +144,13 @@ def test_resolved_target_and_idempotency_survive_restart(tmp_path):
                 assert exc.failure.code == "inbox.already_resolved"
             else:
                 raise AssertionError("repeat resolution must report a stable conflict")
-            after = {task.id for task in await second.user_task_service.list(limit=100)}
+            after = {
+                task.id
+                for task in await second.user_task_service.list(
+                    workspace_key=workspace,
+                    limit=100,
+                )
+            }
             assert restored.status == InboxStatus.RESOLVED
             assert restored.resolved_target_id == target_id
             assert before == after == {target_id}

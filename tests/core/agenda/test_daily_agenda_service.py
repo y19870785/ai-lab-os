@@ -10,11 +10,59 @@ from tests.helpers.clock import MutableClock
 class FakeUserTaskService:
     def __init__(self, tasks=None):
         self._tasks = tasks or []
-    async def list(self, query, trace_id=""):
-        st = query.status.value if hasattr(query, "status") else None
-        return [t for t in self._tasks if not st or t.status.value == st]
-    async def get(self, tid, trace_id=""):
-        return next((t for t in self._tasks if t.id == tid), None)
+        self.queries = []
+
+    async def list(
+        self,
+        *,
+        workspace_key,
+        query,
+        as_of=None,
+        trace_id="",
+    ):
+        self.queries.append((workspace_key, query, as_of))
+        expected = (
+            getattr(workspace_key, "tenant_id", "") or "default",
+            getattr(workspace_key, "workspace_id", "") or "default",
+            getattr(workspace_key, "namespace", "") or "default",
+        )
+        tasks = []
+        for task in self._tasks:
+            stored = task.metadata.get("workspace", {})
+            actual = (
+                stored.get("tenant_id") or "default",
+                stored.get("workspace_id") or "default",
+                stored.get("namespace") or "default",
+            )
+            if actual != expected:
+                continue
+            if query.status is not None and task.status.value != query.status.value:
+                continue
+            if query.due_from is not None and (
+                task.due_at is None or task.due_at < query.due_from
+            ):
+                continue
+            if query.due_to is not None and (
+                task.due_at is None or task.due_at > query.due_to
+            ):
+                continue
+            if query.overdue is not None:
+                matches = (
+                    task.status.value == "active"
+                    and task.due_at is not None
+                    and (
+                        task.due_at < as_of
+                        if query.overdue
+                        else task.due_at >= as_of
+                    )
+                )
+                if not matches:
+                    continue
+            tasks.append(task)
+        return tasks[query.offset : query.offset + query.limit]
+
+    async def get(self, *, workspace_key, task_id, trace_id=""):
+        return next((task for task in self._tasks if task.id == task_id), None)
 
 
 class FakeReminderInbox:
@@ -86,10 +134,23 @@ def _fake_reminder_item(reminder_id, title, status, scheduled_for, triggered_at=
             "timezone": "Asia/Shanghai", "scheduler_status": status, "last_failure_code": last_failure_code}
 
 
-def _fake_task(task_id, title, status, due_at=None):
+def _fake_task(
+    task_id,
+    title,
+    status,
+    due_at=None,
+    *,
+    tenant_id="default",
+    workspace_id="default",
+    namespace="default",
+):
     return type("T", (), {"id": task_id, "title": title, "status": type("S", (), {"value": status})(),
                            "due_at": due_at, "timezone": "Asia/Shanghai",
-                           "metadata": {"workspace": {"workspace_id": "default"}}})()
+                           "metadata": {"workspace": {
+                               "tenant_id": tenant_id,
+                               "workspace_id": workspace_id,
+                               "namespace": namespace,
+                           }}})()
 
 
 def _fake_wl(
@@ -192,6 +253,99 @@ async def test_next_in_window_task_included(svc, clock):
     svc._user_tasks = FakeUserTaskService([_fake_task("ut1", "Soon", "active", due_at=datetime(2026, 7, 17, 12, 0, tzinfo=UTC))])
     page = await svc.list(workspace_key=FakeWorkspace(), view="next", window_hours=3)
     assert len(page.items) == 1
+
+
+@pytest.mark.asyncio
+async def test_user_tasks_use_full_workspace_sql_boundary_and_clock_as_of(clock):
+    from core.workspace.models import WorkspaceKey
+
+    local = _fake_task(
+        "ut_local",
+        "Local overdue",
+        "active",
+        due_at=clock.now() - timedelta(minutes=1),
+        tenant_id="tenant-a",
+        workspace_id="alpha",
+        namespace="ops",
+    )
+    foreign_tenant = _fake_task(
+        "ut_foreign_tenant",
+        "Foreign tenant",
+        "active",
+        due_at=clock.now() - timedelta(hours=1),
+        tenant_id="tenant-b",
+        workspace_id="alpha",
+        namespace="ops",
+    )
+    foreign_namespace = _fake_task(
+        "ut_foreign_namespace",
+        "Foreign namespace",
+        "active",
+        due_at=clock.now() - timedelta(hours=1),
+        tenant_id="tenant-a",
+        workspace_id="alpha",
+        namespace="other",
+    )
+    tasks = FakeUserTaskService([foreign_tenant, foreign_namespace, local])
+    service = DailyAgendaService(
+        user_tasks=tasks,
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    workspace_key = WorkspaceKey(
+        tenant_id="tenant-a",
+        workspace_id="alpha",
+        namespace="ops",
+    )
+    page = await service.list(
+        workspace_key=workspace_key,
+        view="attention",
+    )
+    assert [item.source_id for item in page.items] == ["ut_local"]
+    overdue_calls = [
+        call for call in tasks.queries if call[1].overdue is True
+    ]
+    assert len(overdue_calls) == 1
+    assert overdue_calls[0][2] == clock.now()
+
+
+@pytest.mark.asyncio
+async def test_user_task_all_reads_every_workspace_scoped_page(clock):
+    from core.workspace.models import WorkspaceKey
+
+    tasks = FakeUserTaskService(
+        [
+            _fake_task(
+                f"ut_{index}",
+                f"Task {index}",
+                "active",
+                tenant_id="tenant-a",
+                workspace_id="alpha",
+                namespace="ops",
+            )
+            for index in range(501)
+        ]
+    )
+    service = DailyAgendaService(
+        user_tasks=tasks,
+        timezone_name="Asia/Shanghai",
+        clock=clock,
+    )
+    await service.list(
+        workspace_key=WorkspaceKey(
+            tenant_id="tenant-a",
+            workspace_id="alpha",
+            namespace="ops",
+        ),
+        view="all",
+        limit=100,
+    )
+    active_offsets = [
+        query.offset
+        for _, query, _ in tasks.queries
+        if query.status is not None and query.status.value == "active"
+    ]
+    assert active_offsets == [0, 500]
 
 
 @pytest.mark.asyncio

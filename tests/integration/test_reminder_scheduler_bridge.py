@@ -1,11 +1,11 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from core.reminders import ReminderStatus
 from core.system import create_system, make_test_settings
-
+from core.workspace.models import WorkspaceKey
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
 
@@ -20,10 +20,14 @@ async def test_reminder_survives_restart_triggers_once_and_stays_terminal(tmp_pa
     settings = _settings(tmp_path)
     system_a = await create_system(settings)
     await system_a.start()
-    task = await system_a.user_task_service.create(title="Restart reminder")
+    task = await system_a.user_task_service.create(
+        workspace_key=WorkspaceKey(),
+        title="Restart reminder",
+    )
     reminder = await system_a.reminder_bridge.create(
+        workspace_key=WorkspaceKey(),
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(milliseconds=100),
+        remind_at=datetime.now(UTC) + timedelta(milliseconds=100),
         timezone_name="UTC",
     )
     await system_a.shutdown()
@@ -51,10 +55,14 @@ async def test_startup_reconciliation_repairs_pending_schedule_once(tmp_path):
     settings = _settings(tmp_path)
     system_a = await create_system(settings)
     await system_a.start()
-    task = await system_a.user_task_service.create(title="Pending reminder")
+    task = await system_a.user_task_service.create(
+        workspace_key=WorkspaceKey(),
+        title="Pending reminder",
+    )
     pending = await system_a.reminder_service.create_pending(
+        workspace_key=WorkspaceKey(),
         user_task_id=task.id,
-        remind_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        remind_at=datetime.now(UTC) + timedelta(hours=1),
         timezone_name="UTC",
     )
     await system_a.shutdown()
