@@ -937,45 +937,99 @@ def test_sp019_planning_baseline_is_defined_without_implementation() -> None:
         encoding="utf-8-sig"
     )
 
-    required_rfc_sections = (
-        "Current State Audit",
-        "User Problem",
-        "Daily Agenda Boundary",
-        "Existing Daily Brief Replacement",
-        "Canonical Sources",
-        "UserTask Workspace Prerequisite",
-        "Date and As-of Contract",
-        "Output Model",
-        "Classification Rules",
-        "Follow-up Reason Codes",
-        "Sorting and Deduplication",
-        "Source Availability",
-        "Failure Semantics",
-        "Workspace Contract",
-        "Entry Points",
-        "Storage Decision",
-        "LLM Boundary",
-        "Side-effect Boundary",
-        "Alternatives Considered",
-        "Implementation Phases",
-        "Non-goals",
-        "Risks",
-        "Stop Conditions",
+    required_rfc_headings = (
+        "## 1. 当前状态审计（Current State Audit）",
+        "## 2. 用户问题（User Problem）",
+        "## 3. Daily Agenda 边界（Daily Agenda Boundary）",
+        "## 7. 日期与截至时点合同（Date and As-of Contract）",
+        "## 8. 输出模型（Output Model）",
+        "## 11. 排序与去重（Sorting and Deduplication）",
+        "## 12. 数据源可用性（Source Availability）",
+        "## 13. 失败语义（Failure Semantics）",
+        "## 20. 实施阶段（Implementation Phases）",
+        "## 21. 非目标（Non-goals）",
+        "## 22. 风险（Risks）",
+        "## 23. 停止条件（Stop Conditions）",
     )
-    assert all("## " in rfc and title in rfc for title in required_rfc_sections)
+    assert all(heading in rfc for heading in required_rfc_headings)
     assert "Status: Proposed / Planning Baseline" in rfc
     assert "UserTask Workspace Query Closure" in rfc
     assert "无需新 Schema、Migration" in rfc
     assert "`daily_review.source_failed`" in rfc
     assert "[as_of, as_of + 24 hours)" in rfc
+    assert (
+        "DailyReviewQuery\n"
+        "- review_date: today | yesterday\n"
+        "- limit: int, 1..100\n"
+        "- offset: int, >= 0"
+    ) in rfc
+    assert (
+        "page\n"
+        "- count\n"
+        "- total_count\n"
+        "- limit\n"
+        "- offset\n"
+        "- has_more"
+    ) in rfc
+    assert (
+        "deterministic classification\n"
+        "-> 按 (source_type, source_id) 去重并选定唯一 section\n"
+        "-> 按全局稳定排序键排序\n"
+        "-> 计算 total_count 与各 section_total_count\n"
+        "-> 对全局结果应用 offset / limit\n"
+        "-> 将当前 page items 按 section 分组"
+    ) in rfc
+    assert (
+        "GET /daily-review?date=today&limit=50&offset=0"
+    ) in rfc
+    source_status_contract = (
+        rfc.split("## 12. 数据源可用性", maxsplit=1)[1]
+        .split("## 13. 失败语义", maxsplit=1)[0]
+        .split("```text", maxsplit=1)[1]
+        .split("```", maxsplit=1)[0]
+    )
+    assert source_status_contract.strip().splitlines() == [
+        "available",
+        "disabled",
+        "not_configured",
+    ]
+    assert "成功 payload 的 `source_status` 永远不包含 `failed`" in rfc
+    assert (
+        "| `daily_review.unavailable` | DISABLED | "
+        "配置显式关闭 DailyReviewService |"
+    ) in rfc
+    assert (
+        "| `daily_review.unavailable` | NOT_CONFIGURED | "
+        "Composition Root 未组合所需 DailyReviewService |"
+    ) in rfc
     assert "Status: Proposed / Planning Baseline" in adr061
     assert "非持久化" in adr061
+    assert "## 背景（Context）" in adr061
+    assert "## 决策（Decision）" in adr061
     assert "Status: Proposed / Planning Baseline" in adr062
-    assert "enabled" not in adr062 or "fail closed" in adr062
+    assert "成功返回的 `DailyReview.source_status`" in adr062
+    assert "不是成功 payload 的 `source_status` 值" in adr062
+    assert "category=DISABLED" in adr062
+    assert "category=NOT_CONFIGURED" in adr062
+    assert "## 治理状态（Governance）" in adr062
     assert all(f"ACC-019-{letter}" in acceptance for letter in "ABCDEFGHIJKLM")
     assert acceptance.count("状态：NOT_EXECUTED") == 13
     assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
     assert "Planning PR：#48（OPEN / DRAFT / NOT MERGED）" in acceptance
+    acc_k = acceptance.split("## ACC-019-K", maxsplit=1)[1].split(
+        "## ACC-019-L", maxsplit=1
+    )[0]
+    assert "DailyReviewQuery(review_date, limit, offset)" in acc_k
+    assert "跨页顺序稳定，无重复、无遗漏" in acc_k
+    assert "offset >= total_count" in acc_k
+    assert "page.count=0" in acc_k
+    acc_l = acceptance.split("## ACC-019-L", maxsplit=1)[1].split(
+        "## ACC-019-M", maxsplit=1
+    )[0]
+    assert "相同 `DailyReviewQuery`" in acc_l
+    assert "date=today&limit=50&offset=0" in acc_l
+    assert "## ACC-019-A — 基线与现有 Brief 替换" in acceptance
+    assert "## ACC-019-K — 全局分页与截断" in acceptance
     assert "| RFC-028 |" in decision_index
     assert "| ADR-061 |" in decision_index
     assert "| ADR-062 |" in decision_index

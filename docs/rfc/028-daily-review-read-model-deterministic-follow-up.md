@@ -5,7 +5,7 @@ Date: 2026-07-26
 Target: SP-019
 Implementation: NOT APPROVED / NOT STARTED
 
-## 1. Current State Audit
+## 1. 当前状态审计（Current State Audit）
 
 本 RFC 以 `main@4e0d730a8bfdefa6277c7526a028e7247d7ddc43` 的真实代码为审计基线。
 
@@ -19,7 +19,7 @@ Implementation: NOT APPROVED / NOT STARTED
 - 当前数据结构足以通过 SQLite JSON predicate 在排序、分页与 limit 前下推完整 Workspace 过滤，也已有 `completed_at`、`cancelled_at`、`due_at`、`status` 列。无需新 Schema、Migration、第二张 UserTask 表或大规模 domain 重构。
 - `core/system/factory.py` 中 Work Log、Waiting-For 与 Inbox 总是组合；UserTask 可禁用；ReminderInbox 取决于 Reminder 与 Scheduler 配置。Daily Review 必须如实呈现这些差异。
 
-## 2. User Problem
+## 2. 用户问题（User Problem）
 
 用户在一天结束或第二天开始工作时，需要快速知道指定本地日历日发生了什么、哪些事项已完成/仍在进行/被阻塞，以及生成时仍有哪些有明确原因的待跟进事项。
 
@@ -31,7 +31,7 @@ SP-019 — Daily Review Read Model & Deterministic Follow-up View
 
 它不是智能助理、主动执行器、历史快照系统，也不是“大而全 Brief”。
 
-## 3. Daily Agenda Boundary
+## 3. Daily Agenda 边界（Daily Agenda Boundary）
 
 ```text
 Daily Agenda:
@@ -52,7 +52,7 @@ Daily Review -> Daily Agenda -> canonical services
 
 两者可复用纯时间窗口、稳定排序或基础输出类型，但 Daily Agenda API、CLI 与自然语言入口保持不变。
 
-## 4. Existing Daily Brief Replacement
+## 4. 现有 Daily Brief 替换（Existing Daily Brief Replacement）
 
 现有 `brief`、`每日简报`、`今日总结` 等 deterministic READ intent 最终统一委托 `DailyReviewService`。
 
@@ -60,7 +60,7 @@ Daily Review -> Daily Agenda -> canonical services
 
 现有 `/brief` 与 CLI `brief` 仅作为历史兼容入口讨论：若实施阶段保留，它们只能委托同一 Service 与 presenter；它们不是 SP-019 新公共合同，也不得扩大首版入口范围。
 
-## 5. Canonical Sources
+## 5. Canonical 数据源（Canonical Sources）
 
 Daily Review 只能直接读取：
 
@@ -72,7 +72,7 @@ Daily Review 只能直接读取：
 
 禁止扫描通用 `MemoryManager`、把 Daily Agenda 当作数据源、直接读数据库绕过 Service、用 LLM 选择事实，或用标题/文本相似度猜测关联。
 
-## 6. UserTask Workspace Prerequisite
+## 6. UserTask Workspace 前置条件（UserTask Workspace Prerequisite）
 
 SP-019 内部 Phase 0 定义窄范围的 **UserTask Workspace Query Closure**，它必须先完成，Daily Review 聚合才能开始：
 
@@ -88,7 +88,7 @@ SP-019 内部 Phase 0 定义窄范围的 **UserTask Workspace Query Closure**，
 
 本 Planning PR 只定义边界，不实现 Phase 0。
 
-## 7. Date and As-of Contract
+## 7. 日期与截至时点合同（Date and As-of Contract）
 
 首版只接受：
 
@@ -110,7 +110,7 @@ review_date = today | yesterday
 
 首版不接受任意 historical date。部分 canonical domain 只保存当前快照，无法可靠重建任意历史日期结束时的完整状态；SP-019 不得伪装成历史快照系统。`yesterday` 只报告可由 persisted timestamps 证明的昨日事实，并用当前 `as_of` 计算未闭环 Follow-up。
 
-## 8. Output Model
+## 8. 输出模型（Output Model）
 
 结构化结果至少包含：
 
@@ -124,6 +124,7 @@ DailyReview
 - generated_at
 - as_of
 - source_status
+- page
 - completed
 - in_progress
 - blocked
@@ -132,7 +133,43 @@ DailyReview
 - pending_inbox
 ```
 
-每个 section 是带显式 `count`、`has_more`、`limit` 的有界 page；不得静默截断。
+查询合同固定为：
+
+```text
+DailyReviewQuery
+- review_date: today | yesterday
+- limit: int, 1..100
+- offset: int, >= 0
+```
+
+`DailyReview.page` 是整份 Review 唯一的全局分页元数据：
+
+```text
+page
+- count
+- total_count
+- limit
+- offset
+- has_more
+```
+
+- `count`：当前 page 的全局 item 数量。
+- `total_count`：完成分类、canonical identity 去重与全局排序后的完整结果总数。
+- `has_more`：`offset + count < total_count`。
+- `offset >= total_count` 时返回空 page：`count=0`、`has_more=false`，所有 section items 为空。
+
+六个 section 不拥有独立 offset、cursor、limit 或 `has_more`。每个 section 可同时返回：
+
+```text
+section_total_count
+page_item_count
+items
+```
+
+- `section_total_count`：该 section 在完整未分页结果中的总数。
+- `page_item_count`：当前全局 page 中被分组到该 section 的 item 数量，必须等于 `items` 长度。
+
+禁止继续使用语义不明的 section `count`，也不得先按 source 或 section 截断后再聚合。
 
 每条 `DailyReviewItem` 至少包含：
 
@@ -148,7 +185,7 @@ relevant_time_fields
 
 `source_id` 只能是 `ut_...`、`rem_...`、`wf_...`、`wl_...`、`wl_legacy_...` 或 `inbox_...`。禁止输出无法回查来源的模糊总结。
 
-## 9. Classification Rules
+## 9. 分类规则（Classification Rules）
 
 日期事实只在相关事实时间位于 `[period_start, period_end)` 时进入相应 section：
 
@@ -167,7 +204,7 @@ relevant_time_fields
 
 当前状态不能反向伪造历史事实。只有可持久化时间字段证明发生在 review period 的 terminal transition 才进入日期事实 section。
 
-## 10. Follow-up Reason Codes
+## 10. Follow-up 原因码（Follow-up Reason Codes）
 
 首版只允许以下候选：
 
@@ -186,7 +223,7 @@ relevant_time_fields
 
 一个对象命中多个原因时保留 severity 数值最小的最高严重度原因；同 severity 按 reason code 升序稳定决胜。
 
-## 11. Sorting and Deduplication
+## 11. 排序与去重（Sorting and Deduplication）
 
 全局稳定顺序：
 
@@ -223,32 +260,48 @@ inbox
 
 同一 canonical 对象在一份报告中只能进入一个最高优先级 section。例如 blocked Work Log 只进 blocked；overdue UserTask 只进 follow_ups。`pending_inbox` 不是对 `inbox.pending` 的第二份复制，而是该 reason 的唯一展示 section。
 
-## 12. Source Availability
+全局分页处理顺序固定为：
 
-每个 canonical source 都记录：
+```text
+读取全部 canonical source 候选
+-> deterministic classification
+-> 按 (source_type, source_id) 去重并选定唯一 section
+-> 按全局稳定排序键排序
+-> 计算 total_count 与各 section_total_count
+-> 对全局结果应用 offset / limit
+-> 将当前 page items 按 section 分组
+-> 计算 page.count、has_more 与各 page_item_count
+```
+
+不得先对单个 source 或 section 应用业务截断。source service 的内部读取可以分页，但 `DailyReviewService` 必须遍历其可见结果，直到取得完整候选或明确失败；不得让上游 page size 成为 Daily Review 的静默 candidate cap。
+
+## 12. 数据源可用性（Source Availability）
+
+成功返回的 `DailyReview.source_status` 对每个 canonical source 只能记录：
 
 ```text
 available
 disabled
 not_configured
-failed
 ```
 
 - `available`：已启用且查询成功，包括合法空集合。
 - `disabled`：配置明确关闭。
 - `not_configured`：运行时没有所需 service/dependency。
-- `failed`：已启用来源在查询、投影或完整性验证中失败。
 
 `disabled/not_configured` 不阻止其余来源生成 Review，但必须在 `source_status` 显式暴露缺口，不能伪装成“没有事项”。
 
-## 13. Failure Semantics
+`failed` 只允许作为 source evaluation 的内部瞬时结果：已启用来源的查询、投影或完整性验证失败后，Service 立即转为 `daily_review.source_failed`，不返回 `DailyReview` payload。因此成功 payload 的 `source_status` 永远不包含 `failed`。
+
+## 13. 失败语义（Failure Semantics）
 
 已启用来源发生 runtime error、数据完整性错误或 legacy projection failure 时，整份 Review fail closed，不返回看似完整的部分成功结果。
 
 | Code | Category | Meaning |
 |---|---|---|
-| `daily_review.unavailable` | DISABLED / NOT_CONFIGURED | DailyReviewService 本身不可用 |
-| `daily_review.query_invalid` | VALIDATION | query/limit 合同无效 |
+| `daily_review.unavailable` | DISABLED | 配置显式关闭 DailyReviewService |
+| `daily_review.unavailable` | NOT_CONFIGURED | Composition Root 未组合所需 DailyReviewService |
+| `daily_review.query_invalid` | VALIDATION | query、limit 或 offset 合同无效 |
 | `daily_review.date_invalid` | VALIDATION | 非 today/yesterday 或日期无法解释 |
 | `daily_review.timezone_invalid` | VALIDATION | 系统 timezone 非合法 IANA timezone |
 | `daily_review.source_failed` | DEPENDENCY_FAILURE | 已启用 canonical source 查询或投影失败 |
@@ -256,7 +309,9 @@ failed
 
 所有失败使用 `FailureInfo(component="daily_review", operation="get")`。`daily_review.source_failed.details` 只允许 `source`、`upstream_code`、`upstream_category`；不得泄露数据库路径、原始异常、正文、内部 SQL 或 traceback。
 
-## 14. Workspace Contract
+配置关闭与未组合必须分别保留 `ErrorCategory.DISABLED` 和 `ErrorCategory.NOT_CONFIGURED`，不得把单个 FailureInfo category 写成复合值 `DISABLED / NOT_CONFIGURED`。
+
+## 14. Workspace 合同（Workspace Contract）
 
 所有来源接收同一个 canonical `WorkspaceKey`，并严格比较：
 
@@ -268,7 +323,7 @@ namespace
 
 API 从现有安全中间件与 Workspace headers 构造 WorkspaceKey；CEO Assistant 使用 `ApplicationRequest.workspace_key`。过滤必须在候选选择、分页、排序和 limit 前生效。trace/session 不是隔离键。
 
-## 15. Entry Points
+## 15. 入口（Entry Points）
 
 首版规划只批准：
 
@@ -277,11 +332,13 @@ DailyReviewService
 CEO Assistant deterministic READ intent
 GET /daily-review?date=today
 GET /daily-review?date=yesterday
+GET /daily-review?date=today&limit=50&offset=0
+GET /daily-review?date=yesterday&limit=50&offset=0
 ```
 
-API 与 CEO Assistant 使用同一 Service、模型、reason code、排序与 FailureInfo presenter。CLI 新入口延期。Daily Agenda 的所有入口不变。
+API query parameter `date` 映射到 `DailyReviewQuery.review_date`；`limit` 合法范围为 `1..100`，`offset >= 0`。API 与 CEO Assistant 在使用相同 `DailyReviewQuery` 时必须共享同一 Service、模型、全局分页、reason code、排序与 FailureInfo presenter。CLI 新入口延期。Daily Agenda 的所有入口不变。
 
-## 16. Storage Decision
+## 16. 存储决策（Storage Decision）
 
 Daily Review 是按需、非持久化 read model，不是新 canonical domain：
 
@@ -290,11 +347,11 @@ Daily Review 是按需、非持久化 read model，不是新 canonical domain：
 - 无 migration 或 write-back；
 - 不直接查询数据库绕过 source service。
 
-## 17. LLM Boundary
+## 17. LLM 边界（LLM Boundary）
 
 事实选择、分类、Follow-up、去重、排序、来源可用性和失败语义全部 deterministic。首版无 Provider 依赖、无 LLM 调用。自然语言 presenter 只能格式化结构化结果，不能改变事实或 reason code。
 
-## 18. Side-effect Boundary
+## 18. 副作用边界（Side-effect Boundary）
 
 Daily Review 查询必须证明：
 
@@ -307,7 +364,7 @@ Daily Review 查询必须证明：
 
 禁止新 Event type、EventBus publish、任务/Reminder 创建、Waiting-For mutation、Inbox resolution、主动推送、Scheduler 或定时生成。
 
-## 19. Alternatives Considered
+## 19. 被拒绝的替代方案（Alternatives Considered）
 
 ### A. 复用 Daily Agenda 输出
 
@@ -333,20 +390,20 @@ Daily Review 查询必须证明：
 
 当前不选择。真实审计证明现有 metadata JSON 与时间列足以做窄闭环；若实施证据推翻此结论，则立即拆分。
 
-## 20. Implementation Phases
+## 20. 实施阶段（Implementation Phases）
 
 这些阶段仅定义未来实施顺序，不构成实施批准：
 
 0. UserTask Workspace Query Closure：完整 Workspace 下推、terminal ranges、as-of query。
-1. DailyReview 模型、时间边界、FailureInfo 与 source adapter。
-2. deterministic classification、follow-up、排序、去重、source status 与有界 section page。
+1. `DailyReviewQuery`、`DailyReview`、全局 page metadata、时间边界、FailureInfo 与 source adapter。
+2. deterministic classification、follow-up、canonical identity 去重、全局稳定排序、`total_count` 后应用 `offset/limit`，再按 section 分组并计算 `section_total_count/page_item_count`。
 3. Composition Root 与旧 brief 单一委托切换。
 4. CEO Assistant READ intent 与 `GET /daily-review`。
 5. ACC-019 自动化、真实进程验收与零副作用证据。
 
 Phase 0 未通过前不得开始 Phase 1 聚合。
 
-## 21. Non-goals
+## 21. 非目标（Non-goals）
 
 - 任意历史日期或历史趋势；
 - Daily Agenda 改版；
@@ -358,7 +415,7 @@ Phase 0 未通过前不得开始 Phase 1 聚合。
 - UserTask Schema/Migration 或大规模重构；
 - 产品版本、Tag、Release 或发布授权变更。
 
-## 22. Risks
+## 22. 风险（Risks）
 
 - UserTask legacy metadata 不完整导致错误归属；
 - current snapshot 被误当作历史 end-of-day 状态；
@@ -370,7 +427,7 @@ Phase 0 未通过前不得开始 Phase 1 聚合。
 
 通过 fail-closed Workspace、显式 source status、半开窗口、canonical identity、有界 page、单一 Service 与 ACC-019 控制。
 
-## 23. Stop Conditions
+## 23. 停止条件（Stop Conditions）
 
 出现下列任一情况立即停止相应扩大动作并报告 `BLOCKER`、`SPLIT_REQUIRED` 或 `DEFERRED`：
 
@@ -382,7 +439,7 @@ Phase 0 未通过前不得开始 Phase 1 聚合。
 - acceptance 开始扩张为任意历史状态重建；
 - 最新 main 已存在冲突的 SP-019 branch、PR 或 Planning Baseline。
 
-## 24. Planning Gate
+## 24. 规划门禁（Planning Gate）
 
 本 RFC 只定义 Planning Baseline：
 
