@@ -1,8 +1,8 @@
 # AI-Lab Roadmap
 
-**Last Updated:** 2026-07-26
+**Last Updated:** 2026-07-28
 **Current Version:** v0.34.0 Alpha / Release Authorized
-**Current SP:** SP-019
+**Current SP:** None
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -54,16 +54,16 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 ## v0.35.0 候选方向
 
-SP-016、SP-017 与 SP-018 已完成人工验收并封存。SP-019 Planning Baseline 已通过独立审查、合并并对账，Implementation 已获批准：
+SP-016、SP-017、SP-018 与 SP-019 已完成人工验收并封存。当前没有已批准或已命名的下一 Product SP：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
 | SP-016 | Canonical Waiting-For Domain & Agenda Closure | COMPLETED / ARCHIVED |
 | SP-017 | Follow-up Interaction & Capture Closure — Deterministic Waiting-For interaction, Inbox capture confirmation, and durable Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |
 | SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
-| SP-019 | Daily Review Read Model & Deterministic Follow-up View | IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / PENDING_MERGE |
+| SP-019 | Daily Review Read Model & Deterministic Follow-up View | APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 
-ACC-016、ACC-017、ACC-018 与 ACC-019 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028、ADR-061、ADR-062 为 IMPLEMENTED / ACC-019 PASSED / PENDING MERGE。Owner 已批准 SP-019 Implementation；UserTask Workspace Query Closure Phase 0 已验收，Daily Review 聚合已在 Draft 分支通过正式 ACC-019 A～M，等待 PR #51 合并。
+ACC-016、ACC-017、ACC-018 与 ACC-019 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted；UserTask Workspace Query Closure Phase 0 与 Daily Review 均已合并、验证并封存。不得从本 Roadmap 推导或自行命名下一 Product SP。
 
 ## 后续候选版本
 

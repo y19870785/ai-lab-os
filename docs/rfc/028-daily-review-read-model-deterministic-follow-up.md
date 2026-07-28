@@ -1,9 +1,9 @@
 # RFC-028 — Daily Review Read Model & Deterministic Follow-up View
 
-Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE
+Status: Adopted
 Date: 2026-07-26
 Target: SP-019
-Implementation: IMPLEMENTATION_APPROVED / DAILY_REVIEW_ACCEPTED / PENDING_MERGE
+Implementation: MERGED / POST_MERGE_VERIFIED / ACCEPTED
 
 ## 1. 当前状态审计（Current State Audit）
 
@@ -420,7 +420,7 @@ Daily Review 查询必须证明：
 
 ## 20. 实施阶段（Implementation Phases）
 
-以下顺序已用于当前 Draft 实施，但不构成独立审查或 ACC-019 通过：
+以下顺序已用于已合并的 SP-019 实施：
 
 0. UserTask Workspace Query Closure：完整 Workspace 下推、terminal ranges、as-of query。
 1. `DailyReviewQuery`、`DailyReview`、全局 page metadata、时间边界、FailureInfo 与 source adapter。
@@ -429,7 +429,7 @@ Daily Review 查询必须证明：
 4. CEO Assistant READ intent 与 `GET /daily-review`。
 5. ACC-019 自动化、真实进程验收与零副作用证据。
 
-Phase 0 已接受；Phase 1～4 已在实施 Draft 完成。Phase 5 的正式 ACC-019 A～M 已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 上通过，状态为 `PASSED / FINAL`；PR 仍待合并。
+Phase 0 已接受；Phase 1～4 已完成。Phase 5 的正式 ACC-019 A～M 已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 上通过，状态为 `PASSED / FINAL`。
 
 ## 21. 非目标（Non-goals）
 
@@ -467,16 +467,16 @@ Phase 0 已接受；Phase 1～4 已在实施 Draft 完成。Phase 5 的正式 AC
 - acceptance 开始扩张为任意历史状态重建；
 - 最新 main 已存在冲突的 SP-019 branch、PR 或 Planning Baseline。
 
-## 24. 规划门禁（Planning Gate）
+## 24. 治理状态（Governance）
 
-本 RFC 已实现并通过 ACC-019，当前合并前状态为：
+本 RFC 已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 实现；ACC-019 A～M 为 `PASSED / FINAL`。Feature PR #51 已 Squash merged as `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`，Main Quality Gate `30382312419` PASSED。
 
 ```text
 SP-019 Planning Baseline: APPROVED / MERGED / RECONCILED
-SP-019 Implementation: IMPLEMENTATION_APPROVED / PENDING_MERGE
-SP-019 Phase 0: ACCEPTED
-Daily Review: ACCEPTED / PENDING_MERGE
+SP-019 Implementation: APPROVED / MERGED / POST_MERGE_VERIFIED
+SP-019 Phase 0: APPROVED / MERGED / POST_MERGE_VERIFIED / ACCEPTED
+Daily Review: MERGED / POST_MERGE_VERIFIED / ACCEPTED
 ACC-019: PASSED / FINAL
 ```
 
-当前 Draft 状态不等于 PR 已合并、SP-019 已完成、RFC Release Final 或产品版本已发布。
+RFC-028 已 Adopted；该状态不表示 Release Final，也不改变产品版本、Tag 或 Release。

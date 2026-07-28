@@ -1,6 +1,6 @@
 # AI-Lab OS
 
-> SP-018 已合并并完成 ACC-018 A～O 与 post-merge verification：Work Log 查询先完成完整 Workspace SQL scope，再解码或投影；API、CLI、CEO Assistant 共享稳定 FailureInfo，Agenda 与 DST 边界保持 fail-closed 合同。
+> SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
@@ -20,6 +20,7 @@ AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业�
 - Reminder Management：列表、详情、取消、改期、workspace 校验和幂等语义。
 - Intent Safety：读、写、聊天显式分离；模糊查询优先只读。
 - Work Log（SP-018）：统一 create/get/list、完整 Workspace identity、canonical/legacy ID、API/CLI/CEO/Inbox 入口与只读查询；ACC-018 A～O 已通过并封存。
+- Daily Review（SP-019）：支持 `today` / `yesterday`、本地 IANA timezone、DST 23/25 小时日、当前 follow-up、pending Inbox、全局稳定排序与分页；API、CEO Assistant 和兼容 `/brief` 共用同一 `DailyReviewService`，ACC-019 A～M 已通过并封存。
 - Daily Agenda：统一读取 UserTask、Reminder、Waiting-For 与 canonical Work Log。
 - Unified Inbox / Capture-to-Action：捕获待整理事项，并显式转化为 UserTask、Reminder、Work Log、Note 或 Dismiss。
 - Waiting-For Follow-up Interaction：自然语言先捕获 Inbox，再以 Inbox ID 确认创建；显式 `wf_...` ID 支持确定性生命周期操作，已通过 ACC-017 A～O 并封存。
@@ -95,6 +96,15 @@ python -m cli agenda --view today --json
 python -m cli inbox list --json
 ```
 
+Daily Review 的真实公共入口为：
+
+```text
+GET /daily-review?date=today
+GET /daily-review?date=yesterday
+GET /brief
+CEO Assistant：今日简报 / 昨日简报
+```
+
 API、CLI 和 CEO Assistant 最终都进入 `core.system.create_system()` 创建的 `SystemContainer`，不会各自组装第二套 Repository 或领域服务。
 
 ## 架构概览
@@ -103,7 +113,7 @@ API、CLI 和 CEO Assistant 最终都进入 `core.system.create_system()` 创建
 Governance
   └─ Application / CEO Assistant / API / CLI
        └─ Canonical Composition Root
-            ├─ UserTask / Reminder / Daily Agenda / Unified Inbox
+            ├─ UserTask / Reminder / Daily Agenda / Daily Review / Unified Inbox
             ├─ Scheduler / Workflow / Agent / Tool / Coordination
             ├─ Knowledge / Provider
             └─ Memory / Database / EventBus / Core
@@ -125,6 +135,7 @@ Governance
 - Workspace 是逻辑隔离边界，不等于完整用户身份或强多租户授权。
 - Reminder 当前提供站内持久化状态，不代表邮件、短信或推送已经送达。
 - 不支持 Recurring Reminder、复杂自然语言日期或 LLM 时间裁决。
+- Daily Review 只支持 `today` / `yesterday`，不持久化 Review snapshot，不支持任意历史日期，不调用 LLM、不主动推送，且没有 Daily Review CLI。
 - Knowledge 真实主链路、Web UI、Docker 受控 build/run 与长期稳定性尚未完成正式验证。
 - 普通 GitHub Quality Gate 显式排除 `tests/real`；真实 Provider 结果不能由普通门禁推导。
 - CI-002 与 QUALITY-001 等已确认技术债记录在 `project_state.json`。
