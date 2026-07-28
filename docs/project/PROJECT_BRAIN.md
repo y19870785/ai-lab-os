@@ -14,8 +14,8 @@
 > SP-018 Status: APPROVED / MERGED / ACCEPTED / POST-MERGE VERIFIED / RECONCILED / ARCHIVED
 > ACC-018 Status: PASSED / FINAL
 > SP-018 Design: RFC-027 Adopted; ADR-058, ADR-059 and ADR-060 Accepted
-> SP-019 Status: IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_IMPLEMENTED / PENDING_INDEPENDENT_REVIEW
-> SP-019 Design: RFC-028, ADR-061 and ADR-062 Proposed / Planning Baseline
+> SP-019 Status: IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / PENDING_MERGE
+> SP-019 Design: RFC-028, ADR-061 and ADR-062 IMPLEMENTED / ACC-019 PASSED / PENDING MERGE
 > SP-019 Planning Merge Baseline: `e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / Quality Gate run `30205853257` / SUCCESS
 > Release Stage: v0.34.0 Alpha / RELEASE_AUTHORIZED
 > Verified Release Baseline: `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
@@ -110,8 +110,8 @@ Mock Provider: only explicit mock/test profiles
 - Feature PR #46 已以 Squash Merge 合入 `83ecb557fedd1d898712afc59ad13b3e0a684413`；ACC-018 A～O 在 Approved Head `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3` 完整通过。
 - 合并后的 main 通过自动 push Quality Gate `30196719409`、本地全量验证与 post-merge smoke；验收和 smoke 均未调用真实 Provider。
 - SP-018A 对账 PR #47 已合并为 `4e0d730a8bfdefa6277c7526a028e7247d7ddc43`，自动 push Quality Gate `30198434517` 成功。
-- SP-019 Planning Baseline 已通过独立审查并由 PR #48 Squash Merge 到 main `e7fc5b1dd66ff7828c1697bfd5610f300599eee5`；Approved Planning Head 为 `282dd939ff264b0f23d5070b6f632aa0442531ea`，合并时间为 `2026-07-26T14:19:41Z`，自动 push Quality Gate `30205853257` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。RFC-028、ADR-061、ADR-062 仍为 Proposed / Planning Baseline；规划批准与合并不构成 SP-019 Implementation 授权。
-- UserTask Workspace Query Closure 是 SP-019 的已验收 Phase 0；PR #50 已合并并通过 post-merge Quality Gate。Daily Review 主体已在 Draft 分支实现，等待独立审查；未执行 ACC-019。
+- SP-019 Planning Baseline 已通过独立审查并由 PR #48 Squash Merge 到 main `e7fc5b1dd66ff7828c1697bfd5610f300599eee5`；Approved Planning Head 为 `282dd939ff264b0f23d5070b6f632aa0442531ea`，合并时间为 `2026-07-26T14:19:41Z`，自动 push Quality Gate `30205853257` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。当时 RFC-028、ADR-061、ADR-062 为 Proposed / Planning Baseline，且规划批准与合并本身不构成 SP-019 Implementation 授权；当前验收后状态见本页顶部。
+- UserTask Workspace Query Closure 是 SP-019 的已验收 Phase 0；PR #50 已合并并通过 post-merge Quality Gate。Daily Review 主体已在 Draft 分支实现，正式 ACC-019 A～M 已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 上通过；PR #51 仍待合并。
 
 ## 已封存产品能力
 
@@ -183,4 +183,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 SP-019，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification 与 SP-018A 对账；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Owner 已批准 Implementation；Phase 0 UserTask Workspace Query Closure 已 ACCEPTED。Daily Review 主体已在 Draft 分支实现并处于 PENDING INDEPENDENT REVIEW。RFC-028、ADR-061、ADR-062 仍为 Proposed / Planning Baseline，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED。
+SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 SP-019，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification 与 SP-018A 对账；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Owner 已批准 Implementation；Phase 0 UserTask Workspace Query Closure 已 ACCEPTED。Daily Review 已在 Draft 分支通过正式 ACC-019 A～M，当前为 DAILY_REVIEW_ACCEPTED / PENDING_MERGE。RFC-028、ADR-061、ADR-062 为 IMPLEMENTED / ACC-019 PASSED / PENDING MERGE；ACC-019 为 PASSED / FINAL。SP-019 仍未合并或完成。

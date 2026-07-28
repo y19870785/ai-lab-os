@@ -164,7 +164,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
         "sp_019_implementation_approved_phase_0_accepted_"
-        "daily_review_implemented_pending_independent_review"
+        "daily_review_accepted_pending_merge"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -462,7 +462,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
         "sp_019_implementation_approved_phase_0_accepted_"
-        "daily_review_implemented_pending_independent_review"
+        "daily_review_accepted_pending_merge"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -588,11 +588,11 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
             "| SP-018 | Work Log Query Boundary & Context Closure | "
             "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
         ),
-        (
-            "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-            "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / "
-            "DAILY_REVIEW_IMPLEMENTED / PENDING_INDEPENDENT_REVIEW |"
-        ),
+            (
+                "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
+                "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / "
+                "DAILY_REVIEW_ACCEPTED / PENDING_MERGE |"
+            ),
     )
     assert all(marker in current_text for marker in required_markers)
     forbidden_markers = (
@@ -760,8 +760,8 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     ) in roadmap
     assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_IMPLEMENTED / "
-        "PENDING_INDEPENDENT_REVIEW |"
+        "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / "
+        "PENDING_MERGE |"
     ) in roadmap
     assert "SP-018 永久产品事实" in brain
     assert "不会创建 `work_logs.db`" in brain
@@ -868,7 +868,7 @@ def test_sp018_product_entrypoints_use_the_canonical_work_log_boundary() -> None
     assert "retrieve_memory" not in agenda_read
 
 
-def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
+def test_sp019_daily_review_is_accepted_pending_merge() -> None:
     state = _load_state()
     sp019 = state["sp_records"]["SP-019"]
     acc019 = state["acceptance_records"]["ACC-019"]
@@ -882,19 +882,19 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
     assert state["current_version"] == "0.34.0"
     assert state["development_status"] == (
         "sp_019_implementation_approved_phase_0_accepted_"
-        "daily_review_implemented_pending_independent_review"
+        "daily_review_accepted_pending_merge"
     )
     assert sp019 == {
         "name": "Daily Review Read Model & Deterministic Follow-up View",
         "status": (
             "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / "
-            "DAILY_REVIEW_IMPLEMENTED / PENDING_INDEPENDENT_REVIEW"
+            "DAILY_REVIEW_ACCEPTED / PENDING_MERGE"
         ),
         "planning_baseline_defined": True,
         "planning_baseline_approved": True,
         "approved": True,
         "implementation_started": True,
-        "implementation_complete": False,
+        "implementation_complete": True,
         "completed": False,
         "implementation_base": "410ded0533943d23c622fa6788f37a3c06e99ad1",
         "phase_0_status": (
@@ -909,7 +909,10 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
         ),
         "phase_0_merged_at": "2026-07-26T17:04:49Z",
         "phase_0_post_merge_quality_gate_run": 30211823590,
-        "daily_review_status": "IMPLEMENTED / PENDING_INDEPENDENT_REVIEW",
+        "daily_review_status": "ACCEPTED / PENDING_MERGE",
+        "approved_implementation_head": (
+            "1f2975503cd79047137a4a9f47096668fd4341c5"
+        ),
         "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
         "branch": "feat/sp-019-daily-review-read-model",
         "planning_pr": 48,
@@ -921,18 +924,38 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
         "target_version": "0.35.0",
         "rfc": "RFC-028",
         "adrs": ["ADR-061", "ADR-062"],
-        "acceptance": "ACC-019 PLANNING_BASELINE / NOT_EXECUTED",
+        "acceptance": "ACC-019 PASSED / FINAL",
         "user_task_workspace_prerequisite": "ACCEPTED",
         "scope": (
             "On-demand non-persistent Daily Review read model and "
             "deterministic follow-up view"
         ),
     }
-    assert acc019["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
-    assert acc019["manual_acceptance"] is False
+    assert acc019["status"] == "PASSED / FINAL"
+    assert acc019["manual_acceptance"] is True
+    assert acc019["approved_implementation_head"] == (
+        "1f2975503cd79047137a4a9f47096668fd4341c5"
+    )
+    assert acc019["python_version"] == "3.12.10"
+    assert acc019["driver_hash"] == (
+        "7b5f2905c59cdd8ca47213042fe83d7785759e21935f82ffd04edae62e7f20f4"
+    )
+    assert acc019["provider_calls"] == 0
+    assert acc019["harness_incidents"] == 3
     assert acc019["scenarios"] == {
-        letter: "NOT_EXECUTED" for letter in "ABCDEFGHIJKLM"
+        letter: "PASSED" for letter in "ABCDEFGHIJKLM"
     }
+    notes = "\n".join(acc019["notes"])
+    assert "Three discarded runs" in notes
+    assert "without product changes" in notes
+    assert "SP-019 remains incomplete and unmerged" in notes
+    assert sp019["completed"] is False
+    assert {
+        "feature_merge_commit",
+        "merge_commit",
+        "merged_at",
+        "post_merge_quality_gate_run",
+    }.isdisjoint(sp019)
 
     rfc = (
         ROOT / "docs/rfc/028-daily-review-read-model-deterministic-follow-up.md"
@@ -979,7 +1002,7 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
         "## 23. 停止条件（Stop Conditions）",
     )
     assert all(heading in rfc for heading in required_rfc_headings)
-    assert "Status: Proposed / Planning Baseline" in rfc
+    assert "Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE" in rfc
     assert "UserTask Workspace Query Closure" in rfc
     assert "无需新 Schema、Migration" in rfc
     assert "`daily_review.source_failed`" in rfc
@@ -1087,7 +1110,10 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
         "API 与 CEO Assistant 必须构造同一个默认 `DailyReviewQuery`，"
         "不得各自设置不同默认值"
     ) in entry_contract
-    assert "Status: Proposed / Planning Baseline" in adr061
+    assert (
+        "Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE"
+        in adr061
+    )
     assert "非持久化" in adr061
     assert "## 背景（Context）" in adr061
     assert "## 决策（Decision）" in adr061
@@ -1095,15 +1121,40 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
         "日期事实由 `review_date` 控制；当前未闭环视图，包括 "
         "`pending_inbox`，由 `as_of` 控制。"
     ) in adr061
-    assert "Status: Proposed / Planning Baseline" in adr062
+    assert (
+        "Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE"
+        in adr062
+    )
     assert "成功返回的 `DailyReview.source_status`" in adr062
     assert "不是成功 payload 的 `source_status` 值" in adr062
     assert "category=DISABLED" in adr062
     assert "category=NOT_CONFIGURED" in adr062
     assert "## 治理状态（Governance）" in adr062
     assert all(f"ACC-019-{letter}" in acceptance for letter in "ABCDEFGHIJKLM")
-    assert acceptance.count("状态：NOT_EXECUTED") == 13
-    assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
+    for index, letter in enumerate("ABCDEFGHIJKLM"):
+        next_letter = "ABCDEFGHIJKLM"[index + 1:index + 2]
+        scenario = acceptance.split(
+            f"## ACC-019-{letter}", maxsplit=1
+        )[1]
+        if next_letter:
+            scenario = scenario.split(
+                f"## ACC-019-{next_letter}", maxsplit=1
+            )[0]
+        else:
+            scenario = scenario.split("## 正式验收证据", maxsplit=1)[0]
+        assert scenario.rstrip().endswith("状态：PASSED")
+    assert "ACC-019: PASSED / FINAL" in acceptance
+    assert "manual_acceptance: true" in acceptance
+    assert (
+        "Approved Implementation Head: "
+        "1f2975503cd79047137a4a9f47096668fd4341c5"
+    ) in acceptance
+    assert (
+        "Driver SHA-256: "
+        "7b5f2905c59cdd8ca47213042fe83d7785759e21935f82ffd04edae62e7f20f4"
+    ) in acceptance
+    assert "Provider calls 为 0" in acceptance
+    assert "三次废弃运行" in acceptance
     planning_merge_contract = (
         "Planning PR：#48（MERGED）\n\n"
         "Approved Planning Head："
@@ -1184,8 +1235,8 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
     assert "| ADR-062 |" in decision_index
     assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_IMPLEMENTED / "
-        "PENDING_INDEPENDENT_REVIEW |"
+        "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / "
+        "PENDING_MERGE |"
     ) in roadmap
     assert (
         "> Current SP: SP-019\n"
@@ -1194,7 +1245,7 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
     ) in brain
     assert (
         "> SP-019 Status: IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / "
-        "DAILY_REVIEW_IMPLEMENTED / PENDING_INDEPENDENT_REVIEW"
+        "DAILY_REVIEW_ACCEPTED / PENDING_MERGE"
     ) in brain
     assert (
         "> SP-019 Planning Merge Baseline: "
@@ -1206,8 +1257,9 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
     assert "Current Governance Task 为 None" in project_status
     assert "Latest Completed SP 为 SP-018" in project_status
     assert (
-        "Daily Review 主体已在 Draft 分支实现并处于 "
-        "PENDING INDEPENDENT REVIEW"
+        "Daily Review 已在 Approved Implementation Head "
+        "`1f2975503cd79047137a4a9f47096668fd4341c5` 上通过 "
+        "ACC-019 A～M"
     ) in project_status
     assert (
         "| Current product SP | SP-019 |\n"
@@ -1219,8 +1271,7 @@ def test_sp019_daily_review_is_implemented_pending_independent_review() -> None:
         "ACCEPTED |"
     ) in project_health
     assert (
-        "| SP-019 Daily Review | IMPLEMENTED / "
-        "PENDING INDEPENDENT REVIEW |"
+        "| SP-019 Daily Review | ACCEPTED / PENDING MERGE |"
     ) in project_health
     assert "| Current main |" not in project_health
     assert (

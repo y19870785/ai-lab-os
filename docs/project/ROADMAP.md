@@ -61,9 +61,9 @@ SP-016、SP-017 与 SP-018 已完成人工验收并封存。SP-019 Planning Base
 | SP-016 | Canonical Waiting-For Domain & Agenda Closure | COMPLETED / ARCHIVED |
 | SP-017 | Follow-up Interaction & Capture Closure — Deterministic Waiting-For interaction, Inbox capture confirmation, and durable Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |
 | SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
-| SP-019 | Daily Review Read Model & Deterministic Follow-up View | IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_IMPLEMENTED / PENDING_INDEPENDENT_REVIEW |
+| SP-019 | Daily Review Read Model & Deterministic Follow-up View | IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / PENDING_MERGE |
 
-ACC-016、ACC-017 与 ACC-018 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028、ADR-061、ADR-062 仍为 Proposed / Planning Baseline，ACC-019 仍为 PLANNING_BASELINE / NOT_EXECUTED。Owner 已批准 SP-019 Implementation；UserTask Workspace Query Closure Phase 0 已验收，Daily Review 聚合已在 Draft 分支实现并等待独立审查。
+ACC-016、ACC-017、ACC-018 与 ACC-019 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028、ADR-061、ADR-062 为 IMPLEMENTED / ACC-019 PASSED / PENDING MERGE。Owner 已批准 SP-019 Implementation；UserTask Workspace Query Closure Phase 0 已验收，Daily Review 聚合已在 Draft 分支通过正式 ACC-019 A～M，等待 PR #51 合并。
 
 ## 后续候选版本
 

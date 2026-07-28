@@ -1,9 +1,9 @@
 # RFC-028 — Daily Review Read Model & Deterministic Follow-up View
 
-Status: Proposed / Planning Baseline
+Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE
 Date: 2026-07-26
 Target: SP-019
-Implementation: OWNER APPROVED / IMPLEMENTED ON DRAFT / PENDING INDEPENDENT REVIEW
+Implementation: IMPLEMENTATION_APPROVED / DAILY_REVIEW_ACCEPTED / PENDING_MERGE
 
 ## 1. 当前状态审计（Current State Audit）
 
@@ -429,7 +429,7 @@ Daily Review 查询必须证明：
 4. CEO Assistant READ intent 与 `GET /daily-review`。
 5. ACC-019 自动化、真实进程验收与零副作用证据。
 
-Phase 0 已接受；Phase 1～4 已在实施 Draft 完成，Phase 5 仅完成自动化实现覆盖，正式 ACC-019 A～M 仍未执行。
+Phase 0 已接受；Phase 1～4 已在实施 Draft 完成。Phase 5 的正式 ACC-019 A～M 已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 上通过，状态为 `PASSED / FINAL`；PR 仍待合并。
 
 ## 21. 非目标（Non-goals）
 
@@ -469,14 +469,14 @@ Phase 0 已接受；Phase 1～4 已在实施 Draft 完成，Phase 5 仅完成自
 
 ## 24. 规划门禁（Planning Gate）
 
-本 RFC 的设计仍处于 Proposed，当前实现状态为：
+本 RFC 已实现并通过 ACC-019，当前合并前状态为：
 
 ```text
 SP-019 Planning Baseline: APPROVED / MERGED / RECONCILED
-SP-019 Implementation: OWNER APPROVED
+SP-019 Implementation: IMPLEMENTATION_APPROVED / PENDING_MERGE
 SP-019 Phase 0: ACCEPTED
-Daily Review: IMPLEMENTED ON DRAFT / PENDING INDEPENDENT REVIEW
-ACC-019: PLANNING_BASELINE / NOT_EXECUTED
+Daily Review: ACCEPTED / PENDING_MERGE
+ACC-019: PASSED / FINAL
 ```
 
-当前 Draft 状态不等于 RFC 最终采纳、产品完成或验收通过。
+当前 Draft 状态不等于 PR 已合并、SP-019 已完成、RFC Release Final 或产品版本已发布。
