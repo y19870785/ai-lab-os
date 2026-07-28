@@ -15,6 +15,7 @@ from core.agents.runtime import DefaultAgentRuntime
 from core.bus.bus import MemoryBus
 from core.clock import Clock
 from core.coordination.orchestrator import AgentOrchestrator
+from core.daily_review import DailyReviewService
 from core.database.manager import DatabaseManager
 from core.errors import RuntimeStatus
 from core.inbox import InboxService, SQLiteInboxRepository
@@ -82,6 +83,7 @@ class SystemContainer:
     reminder_inbox: ReminderInboxService | None
     reminder_management: ReminderManagementService | None
     daily_agenda: DailyAgendaService | None
+    daily_review: DailyReviewService | None
     waiting_for_repository: SQLiteWaitingForRepository
     waiting_for_service: WaitingForService
     inbox_repository: SQLiteInboxRepository

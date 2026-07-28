@@ -38,6 +38,7 @@ class SystemSettings:
     enable_scheduler: bool = False
     enable_coordination: bool = False
     enable_user_tasks: bool = True
+    enable_daily_review: bool = True
     enable_reminders: bool = False
     enable_api: bool = False
     timezone_name: str = "Asia/Shanghai"
@@ -116,6 +117,7 @@ def load_system_settings(
         enable_scheduler=_as_bool(os.getenv("AI_LAB_ENABLE_SCHEDULER"), False),
         enable_coordination=_as_bool(os.getenv("AI_LAB_ENABLE_COORDINATION"), False),
         enable_user_tasks=_as_bool(os.getenv("AI_LAB_ENABLE_USER_TASKS"), True),
+        enable_daily_review=_as_bool(os.getenv("AI_LAB_ENABLE_DAILY_REVIEW"), True),
         enable_reminders=_as_bool(os.getenv("AI_LAB_ENABLE_REMINDERS"), False),
         enable_api=_as_bool(os.getenv("AI_LAB_ENABLE_API"), False),
         timezone_name=os.getenv("AI_LAB_TIMEZONE", "Asia/Shanghai"),
@@ -144,6 +146,7 @@ def make_test_settings(
     enable_scheduler: bool = False,
     enable_coordination: bool = False,
     enable_reminders: bool = False,
+    enable_daily_review: bool = True,
     timezone_name: str = "Asia/Shanghai",
     scheduler_tick_interval: float = 1.0,
 ) -> SystemSettings:
@@ -162,6 +165,7 @@ def make_test_settings(
         enable_scheduler=enable_scheduler,
         enable_coordination=enable_coordination,
         enable_reminders=enable_reminders,
+        enable_daily_review=enable_daily_review,
         timezone_name=timezone_name,
         scheduler_tick_interval=scheduler_tick_interval,
         enable_api_auth=False,

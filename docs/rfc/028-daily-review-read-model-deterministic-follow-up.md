@@ -1,9 +1,9 @@
 # RFC-028 — Daily Review Read Model & Deterministic Follow-up View
 
-Status: Proposed / Planning Baseline
+Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE
 Date: 2026-07-26
 Target: SP-019
-Implementation: NOT APPROVED / NOT STARTED
+Implementation: IMPLEMENTATION_APPROVED / DAILY_REVIEW_ACCEPTED / PENDING_MERGE
 
 ## 1. 当前状态审计（Current State Audit）
 
@@ -86,7 +86,7 @@ SP-019 内部 Phase 0 定义窄范围的 **UserTask Workspace Query Closure**，
 
 审计结论：现有列和 metadata JSON 可以安全完成该闭环，不需要 Schema/Migration 或大规模 UserTask 重构。因此它保留为 SP-019 Phase 0，而不是独立前置 SP。若实施时发现必须新增 Schema、Migration 或第二套存储，立即停止并改为 `SPLIT_REQUIRED`，SP-019 标记 `BLOCKED_BY_USER_TASK_WORKSPACE_CLOSURE`。
 
-本 Planning PR 只定义边界，不实现 Phase 0。
+Phase 0 已由 PR #50 合并并通过 post-merge Quality Gate，随后经 Owner 接受。Daily Review 实施以该 accepted Phase 0 为授权基线。
 
 ## 7. 日期与截至时点合同（Date and As-of Contract）
 
@@ -420,7 +420,7 @@ Daily Review 查询必须证明：
 
 ## 20. 实施阶段（Implementation Phases）
 
-这些阶段仅定义未来实施顺序，不构成实施批准：
+以下顺序已用于当前 Draft 实施，但不构成独立审查或 ACC-019 通过：
 
 0. UserTask Workspace Query Closure：完整 Workspace 下推、terminal ranges、as-of query。
 1. `DailyReviewQuery`、`DailyReview`、全局 page metadata、时间边界、FailureInfo 与 source adapter。
@@ -429,7 +429,7 @@ Daily Review 查询必须证明：
 4. CEO Assistant READ intent 与 `GET /daily-review`。
 5. ACC-019 自动化、真实进程验收与零副作用证据。
 
-Phase 0 未通过前不得开始 Phase 1 聚合。
+Phase 0 已接受；Phase 1～4 已在实施 Draft 完成。Phase 5 的正式 ACC-019 A～M 已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 上通过，状态为 `PASSED / FINAL`；PR 仍待合并。
 
 ## 21. 非目标（Non-goals）
 
@@ -469,12 +469,14 @@ Phase 0 未通过前不得开始 Phase 1 聚合。
 
 ## 24. 规划门禁（Planning Gate）
 
-本 RFC 只定义 Planning Baseline：
+本 RFC 已实现并通过 ACC-019，当前合并前状态为：
 
 ```text
-SP-019 Planning Baseline: DEFINED
-SP-019 Implementation: NOT APPROVED
-Coding: NOT STARTED
+SP-019 Planning Baseline: APPROVED / MERGED / RECONCILED
+SP-019 Implementation: IMPLEMENTATION_APPROVED / PENDING_MERGE
+SP-019 Phase 0: ACCEPTED
+Daily Review: ACCEPTED / PENDING_MERGE
+ACC-019: PASSED / FINAL
 ```
 
-Planning PR 合并本身也不批准实施。实施必须由 Owner 在 Planning PR 审查合并、最新 main Quality Gate 成功后另行明确授权。
+当前 Draft 状态不等于 PR 已合并、SP-019 已完成、RFC Release Final 或产品版本已发布。

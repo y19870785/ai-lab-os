@@ -1,11 +1,13 @@
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone, timedelta
 from fastapi.testclient import TestClient
+
 from api.app import create_app
+from applications.ceo_assistant.application import CEOAssistant
+from applications.ceo_assistant.intent import IntentDecision, IntentEffect
 from core.system import make_test_settings
 from tests.helpers.clock import MutableClock
-from applications.ceo_assistant.intent import IntentDecision, IntentEffect
-from applications.ceo_assistant.application import CEOAssistant
 
 
 def _settings(path):
@@ -13,7 +15,7 @@ def _settings(path):
 
 
 def test_daily_agenda_intent_read_only_no_mock_noise(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=UTC))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         before = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])
         resp = client.post("/chat", json={"user_input": "今天有什么安排？"})
@@ -28,7 +30,7 @@ def test_daily_agenda_intent_read_only_no_mock_noise(tmp_path):
 
 
 def test_daily_agenda_next_three_hours(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=UTC))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         resp = client.post("/chat", json={"user_input": "接下来三个小时有什么安排？"})
         assert resp.status_code == 200
@@ -38,7 +40,7 @@ def test_daily_agenda_next_three_hours(tmp_path):
 
 
 def test_daily_agenda_attention(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=UTC))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         resp = client.post("/chat", json={"user_input": "有哪些需要注意的事项？"})
         assert resp.status_code == 200
@@ -47,18 +49,19 @@ def test_daily_agenda_attention(tmp_path):
         assert meta["effect"] == "read"
 
 
-def test_daily_agenda_completed(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
+def test_completed_wording_routes_to_daily_review(tmp_path):
+    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=UTC))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         resp = client.post("/chat", json={"user_input": "今天已经完成了什么？"})
         assert resp.status_code == 200
         meta = resp.json()["metadata"]
-        assert meta["intent"] == "daily_agenda"
+        assert meta["intent"] == "brief"
         assert meta["effect"] == "read"
+        assert meta["daily_review_query"]["review_date"] == "today"
 
 
 def test_sp_012_reminder_query_still_reminder_list(tmp_path):
-    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=timezone.utc))
+    clock = MutableClock(datetime(2026, 7, 17, 2, 0, tzinfo=UTC))
     with TestClient(create_app(_settings(tmp_path), clock=clock)) as client:
         client.post("/chat", json={"user_input": "今天下午3点提醒我测试"})
         before = (len(client.get("/tasks").json()), client.get("/reminders?limit=100").json()["count"])

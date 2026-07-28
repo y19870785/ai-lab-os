@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import ValidationError
@@ -50,7 +50,7 @@ class WaitingForService:
     async def initialize(self) -> None:
         try:
             await self._repository.initialize()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - persistence boundary
             self._raise_persistence("initialize", exc)
 
     async def close(self) -> None:
@@ -118,7 +118,7 @@ class WaitingForService:
             self._raise_validation("create", exc, trace_id or workspace_key.trace_id)
         except WaitingForConflictError as exc:
             self._raise_conflict("create", exc, trace_id or workspace_key.trace_id)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - persistence boundary
             self._raise_persistence("create", exc, trace_id or workspace_key.trace_id)
         await self._publish(item, event)
         return WaitingForMutationResult(item=item, event=event)
@@ -130,7 +130,7 @@ class WaitingForService:
             return await self._repository.get(workspace_key, waiting_for_id)
         except (WaitingForNotFoundError, WaitingForWorkspaceMismatchError) as exc:
             self._raise_not_found("get", exc, workspace_key.trace_id)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - persistence boundary
             self._raise_persistence("get", exc, workspace_key.trace_id)
 
     async def list(
@@ -140,21 +140,28 @@ class WaitingForService:
         view: str | WaitingForView = WaitingForView.OPEN,
         limit: int = 50,
         offset: int = 0,
+        as_of: datetime | None = None,
     ) -> WaitingForPage:
         try:
             parsed_view = WaitingForView(view)
             if limit < 1 or limit > 200 or offset < 0:
                 raise ValueError("invalid pagination")
+            resolved_as_of = as_of if as_of is not None else self._clock.now()
+            if (
+                resolved_as_of.tzinfo is None
+                or resolved_as_of.utcoffset() is None
+            ):
+                raise ValueError("as_of must include timezone information")
             return await self._repository.list(
                 workspace_key,
                 view=parsed_view,
-                now=self._clock.now(),
+                now=resolved_as_of.astimezone(UTC),
                 limit=limit,
                 offset=offset,
             )
         except (ValidationError, ValueError) as exc:
             self._raise_validation("list", exc, workspace_key.trace_id)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - persistence boundary
             self._raise_persistence("list", exc, workspace_key.trace_id)
 
     async def list_events(
@@ -175,7 +182,7 @@ class WaitingForService:
             )
         except (WaitingForNotFoundError, WaitingForWorkspaceMismatchError) as exc:
             self._raise_not_found("events", exc, workspace_key.trace_id)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - persistence boundary
             self._raise_persistence("events", exc, workspace_key.trace_id)
 
     async def record_follow_up(
@@ -403,7 +410,7 @@ class WaitingForService:
             self._raise_conflict(operation, exc, request_trace)
         except (WaitingForNotFoundError, WaitingForWorkspaceMismatchError) as exc:
             self._raise_not_found(operation, exc, request_trace)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - persistence boundary
             self._raise_persistence(operation, exc, request_trace)
         await self._publish(updated, event)
         return WaitingForMutationResult(item=updated, event=event)
@@ -446,7 +453,7 @@ class WaitingForService:
                 ),
             )
             self._event_bus_failure = None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - event bus boundary
             self._event_bus_failure = FailureInfo(
                 code="waiting_for.event_bus.publish_failed",
                 category=ErrorCategory.DEPENDENCY_FAILURE,

@@ -21,6 +21,7 @@ from applications.ceo_assistant.reminder_intent import TaskReminderIntentParser
 from applications.models import ApplicationRequest
 from core.bus.bus import get_bus
 from core.clock import SystemClock
+from core.daily_review import DailyReviewService
 from core.database import DatabaseManager
 from core.memory.manager import MemoryManager
 from core.memory.models import MemoryType
@@ -50,11 +51,12 @@ async def app_with_both(tmp_path):
     es = SQLiteEpisodicStore(db_path=ep_path, db_manager=db_manager)
     await es.initialize()
     memory.register_store(MemoryType.EPISODIC, es)
+    clock = SystemClock()
     work_logs = WorkLogService(
         SQLiteWorkLogRepository(
             db_manager, ep_path, timezone_name="Asia/Shanghai"
         ),
-        clock=SystemClock(),
+        clock=clock,
         timezone_name="Asia/Shanghai",
     )
     await work_logs.initialize()
@@ -66,11 +68,21 @@ async def app_with_both(tmp_path):
     task_repo = SQLiteUserTaskRepository(db_manager, os.path.join(db_dir, "tasks.db"))
     task_service = UserTaskService(task_repo, bus=bus)
     await task_service.initialize()
+    daily_review = DailyReviewService(
+        work_log_service=work_logs,
+        waiting_for_service=None,
+        reminder_inbox=None,
+        inbox_service=None,
+        user_task_service=task_service,
+        clock=clock,
+        timezone_name="Asia/Shanghai",
+    )
     app = CEOAssistant(
         memory_manager=memory,
         work_log_service=work_logs,
         user_task_service=task_service,
-        clock=SystemClock(),
+        daily_review_service=daily_review,
+        clock=clock,
         timezone_name="Asia/Shanghai",
         task_intent_parser=TaskReminderIntentParser("Asia/Shanghai", SystemClock()),
         admission=PERMISSIVE_TEST_ADMISSION,
@@ -96,6 +108,7 @@ class TestDailyBrief:
         ))
         assert resp["status"] == "ok"
         assert len(resp["answer"]) > 0
+        assert resp["metadata"]["daily_review_query"]["limit"] == 50
 
     @pytest.mark.asyncio
     async def test_brief_with_tasks(self, app_with_both):
@@ -111,8 +124,8 @@ class TestDailyBrief:
             user_input="今日简报",
         ))
         assert resp["status"] == "ok"
-        assert "待办任务" in resp["answer"], f"简报应含任务: {resp['answer'][:200]}"
-        assert "FDA报告" in resp["answer"], f"简报应含任务名: {resp['answer'][:200]}"
+        assert "FDA报告" not in resp["answer"]
+        assert resp["metadata"]["daily_review"]["page"]["total_count"] == 0
 
     @pytest.mark.asyncio
     async def test_brief_with_work_logs(self, app_with_both):
@@ -131,8 +144,8 @@ class TestDailyBrief:
             user_input="今日简报",
         ))
         assert resp["status"] == "ok"
-        # 应包含最近工作记录
-        assert "工作记录" in resp["answer"] or "工作" in resp["answer"]
+        assert "和张经理确认蜂蜡检测方案" in resp["answer"]
+        assert "完成客户报价" in resp["answer"]
 
     @pytest.mark.asyncio
     async def test_brief_with_decisions(self, app_with_both):
@@ -147,7 +160,8 @@ class TestDailyBrief:
             user_input="今日简报",
         ))
         assert resp["status"] == "ok"
-        assert "决策" in resp["answer"]
+        assert "供应商A" not in resp["answer"]
+        assert "决策" not in resp["answer"]
 
     @pytest.mark.asyncio
     async def test_brief_priority_ordering(self, app_with_both):
@@ -166,7 +180,9 @@ class TestDailyBrief:
             user_input="今日简报",
         ))
 
-        # 高优先级应当出现在低优先级前面
-        if "建议优先处理" in resp["answer"]:
-            priority_section = resp["answer"].split("建议优先处理:")[1]
-            assert "high" in priority_section, "高优先级任务应在建议中"
+        assert "建议优先处理" not in resp["answer"]
+        assert resp["metadata"]["daily_review_query"] == {
+            "review_date": "today",
+            "limit": 50,
+            "offset": 0,
+        }

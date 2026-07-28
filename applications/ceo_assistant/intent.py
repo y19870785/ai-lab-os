@@ -11,6 +11,8 @@ from applications.ceo_assistant.waiting_for_intent import (
     extract_waiting_for_id,
 )
 from applications.ceo_assistant.work_log_intent import is_work_log_query
+from core.daily_review import DailyReviewDate
+from core.errors import ErrorCategory, FailureException, FailureInfo
 
 
 class IntentEffect(str, Enum):
@@ -54,6 +56,91 @@ _WORK_LOG_ACTIONS = (
     "完成了", "处理了", "确认了", "联系了", "收到了", "见了",
     "开了会", "参加了会议",
 )
+_DAILY_REVIEW_TODAY_PHRASES = (
+    "今日简报",
+    "今天简报",
+    "今日总结",
+    "今天做了什么",
+    "今天做了哪些事",
+    "今天已经完成了什么",
+    "查看今天的完成记录",
+    "今天的工作",
+    "今日概览",
+)
+_DAILY_REVIEW_YESTERDAY_PHRASES = (
+    "昨日简报",
+    "昨天简报",
+    "昨日总结",
+    "昨天总结",
+    "昨天做了什么",
+    "昨天做了哪些事",
+    "昨天的工作",
+)
+_DAILY_REVIEW_GENERIC_PHRASES = (
+    "简报",
+    "每日简报",
+    "daily brief",
+    "工作概览",
+)
+_DAILY_REVIEW_GENERIC_REQUEST_PATTERN = re.compile(
+    r"(?:"
+    r"(?:(?:请|请你|麻烦|麻烦你|劳驾|拜托)\s*)?"
+    r"(?:"
+    r"(?:每日)?简报|工作概览|"
+    r"(?:"
+    r"给我(?:来)?(?:一份)?|"
+    r"帮我(?:看|查看)(?:一下)?|"
+    r"看一下|查看|做(?:一份)?|生成(?:一份)?"
+    r")简报"
+    r")"
+    r"(?:[,，]?(?:吧|好吗|谢谢))?"
+    r"|(?:please\s+)?daily\s+brief"
+    r")"
+)
+_DAILY_REVIEW_TODAY_SELECTOR = re.compile(r"今天|今日")
+_DAILY_REVIEW_YESTERDAY_SELECTOR = re.compile(r"昨天|昨日")
+_DAILY_REVIEW_UNSUPPORTED_DATE_PATTERNS = (
+    re.compile(r"(?:大)?(?:明天|明日|后天|前天)"),
+    re.compile(r"[零〇一二两三四五六七八九十百\d]+天[前后]"),
+    re.compile(
+        r"(?:过去|最近|未来)"
+        r"[零〇一二两三四五六七八九十百\d]+"
+        r"(?:天|日|周|星期|个月|月|季度|年)"
+    ),
+    re.compile(r"(?:上上|上|本|下下|下)?周(?:[一二三四五六日天])?"),
+    re.compile(r"星期[一二三四五六日天]"),
+    re.compile(r"礼拜[一二三四五六日天]"),
+    re.compile(r"(?:上|本|下)(?:个)?月"),
+    re.compile(r"(?:上|本|下)季度"),
+    re.compile(r"(?:去|今|明)年"),
+    re.compile(r"\d{4}[-/.]\d{1,2}[-/.]\d{1,2}"),
+    re.compile(r"\d{4}年\d{1,2}月\d{1,2}[日号]"),
+    re.compile(r"\d{1,2}月\d{1,2}[日号]"),
+    re.compile(r"(?<!\d)\d{1,2}号"),
+)
+_DAILY_REVIEW_RANGE_CONNECTOR = re.compile(
+    r"(?:今天|今日|昨天|昨日|明天|明日|后天|前天|"
+    r"周[一二三四五六日天]|星期[一二三四五六日天]|"
+    r"礼拜[一二三四五六日天]|\d{1,4}[年月/.-])"
+    r".{0,12}(?:到|至|—|~|～|-)"
+    r".{0,12}(?:今天|今日|昨天|昨日|明天|明日|后天|前天|"
+    r"周[一二三四五六日天]|星期[一二三四五六日天]|"
+    r"礼拜[一二三四五六日天]|\d{1,4})"
+)
+
+
+@dataclass(frozen=True)
+class DailyReviewTemporalSignals:
+    """Pure date-selector signals extracted from a Daily Review request."""
+
+    today: bool
+    yesterday: bool
+    unsupported: bool
+    date_range: bool
+
+    @property
+    def conflict(self) -> bool:
+        return self.today and self.yesterday
 
 
 def _normalized_query(text: str) -> str:
@@ -85,6 +172,70 @@ def _is_explicit_work_log(text: str) -> bool:
     ):
         return False
     return any(marker in normalized for marker in _WORK_LOG_ACTIONS)
+
+
+def extract_daily_review_temporal_signals(
+    text: str,
+) -> DailyReviewTemporalSignals:
+    """Detect selectors without reading Clock, sources, or an LLM."""
+
+    normalized = _normalized_query(text)
+    return DailyReviewTemporalSignals(
+        today=_DAILY_REVIEW_TODAY_SELECTOR.search(normalized) is not None,
+        yesterday=(
+            _DAILY_REVIEW_YESTERDAY_SELECTOR.search(normalized) is not None
+        ),
+        unsupported=any(
+            pattern.search(normalized)
+            for pattern in _DAILY_REVIEW_UNSUPPORTED_DATE_PATTERNS
+        ),
+        date_range=_DAILY_REVIEW_RANGE_CONNECTOR.search(normalized) is not None,
+    )
+
+
+def is_generic_daily_review_request(text: str) -> bool:
+    """Return whether the complete request matches the generic brief grammar."""
+
+    normalized = re.sub(
+        r"[,，;；:：.]+$",
+        "",
+        _normalized_query(text),
+    ).rstrip()
+    return (
+        _DAILY_REVIEW_GENERIC_REQUEST_PATTERN.fullmatch(normalized)
+        is not None
+    )
+
+
+def _raise_daily_review_date_invalid(trace_id: str) -> None:
+    raise FailureException(FailureInfo(
+        code="daily_review.date_invalid",
+        category=ErrorCategory.VALIDATION,
+        message="Daily Review date is invalid",
+        component="daily_review",
+        operation="get",
+        trace_id=trace_id,
+    ))
+
+
+def resolve_daily_review_date(
+    text: str,
+    *,
+    trace_id: str = "",
+) -> DailyReviewDate:
+    """Resolve only the two supported Daily Review date selectors."""
+
+    normalized = _normalized_query(text)
+    signals = extract_daily_review_temporal_signals(normalized)
+    if signals.unsupported or signals.date_range or signals.conflict:
+        _raise_daily_review_date_invalid(trace_id)
+    if signals.yesterday:
+        return DailyReviewDate.YESTERDAY
+    if signals.today:
+        return DailyReviewDate.TODAY
+    if is_generic_daily_review_request(normalized):
+        return DailyReviewDate.TODAY
+    _raise_daily_review_date_invalid(trace_id)
 
 
 _INBOX_LIST_QUERIES = {
@@ -153,12 +304,27 @@ def decide_intent(user_input: str) -> IntentDecision:
     if is_work_log_query(text):
         return IntentDecision("work_log_query", 1.0, IntentEffect.READ)
 
+    brief_keywords = (
+        _DAILY_REVIEW_GENERIC_PHRASES
+        + _DAILY_REVIEW_TODAY_PHRASES
+        + _DAILY_REVIEW_YESTERDAY_PHRASES
+    )
+    temporal_signals = extract_daily_review_temporal_signals(text)
+    temporal_summary = (
+        (temporal_signals.today or temporal_signals.yesterday)
+        and "总结" in text
+    )
+    if (
+        any(keyword in text for keyword in brief_keywords)
+        or temporal_summary
+    ):
+        return IntentDecision("brief", 1.0, IntentEffect.READ)
+
     daily_agenda_markers = (
         "今天有什么安排", "今天的日程", "查看今天安排", "查看今日日程",
         "接下来三个小时有什么安排", "未来三小时有什么要做的",
         "未来三小时有什么", "接下来有什么事",
         "有哪些需要注意的事项", "有哪些失败的提醒", "有没有逾期任务",
-        "今天已经完成了什么", "今天做了哪些事", "查看今天的完成记录",
     )
     if any(marker in text for marker in daily_agenda_markers):
         return IntentDecision("daily_agenda", 1.0, IntentEffect.READ)
@@ -173,13 +339,6 @@ def decide_intent(user_input: str) -> IntentDecision:
         return IntentDecision("waiting_for_capture", 1.0, IntentEffect.WRITE)
     if extract_inbox_capture_content(text) is not None:
         return IntentDecision("inbox_capture", 1.0, IntentEffect.WRITE)
-
-    brief_keywords = (
-        "简报", "今日总结", "今天做了什么", "今天的工作", "今日概览",
-        "daily brief", "工作概览",
-    )
-    if any(keyword in text for keyword in brief_keywords):
-        return IntentDecision("brief", 0.9, IntentEffect.READ)
 
     decision_keywords = ("决定", "决策", "选择", "采用", "确认使用", "不先做", "放弃")
     if any(keyword in text for keyword in decision_keywords):

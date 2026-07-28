@@ -1,7 +1,7 @@
 """AI-Lab REST API，由 FastAPI lifespan 持有唯一 SystemContainer。"""
 
-from contextlib import asynccontextmanager
 import uuid
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -10,18 +10,27 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.middleware import context as ctx_mw
 from api.middleware import error_handler, tracing
 from api.responses import UTF8JSONResponse
-from api.routes import applications, brief, chat, decisions, health, knowledge
-from api.routes import reminders, tasks, work_logs, workflows
-from api.routes import agenda
-from api.routes import inbox
-from api.routes import waiting_for
+from api.routes import (
+    agenda,
+    applications,
+    brief,
+    chat,
+    daily_review,
+    decisions,
+    health,
+    inbox,
+    knowledge,
+    reminders,
+    tasks,
+    waiting_for,
+    work_logs,
+    workflows,
+)
+from applications.security import ApiSecurityConfig, Authenticator
 from core import __version__
 from core.clock import Clock
-from core.system import SystemSettings, create_system, load_system_settings
-from applications.security import ApiSecurityConfig, Authenticator
 from core.errors import ErrorCategory, FailureInfo
-
-
+from core.system import SystemSettings, create_system, load_system_settings
 
 
 def create_app(
@@ -61,7 +70,7 @@ def create_app(
         environment=effective_settings.environment,
     )
 
-    cors_kwargs: dict = dict(allow_methods=["*"], allow_headers=["*"])
+    cors_kwargs: dict = {"allow_methods": ["*"], "allow_headers": ["*"]}
     if sec_cfg.allowed_origins:
         cors_kwargs["allow_origins"] = sec_cfg.allowed_origins
     else:
@@ -107,8 +116,9 @@ def create_app(
         api.include_router(router)
 
     # Protected: all business routes
-    from api.dependencies import require_auth
     from fastapi import Depends
+
+    from api.dependencies import require_auth
     for router in (
         applications.router,
         chat.router,
@@ -118,6 +128,7 @@ def create_app(
         work_logs.router,
         decisions.router,
         brief.router,
+        daily_review.router,
         agenda.router,
         inbox.router,
         waiting_for.router,

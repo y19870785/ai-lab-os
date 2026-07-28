@@ -14,6 +14,7 @@ from core.agents.runtime import DefaultAgentRuntime
 from core.bus.bus import MemoryBus
 from core.clock import Clock, SystemClock
 from core.coordination.orchestrator import AgentOrchestrator
+from core.daily_review import DailyReviewService
 from core.database.manager import DatabaseManager
 from core.inbox import InboxService, SQLiteInboxRepository
 from core.knowledge.manager import KnowledgeManager
@@ -360,6 +361,19 @@ async def create_system(
         timezone_name=settings.timezone_name,
     )
 
+    daily_review = DailyReviewService(
+        work_log_service=work_log_service,
+        waiting_for_service=waiting_for_service,
+        reminder_inbox=reminder_inbox,
+        inbox_service=inbox_service,
+        user_task_service=user_task_service,
+        clock=clock,
+        timezone_name=settings.timezone_name,
+        enabled=settings.enable_daily_review,
+        user_tasks_enabled=settings.enable_user_tasks,
+        reminders_enabled=settings.enable_reminders,
+    )
+
     task_runtime = TaskRuntime(
         manager=TaskManager(),
         workflow_runtime=workflow_runtime,
@@ -382,6 +396,7 @@ async def create_system(
         reminder_inbox=reminder_inbox,
         reminder_management=reminder_management,
         daily_agenda=daily_agenda,
+        daily_review_service=daily_review,
         inbox_service=inbox_service,
         waiting_for_service=waiting_for_service,
         work_log_service=work_log_service,
@@ -440,6 +455,7 @@ async def create_system(
         reminder_inbox=reminder_inbox,
         reminder_management=reminder_management,
         daily_agenda=daily_agenda,
+        daily_review=daily_review,
         waiting_for_repository=waiting_for_repository,
         waiting_for_service=waiting_for_service,
         inbox_repository=inbox_repository,
