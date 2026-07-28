@@ -90,6 +90,8 @@ async def test_yesterday_wording_builds_the_same_default_query_model():
     [
         ("简报", "today"),
         ("每日简报", "today"),
+        ("请给我一份简报。", "today"),
+        ("看一下简报！", "today"),
         ("今日简报", "today"),
         ("今天简报", "today"),
         ("今日总结", "today"),
@@ -119,6 +121,19 @@ def test_daily_review_phrases_are_deterministic_read_intents(text, expected):
 
 
 @pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("今天", "today"),
+        ("今日", "today"),
+        ("昨天", "yesterday"),
+        ("昨日", "yesterday"),
+    ],
+)
+def test_supported_date_selectors_resolve_without_generic_brief(text, expected):
+    assert resolve_daily_review_date(text).value == expected
+
+
+@pytest.mark.parametrize(
     "text",
     [
         "明日简报",
@@ -131,6 +146,24 @@ def test_daily_review_phrases_are_deterministic_read_intents(text, expected):
         "2026-07-01 简报",
         "2026年7月1日简报",
         "7月1日简报",
+        "周一简报",
+        "星期五简报",
+        "礼拜天简报",
+        "两天前简报",
+        "三天后简报",
+        "过去三天简报",
+        "最近七天简报",
+        "本季度简报",
+        "上季度简报",
+        "2026/07/01 简报",
+        "2026.07.01 简报",
+        "7月1号简报",
+        "1号简报",
+        "周一到周五简报",
+        "昨天到今天简报",
+        "昨天和今天简报",
+        "今日或昨日总结",
+        "今天到明天简报",
     ],
 )
 def test_explicit_unsupported_dates_take_the_brief_validation_path(text):
@@ -154,8 +187,11 @@ def test_explicit_unsupported_dates_take_the_brief_validation_path(text):
     "text",
     [
         "明日简报",
-        "前天简报",
-        "2026-07-01 简报",
+        "周一简报",
+        "两天前简报",
+        "2026/07/01 简报",
+        "周一到周五简报",
+        "昨天和今天简报",
     ],
 )
 async def test_unsupported_date_fails_before_clock_or_source_reads(text):
@@ -191,6 +227,8 @@ async def test_unsupported_date_fails_before_clock_or_source_reads(text):
         "简报",
         "每日简报",
         "daily brief",
+        "请给我一份简报",
+        "看一下简报",
     ],
 )
 @pytest.mark.asyncio
