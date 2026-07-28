@@ -922,6 +922,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         "main_quality_gate": "PASSED",
         "main_quality_gate_run": 30382312419,
         "post_merge_verification": "PASSED",
+        "reconciliation_pr": 52,
         "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
         "branch": "feat/sp-019-daily-review-read-model",
         "planning_pr": 48,
