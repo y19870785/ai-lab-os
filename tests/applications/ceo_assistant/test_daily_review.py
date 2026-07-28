@@ -8,6 +8,7 @@ import pytest
 from applications.ceo_assistant.application import CEOAssistant
 from applications.ceo_assistant.intent import (
     decide_intent,
+    is_generic_daily_review_request,
     resolve_daily_review_date,
 )
 from applications.config import ApplicationConfig
@@ -91,7 +92,13 @@ async def test_yesterday_wording_builds_the_same_default_query_model():
         ("简报", "today"),
         ("每日简报", "today"),
         ("请给我一份简报。", "today"),
+        ("请给我简报", "today"),
+        ("帮我看一下简报", "today"),
         ("看一下简报！", "today"),
+        ("查看简报", "today"),
+        ("给我来一份简报", "today"),
+        ("做一份简报", "today"),
+        ("生成一份简报", "today"),
         ("今日简报", "today"),
         ("今天简报", "today"),
         ("今日总结", "today"),
@@ -118,6 +125,56 @@ def test_daily_review_phrases_are_deterministic_read_intents(text, expected):
     assert decision.intent == "brief"
     assert decision.effect.value == "read"
     assert resolve_daily_review_date(text).value == expected
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "简报",
+        "每日简报",
+        "daily brief",
+        "工作概览",
+        "请给我一份简报",
+        "请给我简报",
+        "帮我看一下简报",
+        "看一下简报",
+        "查看简报",
+        "给我来一份简报",
+        "做一份简报",
+        "生成一份简报",
+        "  麻烦给我来一份简报，谢谢！  ",
+        "please daily brief",
+        "daily brief.",
+        "查看简报，",
+    ],
+)
+def test_generic_brief_positive_grammar_matches_complete_request(text):
+    assert is_generic_daily_review_request(text)
+    assert resolve_daily_review_date(text).value == "today"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "2026年7月简报",
+        "7月简报",
+        "2026年简报",
+        "2026年度简报",
+        "7月份简报",
+        "第三季度简报",
+        "第四季度工作概览",
+        "2026年第一季度简报",
+        "上半年简报",
+        "下半年简报",
+        "年初简报",
+        "年底简报",
+        "春节后简报",
+        "国庆前简报",
+        "假期后简报",
+    ],
+)
+def test_generic_brief_positive_grammar_rejects_temporal_qualifiers(text):
+    assert not is_generic_daily_review_request(text)
 
 
 @pytest.mark.parametrize(
@@ -164,6 +221,21 @@ def test_supported_date_selectors_resolve_without_generic_brief(text, expected):
         "昨天和今天简报",
         "今日或昨日总结",
         "今天到明天简报",
+        "2026年7月简报",
+        "7月简报",
+        "2026年简报",
+        "2026年度简报",
+        "7月份简报",
+        "第三季度简报",
+        "第四季度工作概览",
+        "2026年第一季度简报",
+        "上半年简报",
+        "下半年简报",
+        "年初简报",
+        "年底简报",
+        "春节后简报",
+        "国庆前简报",
+        "假期后简报",
     ],
 )
 def test_explicit_unsupported_dates_take_the_brief_validation_path(text):
@@ -192,6 +264,11 @@ def test_explicit_unsupported_dates_take_the_brief_validation_path(text):
         "2026/07/01 简报",
         "周一到周五简报",
         "昨天和今天简报",
+        "2026年7月简报",
+        "7月简报",
+        "第三季度简报",
+        "上半年简报",
+        "春节后简报",
     ],
 )
 async def test_unsupported_date_fails_before_clock_or_source_reads(text):
@@ -229,6 +306,12 @@ async def test_unsupported_date_fails_before_clock_or_source_reads(text):
         "daily brief",
         "请给我一份简报",
         "看一下简报",
+        "请给我简报",
+        "帮我看一下简报",
+        "查看简报",
+        "给我来一份简报",
+        "做一份简报",
+        "生成一份简报",
     ],
 )
 @pytest.mark.asyncio

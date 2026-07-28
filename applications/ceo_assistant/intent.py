@@ -82,6 +82,21 @@ _DAILY_REVIEW_GENERIC_PHRASES = (
     "daily brief",
     "工作概览",
 )
+_DAILY_REVIEW_GENERIC_REQUEST_PATTERN = re.compile(
+    r"(?:"
+    r"(?:(?:请|请你|麻烦|麻烦你|劳驾|拜托)\s*)?"
+    r"(?:"
+    r"(?:每日)?简报|工作概览|"
+    r"(?:"
+    r"给我(?:来)?(?:一份)?|"
+    r"帮我(?:看|查看)(?:一下)?|"
+    r"看一下|查看|做(?:一份)?|生成(?:一份)?"
+    r")简报"
+    r")"
+    r"(?:[,，]?(?:吧|好吗|谢谢))?"
+    r"|(?:please\s+)?daily\s+brief"
+    r")"
+)
 _DAILY_REVIEW_TODAY_SELECTOR = re.compile(r"今天|今日")
 _DAILY_REVIEW_YESTERDAY_SELECTOR = re.compile(r"昨天|昨日")
 _DAILY_REVIEW_UNSUPPORTED_DATE_PATTERNS = (
@@ -178,6 +193,20 @@ def extract_daily_review_temporal_signals(
     )
 
 
+def is_generic_daily_review_request(text: str) -> bool:
+    """Return whether the complete request matches the generic brief grammar."""
+
+    normalized = re.sub(
+        r"[,，;；:：.]+$",
+        "",
+        _normalized_query(text),
+    ).rstrip()
+    return (
+        _DAILY_REVIEW_GENERIC_REQUEST_PATTERN.fullmatch(normalized)
+        is not None
+    )
+
+
 def _raise_daily_review_date_invalid(trace_id: str) -> None:
     raise FailureException(FailureInfo(
         code="daily_review.date_invalid",
@@ -204,10 +233,7 @@ def resolve_daily_review_date(
         return DailyReviewDate.YESTERDAY
     if signals.today:
         return DailyReviewDate.TODAY
-    if any(
-        phrase in normalized
-        for phrase in _DAILY_REVIEW_GENERIC_PHRASES
-    ):
+    if is_generic_daily_review_request(normalized):
         return DailyReviewDate.TODAY
     _raise_daily_review_date_invalid(trace_id)
 
