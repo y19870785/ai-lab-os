@@ -1,6 +1,6 @@
 # ADR-062 — Daily Review Source Failure and Availability Semantics
 
-Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE
+Status: Accepted
 Date: 2026-07-26
 Target: SP-019
 
@@ -69,4 +69,4 @@ category=NOT_CONFIGURED
 
 ## 治理状态（Governance）
 
-本 ADR 的 source availability 与 fail-closed 决策已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 实现，并由正式 ACC-019 A～M 验收通过。当前状态为 `IMPLEMENTED / ACC-019 PASSED / PENDING MERGE`；它不表示 PR 已合并、ADR Release Final、SP-019 已完成或版本已发布。
+本 ADR 的 source availability 与 fail-closed 决策已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 实现，并由正式 ACC-019 A～M 验收通过。Decision implemented, manually accepted, Squash merged and post-merge verified. ADR-062 已 Accepted；该状态不表示 Release Final，也不改变产品版本、Tag 或 Release。

@@ -1,11 +1,11 @@
 # AI-Lab Project Brain —— 项目大脑
 
 > Product Version: v0.34.0
-> Last Completed SP: SP-018
-> Current SP: SP-019
+> Last Completed SP: SP-019
+> Current SP: None
 > Current Governance Task: None
 > Next Candidate SP: None
-> Next Candidate Direction: None while SP-019 is current
+> Next Candidate Direction: None
 > SP-016 Status: APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
 > ACC-016 Status: PASSED / FINAL
 > SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
@@ -14,9 +14,11 @@
 > SP-018 Status: APPROVED / MERGED / ACCEPTED / POST-MERGE VERIFIED / RECONCILED / ARCHIVED
 > ACC-018 Status: PASSED / FINAL
 > SP-018 Design: RFC-027 Adopted; ADR-058, ADR-059 and ADR-060 Accepted
-> SP-019 Status: IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / PENDING_MERGE
-> SP-019 Design: RFC-028, ADR-061 and ADR-062 IMPLEMENTED / ACC-019 PASSED / PENDING MERGE
+> SP-019 Status: APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED
+> ACC-019 Status: PASSED / FINAL
+> SP-019 Design: RFC-028 Adopted; ADR-061 and ADR-062 Accepted
 > SP-019 Planning Merge Baseline: `e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / Quality Gate run `30205853257` / SUCCESS
+> SP-019 Feature Merge: `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / Quality Gate run `30382312419` / SUCCESS
 > Release Stage: v0.34.0 Alpha / RELEASE_AUTHORIZED
 > Verified Release Baseline: `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 > SP-015 Base Commit: `57444274abd4e568a6af72b218d50290de563654`
@@ -111,7 +113,16 @@ Mock Provider: only explicit mock/test profiles
 - 合并后的 main 通过自动 push Quality Gate `30196719409`、本地全量验证与 post-merge smoke；验收和 smoke 均未调用真实 Provider。
 - SP-018A 对账 PR #47 已合并为 `4e0d730a8bfdefa6277c7526a028e7247d7ddc43`，自动 push Quality Gate `30198434517` 成功。
 - SP-019 Planning Baseline 已通过独立审查并由 PR #48 Squash Merge 到 main `e7fc5b1dd66ff7828c1697bfd5610f300599eee5`；Approved Planning Head 为 `282dd939ff264b0f23d5070b6f632aa0442531ea`，合并时间为 `2026-07-26T14:19:41Z`，自动 push Quality Gate `30205853257` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。当时 RFC-028、ADR-061、ADR-062 为 Proposed / Planning Baseline，且规划批准与合并本身不构成 SP-019 Implementation 授权；当前验收后状态见本页顶部。
-- UserTask Workspace Query Closure 是 SP-019 的已验收 Phase 0；PR #50 已合并并通过 post-merge Quality Gate。Daily Review 主体已在 Draft 分支实现，正式 ACC-019 A～M 已在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 上通过；PR #51 仍待合并。
+- UserTask Workspace Query Closure 是 SP-019 的已验收 Phase 0；PR #50 已合并并通过 post-merge Quality Gate。
+
+### SP-019 永久产品事实
+
+- Daily Review 是非持久化、确定性、只读 read model；不拥有数据库、表、事件、生命周期或持久化 snapshot。
+- 唯一聚合边界是 `DailyReviewService`，直接读取 `WorkLogService`、`UserTaskService`、`WaitingForService`、`ReminderInboxService` 与 `InboxService`。
+- API、CEO Assistant 与兼容 `/brief` 委托同一 `DailyReviewService`，不维护第二套聚合事实。
+- Review date 只支持 `today` / `yesterday`；日期事实由 `review_date` 控制，当前未闭环状态（包括 pending Inbox）由 `as_of` 决定。
+- Feature PR #51 已以 Squash Merge 合入 `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`，合并时间为 `2026-07-28T17:18:41Z`；main Quality Gate `30382312419` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。
+- ACC-019 A～M 在 Approved Implementation Head `1f2975503cd79047137a4a9f47096668fd4341c5` 上全部通过，Acceptance Evidence Head 为 `420da28664914fda8ccbecadf90947380ec43473`；没有真实 Provider 调用。
 
 ## 已封存产品能力
 
@@ -124,6 +135,7 @@ Mock Provider: only explicit mock/test profiles
 | Reminder Inbox / Management | 已集成并验证；查询、详情、取消、改期、workspace 与幂等合同 |
 | Intent Safety | 已集成并验证；read/write/chat 显式分离，模糊查询优先只读 |
 | Daily Agenda | 已集成；可选聚合 UserTask、Reminder、Waiting-For 与 Work Log |
+| Daily Review | 已集成、验证并通过人工验收；确定性聚合五个 canonical services |
 | Waiting-For | 独立 canonical domain、`followups.db`、API/CLI、确定性交互与 append-only history 已通过人工验收并封存 |
 | Unified Inbox | 已集成并通过 ACC-014；Capture-to-Action 与持久化 resolution claim |
 | API Security | Bearer Token 与 CORS allowlist 已集成；尚无用户身份和 RBAC |
@@ -141,7 +153,7 @@ Mock Provider: only explicit mock/test profiles
 | Agent / Tool / MCP | Integrated foundation | 完整 Agent 产品闭环、自动 Tool Calling 与完整 MCP 闭环未完成 |
 | Workflow / Task Runtime | Integrated / Verified | 运行时和失败语义已验证 |
 | Scheduler / Reminder | Integrated / Verified / Disabled by default | 外部通知与 Recurring Reminder 未实现 |
-| UserTask / Daily Agenda / Unified Inbox | Integrated / Verified | Agenda 已支持可选来源组合 |
+| UserTask / Daily Agenda / Daily Review / Unified Inbox | Integrated / Verified | Agenda 支持可选来源组合；Daily Review 已通过 ACC-019 A～M |
 | Waiting-For | Integrated / Verified / Manual acceptance passed | SP-016 与 SP-017 completed / archived |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |
 | CEO Assistant / API / CLI | Integrated / Verified / Alpha | local-first，不是 production-ready 产品 |
@@ -183,4 +195,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017 与 SP-018 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018 均为 PASSED / FINAL。Current Product SP 为 SP-019，Current Governance Task 为 None。SP-018 已合并并通过 post-merge verification 与 SP-018A 对账；RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 Planning Baseline 已 APPROVED / MERGED / RECONCILED，Owner 已批准 Implementation；Phase 0 UserTask Workspace Query Closure 已 ACCEPTED。Daily Review 已在 Draft 分支通过正式 ACC-019 A～M，当前为 DAILY_REVIEW_ACCEPTED / PENDING_MERGE。RFC-028、ADR-061、ADR-062 为 IMPLEMENTED / ACC-019 PASSED / PENDING MERGE；ACC-019 为 PASSED / FINAL。SP-019 仍未合并或完成。
+SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 None。SP-019 已完成 Squash Merge、main Quality Gate、治理对账与封存；RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted。当前产品版本仍为 `0.34.0`，未因 SP-019 改变 Tag 或 Release。

@@ -69,17 +69,17 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    assert state["current_sp"] == "SP-019"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
 
 
-def test_sp015_release_baseline_is_archived_while_sp018_is_latest_work() -> None:
+def test_sp015_release_baseline_is_archived_while_sp019_is_latest_work() -> None:
     state = _load_state()
     sp015 = state["sp_records"]["SP-015"]
 
-    assert state["latest_merged_sp"] == "SP-018"
-    assert state["latest_completed_sp"] == "SP-018"
+    assert state["latest_merged_sp"] == "SP-019"
+    assert state["latest_completed_sp"] == "SP-019"
     assert sp015["status"] == (
         "APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
@@ -160,12 +160,9 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
-    assert state["current_sp"] == "SP-019"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["development_status"] == (
-        "sp_019_implementation_approved_phase_0_accepted_"
-        "daily_review_accepted_pending_merge"
-    )
+    assert state["development_status"] == "sp_019_completed_reconciled_archived"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert records["SP-016"]["name"] == sp016_name
@@ -222,11 +219,11 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
-    assert "> Next Candidate Direction: None while SP-019 is current" in text["brain"]
+    assert "> Next Candidate Direction: None" in text["brain"]
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
-    assert "Last Completed SP: SP-018" in text["brain"]
-    assert "Current SP: SP-019" in text["brain"]
+    assert "Last Completed SP: SP-019" in text["brain"]
+    assert "Current SP: None" in text["brain"]
     assert "ACC-016 Status: PASSED / FINAL" in text["brain"]
     assert "ACC-017 Status: PASSED / FINAL" in text["brain"]
     assert "Current governance task | None" in text["health"]
@@ -454,16 +451,13 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
 
-    assert state["current_sp"] == "SP-019"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["latest_merged_sp"] == "SP-018"
-    assert state["latest_completed_sp"] == "SP-018"
+    assert state["latest_merged_sp"] == "SP-019"
+    assert state["latest_completed_sp"] == "SP-019"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
-    assert state["development_status"] == (
-        "sp_019_implementation_approved_phase_0_accepted_"
-        "daily_review_accepted_pending_merge"
-    )
+    assert state["development_status"] == "sp_019_completed_reconciled_archived"
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -581,7 +575,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     )
     required_markers = (
         "SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED",
-        "Current SP: SP-019",
+        "Current SP: None",
         "RFC-026 Adopted",
         "ACC-017 Status: PASSED / FINAL",
         (
@@ -590,8 +584,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         ),
             (
                 "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-                "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / "
-                "DAILY_REVIEW_ACCEPTED / PENDING_MERGE |"
+                "APPROVED / MERGED / POST_MERGE_VERIFIED / "
+                "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |"
             ),
     )
     assert all(marker in current_text for marker in required_markers)
@@ -616,9 +610,9 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     sp018 = records["SP-018"]
     acc018 = state["acceptance_records"]["ACC-018"]
 
-    assert state["latest_merged_sp"] == "SP-018"
-    assert state["latest_completed_sp"] == "SP-018"
-    assert state["current_sp"] == "SP-019"
+    assert state["latest_merged_sp"] == "SP-019"
+    assert state["latest_completed_sp"] == "SP-019"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -760,8 +754,8 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     ) in roadmap
     assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / "
-        "PENDING_MERGE |"
+        "APPROVED / MERGED / POST_MERGE_VERIFIED / "
+        "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |"
     ) in roadmap
     assert "SP-018 永久产品事实" in brain
     assert "不会创建 `work_logs.db`" in brain
@@ -868,34 +862,38 @@ def test_sp018_product_entrypoints_use_the_canonical_work_log_boundary() -> None
     assert "retrieve_memory" not in agenda_read
 
 
-def test_sp019_daily_review_is_accepted_pending_merge() -> None:
+def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None:
     state = _load_state()
     sp019 = state["sp_records"]["SP-019"]
     acc019 = state["acceptance_records"]["ACC-019"]
 
-    assert state["latest_merged_sp"] == "SP-018"
-    assert state["latest_completed_sp"] == "SP-018"
-    assert state["current_sp"] == "SP-019"
+    assert state["latest_merged_sp"] == "SP-019"
+    assert state["latest_completed_sp"] == "SP-019"
+    assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["current_version"] == "0.34.0"
-    assert state["development_status"] == (
-        "sp_019_implementation_approved_phase_0_accepted_"
-        "daily_review_accepted_pending_merge"
-    )
+    assert state["version"] == "v0.34.0"
+    assert state["development_status"] == "sp_019_completed_reconciled_archived"
+    assert state["current_work"] is None
+    assert state["release_status"]["authorized_tag"] == "v0.34.0"
+    assert state["release_status"]["current_version"] == "0.34.0"
+    assert "SP-020" not in state["sp_records"]
     assert sp019 == {
         "name": "Daily Review Read Model & Deterministic Follow-up View",
         "status": (
-            "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / "
-            "DAILY_REVIEW_ACCEPTED / PENDING_MERGE"
+            "APPROVED / MERGED / POST_MERGE_VERIFIED / "
+            "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
         ),
         "planning_baseline_defined": True,
         "planning_baseline_approved": True,
         "approved": True,
         "implementation_started": True,
         "implementation_complete": True,
-        "completed": False,
+        "completed": True,
+        "reconciled": True,
+        "archived": True,
         "implementation_base": "410ded0533943d23c622fa6788f37a3c06e99ad1",
         "phase_0_status": (
             "APPROVED / MERGED / POST_MERGE_VERIFIED / ACCEPTED"
@@ -909,10 +907,22 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
         ),
         "phase_0_merged_at": "2026-07-26T17:04:49Z",
         "phase_0_post_merge_quality_gate_run": 30211823590,
-        "daily_review_status": "ACCEPTED / PENDING_MERGE",
+        "daily_review_status": "MERGED / POST_MERGE_VERIFIED / ACCEPTED",
         "approved_implementation_head": (
             "1f2975503cd79047137a4a9f47096668fd4341c5"
         ),
+        "feature_pr": 51,
+        "acceptance_evidence_head": (
+            "420da28664914fda8ccbecadf90947380ec43473"
+        ),
+        "feature_merge_commit": (
+            "a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49"
+        ),
+        "merged_at": "2026-07-28T17:18:41Z",
+        "main_quality_gate": "PASSED",
+        "main_quality_gate_run": 30382312419,
+        "post_merge_verification": "PASSED",
+        "reconciliation_pr": 52,
         "base_commit": "4e0d730a8bfdefa6277c7526a028e7247d7ddc43",
         "branch": "feat/sp-019-daily-review-read-model",
         "planning_pr": 48,
@@ -936,6 +946,13 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
     assert acc019["approved_implementation_head"] == (
         "1f2975503cd79047137a4a9f47096668fd4341c5"
     )
+    assert acc019["acceptance_evidence_head"] == (
+        "420da28664914fda8ccbecadf90947380ec43473"
+    )
+    assert acc019["post_merge_verified_commit"] == (
+        "a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49"
+    )
+    assert acc019["post_merge_quality_gate_run"] == 30382312419
     assert acc019["python_version"] == "3.12.10"
     assert acc019["driver_hash"] == (
         "7b5f2905c59cdd8ca47213042fe83d7785759e21935f82ffd04edae62e7f20f4"
@@ -948,13 +965,19 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
     notes = "\n".join(acc019["notes"])
     assert "Three discarded runs" in notes
     assert "without product changes" in notes
-    assert "SP-019 remains incomplete and unmerged" in notes
-    assert sp019["completed"] is False
+    assert (
+        "SP-019 was Squash merged as "
+        "a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49, passed main "
+        "Quality Gate 30382312419, and was archived without version, tag or "
+        "release changes."
+    ) in notes
+    assert sp019["completed"] is True
+    assert sp019["archived"] is True
     assert {
-        "feature_merge_commit",
         "merge_commit",
-        "merged_at",
-        "post_merge_quality_gate_run",
+        "reconciliation_merge_commit",
+        "reconciled_at",
+        "post_reconciliation_quality_gate_run",
     }.isdisjoint(sp019)
 
     rfc = (
@@ -985,6 +1008,7 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
     project_health = (ROOT / "docs/project/PROJECT_HEALTH.md").read_text(
         encoding="utf-8-sig"
     )
+    readme = (ROOT / "README.md").read_text(encoding="utf-8-sig")
 
     required_rfc_headings = (
         "## 1. 当前状态审计（Current State Audit）",
@@ -1002,7 +1026,7 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
         "## 23. 停止条件（Stop Conditions）",
     )
     assert all(heading in rfc for heading in required_rfc_headings)
-    assert "Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE" in rfc
+    assert "Status: Adopted" in rfc
     assert "UserTask Workspace Query Closure" in rfc
     assert "无需新 Schema、Migration" in rfc
     assert "`daily_review.source_failed`" in rfc
@@ -1110,10 +1134,7 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
         "API 与 CEO Assistant 必须构造同一个默认 `DailyReviewQuery`，"
         "不得各自设置不同默认值"
     ) in entry_contract
-    assert (
-        "Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE"
-        in adr061
-    )
+    assert "Status: Accepted" in adr061
     assert "非持久化" in adr061
     assert "## 背景（Context）" in adr061
     assert "## 决策（Decision）" in adr061
@@ -1121,10 +1142,7 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
         "日期事实由 `review_date` 控制；当前未闭环视图，包括 "
         "`pending_inbox`，由 `as_of` 控制。"
     ) in adr061
-    assert (
-        "Status: IMPLEMENTED / ACC-019 PASSED / PENDING MERGE"
-        in adr062
-    )
+    assert "Status: Accepted" in adr062
     assert "成功返回的 `DailyReview.source_status`" in adr062
     assert "不是成功 payload 的 `source_status` 值" in adr062
     assert "category=DISABLED" in adr062
@@ -1155,6 +1173,18 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
     ) in acceptance
     assert "Provider calls 为 0" in acceptance
     assert "三次废弃运行" in acceptance
+    assert (
+        "Feature PR: #51\n"
+        "Acceptance Evidence Head: "
+        "420da28664914fda8ccbecadf90947380ec43473\n"
+        "Feature Merge Commit: "
+        "a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49\n"
+        "Merged At: 2026-07-28T17:18:41Z\n"
+        "Merge Method: SQUASH\n"
+        "Main Quality Gate: 30382312419 / SUCCESS\n"
+        "Ruff: SUCCESS\n"
+        "pytest (non-real): SUCCESS"
+    ) in acceptance
     planning_merge_contract = (
         "Planning PR：#48（MERGED）\n\n"
         "Approved Planning Head："
@@ -1234,18 +1264,31 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
     assert "| ADR-061 |" in decision_index
     assert "| ADR-062 |" in decision_index
     assert (
+        "| RFC-028 | Daily Review Read Model and Deterministic Follow-up View | "
+        "Adopted | 2026-07-28 |"
+    ) in decision_index
+    assert (
+        "| ADR-061 | Daily Review as a Non-persistent Read Model | "
+        "Accepted | 2026-07-28 |"
+    ) in decision_index
+    assert (
+        "| ADR-062 | Daily Review Source Failure and Availability Semantics | "
+        "Accepted | 2026-07-28 |"
+    ) in decision_index
+    assert (
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View | "
-        "IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / DAILY_REVIEW_ACCEPTED / "
-        "PENDING_MERGE |"
+        "APPROVED / MERGED / POST_MERGE_VERIFIED / "
+        "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |"
     ) in roadmap
     assert (
-        "> Current SP: SP-019\n"
+        "> Last Completed SP: SP-019\n"
+        "> Current SP: None\n"
         "> Current Governance Task: None\n"
         "> Next Candidate SP: None"
     ) in brain
     assert (
-        "> SP-019 Status: IMPLEMENTATION_APPROVED / PHASE_0_ACCEPTED / "
-        "DAILY_REVIEW_ACCEPTED / PENDING_MERGE"
+        "> SP-019 Status: APPROVED / MERGED / POST_MERGE_VERIFIED / "
+        "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     ) in brain
     assert (
         "> SP-019 Planning Merge Baseline: "
@@ -1253,25 +1296,27 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
         "Quality Gate run `30205853257` / SUCCESS"
     ) in brain
     assert "> Current main:" not in brain
-    assert "Current Product SP 为 SP-019" in project_status
+    assert "Latest Merged SP 为 SP-019" in project_status
+    assert "Latest Completed SP 为 SP-019" in project_status
+    assert "Current Product SP 为 None" in project_status
     assert "Current Governance Task 为 None" in project_status
-    assert "Latest Completed SP 为 SP-018" in project_status
+    assert "Next Candidate SP 为 None" in project_status
     assert (
-        "Daily Review 已在 Approved Implementation Head "
-        "`1f2975503cd79047137a4a9f47096668fd4341c5` 上通过 "
-        "ACC-019 A～M"
+        "SP-019 Feature PR #51 已由 Acceptance Evidence Head "
+        "`420da28664914fda8ccbecadf90947380ec43473` Squash Merge 为 main "
+        "`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`"
     ) in project_status
     assert (
-        "| Current product SP | SP-019 |\n"
+        "| Current product SP | None |\n"
         "| Current governance task | None |\n"
-        "| Next candidate | None — SP-019 is current |"
+        "| Next candidate | None |"
     ) in project_health
     assert (
         "| SP-019 Phase 0 | UserTask Workspace Query Closure / "
         "ACCEPTED |"
     ) in project_health
     assert (
-        "| SP-019 Daily Review | ACCEPTED / PENDING MERGE |"
+        "| SP-019 Daily Review | MERGED / VERIFIED / ACCEPTED / ARCHIVED |"
     ) in project_health
     assert "| Current main |" not in project_health
     assert (
@@ -1281,3 +1326,31 @@ def test_sp019_daily_review_is_accepted_pending_merge() -> None:
     ) in project_health
     assert "Current Governance Task: SP-019A" not in brain
     assert "Current governance task | SP-019A" not in project_health
+    assert (
+        "SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge "
+        "Quality Gate"
+    ) in readme
+    assert (
+        "GET /daily-review?date=today\n"
+        "GET /daily-review?date=yesterday\n"
+        "GET /brief\n"
+        "CEO Assistant：今日简报 / 昨日简报"
+    ) in readme
+    assert (
+        "Daily Review 只支持 `today` / `yesterday`，不持久化 Review "
+        "snapshot，不支持任意历史日期，不调用 LLM、不主动推送，且没有 "
+        "Daily Review CLI。"
+    ) in readme
+    for document in (
+        rfc,
+        adr061,
+        adr062,
+        acceptance,
+        decision_index,
+        roadmap,
+        brain,
+        project_status,
+        project_health,
+        readme,
+    ):
+        assert "SP-020" not in document
