@@ -36,11 +36,11 @@ def test_human_facing_current_state_markers_match_project_state() -> None:
     brain = (ROOT / "docs/project/PROJECT_BRAIN.md").read_text(encoding="utf-8-sig")
 
     assert f"v{state['current_version']} Alpha / Release Authorized" in readme
-    assert f"Product Version: {state['version']}" in brain
-    assert f"Last Completed SP: {state['latest_completed_sp']}" in brain
-    assert f"Current SP: {state['current_sp']}" in brain
-    assert f"Current Governance Task: {state['current_governance_task']}" in brain
-    assert f"Next Candidate SP: {state['next_candidate_sp']}" in brain
+    assert f"产品版本：{state['version']}" in brain
+    assert f"最近完成的 Product SP：{state['latest_completed_sp']}" in brain
+    assert f"当前 Product SP：{state['current_sp']}" in brain
+    assert f"当前治理任务：{state['current_governance_task']}" in brain
+    assert f"下一候选 Product SP：{state['next_candidate_sp']}" in brain
     baseline = state["verified_release_baseline"]
     assert baseline["commit"] in brain
     assert str(baseline["quality_gate_run"]) in brain
@@ -70,7 +70,7 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "DOCS-001"
     assert state["next_candidate_sp"] == "SP-020"
 
 
@@ -161,7 +161,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "DOCS-001"
     assert state["development_status"] == (
         "sp_020_planning_baseline_approved_merged_reconciled_"
         "implementation_not_approved_not_started"
@@ -224,21 +224,18 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
-    assert (
-        "> Next Candidate Direction: "
-        "Local Daily Operating Loop & Review-to-Action Closure"
-    ) in text["brain"]
-    assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
-    assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
-    assert "Last Completed SP: SP-019" in text["brain"]
-    assert "Current SP: None" in text["brain"]
-    assert "ACC-016 Status: PASSED / FINAL" in text["brain"]
-    assert "ACC-017 Status: PASSED / FINAL" in text["brain"]
-    assert "Current governance task | None" in text["health"]
+    assert "> 下一候选方向：本地日常运行循环与复盘到行动闭环" in text["brain"]
+    assert f"> SP-015A 状态：{sp015a_status}" in text["brain"]
+    assert f"> SP-015R 状态：{sp015r_status}" in text["brain"]
+    assert "最近完成的 Product SP：SP-019" in text["brain"]
+    assert "当前 Product SP：None" in text["brain"]
+    assert "ACC-016 状态：PASSED / FINAL" in text["brain"]
+    assert "ACC-017 状态：PASSED / FINAL" in text["brain"]
+    assert "Current governance task | DOCS-001" in text["health"]
     assert "Alpha / RELEASE_AUTHORIZED" in text["health"]
     assert "**Authorization:** Release Authorized" in text["version_matrix"]
     assert (
-        "SP-015, SP-015A and SP-015R archived; SP-016 remains candidate only"
+        "SP-015、SP-015A 与 SP-015R 已封存；SP-016 当时仍仅为候选"
         in text["release_checklist"]
     )
     stale_governance_markers = (
@@ -271,10 +268,9 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
         for content in text.values()
     )
     assert (
-        "External publication verification: GitHub Tag and GitHub Release are "
-        "authoritative."
+        "外部发布验证以 GitHub Tag 与 GitHub Release 为权威来源。"
     ) in text["release_checklist"]
-    assert "Final publication commit prepared" in text["release_checklist"]
+    assert "最终发布提交已准备" in text["release_checklist"]
     assert "- [ ] SP-015R merged" not in text["release_checklist"]
     assert "授权 Tag 为 `v0.34.0`" in text["readme"]
     assert "Pre-release" in text["readme"]
@@ -460,7 +456,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     )
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "DOCS-001"
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
     assert state["next_candidate_sp"] == "SP-020"
@@ -587,10 +583,10 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         path.read_text(encoding="utf-8-sig") for path in current_documents
     )
     required_markers = (
-        "SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED",
-        "Current SP: None",
+        "SP-017 状态：APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED",
+        "当前 Product SP：None",
         "RFC-026 Adopted",
-        "ACC-017 Status: PASSED / FINAL",
+        "ACC-017 状态：PASSED / FINAL",
         (
             "| SP-018 | Work Log Query Boundary & Context Closure | "
             "COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |"
@@ -626,7 +622,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "DOCS-001"
     assert state["next_candidate_sp"] == "SP-020"
     assert state["next_candidate_name"] == (
         "Local Daily Operating Loop & Review-to-Action Closure"
@@ -739,21 +735,21 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     ) in acceptance
     assert all(f"ACC-018-{letter}" in acceptance for letter in "ABCDEFGHIJKLMNO")
     assert acceptance.count("状态：PASSED") == 15
-    assert "Feature PR：#46" in acceptance
+    assert "功能 PR：#46" in acceptance
     assert (
-        "Approved Head：`e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`"
+        "批准 Head：`e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`"
         in acceptance
     )
     assert (
-        "Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`"
+        "功能合并 Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`"
         in acceptance
     )
-    assert "SP-018A Reconciliation PR：#47（MERGED）" in acceptance
+    assert "SP-018A 对账 PR：#47（MERGED）" in acceptance
     assert "4e0d730a8bfdefa6277c7526a028e7247d7ddc43" in acceptance
     assert "30198434517" in acceptance
     assert "PR Quality Gate Run：`30195401115`" in acceptance
-    assert "Post-Merge main Quality Gate Run：`30196719409`" in acceptance
-    assert "Independent Review：`APPROVED`" in acceptance
+    assert "合并后 main Quality Gate Run：`30196719409`" in acceptance
+    assert "独立审查：`APPROVED`" in acceptance
     assert "ACC-018 A～O：PASSED / FINAL" in acceptance
     assert "INVALID_ACCEPTANCE_HARNESS" in acceptance
     assert (
@@ -784,8 +780,8 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert "返回同一对象的 canonical `wl_legacy_" in rfc
     assert "SP-018 没有业务结果 candidate cap" in rfc
     assert "这些阈值只产生观测信号" in rfc
-    assert "Ordinary random Memory IDs" in adr059
-    assert "the only restricted compatibility lookup alias" in adr059
+    assert "普通随机 Memory ID" in adr059
+    assert "唯一受限兼容 Alias" in adr059
     acc_d = acceptance.split("## ACC-018-D", maxsplit=1)[1].split(
         "## ACC-018-E", maxsplit=1
     )[0]
@@ -885,7 +881,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "DOCS-001"
     assert state["next_candidate_sp"] == "SP-020"
     assert state["next_candidate_name"] == (
         "Local Daily Operating Loop & Review-to-Action Closure"
@@ -1301,17 +1297,17 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |"
     ) in roadmap
     assert (
-        "> Last Completed SP: SP-019\n"
-        "> Current SP: None\n"
-        "> Current Governance Task: None\n"
-        "> Next Candidate SP: SP-020"
+        "> 最近完成的 Product SP：SP-019\n"
+        "> 当前 Product SP：None\n"
+        "> 当前治理任务：DOCS-001\n"
+        "> 下一候选 Product SP：SP-020"
     ) in brain
     assert (
-        "> SP-019 Status: APPROVED / MERGED / POST_MERGE_VERIFIED / "
+        "> SP-019 状态：APPROVED / MERGED / POST_MERGE_VERIFIED / "
         "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     ) in brain
     assert (
-        "> SP-019 Planning Merge Baseline: "
+        "> SP-019 规划合并基线："
         "`e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / "
         "Quality Gate run `30205853257` / SUCCESS"
     ) in brain
@@ -1319,16 +1315,16 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert "Latest Merged SP 为 SP-019" in project_status
     assert "Latest Completed SP 为 SP-019" in project_status
     assert "Current Product SP 为 None" in project_status
-    assert "Current Governance Task 为 None" in project_status
+    assert "Current Governance Task 为 DOCS-001" in project_status
     assert "Next Candidate SP 为 SP-020" in project_status
     assert (
         "SP-019 Feature PR #51 已由 Acceptance Evidence Head "
         "`420da28664914fda8ccbecadf90947380ec43473` Squash Merge 为 main "
         "`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`"
     ) in project_status
+    assert "| Current product SP | None |" in project_health
+    assert "| Current governance task | DOCS-001 |" in project_health
     assert (
-        "| Current product SP | None |\n"
-        "| Current governance task | None |\n"
         "| Next candidate | SP-020 / Planning Baseline approved, merged and "
         "reconciled |"
     ) in project_health
@@ -1374,7 +1370,7 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "DOCS-001"
     assert state["current_work"] is None
     assert state["next_candidate_sp"] == "SP-020"
     assert state["next_candidate_name"] == (
@@ -1455,17 +1451,17 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         for name, path in paths.items()
     }
 
-    assert "- Status: Adopted" in text["rfc"]
-    assert "- Planning review: APPROVED" in text["rfc"]
-    assert "- Planning PR: #53 / MERGED" in text["rfc"]
+    assert "- 状态：Adopted" in text["rfc"]
+    assert "- 规划审查：APPROVED" in text["rfc"]
+    assert "- 规划 PR：#53 / MERGED" in text["rfc"]
     assert (
-        "- Planning merge commit: "
+        "- 规划合并 Commit："
         "`fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`"
     ) in text["rfc"]
     assert (
-        "- Post-planning main Quality Gate: `30441534383` / SUCCESS"
+        "- 规划后 main Quality Gate：`30441534383` / SUCCESS"
     ) in text["rfc"]
-    assert "- Implementation: NOT APPROVED / NOT STARTED" in text["rfc"]
+    assert "- 产品实施：NOT APPROVED / NOT STARTED" in text["rfc"]
     assert "- Status: Accepted" in text["adr063"]
     assert "- Status: Accepted" in text["adr064"]
     assert (
@@ -1682,3 +1678,35 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         "| SP-020 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
         "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
     ) in project_health
+def test_docs001_is_the_only_active_governance_task() -> None:
+    state = _load_state()
+    docs001 = state["governance_tasks"]["DOCS-001"]
+
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] == "DOCS-001"
+    assert state["next_candidate_sp"] == "SP-020"
+    assert docs001 == {
+        "name": (
+            "Repository Markdown Chinese Standardization and "
+            "Documentation Governance"
+        ),
+        "type": "DOCUMENTATION_GOVERNANCE",
+        "base_commit": "6d888725dbe8f31f77c46d2ebdc2dd9ef8612d29",
+        "branch": "docs/docs-001-markdown-chinese-governance",
+        "status": (
+            "IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / "
+            "PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN"
+        ),
+        "product_code_changed": False,
+        "version_changed": False,
+        "tag_changed": False,
+        "release_changed": False,
+    }
+
+    sp020 = state["sp_records"]["SP-020"]
+    acc020 = state["acceptance_records"]["ACC-020"]
+    assert sp020["approved"] is False
+    assert sp020["implementation_started"] is False
+    assert acc020["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
+    assert state["current_version"] == "0.34.0"
+    assert state["release_status"]["authorized_tag"] == "v0.34.0"
