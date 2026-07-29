@@ -3,7 +3,7 @@
 > 产品版本：v0.34.0
 > 最近完成的 Product SP：SP-019
 > 当前 Product SP：None
-> 当前治理任务：DOCS-001
+> 当前治理任务：None
 > 下一候选 Product SP：SP-020
 > 下一候选方向：本地日常运行循环与复盘到行动闭环
 > SP-020 状态：PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
@@ -57,6 +57,19 @@ AI 可以收集、整理、分析和提醒；最终业务判断与重要审批�
 | SP 任务书 | 单次实现、验证与验收边界 |
 
 文档不得建立第二份机器状态；运行时版本不得在 Python 源码中硬编码。
+
+### DOCS-001 永久治理事实
+
+DOCS-001 已通过独立审查。Approved Head
+`d7a6662dddaac87b41562e2348f69e04112b2be4` 由 PR #55 Squash Merge 为
+`2d04f1b8574fde43b1d64a53d1ad22573073a4ef`，合并时间为
+`2026-07-29T14:43:26Z`；main Quality Gate run `30462290819` 为 SUCCESS。
+
+该任务确立了 176 个 Git 跟踪 Markdown 文件的中文治理基线，以及
+`MARKDOWN_LANGUAGE_POLICY.md`、`MARKDOWN_INVENTORY.md`、
+`TERMINOLOGY_GLOSSARY.md` 与自动化 Markdown 治理门禁。DOCS-001 已完成
+合并后对账并封存；当前没有 Governance Task。它没有修改产品代码、产品版本、
+Tag 或 Release，也没有授权或启动 SP-020 产品实施。
 
 ## 永久架构事实
 
@@ -213,4 +226,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 DOCS-001，Next Candidate SP 为 SP-020。SP-020 Planning Baseline 已通过独立审查并合并、对账；Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。
+SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。DOCS-001 已通过独立审查、合并、main Quality Gate、对账并封存。SP-020 Planning Baseline 已通过独立审查并合并、对账；Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。
