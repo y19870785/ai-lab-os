@@ -66,7 +66,7 @@ DOCS-001 已通过独立审查。Approved Head
 `2026-07-29T14:43:26Z`；main Quality Gate run `30462290819` 为 SUCCESS。
 
 该任务确立了 176 个 Git 跟踪 Markdown 文件的中文治理基线，以及
-`MARKDOWN_LANGUAGE_POLICY.md`、`MARKDOWN_INVENTORY.md`、
+`DOCUMENTATION_POLICY.md`、`MARKDOWN_INVENTORY.md`、
 `TERMINOLOGY_GLOSSARY.md` 与自动化 Markdown 治理门禁。DOCS-001 已完成
 合并后对账并封存；当前没有 Governance Task。它没有修改产品代码、产品版本、
 Tag 或 Release，也没有授权或启动 SP-020 产品实施。
