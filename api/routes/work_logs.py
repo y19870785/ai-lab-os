@@ -18,6 +18,8 @@ def _workspace(request: Request) -> WorkspaceKey:
         tenant_id=getattr(request.state, "tenant_id", "default"),
         workspace_id=getattr(request.state, "workspace_id", "default"),
         namespace=getattr(request.state, "namespace", "default"),
+        session_id=getattr(request.state, "session_id", ""),
+        agent_id=getattr(request.state, "agent_id", ""),
         trace_id=getattr(request.state, "trace_id", ""),
     )
 

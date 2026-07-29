@@ -1,0 +1,76 @@
+{
+  "task": "SP-020",
+  "principle": "Only real safe entrypoints are advertised; matrix symmetry is not a goal.",
+  "entries": [
+    {
+      "source_type": "user_task",
+      "allowed_action": "complete/cancel",
+      "canonical_service": "UserTaskService",
+      "existing_api_entrypoint": "/daily-review/actions/user-tasks/{id}/complete|cancel",
+      "existing_cli_entrypoint": null,
+      "existing_ceo_assistant_entrypoint": null,
+      "required_workspace_evidence": "complete WorkspaceKey",
+      "revision_contract": "caller expected_revision required",
+      "idempotency_contract": null,
+      "confirmation_contract": "explicit canonical ID action",
+      "saga_contract": null,
+      "implementation_gap": "closed by SP-020 thin API delegation"
+    },
+    {
+      "source_type": "reminder",
+      "allowed_action": "reschedule",
+      "canonical_service": "ReminderManagementService",
+      "existing_api_entrypoint": "PATCH /reminders/{id}",
+      "existing_cli_entrypoint": "reminder-reschedule",
+      "existing_ceo_assistant_entrypoint": "explicit reminder reschedule intent",
+      "required_workspace_evidence": "complete WorkspaceKey",
+      "revision_contract": "expected revision",
+      "idempotency_contract": "action-specific idempotency key",
+      "confirmation_contract": "explicit write intent",
+      "saga_contract": "ReminderSchedulerBridge reconciliation",
+      "implementation_gap": null
+    },
+    {
+      "source_type": "waiting_for",
+      "allowed_action": "follow_up",
+      "canonical_service": "WaitingForService",
+      "existing_api_entrypoint": "POST /waiting-for/{id}/follow-ups",
+      "existing_cli_entrypoint": "waiting-for follow-up",
+      "existing_ceo_assistant_entrypoint": "explicit canonical ID mutation",
+      "required_workspace_evidence": "complete WorkspaceKey",
+      "revision_contract": "expected revision",
+      "idempotency_contract": null,
+      "confirmation_contract": "explicit canonical ID action",
+      "saga_contract": null,
+      "implementation_gap": null
+    },
+    {
+      "source_type": "inbox",
+      "allowed_action": "resolve/dismiss",
+      "canonical_service": "InboxService",
+      "existing_api_entrypoint": "POST /inbox/{id}/resolve-*|dismiss",
+      "existing_cli_entrypoint": "inbox resolve-*|dismiss",
+      "existing_ceo_assistant_entrypoint": "persistent capture/confirm",
+      "required_workspace_evidence": "complete WorkspaceKey",
+      "revision_contract": null,
+      "idempotency_contract": "durable claim retry",
+      "confirmation_contract": "target-specific required fields",
+      "saga_contract": "existing Inbox resolution claim/Saga",
+      "implementation_gap": null
+    },
+    {
+      "source_type": "work_log",
+      "allowed_action": "get/list/create",
+      "canonical_service": "WorkLogService",
+      "existing_api_entrypoint": "/work-logs",
+      "existing_cli_entrypoint": "work-log",
+      "existing_ceo_assistant_entrypoint": "create/list/get",
+      "required_workspace_evidence": "complete WorkspaceKey",
+      "revision_contract": null,
+      "idempotency_contract": "create-specific idempotency",
+      "confirmation_contract": "explicit create content",
+      "saga_contract": null,
+      "implementation_gap": "no edit/complete/cancel/delete added"
+    }
+  ]
+}

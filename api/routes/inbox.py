@@ -1,5 +1,7 @@
 """Workspace-scoped Unified Inbox API."""
 
+# ruff: noqa: B008
+
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
@@ -9,12 +11,11 @@ from api.models import (
     InboxPageResponse,
     InboxResolveReminderRequest,
     InboxResolveTaskRequest,
-    InboxResolveWorkLogRequest,
     InboxResolveWaitingForRequest,
+    InboxResolveWorkLogRequest,
 )
 from core.system.container import SystemContainer
 from core.workspace.models import WorkspaceKey
-
 
 router = APIRouter(prefix="/inbox", tags=["inbox"])
 
@@ -24,6 +25,8 @@ def _workspace(request: Request) -> WorkspaceKey:
         tenant_id=getattr(request.state, "tenant_id", "default"),
         workspace_id=getattr(request.state, "workspace_id", "default"),
         namespace=getattr(request.state, "namespace", "default"),
+        session_id=getattr(request.state, "session_id", ""),
+        agent_id=getattr(request.state, "agent_id", ""),
         trace_id=getattr(request.state, "trace_id", ""),
     )
 

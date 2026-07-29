@@ -376,6 +376,7 @@ class UserTaskService:
         workspace_key: WorkspaceKey,
         task_id: str,
         target: UserTaskStatus,
+        expected_revision: int | None,
         trace_id: str,
     ) -> UserTask:
         normalized_workspace = normalize_workspace_key(workspace_key)
@@ -397,7 +398,11 @@ class UserTaskService:
             result = await self._repository.update(
                 normalized_workspace,
                 current.model_copy(update=changes),
-                current.revision,
+                (
+                    current.revision
+                    if expected_revision is None
+                    else expected_revision
+                ),
             )
             await self._publish(f"user_task.{target.value}", result.id, trace_id)
         except Exception as exc:
@@ -411,12 +416,14 @@ class UserTaskService:
         *,
         workspace_key: WorkspaceKey,
         task_id: str,
+        expected_revision: int | None = None,
         trace_id: str = "",
     ) -> UserTask:
         return await self._transition(
             workspace_key=workspace_key,
             task_id=task_id,
             target=UserTaskStatus.COMPLETED,
+            expected_revision=expected_revision,
             trace_id=trace_id,
         )
 
@@ -425,12 +432,14 @@ class UserTaskService:
         *,
         workspace_key: WorkspaceKey,
         task_id: str,
+        expected_revision: int | None = None,
         trace_id: str = "",
     ) -> UserTask:
         return await self._transition(
             workspace_key=workspace_key,
             task_id=task_id,
             target=UserTaskStatus.CANCELLED,
+            expected_revision=expected_revision,
             trace_id=trace_id,
         )
 

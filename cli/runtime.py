@@ -3,10 +3,61 @@
 from __future__ import annotations
 
 from applications.models import ApplicationRequest, ApplicationResponse
+from cli.workspace import workspace_from_settings
+from core.daily_review import present_daily_review
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.system import create_system, load_system_settings
 from core.work_log import WorkLogService
 from core.workspace.models import WorkspaceKey
+
+
+async def query_daily_review(
+    *,
+    review_date: str,
+    limit: int = 50,
+    offset: int = 0,
+    tenant_id: str | None = None,
+    workspace_id: str | None = None,
+    namespace: str | None = None,
+    session_id: str | None = None,
+    agent_id: str | None = None,
+):
+    """Read Daily Review directly from the one Composition Root."""
+
+    settings = load_system_settings()
+    workspace_key = workspace_from_settings(
+        settings,
+        tenant_id=tenant_id,
+        workspace_id=workspace_id,
+        namespace=namespace,
+        session_id=session_id,
+        agent_id=agent_id,
+    )
+    system = await create_system(settings)
+    await system.start()
+    try:
+        if system.daily_review is None:
+            raise FailureException(FailureInfo(
+                code="daily_review.unavailable",
+                category=ErrorCategory.NOT_CONFIGURED,
+                message="Daily Review is unavailable",
+                component="daily_review",
+                operation="get",
+                trace_id=workspace_key.trace_id,
+            ))
+        query = system.daily_review.query_from_input(
+            review_date=review_date,
+            limit=limit,
+            offset=offset,
+            trace_id=workspace_key.trace_id,
+        )
+        review = await system.daily_review.get(
+            workspace_key=workspace_key,
+            query=query,
+        )
+        return review, present_daily_review(review)
+    finally:
+        await system.shutdown()
 
 
 async def execute_ceo_request(user_input: str) -> tuple[ApplicationResponse, str]:
@@ -75,7 +126,7 @@ async def query_reminder_status(reminder_id: str):
                 retryable=False,
             ))
         return await system.reminder_management.status(
-            workspace_key=WorkspaceKey(), reminder_id=reminder_id
+            workspace_key=workspace_from_settings(settings), reminder_id=reminder_id
         )
     finally:
         await system.shutdown()
@@ -99,7 +150,7 @@ async def query_reminder_inbox(
                 retryable=False,
             ))
         return await system.reminder_inbox.list(
-            workspace_key=WorkspaceKey(),
+            workspace_key=workspace_from_settings(settings),
             statuses=statuses,
             time_scope=time_scope,
             view=view,
@@ -124,7 +175,7 @@ async def cancel_reminder(reminder_id: str):
                 operation="cancel",
             ))
         return await system.reminder_management.cancel(
-            workspace_key=WorkspaceKey(), reminder_id=reminder_id
+            workspace_key=workspace_from_settings(settings), reminder_id=reminder_id
         )
     finally:
         await system.shutdown()
@@ -146,7 +197,7 @@ async def reschedule_reminder(
                 operation="reschedule",
             ))
         return await system.reminder_management.reschedule(
-            workspace_key=WorkspaceKey(),
+            workspace_key=workspace_from_settings(settings),
             reminder_id=reminder_id,
             remind_at=scheduled_for,
             timezone_name=timezone_name,
@@ -173,7 +224,7 @@ async def query_daily_agenda(
                 retryable=False,
             ))
         return await system.daily_agenda.list(
-            workspace_key=WorkspaceKey(),
+            workspace_key=workspace_from_settings(settings),
             view=view,
             window_hours=window_hours,
             limit=limit,
@@ -192,7 +243,7 @@ async def execute_inbox_operation(operation: str, **values):
     await system.start()
     try:
         service = system.inbox_service
-        workspace_key = WorkspaceKey()
+        workspace_key = workspace_from_settings(settings)
         if operation == "add":
             return await service.capture(
                 workspace_key=workspace_key, source="cli", **values
@@ -228,7 +279,7 @@ async def execute_waiting_for_operation(operation: str, **values):
     await system.start()
     try:
         service = system.waiting_for_service
-        workspace_key = WorkspaceKey()
+        workspace_key = workspace_from_settings(settings)
         if operation == "create":
             return await service.create(
                 workspace_key=workspace_key, source="cli", **values

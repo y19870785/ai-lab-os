@@ -43,6 +43,13 @@ class SystemSettings:
     enable_api: bool = False
     timezone_name: str = "Asia/Shanghai"
     scheduler_tick_interval: float = 1.0
+    profile_name: str = ""
+    api_bind: str = "127.0.0.1"
+    workspace_tenant_id: str = "default"
+    workspace_id: str = "default"
+    workspace_namespace: str = "default"
+    workspace_session_id: str = ""
+    workspace_agent_id: str = ""
 
     enable_api_auth: bool = True
 
@@ -51,6 +58,8 @@ class SystemSettings:
     api_allowed_origins: list[str] = ()
 
     def __post_init__(self) -> None:
+        raw_data_dir = Path(self.data_dir)
+        raw_sqlite_dir = Path(self.sqlite_dir)
         mode = self.provider_mode.lower().strip()
         if mode not in {"real", "mock", "test", "invalid"}:
             raise ValueError(f"Unsupported provider mode: {self.provider_mode}")
@@ -65,6 +74,99 @@ class SystemSettings:
             raise ValueError("timezone_name must be a valid IANA timezone") from exc
         if self.scheduler_tick_interval <= 0:
             raise ValueError("scheduler_tick_interval must be positive")
+        if self.profile_name == "local-daily":
+            if not raw_data_dir.is_absolute():
+                raise ValueError("AI_LAB_DATA_DIR must be an absolute path")
+            if not raw_sqlite_dir.is_absolute():
+                raise ValueError("AI_LAB_SQLITE_DIR must be an absolute path")
+            try:
+                self.sqlite_dir.relative_to(self.data_dir)
+            except ValueError as exc:
+                raise ValueError(
+                    "AI_LAB_SQLITE_DIR must be under AI_LAB_DATA_DIR"
+                ) from exc
+            if mode not in {"mock", "test", "real"}:
+                raise ValueError(
+                    "AI_LAB_PROVIDER_MODE must be mock, test, or real"
+                )
+            required_flags = {
+                "AI_LAB_ENABLE_USER_TASKS": self.enable_user_tasks,
+                "AI_LAB_ENABLE_DAILY_REVIEW": self.enable_daily_review,
+                "AI_LAB_ENABLE_REMINDERS": self.enable_reminders,
+                "AI_LAB_ENABLE_SCHEDULER": self.enable_scheduler,
+                "AI_LAB_ENABLE_API": self.enable_api,
+            }
+            disabled_flags = {
+                "AI_LAB_ENABLE_KNOWLEDGE": self.enable_knowledge,
+                "AI_LAB_ENABLE_COORDINATION": self.enable_coordination,
+            }
+            missing = [name for name, enabled in required_flags.items() if not enabled]
+            unexpected = [name for name, enabled in disabled_flags.items() if enabled]
+            if missing or unexpected:
+                raise ValueError(
+                    "Local Daily Profile feature flags are invalid: "
+                    + ", ".join(missing + unexpected)
+                )
+            if not self.enable_api_auth or not self.api_token:
+                raise ValueError(
+                    "Local Daily Profile requires API auth and a non-empty token"
+                )
+            if self.api_bind != "127.0.0.1":
+                raise ValueError("Local Daily Profile API bind must be 127.0.0.1")
+            workspace_values = (
+                self.workspace_tenant_id,
+                self.workspace_id,
+                self.workspace_namespace,
+                self.workspace_session_id,
+                self.workspace_agent_id,
+            )
+            if any(not value.strip() for value in workspace_values):
+                raise ValueError(
+                    "Local Daily Profile requires a complete WorkspaceKey"
+                )
+
+    def safe_summary(self, *, project_root: Path | None = None) -> dict[str, object]:
+        """Return effective configuration without exposing credentials."""
+
+        root = (project_root or Path.cwd()).resolve()
+        legacy = (root / "data").resolve()
+        return {
+            "profile": self.profile_name or "default",
+            "data_root": str(self.data_dir),
+            "sqlite_root": str(self.sqlite_dir),
+            "timezone": self.timezone_name,
+            "provider_mode": self.provider_mode,
+            "features": {
+                "user_tasks": self.enable_user_tasks,
+                "daily_review": self.enable_daily_review,
+                "reminders": self.enable_reminders,
+                "scheduler": self.enable_scheduler,
+                "knowledge": self.enable_knowledge,
+                "coordination": self.enable_coordination,
+                "api": self.enable_api,
+            },
+            "auth_enabled": self.enable_api_auth,
+            "api_bind": self.api_bind,
+            "api_token": "configured" if self.api_token else "not configured",
+            "provider_secret": (
+                "configured" if self.api_key else "not configured"
+            ),
+            "workspace": {
+                "tenant_id": self.workspace_tenant_id,
+                "workspace_id": self.workspace_id,
+                "namespace": self.workspace_namespace,
+                "session_id": self.workspace_session_id,
+                "agent_id": self.workspace_agent_id,
+            },
+            "legacy_data_dir_detected": (
+                legacy != self.data_dir and legacy.exists()
+            ),
+            "legacy_data_dir": (
+                str(legacy)
+                if legacy != self.data_dir and legacy.exists()
+                else None
+            ),
+        }
 
 
 def _load_dotenv_once(project_root: Path) -> None:
@@ -99,6 +201,36 @@ def load_system_settings(
 
     data_dir = Path(os.getenv("AI_LAB_DATA_DIR", str(root / "data")))
     sqlite_dir = Path(os.getenv("AI_LAB_SQLITE_DIR", str(data_dir / "sqlite")))
+    profile_name = os.getenv("AI_LAB_PROFILE", "").strip().lower()
+    local_daily = profile_name == "local-daily"
+    if local_daily:
+        required = (
+            "AI_LAB_DATA_DIR",
+            "AI_LAB_SQLITE_DIR",
+            "AI_LAB_TIMEZONE",
+            "AI_LAB_PROVIDER_MODE",
+            "AI_LAB_ENABLE_USER_TASKS",
+            "AI_LAB_ENABLE_DAILY_REVIEW",
+            "AI_LAB_ENABLE_REMINDERS",
+            "AI_LAB_ENABLE_SCHEDULER",
+            "AI_LAB_ENABLE_KNOWLEDGE",
+            "AI_LAB_ENABLE_COORDINATION",
+            "AI_LAB_ENABLE_API",
+            "AI_LAB_API_AUTH_ENABLED",
+            "AI_LAB_API_TOKEN",
+            "AI_LAB_API_BIND",
+            "AI_LAB_TENANT_ID",
+            "AI_LAB_WORKSPACE_ID",
+            "AI_LAB_NAMESPACE",
+            "AI_LAB_SESSION_ID",
+            "AI_LAB_AGENT_ID",
+        )
+        missing = [name for name in required if not os.getenv(name, "").strip()]
+        if missing:
+            raise ValueError(
+                "Local Daily Profile missing explicit settings: "
+                + ", ".join(missing)
+            )
 
     return SystemSettings(
         environment=os.getenv("AI_LAB_ENV", "development"),
@@ -122,6 +254,21 @@ def load_system_settings(
         enable_api=_as_bool(os.getenv("AI_LAB_ENABLE_API"), False),
         timezone_name=os.getenv("AI_LAB_TIMEZONE", "Asia/Shanghai"),
         scheduler_tick_interval=float(os.getenv("AI_LAB_SCHEDULER_TICK_INTERVAL", "1")),
+        profile_name=profile_name,
+        api_bind=os.getenv("AI_LAB_API_BIND", "127.0.0.1"),
+        workspace_tenant_id=os.getenv(
+            "AI_LAB_TENANT_ID", "local" if local_daily else "default"
+        ),
+        workspace_id=os.getenv(
+            "AI_LAB_WORKSPACE_ID", "daily" if local_daily else "default"
+        ),
+        workspace_namespace=os.getenv("AI_LAB_NAMESPACE", "default"),
+        workspace_session_id=os.getenv(
+            "AI_LAB_SESSION_ID", "local-daily" if local_daily else ""
+        ),
+        workspace_agent_id=os.getenv(
+            "AI_LAB_AGENT_ID", "local-user" if local_daily else ""
+        ),
 
         enable_api_auth=_as_bool(os.getenv("AI_LAB_API_AUTH_ENABLED"), True),
 
@@ -169,4 +316,9 @@ def make_test_settings(
         timezone_name=timezone_name,
         scheduler_tick_interval=scheduler_tick_interval,
         enable_api_auth=False,
+        workspace_tenant_id="default",
+        workspace_id="default",
+        workspace_namespace="default",
+        workspace_session_id="test",
+        workspace_agent_id="test",
     )

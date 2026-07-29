@@ -2,12 +2,11 @@
 
 import time
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 
-from api.dependencies import get_system
-from core.system.exceptions import ServiceUnavailableError
 from core import __version__
-from core.system.container import SystemContainer
+from core.system.exceptions import ServiceUnavailableError
 
 
 def _system_unguarded(request: Request):
@@ -63,13 +62,20 @@ async def liveness():
 async def readiness(request: Request):
     system = _system_unguarded(request)
     health = await system.health()
-    return {
-        "status": "ready"
-        if health.get("accepting_work", False)
-        else "not_ready",
-        "lifecycle": health.get("lifecycle", "unknown"),
-        "accepting_work": health.get("accepting_work", False)
-    }
+    ready = (
+        health.get("lifecycle") == "ready"
+        and health.get("accepting_work") is True
+        and health.get("status") == "healthy"
+    )
+    return JSONResponse(
+        status_code=200 if ready else 503,
+        content={
+            "status": "ready" if ready else "not_ready",
+            "lifecycle": health.get("lifecycle", "unknown"),
+            "accepting_work": health.get("accepting_work", False),
+            "components": health.get("components", {}),
+        },
+    )
 
 
 @router.get("/metrics")

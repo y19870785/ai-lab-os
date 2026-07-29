@@ -2,8 +2,8 @@
 
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
-> SP-020 已定义 Local Daily Operating Loop Planning Baseline；Implementation 未批准、
-> 未启动，ACC-020 未执行。当前产品行为仍以 SP-019 封存基线为准。
+> SP-020 已获产品实施授权；Phase 0 已通过，Phase 1～3 已实现并通过自动化验证。
+> 当前 Draft PR 等待独立审查，ACC-020 尚未执行，版本、Tag 与 Release 不变。
 
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
@@ -81,10 +81,21 @@ python -m pip install -e .
 |---|---|---|
 | Minimal Core | Core、Memory 与基础 Runtime 开发 | 不自动安装 API、真实 Provider 或 Knowledge 大型依赖 |
 | Local | API、CLI、Mock Provider、测试和构建 | 推荐的本地开发组合 |
+| Local Daily | Windows 本地日常闭环 | 显式绝对数据目录、完整 WorkspaceKey、Bearer Token 与 localhost bind |
 | Real Provider | 显式外部模型验证 | 需要凭据、网络和单独授权，不属于普通 Quality Gate |
 | Knowledge | 可选向量与 embedding 依赖 | 真实产品主链路仍未完成 |
 
 运行行为由环境配置控制。默认关闭的能力不会因为代码存在而自动成为可用产品功能。
+
+Local Daily Profile 可从 `config/local-daily.env.example` 复制配置并替换本机路径和
+secret，然后执行：
+
+```powershell
+.\scripts\start-local-daily.ps1
+python -m cli profile
+python -m cli daily-review --date today
+python -m cli daily-review --date yesterday --json
+```
 
 ## 典型使用入口
 
@@ -104,6 +115,7 @@ Daily Review 的真实公共入口为：
 ```text
 GET /daily-review?date=today
 GET /daily-review?date=yesterday
+GET /daily-review/action-hints?date=today
 GET /brief
 CEO Assistant：今日简报 / 昨日简报
 ```
@@ -138,12 +150,13 @@ Governance
 - Workspace 是逻辑隔离边界，不等于完整用户身份或强多租户授权。
 - Reminder 当前提供站内持久化状态，不代表邮件、短信或推送已经送达。
 - 不支持 Recurring Reminder、复杂自然语言日期或 LLM 时间裁决。
-- Daily Review 只支持 `today` / `yesterday`，不持久化 Review snapshot，不支持任意历史日期，不调用 LLM、不主动推送，且没有 Daily Review CLI。
+- Daily Review 只支持 `today` / `yesterday`，不持久化 Review snapshot，不支持任意历史日期，不调用 LLM、不主动推送；CLI 与 API 复用同一个服务。
 - Knowledge 真实主链路、Web UI、Docker 受控 build/run 与长期稳定性尚未完成正式验证。
 - 普通 GitHub Quality Gate 显式排除 `tests/real`；真实 Provider 结果不能由普通门禁推导。
 - CI-002 与 QUALITY-001 等已确认技术债记录在 `project_state.json`。
-- SP-020 规划所针对的当前缺口仍存在：没有正式 Daily Review CLI、稳定绝对数据目录的
-  Local Daily Profile、确定性 Action Hint，以及 restart/静止备份/隔离恢复正式验收。
+- SP-020 的实现已补齐正式 Daily Review CLI、Local Daily Profile、确定性 Action Hint
+  与 Review-to-Action UserTask revision 边界；restart/静止备份/隔离恢复的正式 ACC-020
+  仍须等待独立审查冻结 Head 后执行。
 
 ## 开发与测试
 
@@ -171,8 +184,8 @@ python -m ruff check <changed-python-files>
 - [项目机器状态](project_state.json)：版本、已验证历史基线、当前 SP、质量门禁、技术债与稳定发布授权。
 - [项目大脑](docs/project/PROJECT_BRAIN.md)：长期架构事实与封存产品事实。
 - [Roadmap](docs/project/ROADMAP.md)：版本范围、里程碑与候选 SP。
-- [SP-020 Implementation Task](docs/project/SP-020-IMPLEMENTATION-TASK.md)：未来实现阶段、
-  停止条件与授权边界；当前未获 Implementation 授权。
+- [SP-020 Implementation Task](docs/project/SP-020-IMPLEMENTATION-TASK.md)：实现阶段、
+  停止条件与授权边界；当前实施遵循该合同。
 - [ACC-020](docs/acceptance/SP-020-local-daily-operating-loop.md)：本地日常闭环、
   restart 与 Quiescent Backup/Restore 的未来验收合同；当前 NOT_EXECUTED。
 - [Changelog](CHANGELOG.md)：按产品版本记录用户可见变化。

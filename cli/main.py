@@ -7,11 +7,13 @@ from cli.commands import (
     ask_cmd,
     brief_cmd,
     chat_cmd,
+    daily_review_cmd,
     decide_cmd,
     health_cmd,
     inbox_cmd,
     inspect_cmd,
     log_cmd,
+    profile_cmd,
     reminder_cancel_cmd,
     reminder_reschedule_cmd,
     reminder_status_cmd,
@@ -29,6 +31,8 @@ COMMANDS = {
     "run": run_cmd.run,
     "inspect": inspect_cmd.run,
     "brief": brief_cmd.run,
+    "daily-review": daily_review_cmd.run,
+    "profile": profile_cmd.run,
     "log": log_cmd.run,
     "task": task_cmd.run,
     "decide": decide_cmd.run,
@@ -59,6 +63,8 @@ def main():
         print()
         print("单次命令：")
         print("  brief        每日简报")
+        print("  daily-review --date today|yesterday  每日复盘")
+        print("  profile      显示安全的最终配置摘要")
         print("  log <内容>    记录工作")
         print("  work-log <命令>  创建、查询工作记录")
         print("  task <内容>   创建/查看任务")

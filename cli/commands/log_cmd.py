@@ -1,8 +1,9 @@
 """Compatibility alias for ``work-log create``."""
 
 from cli.runtime import execute_work_log_operation
+from cli.workspace import workspace_from_settings
+from core.system import load_system_settings
 from core.work_log import WorkLogSource
-from core.workspace.models import WorkspaceKey
 
 
 async def run(args):
@@ -12,7 +13,7 @@ async def run(args):
         return
     record = await execute_work_log_operation(
         "create",
-        workspace_key=WorkspaceKey(),
+        workspace_key=workspace_from_settings(load_system_settings()),
         subject=user_input[:500],
         raw_text=user_input,
         source=WorkLogSource.CLI,

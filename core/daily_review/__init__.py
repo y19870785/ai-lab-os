@@ -1,5 +1,6 @@
 """Public Daily Review read-model boundary."""
 
+from core.daily_review.action_hints import ActionHint, build_action_hints
 from core.daily_review.models import (
     DEFAULT_DAILY_REVIEW_LIMIT,
     DEFAULT_DAILY_REVIEW_OFFSET,
@@ -19,6 +20,7 @@ from core.daily_review.service import DailyReviewService
 __all__ = [
     "DEFAULT_DAILY_REVIEW_LIMIT",
     "DEFAULT_DAILY_REVIEW_OFFSET",
+    "ActionHint",
     "DailyReview",
     "DailyReviewDate",
     "DailyReviewItem",
@@ -29,5 +31,6 @@ __all__ = [
     "DailyReviewSourceStatus",
     "DailyReviewSourceType",
     "DailyReviewWorkspace",
+    "build_action_hints",
     "present_daily_review",
 ]

@@ -2,6 +2,13 @@
 
 ## [Unreleased] 未发布
 
+### SP-020 本地日常运行与复盘行动闭环实施
+- 新增严格的 Windows Local Daily Profile、稳定绝对数据目录校验、安全配置摘要、完整 WorkspaceKey 默认值与覆盖能力。
+- 新增正式 `daily-review` CLI、纯确定性 Action Hint，以及带显式 `expected_revision` 的 Review-to-Action UserTask complete/cancel 薄 API。
+- Phase 0 已通过自动化生命周期门禁，覆盖持续 Scheduler tick、一次性 Job、周期 health 快照、partial-start rollback、重复 shutdown、连接释放与新容器恢复。
+- 新增 ACC-020 driver 准备工具与入口矩阵审计；正式 ACC-020 仍为 `PLANNING_BASELINE / NOT_EXECUTED`，等待独立审查冻结 Implementation Head。
+- 未新增 Schema、Migration、依赖或 CI；版本保持 `0.34.0`，Tag 与 GitHub Release 不变。
+
 ### DOCS-001 全仓 Markdown 中文规范与统一治理
 - 建立简体中文主要叙述语言政策、Git 跟踪 Markdown 完整清单与统一术语表。
 - 将仓库自有 Markdown 的标题、普通叙述与治理提示统一为中文，同时保留代码、命令、API、字段、状态值与历史证据。
@@ -15,7 +22,7 @@
 - 规划直接复用现有 `DailyReviewService` 的正式 Daily Review CLI，以及纯确定性、无 LLM、无写入的 Action Hint presentation。
 - 固定 Review canonical ID 只能委托现有 UserTask、Reminder、Waiting-For、Inbox 与 Work Log 服务；不新增 Action/Review 数据库、第二 Command Bus 或 Work Log mutation。
 - 采用停机后的完整 data directory Quiescent Backup 与隔离恢复，不承诺运行中跨多个 SQLite 文件的一致快照。
-- RFC-029、ADR-063、ADR-064 与 ACC-020 均为 Planning Baseline；SP-020 Implementation 未批准、未启动，ACC-020 未执行。
+- 规划合并时 RFC-029、ADR-063、ADR-064 与 ACC-020 构成 Planning Baseline；当时 SP-020 Implementation 尚未批准、未启动，ACC-020 未执行。
 - 产品版本保持 `0.34.0`；Tag 与 GitHub Release 均未改变。
 
 ### SP-019 每日复盘读取模型与确定性跟进视图

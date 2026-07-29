@@ -1,11 +1,13 @@
 """Workspace-scoped canonical Waiting-For API."""
 
+# ruff: noqa: B008
+
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
 from api.models import (
-    WaitingForCreateRequest,
     WaitingForCancelRequest,
+    WaitingForCreateRequest,
     WaitingForEventPageResponse,
     WaitingForEventResponse,
     WaitingForFollowUpRequest,
@@ -20,7 +22,6 @@ from core.system.container import SystemContainer
 from core.waiting_for import WaitingForView
 from core.workspace.models import WorkspaceKey
 
-
 router = APIRouter(prefix="/waiting-for", tags=["waiting-for"])
 
 
@@ -29,6 +30,8 @@ def _workspace(request: Request) -> WorkspaceKey:
         tenant_id=getattr(request.state, "tenant_id", "default"),
         workspace_id=getattr(request.state, "workspace_id", "default"),
         namespace=getattr(request.state, "namespace", "default"),
+        session_id=getattr(request.state, "session_id", ""),
+        agent_id=getattr(request.state, "agent_id", ""),
         trace_id=getattr(request.state, "trace_id", ""),
     )
 
@@ -130,9 +133,7 @@ async def _mutation(
         "expected_revision": body.expected_revision,
         "source": "api",
     }
-    if operation == "record_follow_up":
-        values.update(note=body.note, next_review_at=body.next_review_at)
-    elif operation == "snooze":
+    if operation == "record_follow_up" or operation == "snooze":
         values.update(note=body.note, next_review_at=body.next_review_at)
     elif operation == "resolve":
         values.update(resolution_note=body.resolution_note)

@@ -5,9 +5,11 @@
 """
 
 from __future__ import annotations
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -42,7 +44,7 @@ class Tenant(BaseModel):
     name: str = ""
     description: str = ""
     environment: Environment = Environment.DEV
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -59,7 +61,7 @@ class Workspace(BaseModel):
     namespace: str = "default"  # 逻辑命名空间
     status: WorkspaceStatus = WorkspaceStatus.ACTIVE
     environment: Environment = Environment.DEV
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -100,6 +102,7 @@ class WorkspaceKey(BaseModel):
     namespace: str = "default"
     user_id: str = ""
     session_id: str = ""
+    agent_id: str = ""
     trace_id: str = Field(default_factory=lambda: __import__("uuid").uuid4().hex)
 
     def to_filter(self) -> dict[str, str]:
