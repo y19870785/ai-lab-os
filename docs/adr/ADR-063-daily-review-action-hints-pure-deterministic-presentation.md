@@ -1,6 +1,6 @@
 # ADR-063 — Daily Review Action Hints as Pure Deterministic Presentation
 
-- Status: Proposed / Planning Baseline
+- Status: Accepted
 - Date: 2026-07-29
 - SP: SP-020
 
@@ -106,5 +106,6 @@ ACC-020 必须验证：
 
 ## 治理
 
-本 ADR 仅为 Proposed / Planning Baseline。它不批准 Action Hint 实现，也不改变
-RFC-028、ADR-061 或 ADR-062 的既有 Daily Review 只读合同。
+本 ADR 已随独立审查通过并合并的 SP-020 Planning Baseline Accepted。它不批准
+Action Hint 实现，也不改变 RFC-028、ADR-061 或 ADR-062 的既有 Daily Review
+只读合同。

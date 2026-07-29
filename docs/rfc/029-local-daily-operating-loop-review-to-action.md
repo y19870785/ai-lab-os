@@ -1,10 +1,14 @@
 # RFC-029 — Local Daily Operating Loop & Review-to-Action Closure
 
-- Status: Proposed / Planning Baseline
+- Status: Adopted
 - SP: SP-020
 - Date: 2026-07-29
 - Base: `934075ceefe39ede3c624b621b7673d62f6d06dd`
 - Planning branch: `docs/sp-020-local-daily-operating-loop-planning`
+- Planning review: APPROVED
+- Planning PR: #53 / MERGED
+- Planning merge commit: `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`
+- Post-planning main Quality Gate: `30441534383` / SUCCESS
 - Implementation: NOT APPROVED / NOT STARTED
 
 ## 当前问题
@@ -382,14 +386,14 @@ EventBus、Scheduler、优雅关闭、新进程重启、静止备份与隔离恢
 ## 版本与 Release 边界
 
 本规划不修改 `0.34.0`、Tag 或 GitHub Release。SP-016 至 SP-020 的目标版本仍可记录
-为 `0.35.0`，但这不是版本发布授权。Implementation、Ready、Merge、Tag 与 Release
-都需要后续独立授权。
+为 `0.35.0`，但这不是版本发布授权。产品 Implementation、其实施 PR 的 Ready/Merge、
+Tag 与 Release 都需要后续独立授权。
 
 ## 治理状态
 
 ```text
 SP-020 Planning Baseline:
-DEFINED / PENDING INDEPENDENT REVIEW
+APPROVED / MERGED / RECONCILED
 
 SP-020 Implementation:
 NOT APPROVED / NOT STARTED
