@@ -71,7 +71,7 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_sp"] == "SP-020"
 
 
 def test_sp015_release_baseline_is_archived_while_sp019_is_latest_work() -> None:
@@ -162,9 +162,13 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["development_status"] == "sp_019_completed_reconciled_archived"
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["development_status"] == (
+        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+    )
+    assert state["next_candidate_sp"] == "SP-020"
+    assert state["next_candidate_name"] == (
+        "Local Daily Operating Loop & Review-to-Action Closure"
+    )
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -219,7 +223,10 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
-    assert "> Next Candidate Direction: None" in text["brain"]
+    assert (
+        "> Next Candidate Direction: "
+        "Local Daily Operating Loop & Review-to-Action Closure"
+    ) in text["brain"]
     assert f"> SP-015A Status: {sp015a_status}" in text["brain"]
     assert f"> SP-015R Status: {sp015r_status}" in text["brain"]
     assert "Last Completed SP: SP-019" in text["brain"]
@@ -455,9 +462,13 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["current_governance_task"] is None
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
-    assert state["development_status"] == "sp_019_completed_reconciled_archived"
+    assert state["next_candidate_sp"] == "SP-020"
+    assert state["next_candidate_name"] == (
+        "Local Daily Operating Loop & Review-to-Action Closure"
+    )
+    assert state["development_status"] == (
+        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+    )
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -614,8 +625,10 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["latest_completed_sp"] == "SP-019"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-020"
+    assert state["next_candidate_name"] == (
+        "Local Daily Operating Loop & Review-to-Action Closure"
+    )
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -871,15 +884,19 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["latest_completed_sp"] == "SP-019"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-020"
+    assert state["next_candidate_name"] == (
+        "Local Daily Operating Loop & Review-to-Action Closure"
+    )
     assert state["current_version"] == "0.34.0"
     assert state["version"] == "v0.34.0"
-    assert state["development_status"] == "sp_019_completed_reconciled_archived"
+    assert state["development_status"] == (
+        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+    )
     assert state["current_work"] is None
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
     assert state["release_status"]["current_version"] == "0.34.0"
-    assert "SP-020" not in state["sp_records"]
+    assert "SP-020" in state["sp_records"]
     assert sp019 == {
         "name": "Daily Review Read Model & Deterministic Follow-up View",
         "status": (
@@ -1284,7 +1301,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         "> Last Completed SP: SP-019\n"
         "> Current SP: None\n"
         "> Current Governance Task: None\n"
-        "> Next Candidate SP: None"
+        "> Next Candidate SP: SP-020"
     ) in brain
     assert (
         "> SP-019 Status: APPROVED / MERGED / POST_MERGE_VERIFIED / "
@@ -1300,7 +1317,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert "Latest Completed SP 为 SP-019" in project_status
     assert "Current Product SP 为 None" in project_status
     assert "Current Governance Task 为 None" in project_status
-    assert "Next Candidate SP 为 None" in project_status
+    assert "Next Candidate SP 为 SP-020" in project_status
     assert (
         "SP-019 Feature PR #51 已由 Acceptance Evidence Head "
         "`420da28664914fda8ccbecadf90947380ec43473` Squash Merge 为 main "
@@ -1309,7 +1326,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert (
         "| Current product SP | None |\n"
         "| Current governance task | None |\n"
-        "| Next candidate | None |"
+        "| Next candidate | SP-020 / Planning Baseline only |"
     ) in project_health
     assert (
         "| SP-019 Phase 0 | UserTask Workspace Query Closure / "
@@ -1341,16 +1358,304 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         "snapshot，不支持任意历史日期，不调用 LLM、不主动推送，且没有 "
         "Daily Review CLI。"
     ) in readme
-    for document in (
-        rfc,
-        adr061,
-        adr062,
-        acceptance,
-        decision_index,
-        roadmap,
-        brain,
-        project_status,
-        project_health,
-        readme,
-    ):
-        assert "SP-020" not in document
+    for historical_document in (rfc, adr061, adr062, acceptance):
+        assert "SP-020" not in historical_document
+
+
+def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> None:
+    state = _load_state()
+    sp020 = state["sp_records"]["SP-020"]
+    acc020 = state["acceptance_records"]["ACC-020"]
+
+    assert state["latest_merged_sp"] == "SP-019"
+    assert state["latest_completed_sp"] == "SP-019"
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
+    assert state["next_candidate_sp"] == "SP-020"
+    assert state["next_candidate_name"] == (
+        "Local Daily Operating Loop & Review-to-Action Closure"
+    )
+    assert state["development_status"] == (
+        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+    )
+    assert state["current_version"] == "0.34.0"
+    assert state["version"] == "v0.34.0"
+    assert state["release_status"]["current_version"] == "0.34.0"
+    assert state["release_status"]["authorized_tag"] == "v0.34.0"
+
+    assert sp020["status"] == (
+        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+    )
+    assert sp020["planning_baseline_defined"] is True
+    assert sp020["planning_baseline_approved"] is False
+    assert sp020["approved"] is False
+    assert sp020["implementation_started"] is False
+    assert sp020["implementation_complete"] is False
+    assert sp020["completed"] is False
+    assert sp020["reconciled"] is False
+    assert sp020["archived"] is False
+    assert sp020["base_commit"] == (
+        "934075ceefe39ede3c624b621b7673d62f6d06dd"
+    )
+    assert sp020["branch"] == (
+        "docs/sp-020-local-daily-operating-loop-planning"
+    )
+    assert sp020["planning_pr"] is None or (
+        isinstance(sp020["planning_pr"], int) and sp020["planning_pr"] > 0
+    )
+    assert sp020["target_version"] == "0.35.0"
+    assert sp020["rfc"] == "RFC-029"
+    assert sp020["adrs"] == ["ADR-063", "ADR-064"]
+    assert sp020["acceptance"] == "ACC-020 PLANNING_BASELINE / NOT_EXECUTED"
+    assert sp020["phase_0_status"] == "REQUIRED / NOT_STARTED"
+    assert sp020["implementation_authorization_contract"] == (
+        "One explicit Owner authorization covers SP-020 implementation; "
+        "Phase 0 is an internal mandatory quality gate and does not require "
+        "a second authorization after passing"
+    )
+    assert sp020["reauthorization_triggers"] == (
+        "Phase 0 failure, stop condition, approved-scope change, Product SP "
+        "split, or new architecture decision"
+    )
+
+    assert acc020["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
+    assert acc020["manual_acceptance"] is False
+    assert acc020["scenarios"] == {
+        letter: "PLANNING_BASELINE / NOT_EXECUTED"
+        for letter in "ABCDEFGHIJKLMNOPQRSTUV"
+    }
+    assert "has not been executed" in "\n".join(acc020["notes"])
+
+    paths = {
+        "rfc": ROOT
+        / "docs/rfc/029-local-daily-operating-loop-review-to-action.md",
+        "adr063": ROOT
+        / "docs/adr/ADR-063-daily-review-action-hints-pure-deterministic-presentation.md",
+        "adr064": ROOT
+        / "docs/adr/ADR-064-local-daily-profile-quiescent-backup-restore.md",
+        "task": ROOT / "docs/project/SP-020-IMPLEMENTATION-TASK.md",
+        "acceptance": ROOT
+        / "docs/acceptance/SP-020-local-daily-operating-loop.md",
+    }
+    text = {
+        name: path.read_text(encoding="utf-8-sig")
+        for name, path in paths.items()
+    }
+
+    assert "- Status: Proposed / Planning Baseline" in text["rfc"]
+    assert "- Implementation: NOT APPROVED / NOT STARTED" in text["rfc"]
+    assert (
+        "`load_system_settings()` 默认以 `Path.cwd()` 为 project root，并只从该目录加载"
+        in text["rfc"]
+    )
+    assert (
+        "因而从不同 working directory 启动可能静默连接到不同数据目录。"
+        in text["rfc"]
+    )
+    assert (
+        "FastAPI lifespan 为长运行 API 进程持有一个 `SystemContainer`；CLI 单次命令通常"
+        in text["rfc"]
+    )
+    assert (
+        "`DailyReviewService` 只读取五个 canonical service，不拥有数据库、EventBus、"
+        in text["rfc"]
+    )
+    assert (
+        "当前没有正式 `daily-review` CLI；`brief` CLI 只是通过 CEO Assistant 固定请求"
+        in text["rfc"]
+    )
+    assert (
+        "`SystemContainer._run_shutdown()` 在同一流程中两次调用\n"
+        "  `SchedulerRuntime.shutdown()`"
+    ) in text["rfc"]
+    assert (
+        "Scheduler 当前实现可重复取消 tick、清空 background\n"
+        "  tasks 并关闭 persistence，但 SP-020 Phase 0 必须用正式测试证明幂等"
+    ) in text["rfc"]
+    assert (
+        "Profile 不得依赖调用者的 working directory 决定业务数据位置。"
+        in text["adr064"]
+    )
+    assert (
+        "备份合同采用 Quiescent Backup，而不是在线跨库快照"
+        in text["adr064"]
+    )
+    assert (
+        "Hint 只能由以下事实确定：\n\n"
+        "```text\n"
+        "source_type\n"
+        "current status\n"
+        "reason_code\n"
+        "current canonical domain contract\n"
+        "```"
+    ) in text["adr063"]
+    assert "不调用 Provider 或 LLM" in text["adr063"]
+    assert "不执行或调度动作" in text["adr063"]
+    assert "不拥有数据库、不持久化、不创建 snapshot" in text["adr063"]
+    assert (
+        "`available_entrypoints` 只列出当前真实存在并符合该动作安全合同的入口。一个\n"
+        "`allowed_action` 至少有一个真实、安全入口即可展示，不要求 API、CLI 与 CEO Assistant\n"
+        "三者同时存在。尚未存在的入口不得被描述为可用"
+    ) in text["adr063"]
+    assert (
+        "revision、idempotency、durable claim/Saga 与 confirmation 按动作分别声明"
+        in text["adr063"]
+    )
+    assert (
+        "| Work Log | `wl_...`（另有只读 legacy） | list/get | create only |"
+        in text["rfc"]
+    )
+    assert (
+        "Daily Review 继续只读。所有 mutation 委托现有："
+        in text["rfc"]
+    )
+    assert (
+        "不得建立 Action 数据库、Review snapshot 数据库、第二套 Command Bus"
+        in text["rfc"]
+    )
+    assert (
+        "默认只承诺 Quiescent Backup"
+        in text["rfc"]
+    )
+    assert (
+        "当前 `DatabaseManager.backup()` / `restore()` 未实现。"
+        in text["rfc"]
+    )
+    assert (
+        "Phase 0 — Product Entry and Lifecycle Gate"
+        in text["rfc"]
+    )
+    assert (
+        "Phase 4 — Continuous Daily Acceptance"
+        in text["rfc"]
+    )
+    owner_authorization_contract = (
+        "SP-020 产品实施需要一次明确的 Owner 授权。\n\n"
+        "Phase 0 是同一次 SP-020 实施授权内部的强制质量门禁，不需要在通过后再次获得 Owner\n"
+        "授权。Phase 0 失败、触发停止条件、需要改变已批准范围、需要拆分 Product SP，或需要\n"
+        "引入新的架构决策时，必须立即停止并重新请求 Owner 决策。"
+    )
+    assert owner_authorization_contract in text["rfc"]
+    assert "每个 Phase 都需要单独 Owner 授权" not in text["rfc"]
+    assert "每个 Phase 都需要单独 Owner 授权" not in text["task"]
+    assert "每个 Phase 都需要单独 Owner 授权" not in text["acceptance"]
+    assert (
+        "Phase 0 是同一次实施授权内部的强制质量\n"
+        "门禁；通过 Phase 0 后不需要再次请求 Owner 授权。"
+    ) in text["task"]
+
+    user_task_revision_contract = (
+        "UserTask update:\n"
+        "当前 Service 接受调用方 expected_revision；API PATCH 通过 revision 字段传入。\n\n"
+        "UserTask complete/cancel:\n"
+        "当前 Service 会读取最新对象，并使用读取时的 current.revision 执行 repository update；\n"
+        "当前 API 与 Service 均不接受调用方提供的 expected_revision。\n\n"
+        "SP-020 future implementation decision:\n"
+        "Review-to-Action 的 UserTask complete/cancel 必须增加显式 expected_revision，\n"
+        "防止用户依据旧 Daily Review 操作已经变化的对象。"
+    )
+    assert user_task_revision_contract in text["rfc"]
+    assert (
+        "以上 `complete/cancel expected_revision` 是未来 SP-020 产品实现范围，不是当前能力。"
+        in text["rfc"]
+    )
+    assert (
+        "仅当\nAction Hint 声明 `requires_revision=true` 时，缺失或 stale revision 才必须 fail\n"
+        "closed；需要 idempotency key、durable claim/Saga 或 confirmation 的动作分别按自身\n"
+        "真实合同验收。"
+    ) in text["acceptance"]
+    assert (
+        "只允许补齐 ACC-020 日常用户闭环实际需要的薄入口委托，不为入口对称性补齐所有领域\n"
+        "动作，不复制领域业务逻辑，不追求 API、CLI、CEO Assistant 的完整矩阵对称"
+    ) in text["rfc"]
+    assert (
+        "只补齐 ACC-020 日常用户闭环实际需要的薄入口委托。不得为了入口对称性补齐所有领域\n"
+        "动作，不追求 API、CLI、CEO Assistant 的完整矩阵对称"
+    ) in text["task"]
+    assert (
+        "多个 Scheduler tick、一次真实 one-shot job 执行、一个明确\n"
+        "   记录起止时间的空闲运行窗口、周期性 health 快照、background task 状态与\n"
+        "   `DatabaseManager.connection_count`"
+    ) in text["rfc"]
+    assert (
+        "持续运行证据不得只包含一次瞬时启动和关闭。driver 必须记录一个明确起止时间的运行\n"
+        "窗口，并至少覆盖：多个 Scheduler tick、一次真实 one-shot job 执行、一个空闲运行\n"
+        "窗口、周期性 health 快照、每次快照的 background task 状态与\n"
+        "`DatabaseManager.connection_count`。"
+    ) in text["acceptance"]
+
+    assert (
+        "Planning Status:\n"
+        "PLANNING_BASELINE_DEFINED / PENDING INDEPENDENT REVIEW\n\n"
+        "Implementation:\n"
+        "NOT APPROVED / NOT STARTED"
+    ) in text["task"]
+    assert "Phase 0 未通过不得进入 Phase 1。" in text["task"]
+    assert "Version change:\nNOT AUTHORIZED" in text["task"]
+    assert "Tag:\nNOT AUTHORIZED / UNCHANGED" in text["task"]
+    assert "GitHub Release:\nNOT AUTHORIZED / UNCHANGED" in text["task"]
+
+    for letter in "ABCDEFGHIJKLMNOPQRSTUV":
+        assert f"## ACC-020-{letter} —" in text["acceptance"]
+    assert text["acceptance"].count(
+        "状态：PLANNING_BASELINE / NOT_EXECUTED"
+    ) == 22
+    assert "状态：PASSED" not in text["acceptance"]
+    assert "Real Provider calls: MUST remain 0" in text["acceptance"]
+    assert (
+        "任何 Scheduler 重复执行/丢 job、shutdown 非幂等、数据目录静默漂移"
+        in text["acceptance"]
+    )
+
+    decision_index = (
+        ROOT / "docs/project/DECISION_INDEX.md"
+    ).read_text(encoding="utf-8-sig")
+    assert (
+        "| RFC-029 | Local Daily Operating Loop & Review-to-Action Closure | "
+        "Proposed / Planning Baseline | 2026-07-29 |"
+    ) in decision_index
+    assert (
+        "| ADR-063 | Daily Review Action Hints as Pure Deterministic "
+        "Presentation | Proposed / Planning Baseline | 2026-07-29 |"
+    ) in decision_index
+    assert (
+        "| ADR-064 | Local Daily Profile and Quiescent Backup/Restore "
+        "Contract | Proposed / Planning Baseline | 2026-07-29 |"
+    ) in decision_index
+
+    known_limitations = (
+        ROOT / "docs/project/KNOWN_LIMITATIONS.md"
+    ).read_text(encoding="utf-8-sig")
+    assert "Waiting-For 人工验收待完成" not in known_limitations
+    assert "Follow-up 交互捕获未实现" not in known_limitations
+    assert (
+        "默认 data root 仍随 working directory 推导"
+        in known_limitations
+    )
+    assert (
+        "当前 `SystemContainer` 的同一关闭流程会两次调用 Scheduler shutdown"
+        in known_limitations
+    )
+
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8-sig")
+    assert "### SP-020 Local Daily Operating Loop Planning Baseline" in changelog
+    assert "### SP-019 Daily Review Read Model & Deterministic Follow-up View" in (
+        changelog
+    )
+    assert "SP-019 保持 candidate、未批准、未启动" not in changelog
+
+    project_health = (
+        ROOT / "docs/project/PROJECT_HEALTH.md"
+    ).read_text(encoding="utf-8-sig")
+    assert "| Main |" not in project_health
+    assert "| Main Quality Gate |" not in project_health
+    assert (
+        "| SP-019 reconciliation merge main | "
+        "`934075ceefe39ede3c624b621b7673d62f6d06dd` / "
+        "run `30387237549` / SUCCESS |"
+    ) in project_health
+    assert (
+        "| SP-020 | PLANNING_BASELINE_DEFINED / "
+        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
+    ) in project_health

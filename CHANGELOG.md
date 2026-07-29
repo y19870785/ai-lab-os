@@ -1,6 +1,21 @@
 ﻿
 ## [Unreleased]
 
+### SP-020 Local Daily Operating Loop Planning Baseline
+- 定义 Windows Local Daily Profile、稳定绝对数据目录、显式 timezone/Provider/feature/auth 配置与 localhost 启动边界。
+- 规划直接复用现有 `DailyReviewService` 的正式 Daily Review CLI，以及纯确定性、无 LLM、无写入的 Action Hint presentation。
+- 固定 Review canonical ID 只能委托现有 UserTask、Reminder、Waiting-For、Inbox 与 Work Log 服务；不新增 Action/Review 数据库、第二 Command Bus 或 Work Log mutation。
+- 采用停机后的完整 data directory Quiescent Backup 与隔离恢复，不承诺运行中跨多个 SQLite 文件的一致快照。
+- RFC-029、ADR-063、ADR-064 与 ACC-020 均为 Planning Baseline；SP-020 Implementation 未批准、未启动，ACC-020 未执行。
+- 产品版本保持 `0.34.0`；Tag 与 GitHub Release 均未改变。
+
+### SP-019 Daily Review Read Model & Deterministic Follow-up View
+- 以唯一、非持久化、纯只读 `DailyReviewService` 聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox，支持 `today` / `yesterday`、IANA timezone、DST、当前 follow-up 与 pending Inbox。
+- API、CEO Assistant 与兼容 `/brief` 共享相同 query、Workspace、分类、全局排序、分页与失败语义。
+- ACC-019 A～M 已在冻结实现 Head 正式执行并全部通过，Provider calls 为 0。
+- Feature PR #51 已 Squash Merge 为 `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`，main Quality Gate `30382312419` 成功；PR #52 完成治理对账。
+- RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted；SP-019 已合并、验收、对账并封存。
+
 ### SP-018 Work Log Query Boundary & Context Closure
 - 实现唯一 `WorkLogService` 与类型化 create/get/list 边界；CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 共享同一服务。
 - `SQLiteWorkLogRepository` 复用既有 `episodic.db / episodic_memories` 与 `DatabaseManager` connection ownership；没有 `work_logs.db`、新表、索引或迁移。
@@ -11,7 +26,7 @@
 - PR #46 已以 Squash Merge 合入 `83ecb557fedd1d898712afc59ad13b3e0a684413`；Approved Head 为 `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`。
 - ACC-018 A～O 已在 Approved Head 完整重跑并全部通过；merge commit 通过自动 main push Quality Gate `30196719409`、本地全量回归与 post-merge smoke。
 - RFC-027 为 Adopted；ADR-058～ADR-060 为 Accepted；SP-018 状态为 `APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED`。
-- SP-019 保持 candidate、未批准、未启动；产品版本、Tag 与 Release 不变。
+- 产品版本、Tag 与 Release 不变。
 
 ### SP-017 Follow-up Interaction & Capture Closure
 - 通过 PR #43 以 Squash Merge 完成确定性 Waiting-For 读取、Inbox 捕获与确认，以及显式 lifecycle interaction。

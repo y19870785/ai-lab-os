@@ -114,9 +114,14 @@
 | RFC-028 | Daily Review Read Model and Deterministic Follow-up View | Adopted | 2026-07-28 |
 | ADR-061 | Daily Review as a Non-persistent Read Model | Accepted | 2026-07-28 |
 | ADR-062 | Daily Review Source Failure and Availability Semantics | Accepted | 2026-07-28 |
+| RFC-029 | Local Daily Operating Loop & Review-to-Action Closure | Proposed / Planning Baseline | 2026-07-29 |
+| ADR-063 | Daily Review Action Hints as Pure Deterministic Presentation | Proposed / Planning Baseline | 2026-07-29 |
+| ADR-064 | Local Daily Profile and Quiescent Backup/Restore Contract | Proposed / Planning Baseline | 2026-07-29 |
 
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 
 > SP-007 至 SP-011 均为 APPROVED / MERGED / RECONCILED / ARCHIVED。SP-011 手工验收记录为 Reminder Core PASSED、Natural-language Reminder UX CONDITIONALLY PASSED；SP-012 已合并并完成对账。
 
 > SP-014、SP-014B、SP-015、SP-015A、SP-015R、SP-016、SP-017、SP-018 与 SP-019 已完成并封存；ACC-014 A～L、ACC-016 A～J、ACC-017 A～O、ACC-018 A～O、ACC-019 A～M 全部 PASSED / FINAL。SP-019 已完成实现、ACC-019 A～M、Squash Merge、main Quality Gate 与治理封存；RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted。
+
+> SP-020 仅为 PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED；ACC-020 为 PLANNING_BASELINE / NOT_EXECUTED。RFC-029、ADR-063、ADR-064 尚未 Adopt/Accept。

@@ -135,6 +135,22 @@ flowchart TD
 
 当前默认状态：Knowledge、Scheduler、Coordination 为 `disabled`；仅在明确配置后启用。Mock Provider 只能在显式 `mock/test` 模式创建。完整说明见 `docs/architecture/SYSTEM_COMPOSITION.md`。
 
+### SP-020 规划边界（未实现）
+
+RFC-029 规划一个 Windows Local Daily Profile：使用稳定绝对 data/sqlite root、显式
+IANA timezone、Provider mode、feature flags、localhost bind 与 API auth。当前
+`load_system_settings()` 仍会以 working directory 推导 `.env` 和默认 data root，
+因此不同目录启动可能连接不同数据；本段不声明 Profile 已实现。
+
+Daily Review CLI 将来只能直接复用现有无数据库、无事件、无 LLM、无写入的
+`DailyReviewService`。Action Hint 只能作为由 `source_type + status + reason_code`
+确定的纯 presentation，并将明确动作委托现有 canonical domain services。
+
+生命周期 Phase 0 必须证明 partial-start rollback、重复 shutdown（包括当前同一流程的
+两次 Scheduler shutdown 调用）、连接释放和新进程恢复。备份只规划优雅停机后的完整
+data directory Quiescent Backup 与隔离恢复，不承诺在线跨 SQLite 一致快照。上述内容
+均为 Planning Baseline；SP-020 Implementation 未批准，ACC-020 未执行。
+
 | 组件 | 当前状态 | 边界 |
 |---|---|---|
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |

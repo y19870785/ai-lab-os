@@ -1,6 +1,6 @@
 # AI-Lab Known Limitations
 
-> 当前源码版本：`v0.34.0` Alpha | 更新日期：2026-07-22
+> 当前源码版本：`v0.34.0` Alpha | 更新日期：2026-07-29
 
 ## 产品与数据边界
 
@@ -13,8 +13,10 @@
 | Knowledge 产品闭环未完成 | Reindex、Chunk Persistence、Citation 与真实主链路仍缺失 |
 | Coordination 默认关闭 | 独立能力存在，但未接入 CEO Assistant 主链路 |
 | 无 Web UI | 当前主要入口是 API、CLI 与 CEO Assistant |
-| Waiting-For 人工验收待完成 | Canonical domain、持久化、API、CLI 与 Agenda 集成已完成自动化验证，但尚未完成人工验收与合并后对账 |
-| Follow-up 交互捕获未实现 | SP-017 仍为未批准候选；CEO Assistant 与 Unified Inbox 不解析或转换 Waiting-For |
+| Daily Review 没有正式 CLI | API、CEO Assistant 与 `/brief` 已共享唯一只读服务，但当前 CLI `brief` 仍是固定的 CEO Assistant “今日简报”请求 |
+| 本地日常运行 Profile 尚未实现 | 默认 data root 仍随 working directory 推导；Reminder 与 Scheduler 默认关闭，尚无已验收的 Windows Local Daily Profile |
+| Action Hint 尚未实现 | Daily Review Presenter 当前只展示 canonical facts/IDs，不展示或执行动作 |
+| 在线跨库备份不受支持 | 多个 SQLite 文件与可选 Chroma 只规划停机后的完整 data directory 备份，不承诺在线一致快照 |
 
 ## 安全边界
 
@@ -29,7 +31,8 @@
 
 | 限制 | 当前事实 |
 |---|---|
-| 长时间运行验证有限 | 恢复、资源回收和持续运行仍缺完整基线 |
+| 长时间运行验证有限 | lifecycle、Scheduler、Reminder/Inbox Saga、资源回收、重启和隔离恢复仍缺完整正式基线 |
+| Scheduler shutdown 需正式幂等门禁 | 当前 `SystemContainer` 的同一关闭流程会两次调用 Scheduler shutdown；实现可重复调用，但尚未经过 SP-020 进程级正式验收 |
 | Docker 未正式验证 | 配置存在，但没有当前版本受控 build + run 记录 |
 | SQLite 并发上限 | 单机持久化不等于高并发或分布式一致性 |
 | Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂看到 `running`，唯一重跑通过；未在 SP-014B 或 SP-015 修改 Scheduler |

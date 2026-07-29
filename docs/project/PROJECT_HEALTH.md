@@ -5,7 +5,7 @@
 
 ## Summary
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前没有 Product SP、Governance Task 或已命名的下一候选 SP；这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前没有 Product SP 或 Governance Task；下一候选 SP-020 仅完成 Planning Baseline，Implementation 未批准、未启动。这些能力不等同于生产级多用户平台。
 
 | Metric | Current fact |
 |---|---|
@@ -16,12 +16,14 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | SP-017 post-merge pytest (non-real) | 1239 passed, 6 skipped, 27 warnings |
 | SP-018 post-merge main | `83ecb557fedd1d898712afc59ad13b3e0a684413` / run `30196719409` / SUCCESS |
 | SP-019 planning merge baseline | `e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / run `30205853257` / SUCCESS |
-| Main | `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` |
-| Main Quality Gate | `30382312419` / SUCCESS |
+| SP-019 feature merge main | `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / run `30382312419` / SUCCESS |
+| SP-019 reconciliation merge main | `934075ceefe39ede3c624b621b7673d62f6d06dd` / run `30387237549` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
 | Current governance task | None |
-| Next candidate | None |
+| Next candidate | SP-020 / Planning Baseline only |
+| SP-020 | PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| ACC-020 | PLANNING_BASELINE / NOT_EXECUTED |
 | SP-019 Phase 0 | UserTask Workspace Query Closure / ACCEPTED |
 | SP-019 Daily Review | MERGED / VERIFIED / ACCEPTED / ARCHIVED |
 | Latest completed SP | SP-019 / manual acceptance passed / post-merge verified / archived |
@@ -43,6 +45,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
 | Work Log / SP-018 | Integrated / Verified / Archived | RFC-027 Adopted；ADR-058～060 Accepted；ACC-018 A～O PASSED / FINAL |
 | Daily Review / SP-019 | Integrated / Verified / Manual acceptance passed | RFC-028 Adopted；ADR-061、ADR-062 Accepted；ACC-019 A～M PASSED / FINAL；SP-019 archived |
+| Local Daily Loop / SP-020 | Planning only | RFC-029、ADR-063、ADR-064 Proposed / Planning Baseline；ACC-020 NOT_EXECUTED；无产品实现 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |
@@ -53,6 +56,8 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 - QUALITY-001：Ruff 是 changed-files gate，不代表全仓历史 Ruff 已清零。
 - Scheduler 测试曾出现一次短暂 `running` 时序波动；唯一重跑通过，未在 SP-014B 或 SP-015 中修改 Scheduler。
 - Docker build/run、长时间运行、资源回收和高并发仍缺正式基线。
+- 默认 data root 跟随 working directory 推导；当前关闭流程会两次调用 Scheduler
+  shutdown。SP-020 Phase 0 必须正式验证稳定数据目录、shutdown 幂等与 restart recovery。
 
 CI-002 与 AGENDA-001 已解决：real-provider collection skip 只作用于 `tests/real`；Daily Agenda 会跳过未启用来源，并对已启用来源的运行错误失败关闭。
 
