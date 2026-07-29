@@ -1,4 +1,4 @@
-﻿# CEO Assistant
+# CEO Assistant 使用说明
 # AI-Lab 第一个真实业务应用
 # 超哥的个人工作总控助手
 

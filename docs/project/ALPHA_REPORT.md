@@ -1,9 +1,9 @@
-﻿# Alpha Validation Report —— v0.22.1
+# Alpha 验证报告 —— v0.22.1
 
 **Date:** 2026-07-13
 **Status:** PASSED
 
-## Summary
+## 摘要
 
 AI-Lab v0.22.1 Alpha Validation 完成。十层架构全部验证通过，
 523 个原有测试 + 16 个新增集成测试 + 7 个压力测试 = 546 个测试全部通过。
@@ -40,7 +40,7 @@ AI-Lab v0.22.1 Alpha Validation 完成。十层架构全部验证通过，
 - 新增 examples/ benchmarks/ tests/stress/ 目录
 - 7 个 registered providers (4 mock + 3 real)
 
-## Known Limitations
+## 已知限制
 
 1. 真实 Provider 需要 API key 才能初始化（无 key 自动降级到 Mock）
 2. Chroma 需在无网络环境手动安装

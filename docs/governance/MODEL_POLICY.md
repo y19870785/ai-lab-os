@@ -1,4 +1,4 @@
-﻿# AI-Lab Model Policy
+# AI-Lab Model 政策
 
 > 模型管理规范。定义模型的抽象原则、Provider 接口、本地/云端策略和成本控制。
 

@@ -1,4 +1,4 @@
-﻿# Security Checklist —— v0.30.0
+# 安全检查清单 —— v0.30.0
 
 - [x] 请求体大小限制 (10MB)
 - [x] Tool 权限检查

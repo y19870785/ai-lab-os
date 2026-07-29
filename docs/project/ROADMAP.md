@@ -1,4 +1,4 @@
-# AI-Lab Roadmap
+# AI-Lab 路线图
 
 **Last Updated:** 2026-07-29
 **Current Version:** v0.34.0 Alpha / Release Authorized

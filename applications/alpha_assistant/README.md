@@ -1,4 +1,4 @@
-﻿# Alpha Assistant
+# Alpha Assistant 使用说明
 
 AI-Lab 首个可运行业务应用。
 

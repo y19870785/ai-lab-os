@@ -1,5 +1,11 @@
-﻿
+
 ## [Unreleased]
+
+### DOCS-001 全仓 Markdown 中文规范与统一治理
+- 建立简体中文主要叙述语言政策、Git 跟踪 Markdown 完整清单与统一术语表。
+- 将仓库自有 Markdown 的标题、普通叙述与治理提示统一为中文，同时保留代码、命令、API、字段、状态值与历史证据。
+- 新增确定性治理门禁，检查清单完整性、中文一级标题、长篇纯英文叙述、未完成翻译标记与相对链接。
+- 本任务不修改产品代码、Schema、依赖、CI、版本、Tag 或 Release，也不授权或启动 SP-020 产品实施。
 
 ### SP-020 Local Daily Operating Loop Planning Baseline
 - 定义 Windows Local Daily Profile、稳定绝对数据目录、显式 timezone/Provider/feature/auth 配置与 localhost 启动边界。
@@ -36,99 +42,97 @@
 - ACC-017 A～O 已通过并封存；RFC-026 为 Adopted，ADR-056 与 ADR-057 为 Accepted。
 - 产品版本保持 `0.34.0`；`v0.34.0` Tag 与既有 Pre-release 均未改变。
 
-### v0.34.0 Alpha / Release Authorized
-- Promoted the source product version from `0.33.0` to `0.34.0` without changing business behavior or database schemas.
-- Established root `project_state.json` as the only machine-readable repository governance state and retained `pyproject.toml` as the only runtime version source.
-- Reconciled SP-014, SP-014B and ACC-014 final state; SP-015 is merged, post-merge verified and archived, while SP-016 remains a candidate only.
-- Reworked README, Project Brain and Roadmap responsibilities to remove stale phases, unreliable document counts and duplicated SP history.
-- Added v0.34.0 Alpha release notes and automated project-governance consistency tests.
-- SP-015, SP-015A and SP-015R are archived; Owner and ChatGPT authorized the `v0.34.0` GitHub Pre-release. GitHub Tags and GitHub Releases are authoritative for the actual publication status, Tag target, Release URL, and timestamps.
-- Replaced the self-referential tracked `main_commit` model with the independently verified release baseline `22f88d1da962fb436c48c19e5343fad8bf62f5f6` and Quality Gate run `29855987444`; GitHub is authoritative for Tag and Release facts.
+### v0.34.0 Alpha / 已授权发布
+- 源产品版本从 `0.33.0` 升级为 `0.34.0`，未改变业务行为或数据库 Schema。
+- 根目录 `project_state.json` 成为唯一机器可读仓库治理状态源；`pyproject.toml` 继续作为唯一运行时版本源。
+- 完成 SP-014、SP-014B 与 ACC-014 最终状态对账；SP-015 已合并、通过合并后验证并封存，当时 SP-016 仍仅为候选。
+- 重新划分 README、Project Brain 与 Roadmap 的职责，移除过时阶段、不可靠文档数量和重复 SP 历史。
+- 新增 v0.34.0 Alpha 发布说明与自动化项目治理一致性测试。
+- SP-015、SP-015A 与 SP-015R 已封存；Owner 与 ChatGPT 已授权 `v0.34.0` GitHub Pre-release。实际发布状态、Tag 目标、Release URL 与时间以 GitHub Tags 和 GitHub Releases 为权威来源。
+- 以独立验证的发布基线 `22f88d1da962fb436c48c19e5343fad8bf62f5f6` 和 Quality Gate run `29855987444` 替代自指的 tracked `main_commit` 模型；Tag 与 Release 事实以 GitHub 为权威来源。
 
-### SP-014 Unified Inbox and Governance Reconciliation
-- Merged Unified Inbox and Capture-to-Action through PR #32 at `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
-- Added explicit conversion to UserTask, Reminder, Work Log, Note and Dismiss through API, CLI and CEO Assistant using the canonical Composition Root.
-- Verified workspace isolation, persistent cross-process resolution claims, idempotency, competing resolutions, restart persistence and crash recovery.
-- ACC-014 A～L passed; SP-014 is APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED.
-- Product version remains `0.33.0`; no Tag or Release was created, and SP-015 was not started.
+### SP-014 统一 Inbox 与治理对账
+- Unified Inbox 与 Capture-to-Action 通过 PR #32 合并为 `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`。
+- API、CLI 与 CEO Assistant 通过规范组合根支持显式转换为 UserTask、Reminder、Work Log、Note 和 Dismiss。
+- 已验证工作空间隔离、持久化跨进程解析 claim、幂等性、竞争解析、重启持久性与崩溃恢复。
+- ACC-014 A～L 通过；SP-014 状态为 `APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED`。
+- 产品版本保持 `0.33.0`；未创建 Tag 或 Release，SP-015 未启动。
 
-### SP-014B Chinese Numeral Reminder Time Compatibility
-- Extended the deterministic Reminder parser to accept Chinese hour numerals `一` through `十二` when an explicit `上午/下午/晚上` period is present.
-- Reused the existing period conversion, minute parsing, UTC conversion, past-time validation, title extraction, and FailureInfo path.
-- Added parser, intent-routing, and real `/chat` integration coverage for ACC-014 scenario K, including idempotency and Inbox isolation.
-- Kept unsupported dates, relative times, fuzzy suffixes, Chinese minute numerals, recurring reminders, and LLM parsing out of scope.
-- Merged through PR #33 at `22f85db16a43e7d09a903859a26ac6a310370d81`; ACC-014 scenario K and the complete API security scenario L passed on the merged main baseline.
-- Status: APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED. Product version remains `0.33.0`.
+### SP-014B 中文数字提醒时间兼容
+- 确定性 Reminder 解析器在显式包含 `上午/下午/晚上` 时接受中文小时 `一` 至 `十二`。
+- 复用既有时段转换、分钟解析、UTC 转换、过去时间校验、标题提取与 FailureInfo 路径。
+- 为 ACC-014 场景 K 增加解析器、意图路由和真实 `/chat` 集成覆盖，包括幂等性与 Inbox 隔离。
+- 不支持的日期、相对时间、模糊后缀、中文分钟、Recurring Reminder 与 LLM 解析仍不在范围内。
+- 通过 PR #33 合并为 `22f85db16a43e7d09a903859a26ac6a310370d81`；ACC-014 场景 K 与完整 API 安全场景 L 在合并后 main 基线上通过。
+- 状态：`APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED`。产品版本保持 `0.33.0`。
 
-### SP-012 Intent Safety and Reminder Query UX
-- Added a deterministic `read/write/chat` intent-effect contract and read-first Reminder query aliases.
-- Restricted Work Log creation to explicit commands or clear completed-action language.
-- Added Chinese actionable presentation for missing targets and unsupported Reminder time expressions.
-- Added real FastAPI, Composition Root, SQLite, Reminder Inbox and Memory no-side-effect tests.
-- Merged through PR #25 at `d550ab8757b50e4d12587d5e71a0058089bd3821` on 2026-07-17.
-- Status: APPROVED / MERGED / RECONCILED / ARCHIVED.
-- RFC-022 is Adopted; ADR-046/047/048 are Accepted.
+### SP-012 意图安全与 Reminder 查询体验
+- 新增确定性 `read/write/chat` 意图效果合同与读优先 Reminder 查询别名。
+- Work Log 仅允许由显式命令或明确的已完成行动语句创建。
+- 对目标缺失和不受支持的 Reminder 时间表达提供中文可操作提示。
+- 新增真实 FastAPI、组合根、SQLite、Reminder Inbox 与 Memory 无副作用测试。
+- 2026-07-17 通过 PR #25 合并为 `d550ab8757b50e4d12587d5e71a0058089bd3821`。
+- 状态：`APPROVED / MERGED / RECONCILED / ARCHIVED`。
+- RFC-022 为 Adopted；ADR-046/047/048 为 Accepted。
 
-### SP-011 Reminder Management Closure
-- Added a shared Reminder management boundary for status, cancellation, rescheduling, workspace checks, and fail-closed title resolution.
-- Added actionable `view=pending`, CLI management commands, deterministic response separation, and UTF-8 CLI output handling.
-- Reused the existing Reminder/Scheduler Saga, including queryable partial failures and hashed reschedule idempotency metadata.
-- Added real Composition Root, FastAPI lifespan, SQLite restart, effectively-once, and subprocess UTF-8 tests.
-- Windows local Python 3.12 pre-merge validation: `1026 passed, 27 warnings in 58.15s`; not a GitHub Actions or cross-platform CI result.
-- RFC-021 is Adopted; ADR-043/044/045 are Accepted.
-- Merged through PR #23 at `5c4b442b2b5c7f934ac381020ba8b310976d5d3a` on 2026-07-17.
-- Status: APPROVED / MERGED / RECONCILED / ARCHIVED.
-- Product version remains `0.33.0`; no Tag or GitHub Release was created.
+### SP-011 Reminder 管理闭环
+- 新增共享 Reminder 管理边界，统一状态、取消、重新安排、工作空间检查与标题 fail-closed 解析。
+- 新增可操作的 `view=pending`、CLI 管理命令、确定性响应分离与 UTF-8 CLI 输出处理。
+- 复用既有 Reminder/Scheduler Saga，包括可查询的部分失败与哈希化重新安排幂等 metadata。
+- 新增真实组合根、FastAPI lifespan、SQLite 重启、有效单次执行与子进程 UTF-8 测试。
+- Windows 本地 Python 3.12 合并前验证：`1026 passed, 27 warnings in 58.15s`；这不是 GitHub Actions 或跨平台 CI 结果。
+- RFC-021 为 Adopted；ADR-043/044/045 为 Accepted。
+- 2026-07-17 通过 PR #23 合并为 `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`。
+- 状态：`APPROVED / MERGED / RECONCILED / ARCHIVED`。
+- 产品版本保持 `0.33.0`；未创建 Tag 或 GitHub Release。
 
 ### SP-010 Reminder Inbox
-- Added a persistent Reminder inbox shared by API, CLI, and deterministic CEO Assistant queries.
-- Added `GET /reminders` with status, today, upcoming, pagination, and stable ordering.
-- Added `python -m cli reminders` with human-readable and JSON output.
-- Added stable database paging, current-page `count`, `has_more`, status/time filters, and workspace isolation.
-- Added an explicit `application/json; charset=utf-8` local API contract.
-- Reused ADR-040 status aggregation across detail and list views.
-- RFC-020 is Adopted; ADR-041 and ADR-042 are Accepted.
-- Windows local Python 3.12 pre-merge validation: `1013 passed, 27 warnings in 57.76s`; not a GitHub Actions or cross-platform CI result.
-- Merged through PR #21 at `af437afc32dcb17da68d600d6840ec94c8cbe681` on 2026-07-16.
-- Status: APPROVED / MERGED / RECONCILED / ARCHIVED.
-- Product version remains `0.33.0`; no Tag or GitHub Release was created.
+- 新增由 API、CLI 与确定性 CEO Assistant 查询共享的持久化 Reminder Inbox。
+- 新增 `GET /reminders`，支持 status、today、upcoming、分页与稳定排序。
+- 新增 `python -m cli reminders`，提供人类可读与 JSON 输出。
+- 新增稳定数据库分页、当前页 `count`、`has_more`、状态/时间过滤与工作空间隔离。
+- 明确本地 API 的 `application/json; charset=utf-8` 合同。
+- 详情与列表视图复用 ADR-040 状态聚合。
+- RFC-020 为 Adopted；ADR-041 与 ADR-042 为 Accepted。
+- Windows 本地 Python 3.12 合并前验证：`1013 passed, 27 warnings in 57.76s`；这不是 GitHub Actions 或跨平台 CI 结果。
+- 2026-07-16 通过 PR #21 合并为 `af437afc32dcb17da68d600d6840ec94c8cbe681`。
+- 状态：`APPROVED / MERGED / RECONCILED / ARCHIVED`。
+- 产品版本保持 `0.33.0`；未创建 Tag 或 GitHub Release。
 
-### SP-009 Natural-Language Reminder Closure
-- Added a deterministic today/tomorrow reminder parser with injected clock and IANA timezone.
-- Wired CEO Assistant to the existing UserTask/Reminder/Scheduler Saga through a narrow orchestrator.
-- Added hashed request idempotency, aggregate persisted status API, and a Composition Root CLI status query.
-- Added real-lifespan SQLite restart, due-trigger, effectively-once, and failure-visibility tests.
-- Windows local Python 3.12 candidate validation: `1006 passed, 27 warnings in 50.02s`; not a GitHub Actions or cross-platform CI result.
-- Merged through PR #19 at `b1274d066cbc01053144cba8d5654a5f8c8a21da` on 2026-07-16.
-- Status: APPROVED / MERGED / RECONCILED / ARCHIVED.
-- Product version remains `0.33.0`; no Tag or GitHub Release was created.
+### SP-009 自然语言 Reminder 闭环
+- 新增带注入时钟与 IANA 时区的确定性今天/明天 Reminder 解析器。
+- 通过窄编排器把 CEO Assistant 接入既有 UserTask/Reminder/Scheduler Saga。
+- 新增请求哈希幂等、聚合持久化状态 API 与组合根 CLI 状态查询。
+- 新增真实 lifespan SQLite 重启、到期触发、有效单次执行与失败可见性测试。
+- Windows 本地 Python 3.12 候选验证：`1006 passed, 27 warnings in 50.02s`；这不是 GitHub Actions 或跨平台 CI 结果。
+- 2026-07-16 通过 PR #19 合并为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`。
+- 状态：`APPROVED / MERGED / RECONCILED / ARCHIVED`。
+- 产品版本保持 `0.33.0`；未创建 Tag 或 GitHub Release。
 
-### SP-008 Internal Work Admission Boundary
-- Added one lifecycle-backed admission boundary for internal application work.
-- Added guarded direct CEO Assistant and Scheduler producer entrypoints.
-- Added task-owned accepted-work capability containment.
-- Prevented detached child tasks from carrying admission bypass.
-- Preserved explicitly accepted Scheduler job continuation through `spawn_accepted_task()`.
-- Preserved SP-007 FastAPI lifecycle and `FailureInfo` behavior.
-- Merged via PR #16 at commit `1858d4991379058948559cc96e2672df44e42b67` on 2026-07-16.
-- Windows local Python 3.12 merge validation record: `977 passed, 27 warnings in 49.17s`; this is not a GitHub Actions or cross-platform CI result.
-- Product version remains `0.33.0`. No Tag or GitHub Release was created.
+### SP-008 内部工作准入边界
+- 新增由生命周期支撑的单一内部应用工作准入边界。
+- 新增受保护的 CEO Assistant 直接入口与 Scheduler producer 入口。
+- 新增由 Task 所有的已准入工作能力约束，防止 detached child Task 携带准入绕过。
+- 通过 `spawn_accepted_task()` 保留显式接受的 Scheduler Job 延续。
+- 保持 SP-007 FastAPI 生命周期与 `FailureInfo` 行为。
+- 2026-07-16 通过 PR #16 合并为 `1858d4991379058948559cc96e2672df44e42b67`。
+- Windows 本地 Python 3.12 合并验证：`977 passed, 27 warnings in 49.17s`；这不是 GitHub Actions 或跨平台 CI 结果。
+- 产品版本保持 `0.33.0`；未创建 Tag 或 GitHub Release。
 
-### SP-007 System Lifecycle Admission Gate
-- Added the system lifecycle state machine and FastAPI protected-route admission gate.
-- Added single-flight graceful shutdown coordination.
-- Added structured lifecycle failure codes and draining `Retry-After` behavior.
-- Added lifecycle-aware health reporting.
-- Merged through PR #14 on 2026-07-16 as `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`; no new product Tag or Release was created.
-- Internal direct-call admission was completed by SP-008.
+### SP-007 系统生命周期准入门禁
+- 新增系统生命周期状态机与 FastAPI 受保护路由准入门禁。
+- 新增 single-flight 优雅关闭协调。
+- 新增结构化生命周期失败码与 draining `Retry-After` 行为。
+- 新增生命周期感知的健康报告。
+- 2026-07-16 通过 PR #14 合并为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`；未创建新的产品 Tag 或 Release。
+- 内部直接调用准入由 SP-008 完成。
 
-### SP-006 API Security Boundary
-- Added centralized Bearer-token authentication
-- Added explicit CORS allowlist
-- New UNAUTHENTICATED ErrorCategory (HTTP 401)
-- 51 security-specific tests
-- Merged through PR #12 on 2026-07-15; no new product Tag or Release
-- No new product Tag or Release was created.
+### SP-006 API 安全边界
+- 新增集中式 Bearer-token 认证。
+- 新增显式 CORS allowlist。
+- 新增 `UNAUTHENTICATED` ErrorCategory（HTTP 401）。
+- 新增 51 个安全专项测试。
+- 2026-07-15 通过 PR #12 合并；未创建新的产品 Tag 或 Release。
 
 
 ### SP-005 Reminder & Scheduler Bridge（已合并，尚未发布）

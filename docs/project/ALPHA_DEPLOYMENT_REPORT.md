@@ -1,9 +1,9 @@
-﻿# Alpha Deployment Report —— v0.30.0
+# Alpha 部署报告 —— v0.30.0
 
 **Date:** 2026-07-13
 **Status:** PASSED
 
-## Summary
+## 摘要
 
 AI-Lab v0.30.0 Application Foundation 完成。项目具备：
 - 可运行的 CLI + REST API

@@ -1,4 +1,4 @@
-# SP-020 Implementation Task Specification
+# SP-020 产品实施任务书
 
 ## 任务
 
@@ -29,7 +29,7 @@ NOT APPROVED / NOT STARTED
 本任务书定义未来授权边界，不是实施授权。任何 Phase 都必须等待 Planning PR 独立审查、
 合并以及 Owner 的新一轮明确授权。
 
-## Scope
+## 范围
 
 - Windows Local Daily Profile：稳定绝对 data/sqlite root、显式 IANA timezone、
   Provider mode、feature flags、API auth 与 localhost bind。
@@ -41,7 +41,7 @@ NOT APPROVED / NOT STARTED
   服务的显式委托闭环。
 - 真实 Windows 进程、SQLite、重启、静止备份与隔离恢复的 ACC-020。
 
-## Non-goals
+## 非目标
 
 Recurring Reminder、外部通知、邮件/短信/企业微信/手机推送、Web UI、新
 Project/Goal/Outcome 领域、Knowledge 主链路、Agent 自动规划/Tool Calling、MCP 自动

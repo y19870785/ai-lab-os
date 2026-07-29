@@ -1,4 +1,4 @@
-﻿# Deployment Guide —— v0.31.0
+# 部署指南 —— v0.31.0
 
 ## Windows 本地启动
 

@@ -1,13 +1,13 @@
-# AI-Lab Project Health
+# AI-Lab 项目健康状态
 
-**Last Updated:** 2026-07-29
-**Current Source Version:** v0.34.0 Alpha / Release Authorized
+**最近更新：** 2026-07-29
+**当前源码版本：** v0.34.0 Alpha / Release Authorized
 
-## Summary
+## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前没有 Product SP 或 Governance Task；下一候选 SP-020 仅完成 Planning Baseline，Implementation 未批准、未启动。这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前没有 Product SP；当前 Governance Task 是 DOCS-001。下一候选 SP-020 仅完成 Planning Baseline，Implementation 未批准、未启动。这些能力不等同于生产级多用户平台。
 
-| Metric | Current fact |
+| 指标 | 当前事实 |
 |---|---|
 | Verified release baseline | `22f88d1da962fb436c48c19e5343fad8bf62f5f6` |
 | GitHub Quality Gate | run `29855987444` / SUCCESS |
@@ -20,7 +20,8 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | SP-019 reconciliation merge main | `934075ceefe39ede3c624b621b7673d62f6d06dd` / run `30387237549` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
-| Current governance task | None |
+| Current governance task | DOCS-001 |
+| DOCS-001 | IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN |
 | Next candidate | SP-020 / Planning Baseline approved, merged and reconciled |
 | SP-020 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 | ACC-020 | PLANNING_BASELINE / NOT_EXECUTED |

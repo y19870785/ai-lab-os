@@ -1,4 +1,4 @@
-﻿# AI-Lab 架构文档
+# AI-Lab 架构文档
 
 ## v0.34.0 Alpha 产品基线
 
@@ -351,12 +351,12 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 | v0.13.0 ~ v0.7.0 | 2026-07-12 | Memory Layer + Core Runtime |
 | v0.6.0 ~ v0.1.0 | 2026-07-11~12 | Foundation Phase + Governance |
 
-### SP-006: API Security Boundary (Implementation Candidate)
-- pplications/security/ module: centralized Authenticator + ApiSecurityConfig
-- Bearer-token auth with constant-time comparison (hmac.compare_digest)
-- CORS explicit allowlist (no wildcard when auth enabled)
-- Protected routes require Depends(require_auth); health/metrics remain public
-- Status: Merged PR #12, APPROVED / Merged
+### SP-006：API 安全边界（实施候选）
+- `applications/security/` 模块集中提供 Authenticator 与 ApiSecurityConfig。
+- Bearer-token 认证使用恒定时间比较 `hmac.compare_digest`。
+- CORS 使用显式 allowlist；启用认证时不允许通配符。
+- 受保护路由要求 `Depends(require_auth)`；health/metrics 保持公开。
+- 状态：通过 PR #12 合并，`APPROVED / MERGED`。
 
 > SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 以 Approved Head `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4` 合并，main Squash Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，时间为 `2026-07-16T10:08:47Z`，版本仍为 `0.33.0`。
 

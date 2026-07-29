@@ -1,4 +1,4 @@
-﻿# AI-Lab Architecture
+# AI-Lab 架构
 
 ## 整体架构
 

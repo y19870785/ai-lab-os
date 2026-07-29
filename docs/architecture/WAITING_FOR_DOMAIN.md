@@ -1,4 +1,4 @@
-# Waiting-For Canonical Domain
+# 规范 Waiting-For 领域
 
 ## Domain 与状态机
 

@@ -1,4 +1,4 @@
-﻿# AI-Lab Agent Policy
+# AI-Lab Agent 治理政策
 
 > Agent 管理规范。定义 Agent 的创建、命名、权限、生命周期和禁止行为。
 

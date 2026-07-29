@@ -1,4 +1,4 @@
-﻿# AI-Lab Versioning Policy
+# AI-Lab 版本政策
 
 > 版本管理规范。定义架构、数据、Agent 和 Prompt 的版本管理规则。
 

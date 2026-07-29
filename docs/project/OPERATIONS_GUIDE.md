@@ -1,4 +1,4 @@
-﻿# Operations Guide —— v0.30.0 Alpha
+# 运维指南 —— v0.30.0 Alpha
 
 ## 启动
 ```bash
