@@ -285,6 +285,12 @@ def test_nonprepare_mode_dispatches_real_execution(monkeypatch, tmp_path):
     assert calls["execute"] == 1
 
 
+def test_driver_uses_existing_work_log_http_status_contract():
+    source = DRIVER.read_text(encoding="utf-8")
+    assert source.count('"POST",\n            "/work-logs"') == 2
+    assert source.count("expected=(200,),") >= 2
+
+
 def test_stop_api_cleans_up_process_on_failure(tmp_path):
     stdout = (tmp_path / "stdout.log").open("w", encoding="utf-8")
     stderr = (tmp_path / "stderr.log").open("w", encoding="utf-8")

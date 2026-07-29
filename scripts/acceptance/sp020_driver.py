@@ -630,7 +630,7 @@ def _execute(
                 "occurred_at": now.isoformat(),
                 "timezone": "UTC",
             },
-            expected=(201,),
+            expected=(200,),
         )
         canonical_ids = [
             task["id"],
@@ -982,7 +982,7 @@ def _execute(
                 "occurred_at": datetime.now(UTC).isoformat(),
                 "timezone": "UTC",
             },
-            expected=(201,),
+            expected=(200,),
         )
         record["canonical_ids"].append(appended["id"])
         _pass(record, "U", "objects/revisions/agenda/review restored")
