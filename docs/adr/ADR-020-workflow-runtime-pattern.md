@@ -1,4 +1,4 @@
-﻿# ADR-020: Workflow Runtime Pattern
+# ADR-020：Workflow Runtime 模式
 
 **状态：** Accepted
 **版本：** v0.20.0

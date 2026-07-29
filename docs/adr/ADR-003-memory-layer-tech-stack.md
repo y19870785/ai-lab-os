@@ -1,6 +1,6 @@
-﻿# ADR-003: Memory Layer 技术选型
+# ADR-003: Memory Layer 技术选型
 
-## Metadata
+## 元数据
 
 | Field        | Value                                |
 | ------------ | ------------------------------------ |

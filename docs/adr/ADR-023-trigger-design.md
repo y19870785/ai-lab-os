@@ -1,4 +1,4 @@
-﻿# ADR-023: Trigger Design
+# ADR-023：Trigger 设计
 
 **状态：** Accepted
 **版本：** v0.21.0

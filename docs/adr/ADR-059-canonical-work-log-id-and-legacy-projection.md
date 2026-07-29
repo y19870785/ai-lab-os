@@ -1,52 +1,63 @@
-# ADR-059 — Canonical Work Log ID and Read-Only Legacy Projection
+# ADR-059：规范 Work Log ID 与只读 Legacy Projection
 
 Status: Accepted
 
-> Accepted architecture decision for the SP-018 planning baseline. It does not approve or start implementation.
+> 这是 SP-018 规划基线的 Accepted 架构决策，不批准或启动产品实施。
 
-## Context
+## 背景
 
-CEO Assistant Work Logs currently receive generic random Memory IDs. Inbox conversion uses historical deterministic `inbox_wl_...` IDs. Existing rows may lack complete Workspace, timezone or typed fields. Deleting, rewriting or importing them would risk duplication, data loss and identity drift.
+CEO Assistant Work Log 当前使用通用随机 Memory ID；Inbox conversion 使用历史确定性
+`inbox_wl_...` ID。既有 Row 可能缺少完整 Workspace、timezone 或类型字段。删除、重写
+或导入它们会带来重复、数据丢失和 Identity 漂移风险。
 
-## Decision
+## 决策
 
-1. New Work Logs use canonical `wl_<32 lowercase hex>` IDs.
-2. A new row uses the same value for `WorkLogRecord.id` and `episodic_memories.id`.
-3. Direct create uses cryptographically random hex and insert-only collision retry.
-4. Inbox create derives the 32 hex payload deterministically from Inbox Item ID; a collision only recovers when the stored source matches that Inbox, otherwise it fails.
-5. A legacy row is projected to `wl_legacy_<full sha256 of legacy memory id>`.
-6. The projection is deterministic across processes and restarts, retains `legacy_memory_id`, and never writes a new row.
-7. Public API/CLI lookup accepts canonical `wl_...` and `wl_legacy_...`. Ordinary random Memory IDs remain internal and are rejected as public aliases.
-8. Historical `inbox_wl_<valid legacy format>` is the only restricted compatibility lookup alias. Lookup must find the exact same-ID row, prove `content.type == "work_log"`, prove consistent Inbox-origin evidence, and enforce the complete WorkspaceKey.
-9. A valid Inbox alias returns the canonical `wl_legacy_<full sha256 of inbox_wl_ row id>` projection of the same entity. It never creates a second row or becomes a canonical ID.
-10. Existing `InboxItem.resolved_target_id`, `InboxResolutionClaim.target_id`, event payloads, retry and crash-recovery state retain `inbox_wl_...`; none is rewritten.
-11. Missing complete Workspace assigns the legacy row only to canonical `default/default/default`.
-12. Legacy time is projected from explicit occurred_at/date, then persisted Memory timestamp; current time is never substituted.
-13. Projection failures are visible as `work_log.legacy_projection_failed`; incompatible data is not silently discarded.
-14. `inbox_wl_...` is not a context reference. New context refs may use only the Inbox Item identity `inbox_...`.
+1. 新 Work Log 使用 canonical `wl_<32 lowercase hex>` ID；
+2. 新 Row 的 `WorkLogRecord.id` 与 `episodic_memories.id` 使用同一值；
+3. 直接 Create 使用加密安全随机 hex，并以 insert-only collision retry；
+4. Inbox Create 从 Inbox Item ID 确定性推导 32 hex payload；碰撞时只有存储 Source
+   与该 Inbox 相同才能恢复，否则失败；
+5. Legacy Row 投影为 `wl_legacy_<full sha256 of legacy memory id>`；
+6. Projection 跨进程与重启保持确定，保留 `legacy_memory_id`，且不写新 Row；
+7. 公开 API/CLI lookup 接受 canonical `wl_...` 与 `wl_legacy_...`；普通随机 Memory ID
+   保持内部使用，拒绝作为公开 Alias；
+8. 历史 `inbox_wl_<valid legacy format>` 是唯一受限兼容 Alias。Lookup 必须找到同 ID
+   Row，证明 `content.type == "work_log"`、Inbox 来源证据一致，并执行完整 WorkspaceKey；
+9. 合法 Inbox Alias 返回同一对象的 canonical
+   `wl_legacy_<full sha256 of inbox_wl_ row id>` Projection，不创建第二 Row；
+10. 既有 `InboxItem.resolved_target_id`、`InboxResolutionClaim.target_id`、Event payload、
+    retry 与 crash-recovery 状态继续保留 `inbox_wl_...`，不得重写；
+11. 缺少完整 Workspace 的 Legacy Row 只归属 canonical `default/default/default`；
+12. Legacy 时间优先使用显式 occurred_at/date，其次使用持久化 Memory timestamp，
+    不得以当前时间替代；
+13. Projection failure 以 `work_log.legacy_projection_failed` 可见，不静默丢弃不兼容数据；
+14. `inbox_wl_...` 不是 Context Reference；新 Context Reference 只能使用 Inbox Item
+    Identity `inbox_...`。
 
-## Consequences
+## 后果
 
-- All public consumers receive type-bearing stable IDs.
-- Existing rows remain unchanged and traceable.
-- Legacy lookup requires a deterministic digest lookup plus the restricted Inbox alias path within the Repository.
-- Alias and canonical lookup return one logical object and are both zero-write.
-- Raw status or incomplete fields may require explicit legacy projection metadata rather than pretending they satisfy the new create contract.
+- 所有公开消费方获得带类型的稳定 ID；
+- 既有 Row 保持不变且可追溯；
+- Legacy lookup 需要确定性 digest lookup 和 Repository 内受限 Inbox Alias 路径；
+- Alias 与 canonical lookup 返回一个逻辑对象，且都为零写入；
+- Raw status 或不完整字段必须用显式 legacy Projection metadata 表达，不能伪装满足新合同。
 
-## Rejected alternatives
+## 拒绝的替代方案
 
-### Expose existing random Memory IDs
+### 暴露既有随机 Memory ID
 
-Rejected because they do not identify the product type and would preserve different identity contracts for API, CLI, Agenda and Brief. This rejection applies to ordinary random IDs; the sole `inbox_wl_...` exception exists because that value is already a historical public Inbox contract and is validated before use.
+拒绝，因为它不标识产品类型，会让 API、CLI、Agenda 与 Brief 保持不同 Identity 合同。
+唯一 `inbox_wl_...` 例外来自已经公开的历史 Inbox 合同，使用前必须验证。
 
-### Rewrite IDs in place
+### 原地重写 ID
 
-Rejected because Inbox resolution claims and any external references may depend on the original row ID; the operation is destructive and difficult to roll back.
+拒绝，因为 Inbox resolution claim 与外部引用可能依赖原 Row ID，操作具有破坏性且难回滚。
 
-### Import into duplicate canonical rows
+### 导入重复 canonical Row
 
-Rejected because retries can duplicate records and any inferred Workspace or time may be wrong.
+拒绝，因为 Retry 可能制造重复，推断的 Workspace 或时间也可能错误。
 
-## Implementation boundary
+## 产品实施边界
 
-This ADR defines identity and compatibility only. The planning baseline performs no migration, write-back, alias table, Schema change or production implementation.
+本 ADR 只定义 Identity 与兼容性。规划基线不执行 Migration、write-back、Alias Table、
+Schema 变更或产品实施。

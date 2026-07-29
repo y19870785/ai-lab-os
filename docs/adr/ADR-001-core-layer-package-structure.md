@@ -1,6 +1,6 @@
-﻿# ADR-001: Core Layer 包结构
+# ADR-001: Core Layer 包结构
 
-## Metadata
+## 元数据
 
 | Field        | Value                                |
 | ------------ | ------------------------------------ |

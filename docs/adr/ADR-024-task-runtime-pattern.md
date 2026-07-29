@@ -1,4 +1,4 @@
-﻿# ADR-024: Task Runtime Pattern
+# ADR-024：Task Runtime 模式
 
 **状态：** Accepted
 **版本：** v0.22.0

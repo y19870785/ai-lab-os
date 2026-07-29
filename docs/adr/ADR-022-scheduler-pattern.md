@@ -1,4 +1,4 @@
-﻿# ADR-022: Scheduler Pattern
+# ADR-022：Scheduler 模式
 
 **状态：** Accepted
 **版本：** v0.21.0

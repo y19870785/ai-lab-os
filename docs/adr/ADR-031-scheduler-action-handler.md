@@ -1,4 +1,4 @@
-# ADR-031：Scheduler Action Handler
+# ADR-031：调度器动作处理器
 
 ## 状态
 

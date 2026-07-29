@@ -1,4 +1,4 @@
-# ADR-056 — Deterministic Follow-up Interaction Boundary
+# ADR-056：确定性 Follow-up 交互边界
 
 Status: Accepted
 

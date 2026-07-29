@@ -1,6 +1,6 @@
-﻿# ADR-007: Decision Memory 模型
+# ADR-007: Decision Memory 模型
 
-## Metadata
+## 元数据
 
 | Field        | Value                                |
 | ------------ | ------------------------------------ |

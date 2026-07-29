@@ -1,31 +1,39 @@
-# ADR-043: Reminder Management Coordination Boundary
+# ADR-043：Reminder 管理协调边界
 
-**Status:** Accepted
-**Date:** 2026-07-17
+**状态：** Accepted
+**日期：** 2026-07-17
 
-## Acceptance Record
+## 验收记录
 
-- Accepted through SP-011
-- PR #23
-- Approved Head: `beb99115dd273a9fe55e86d21e65f714e7f7f52f`
-- Merge Commit: `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`
-- Accepted Date: 2026-07-17
+- 由 SP-011 Accepted；
+- PR：#23；
+- Approved Head：`beb99115dd273a9fe55e86d21e65f714e7f7f52f`；
+- Merge Commit：`5c4b442b2b5c7f934ac381020ba8b310976d5d3a`；
+- Accepted Date：2026-07-17。
 
-## Context
+## 背景
 
-Reminder cancellation and rescheduling affect Reminder and Scheduler persistence. Implementing those rules independently in API, CLI, and CEO Assistant would create conflicting terminal, workspace, idempotency, and recovery behavior.
+Reminder 取消和重新计划会同时影响 Reminder 与 Scheduler 持久化。若 API、CLI 和
+CEO Assistant 分别实现规则，会产生互相冲突的 terminal、Workspace、idempotency 与
+recovery 行为。
 
-## Decision
+## 决策
 
-Create one Composition Root-owned `ReminderManagementService`. It resolves workspace-visible reminders, enforces terminal rules, maps stable failures, records hashed reschedule idempotency metadata, and delegates writes to the existing `ReminderSchedulerBridge` Saga.
+创建由组合根拥有的 `ReminderManagementService`。它解析工作空间可见 Reminder、执行
+terminal 规则、映射稳定 failure、记录 hashed reschedule idempotency metadata，并将写入
+委托给既有 `ReminderSchedulerBridge` Saga。
 
-API routes, CLI commands, and CEO Assistant may format results but may not update Reminder repositories or Scheduler Jobs directly. Exact IDs are workspace checked; title matching executes only when it yields one visible result.
+API、CLI 和 CEO Assistant 可以格式化结果，但不得直接更新 Reminder Repository 或
+Scheduler Job。精确 ID 必须经过 Workspace 检查；标题匹配只有在得到唯一可见结果时执行。
 
-Cancellation is idempotent. Triggered and failed reminders cannot be cancelled. Rescheduling may recover failed reminders, but triggered and cancelled reminders remain terminal. Bridge failures are surfaced as `reminder.cancellation_failed` or `reminder.rescheduling_failed` and retain a queryable persisted recovery state.
+取消操作是幂等的。Triggered 和 failed Reminder 不得取消。Reschedule 可以恢复 failed
+Reminder，但 triggered 与 cancelled 保持 terminal。Bridge failure 以
+`reminder.cancellation_failed` 或 `reminder.rescheduling_failed` 返回，并保留可查询的
+持久化恢复状态。
 
-## Consequences
+## 后果
 
-- One management contract serves all user entrypoints.
-- Existing Saga/reconciliation behavior remains the only cross-database coordination mechanism.
-- No cross-SQLite atomic transaction is claimed.
-- External notifications, batch operations, fuzzy resolution, identity, and RBAC remain deferred.
+- 所有用户入口共享一个管理合同；
+- 既有 Saga/reconciliation 是唯一跨数据库协调机制；
+- 不宣称跨 SQLite 原子事务；
+- 外部通知、批量操作、模糊解析、身份与 RBAC 延期处理。

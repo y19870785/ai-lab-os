@@ -1,4 +1,4 @@
-# ADR-055 — Daily Agenda Optional-Source Composition
+# ADR-055：Daily Agenda 可选来源组合
 
 Status: Accepted
 

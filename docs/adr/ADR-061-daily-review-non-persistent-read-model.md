@@ -1,4 +1,4 @@
-# ADR-061 — Daily Review as a Non-persistent Read Model
+# ADR-061：Daily Review 非持久化读取模型
 
 Status: Accepted
 Date: 2026-07-26

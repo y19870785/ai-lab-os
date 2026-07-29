@@ -1,6 +1,6 @@
-﻿# ADR-002: Message Bus 接口设计
+# ADR-002: Message Bus 接口设计
 
-## Metadata
+## 元数据
 
 | Field        | Value                                |
 | ------------ | ------------------------------------ |

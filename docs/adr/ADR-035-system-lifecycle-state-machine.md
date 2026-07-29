@@ -1,25 +1,34 @@
-# ADR-035: System Lifecycle State Machine
+# ADR-035：系统生命周期状态机
 
-## Status
+## 状态
+
 Accepted
 
-## Acceptance Record
-Implemented by SP-007 and merged via PR #14.
+## 验收记录
 
-Merge Commit: `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
+由 SP-007 实现，并通过 PR #14 合并。
 
-Accepted Date: 2026-07-16
+Merge Commit：`ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
 
-## Scope
-The state machine is the source of truth for `SystemContainer` and FastAPI protected-route admission in SP-007. Direct application, CEO Assistant, and CLI execution admission is deferred to SP-008 candidate.
+Accepted Date：2026-07-16
 
-## Context
-The system needs a single source of truth for its operational state.
+## 范围
 
-## Decision
-Use LifecycleStateMachine with states: CREATED, STARTING, READY, DRAINING, STOPPED, FAILED. Transitions are protected by asyncio.Lock. Invalid transitions raise InvalidLifecycleTransitionError.
+该状态机是 SP-007 中 `SystemContainer` 与 FastAPI 受保护路由准入的权威来源。
+Application、CEO Assistant 和 CLI 的直接执行准入延期到候选 SP-008。
 
-## Consequences
-- Only READY state accepts work
-- CREATED -> STOPPED is a valid shutdown-before-start path
-- No restart from STOPPED
+## 背景
+
+系统需要一个统一的运行状态权威来源。
+
+## 决策
+
+使用 `LifecycleStateMachine`，状态包括 `CREATED`、`STARTING`、`READY`、`DRAINING`、
+`STOPPED` 和 `FAILED`。状态转换由 `asyncio.Lock` 保护；非法转换抛出
+`InvalidLifecycleTransitionError`。
+
+## 后果
+
+- 只有 `READY` 接受工作；
+- `CREATED -> STOPPED` 是合法的未启动即关闭路径；
+- `STOPPED` 后不支持重启。

@@ -1,4 +1,4 @@
-# ADR-057 — Reuse Inbox Resolution Claims for Waiting-For Conversion
+# ADR-057：Inbox 到 Waiting-For 转换复用 Resolution Claim
 
 Status: Accepted
 

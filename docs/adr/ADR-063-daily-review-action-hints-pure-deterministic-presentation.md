@@ -1,4 +1,4 @@
-# ADR-063 — Daily Review Action Hints as Pure Deterministic Presentation
+# ADR-063：Daily Review 行动提示的纯确定性呈现
 
 - Status: Accepted
 - Date: 2026-07-29

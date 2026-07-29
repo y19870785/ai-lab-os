@@ -1,30 +1,36 @@
-# ADR-037: Canonical Internal Work Entrypoint
+# ADR-037：规范内部工作入口
 
-## Status
+## 状态
 
 Accepted
 
-## Acceptance Record
+## 验收记录
 
-- Accepted through SP-008
-- PR: #16
-- Merge Commit: `1858d4991379058948559cc96e2672df44e42b67`
-- Accepted Date: 2026-07-16
+- 由 SP-008 Accepted；
+- PR：#16；
+- Merge Commit：`1858d4991379058948559cc96e2672df44e42b67`；
+- Accepted Date：2026-07-16。
 
-## Context
+## 背景
 
-New work can enter through direct application calls, direct CEO Assistant calls, CLI commands, and Scheduler dispatch. Rechecking at every downstream runtime would break work accepted before draining.
+新工作可通过直接 Application 调用、直接 CEO Assistant 调用、CLI 命令和 Scheduler
+dispatch 进入。若每个下游 Runtime 都重新检查，系统进入 draining 前已被接受的工作将
+无法正常完成。
 
-## Decision
+## 决策
 
-- `ApplicationRuntime.execute()` is the canonical application boundary.
-- Direct `CEOAssistant.run()` is also gated because it remains publicly callable.
-- CLI business commands are included through `ApplicationRuntime.execute()` and do not duplicate the check.
-- Scheduler due-job claim/dispatch is a separate producer boundary.
-- A same-Task nested call is an accepted continuation; a detached child calling a canonical entrypoint is new work and must be readmitted.
-- TaskRuntime, WorkflowRuntime, AgentRuntime, Reminder handlers, health, startup, shutdown, cleanup, recovery, and migration are excluded.
-- Alpha Assistant direct invocation remains excluded because it is not registered by the production Composition Root.
+- `ApplicationRuntime.execute()` 是规范 Application 边界；
+- 公开可调用的 `CEOAssistant.run()` 也必须经过门禁；
+- CLI 业务命令通过 `ApplicationRuntime.execute()` 纳入，不重复检查；
+- Scheduler due-job claim/dispatch 是独立生产者边界；
+- 同一 Task 的嵌套调用是已接受工作的延续；detached child 调用规范入口属于新工作，
+  必须重新准入；
+- TaskRuntime、WorkflowRuntime、AgentRuntime、Reminder handler、Health、启动、关闭、
+  清理、恢复和 Migration 不在准入范围；
+- Alpha Assistant 的直接调用没有在生产组合根注册，因此不在范围。
 
-## Consequences
+## 后果
 
-Every included new-work path is rejected outside `READY`, while downstream same-Task work accepted in `READY` can complete without a second lifecycle decision. Ordinary child Tasks never receive a reusable bypass; Scheduler-owned job execution is the sole explicit spawned continuation.
+所有纳入范围的新工作在非 `READY` 状态都被拒绝；已在 `READY` 接受的同一 Task 下游工作
+不需要第二次生命周期决策即可完成。普通 Child Task 不获得可复用 bypass；只有 Scheduler
+拥有的 Job Task 是显式 spawned continuation。

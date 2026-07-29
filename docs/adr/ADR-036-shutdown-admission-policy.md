@@ -1,29 +1,36 @@
-# ADR-036: Shutdown Admission Policy
+# ADR-036：关闭期间的工作准入策略
 
-## Status
+## 状态
+
 Accepted
 
-## Acceptance Record
-Implemented by SP-007 and merged via PR #14.
+## 验收记录
 
-Merge Commit: `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
+由 SP-007 实现，并通过 PR #14 合并。
 
-Accepted Date: 2026-07-16
+Merge Commit：`ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`
 
-## Scope
-SP-007 rejects new work at FastAPI protected business routes only. Direct `ApplicationRuntime`, `CEOAssistant`, and CLI execution paths are explicitly excluded and are planned for SP-008 candidate.
+Accepted Date：2026-07-16
 
-## Context
-During shutdown, new work must be rejected before components are closed.
+## 范围
 
-## Decision
-1. First shutdown action: transition to DRAINING
-2. Business admission gate rejects all non-READY states
-3. Shutdown uses _shutdown_task for single-owner concurrency
-4. Health/metrics remain accessible during DRAINING/STOPPED
-5. Cleanup failures are tracked and reported; all components get a cleanup chance
+SP-007 只在 FastAPI 受保护业务路由拒绝新工作。直接调用 `ApplicationRuntime`、
+`CEOAssistant` 与 CLI 的执行路径明确不在范围内，并计划由候选 SP-008 处理。
 
-## Consequences
-- DRAINING response: HTTP 503 with Retry-After: 1
-- Failed component cleanups result in FAILED final state
-- DatabaseManager closes last
+## 背景
+
+系统关闭期间，必须先拒绝新工作，再关闭组件。
+
+## 决策
+
+1. 关闭的第一个动作是转换到 `DRAINING`；
+2. 业务准入门禁拒绝所有非 `READY` 状态；
+3. 使用 `_shutdown_task` 保证并发关闭只有一个所有者；
+4. `DRAINING` 与 `STOPPED` 期间 Health 与 Metrics 仍可访问；
+5. 记录并报告清理失败，同时让所有组件都获得清理机会。
+
+## 后果
+
+- `DRAINING` 响应为 HTTP 503，带 `Retry-After: 1`；
+- 组件清理失败会使最终状态变为 `FAILED`；
+- `DatabaseManager` 最后关闭。

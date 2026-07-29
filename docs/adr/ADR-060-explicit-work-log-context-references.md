@@ -1,49 +1,54 @@
-# ADR-060 — Explicit Work Log Context References
+# ADR-060：显式 Work Log Context Reference
 
 Status: Accepted
 
-> Accepted architecture decision for the SP-018 planning baseline. It does not approve or start implementation.
+> 这是 SP-018 规划基线的 Accepted 架构决策，不批准或启动产品实施。
 
-## Context
+## 背景
 
-A Work Log may refer to a UserTask, Reminder, Waiting-For or Inbox item. These targets live behind independent services and, in several cases, separate SQLite databases. Title matching, person matching or LLM inference would make associations non-deterministic and could cross Workspace boundaries.
+Work Log 可以引用 UserTask、Reminder、Waiting-For 或 Inbox Item。这些 Target 位于独立
+Service 后，在多种情况下还位于不同 SQLite 数据库。标题匹配、人员匹配或 LLM 推断会使
+关联不确定，并可能跨越 Workspace 边界。
 
-## Decision
+## 决策
 
-1. Work Log context associations are stored only when the caller supplies an explicit canonical target ID.
-2. Supported prefixes are `ut_`, `rem_`, `wf_` and `inbox_`.
-3. Each reference records `kind`, `target_id` and an optional bounded `relation`.
-4. Kind and prefix must agree; malformed, unsupported or duplicate references fail closed.
-5. Format validation is a strong create contract.
-6. Cross-service existence is not a strong transactional contract and does not block Work Log creation.
-7. No cross-database foreign key or transaction is claimed.
-8. Read paths may perform best-effort resolution when the dependency is enabled and the target is visible in the same Workspace.
-9. Disabled dependency yields `not_checked`; missing or Workspace-inaccessible target yields `unresolved` without disclosing target details.
-10. A reference remains stored and visible when its target later disappears; it is never silently removed.
-11. LLM output, title similarity, names, tags or free-text resemblance cannot create a context reference.
-12. Query by context reference uses the exact canonical target ID and complete Work Log Workspace scope.
+1. 只有调用方提供显式 canonical Target ID 时才存储 Work Log Context Association；
+2. 支持 `ut_`、`rem_`、`wf_` 和 `inbox_` 前缀；
+3. 每个 Reference 记录 `kind`、`target_id` 和可选有界 `relation`；
+4. Kind 与 Prefix 必须一致；格式错误、不支持或重复的 Reference 失败关闭；
+5. 格式验证是强 Create 合同；
+6. 跨 Service 存在性不是强事务合同，不阻塞 Work Log Create；
+7. 不宣称跨数据库 Foreign Key 或事务；
+8. Dependency 启用且 Target 在同一 Workspace 可见时，Read path 可 best-effort resolve；
+9. Dependency disabled 返回 `not_checked`；Target missing 或 Workspace 不可见返回
+   `unresolved`，且不泄露 Target detail；
+10. Target 后续消失时，Reference 继续保存并可见，不得静默删除；
+11. LLM 输出、标题相似度、姓名、Tag 或自由文本相似度不得创建 Context Reference；
+12. 按 Context Reference 查询时，使用精确 canonical Target ID 和完整 Work Log
+    Workspace Scope。
 
-## Consequences
+## 后果
 
-- Associations are reproducible and auditable.
-- Work Log creation remains available when optional services are disabled.
-- Stored references can outlive targets and require explicit unresolved presentation.
-- Strong referential integrity is intentionally not promised across databases.
+- Association 可复现、可审计；
+- 可选 Service 禁用时仍可创建 Work Log；
+- 存储的 Reference 可以比 Target 存活更久，需要显式展示 unresolved；
+- 有意不承诺跨数据库强 Referential Integrity。
 
-## Rejected alternatives
+## 拒绝的替代方案
 
-### LLM or fuzzy automatic linking
+### LLM 或模糊自动链接
 
-Rejected because it cannot provide deterministic intent, Workspace safety or stable replay.
+拒绝，因为无法保证确定性 Intent、Workspace 安全或稳定 Replay。
 
-### Synchronous mandatory target lookup
+### 强制同步 Target lookup
 
-Rejected because optional disabled services would block otherwise valid Work Log creation and still could not provide an atomic cross-database guarantee.
+拒绝，因为可选 Service disabled 时会阻塞合法 Work Log Create，且仍无法提供跨数据库
+原子保证。
 
-### Cross-database foreign keys
+### 跨数据库 Foreign Key
 
-Rejected because SQLite databases are independent truth boundaries and the project does not claim cross-database transactions.
+拒绝，因为 SQLite 数据库是独立权威边界，项目不宣称跨数据库事务。
 
-## Implementation boundary
+## 产品实施边界
 
-This ADR does not add fields, models, lookups, foreign keys, Schema changes or LLM behavior. It only fixes the future architecture decision.
+本 ADR 不新增字段、Model、Lookup、Foreign Key、Schema 或 LLM 行为，只固定未来架构决策。

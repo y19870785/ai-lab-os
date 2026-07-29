@@ -1,4 +1,4 @@
-# ADR-062 — Daily Review Source Failure and Availability Semantics
+# ADR-062：Daily Review 来源失败与可用性语义
 
 Status: Accepted
 Date: 2026-07-26

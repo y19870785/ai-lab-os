@@ -1,11 +1,14 @@
-# ADR-049：Daily Agenda Read Model Boundary
+# ADR-049：Daily Agenda 读取模型边界
 
 Status: Accepted
 
-## Decision
-`DailyAgendaService` reads from existing ReminderInboxService, UserTaskService, and MemoryManager without introducing a new truth source or agenda-specific database.
+## 决策
 
-## Consequences
-- No agenda table or event journal
-- Views are computed on demand
-- Cross-SQLite aggregation is not a single transaction
+`DailyAgendaService` 从既有 `ReminderInboxService`、`UserTaskService` 和
+`MemoryManager` 读取，不引入新的权威来源或 Agenda 专用数据库。
+
+## 后果
+
+- 不新增 Agenda Table 或 Event Journal；
+- View 按需计算；
+- 跨 SQLite 聚合不是单一事务。

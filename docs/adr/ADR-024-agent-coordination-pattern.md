@@ -1,15 +1,15 @@
-﻿# ADR-024: Agent Coordination Pattern
+# ADR-024：Agent 协调模式
 
 **Date:** 2026-07-13
 **Status:** Accepted
 
-## Context
+## 背景
 
 AI-Lab 需要支持多 Agent 协作。有两种主要模式：
 1. **Peer-to-Peer**：Agent 直接互相发现和通信
 2. **Orchestrator**：中心协调器管理 Agent Team
 
-## Decision
+## 决策
 
 采用 **Orchestrator 模式**。
 
@@ -19,7 +19,7 @@ AI-Lab 需要支持多 Agent 协作。有两种主要模式：
 - 可扩展：未来可在 Orchestrator 下增加 Scheduler/Planner 策略
 - 与 AI-Lab 分层架构一致：每层有单一职责入口
 
-## Consequences
+## 后果
 
 - Agent Runtime 保持独立，不感知其他 Agent
 - Orchestrator 成为 Multi-Agent 唯一入口

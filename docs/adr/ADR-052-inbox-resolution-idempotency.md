@@ -1,12 +1,12 @@
-# ADR-052：Inbox Resolution Idempotency
+# ADR-052：Inbox Resolution 幂等性
 
 Status: Accepted
 
-## Validation Record
+## 验证记录
 
 - Implemented by SP-014 and merged through PR #32 as `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
-- ACC-014 verified cross-process unique resolution ownership, different-type and same-type competition, idempotent retry, restart persistence, and recovery from both `claimed` and `target_created` interruption points.
-- The persistent claim, not the process-local lock, is the validated correctness boundary. No known SP-014 blocking item remains.
+- ACC-014 已验证跨进程唯一解析所有权、不同类型与同类型竞争、幂等重试、重启持久性，以及从 `claimed` 和 `target_created` 两个中断点恢复。
+- 经验证的正确性边界是持久化 claim，而不是进程内锁；当前不存在已知的 SP-014 阻塞项。
 
 ## 决策
 

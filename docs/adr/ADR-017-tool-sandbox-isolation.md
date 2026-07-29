@@ -1,30 +1,33 @@
-﻿# ADR-017: Tool Sandbox Isolation
+# ADR-017：Tool Sandbox 隔离
 
-**Status:** Accepted
-**Version:** v0.18.0
-**Date:** 2026-07-12
+**状态：** Accepted
+**版本：** v0.18.0
+**日期：** 2026-07-12
 
-## Context
+## 背景
 
-Tools may execute arbitrary Python code, shell commands, or external API calls. Without isolation, a misbehaving or malicious tool could block the event loop, consume excessive resources, or crash the runtime.
+Tool 可能执行任意 Python、Shell 命令或外部 API 调用。缺少隔离时，异常或恶意 Tool
+可能阻塞事件循环、消耗过多资源或使 Runtime 崩溃。
 
-## Decision
+## 决策
 
-Implement a layered sandbox approach:
+采用分层 Sandbox：
 
-**Phase 1 (current):** `ToolSandbox` wraps tool execution with `asyncio.wait_for` for timeout enforcement. Exceptions are caught and returned as `ToolResult(success=False, error=...)`. This prevents event-loop blocking and crash propagation.
+- **Phase 1（当前）：** `ToolSandbox` 使用 `asyncio.wait_for` 包装执行并强制超时。
+  异常被捕获并返回 `ToolResult(success=False, error=...)`，避免崩溃传播；
+- **Phase 2（未来）：** 为 Python/Shell Tool 提供 Docker Sandbox，实现进程、内存和
+  文件系统隔离；
+- **Phase 3（未来）：** 为 browser-use Tool 提供带网络策略的独立 Browser Context。
 
-**Phase 2 (future):** Docker-based sandbox for Python/Shell tools — full process isolation, memory limits, filesystem isolation.
+## 当前不采用完整 Sandbox 的原因
 
-**Phase 3 (future):** Browser sandbox for browser-use tools — isolated browser context with network policy.
+- 当前内置 Echo、Calculator、DateTime 与 UUID Tool 是无 I/O 的纯 Python，不需要
+  Docker 隔离；
+- 过早引入 Docker 会增加复杂度并降低开发速度；
+- `ToolSandbox` 抽象允许未来用 Docker Executor 替换 `asyncio.wait_for`，无需修改
+  `ToolExecutor` 或 Tool 实现。
 
-## Why Not Full Sandbox Now?
+## 后果
 
-- Current builtin tools (Echo, Calculator, DateTime, UUID) are pure Python with no I/O — they don't need Docker isolation.
-- Premature Docker dependency would add complexity and slow development velocity.
-- The `ToolSandbox` abstraction is designed so that swapping `asyncio.wait_for` for a Docker executor requires zero changes to ToolExecutor or any tool implementation.
-
-## Consequences
-
-- **Positive:** Clean abstraction; timeout enforcement today; Docker-ready tomorrow.
-- **Negative:** Current sandbox does not protect against CPU-intensive infinite loops (only async timeouts work).
+- **正面：** 抽象清晰，当前即可强制异步超时，并为 Docker 隔离保留扩展点；
+- **负面：** 当前 Sandbox 无法防护 CPU 密集型无限循环，只能处理异步超时。
