@@ -4,8 +4,11 @@
 > Last Completed SP: SP-019
 > Current SP: None
 > Current Governance Task: None
-> Next Candidate SP: None
-> Next Candidate Direction: None
+> Next Candidate SP: SP-020
+> Next Candidate Direction: Local Daily Operating Loop & Review-to-Action Closure
+> SP-020 Status: PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
+> ACC-020 Status: PLANNING_BASELINE / NOT_EXECUTED
+> SP-020 Design: RFC-029, ADR-063 and ADR-064 Proposed / Planning Baseline
 > SP-016 Status: APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
 > ACC-016 Status: PASSED / FINAL
 > SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
@@ -74,6 +77,20 @@ Mock Provider: only explicit mock/test profiles
 - `FailureInfo` 是 Agent、Task、Scheduler、API、事件与 System Health 的统一失败契约。
 - API 与内部工作入口共享 lifecycle-backed admission boundary；Scheduler 是独立 producer 边界。
 - 已接纳工作可以在 draining 后完成；进程级 in-flight counter、drain timeout 与多进程 admission coordination 仍未实现。
+
+### SP-020 规划边界
+
+- SP-020 只定义 Windows Local Daily Profile、正式 Daily Review CLI、纯确定性 Action
+  Hint、canonical Review-to-Action 委托、进程重启与 Quiescent Backup/Restore。
+- 默认 data root 当前跟随 working directory 推导；未来 Local Daily Profile 必须使用
+  稳定绝对路径并显式展示非敏感有效配置。
+- Daily Review 与 Action Hint 保持只读、无数据库、无事件、无 LLM、无 snapshot；
+  所有写入继续委托现有 canonical domain services。
+- 当前 `SystemContainer` 关闭流程会两次调用 Scheduler shutdown。Phase 0 必须正式
+  证明幂等、partial-start rollback、连接释放与 restart recovery，不能只依赖代码推断。
+- 备份默认只承诺优雅停机后的完整 data directory 复制与隔离恢复，不承诺在线跨库
+  一致快照。
+- 以上均为 Planning Baseline；Implementation 未批准，ACC-020 未执行。
 
 ### 数据与 Workspace 边界
 
@@ -195,4 +212,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 None。SP-019 已完成 Squash Merge、main Quality Gate、治理对账与封存；RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted。当前产品版本仍为 `0.34.0`，未因 SP-019 改变 Tag 或 Release。
+SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。SP-020 仅为 `PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。

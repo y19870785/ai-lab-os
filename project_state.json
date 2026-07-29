@@ -14,9 +14,9 @@
   "latest_completed_sp": "SP-019",
   "current_sp": null,
   "current_governance_task": null,
-  "next_candidate_sp": null,
-  "next_candidate_name": null,
-  "development_status": "sp_019_completed_reconciled_archived",
+  "next_candidate_sp": "SP-020",
+  "next_candidate_name": "Local Daily Operating Loop & Review-to-Action Closure",
+  "development_status": "sp_020_planning_baseline_defined_implementation_not_approved_not_started",
   "current_work": null,
   "updated_at": "2026-07-29",
   "governance_sources": {
@@ -363,6 +363,28 @@
       "acceptance": "ACC-019 PASSED / FINAL",
       "user_task_workspace_prerequisite": "ACCEPTED",
       "scope": "On-demand non-persistent Daily Review read model and deterministic follow-up view"
+    },
+    "SP-020": {
+      "name": "Local Daily Operating Loop & Review-to-Action Closure",
+      "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "planning_baseline_defined": true,
+      "planning_baseline_approved": false,
+      "approved": false,
+      "implementation_started": false,
+      "implementation_complete": false,
+      "completed": false,
+      "reconciled": false,
+      "archived": false,
+      "base_commit": "934075ceefe39ede3c624b621b7673d62f6d06dd",
+      "branch": "docs/sp-020-local-daily-operating-loop-planning",
+      "planning_pr": null,
+      "target_version": "0.35.0",
+      "rfc": "RFC-029",
+      "adrs": ["ADR-063", "ADR-064"],
+      "task_specification": "docs/project/SP-020-IMPLEMENTATION-TASK.md",
+      "acceptance": "ACC-020 PLANNING_BASELINE / NOT_EXECUTED",
+      "phase_0_status": "REQUIRED / NOT_STARTED",
+      "scope": "Windows Local Daily Profile, Daily Review CLI, deterministic Action Hints, canonical Review-to-Action delegation, lifecycle recovery and quiescent backup/restore acceptance"
     }
   },
   "acceptance_records": {
@@ -503,6 +525,39 @@
         "Scenarios L and M used temporary real Uvicorn processes; scenario M reused the same isolated SQLite directory across restart and proved zero database, event, Provider and scheduler side effects.",
         "Three discarded runs contained external-driver incidents: invalid Decision Memory content shape, scheduler-disabled Reminder seeding, and a noncanonical synthetic Work Log ID. The driver was corrected without product changes and the final fresh run passed A-M.",
         "SP-019 was Squash merged as a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49, passed main Quality Gate 30382312419, and was archived without version, tag or release changes."
+      ]
+    },
+    "ACC-020": {
+      "status": "PLANNING_BASELINE / NOT_EXECUTED",
+      "manual_acceptance": false,
+      "scenarios": {
+        "A": "PLANNING_BASELINE / NOT_EXECUTED",
+        "B": "PLANNING_BASELINE / NOT_EXECUTED",
+        "C": "PLANNING_BASELINE / NOT_EXECUTED",
+        "D": "PLANNING_BASELINE / NOT_EXECUTED",
+        "E": "PLANNING_BASELINE / NOT_EXECUTED",
+        "F": "PLANNING_BASELINE / NOT_EXECUTED",
+        "G": "PLANNING_BASELINE / NOT_EXECUTED",
+        "H": "PLANNING_BASELINE / NOT_EXECUTED",
+        "I": "PLANNING_BASELINE / NOT_EXECUTED",
+        "J": "PLANNING_BASELINE / NOT_EXECUTED",
+        "K": "PLANNING_BASELINE / NOT_EXECUTED",
+        "L": "PLANNING_BASELINE / NOT_EXECUTED",
+        "M": "PLANNING_BASELINE / NOT_EXECUTED",
+        "N": "PLANNING_BASELINE / NOT_EXECUTED",
+        "O": "PLANNING_BASELINE / NOT_EXECUTED",
+        "P": "PLANNING_BASELINE / NOT_EXECUTED",
+        "Q": "PLANNING_BASELINE / NOT_EXECUTED",
+        "R": "PLANNING_BASELINE / NOT_EXECUTED",
+        "S": "PLANNING_BASELINE / NOT_EXECUTED",
+        "T": "PLANNING_BASELINE / NOT_EXECUTED",
+        "U": "PLANNING_BASELINE / NOT_EXECUTED",
+        "V": "PLANNING_BASELINE / NOT_EXECUTED"
+      },
+      "notes": [
+        "ACC-020 is a planning contract only and has not been executed.",
+        "Future acceptance must use real Windows processes, real SQLite, explicit mock/test Provider mode, zero Provider calls, graceful restart, quiescent backup and isolated restore.",
+        "Planning baseline definition does not authorize SP-020 implementation."
       ]
     }
   },

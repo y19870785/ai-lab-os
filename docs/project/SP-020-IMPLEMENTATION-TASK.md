@@ -1,0 +1,183 @@
+# SP-020 Implementation Task Specification
+
+## 任务
+
+**SP-020 — Local Daily Operating Loop & Review-to-Action Closure**
+
+中文：**本地日常运行与复盘行动闭环**
+
+```text
+Planning Base SHA:
+934075ceefe39ede3c624b621b7673d62f6d06dd
+
+Planning Branch:
+docs/sp-020-local-daily-operating-loop-planning
+
+Planning PR:
+TBD — assigned by GitHub when the Draft Planning PR is created
+
+Suggested Future Implementation Branch:
+feat/sp-020-local-daily-operating-loop
+
+Planning Status:
+PLANNING_BASELINE_DEFINED / PENDING INDEPENDENT REVIEW
+
+Implementation:
+NOT APPROVED / NOT STARTED
+```
+
+本任务书定义未来授权边界，不是实施授权。任何 Phase 都必须等待 Planning PR 独立审查、
+合并以及 Owner 的新一轮明确授权。
+
+## Scope
+
+- Windows Local Daily Profile：稳定绝对 data/sqlite root、显式 IANA timezone、
+  Provider mode、feature flags、API auth 与 localhost bind。
+- 启动配置安全展示、health/readiness 与优雅 shutdown。
+- Scheduler shutdown 幂等、partial-start rollback 与 restart recovery 门禁。
+- 直接调用现有 `DailyReviewService` 的正式 `daily-review` CLI。
+- 纯确定性、无 LLM、无写入的 Action Hint presentation。
+- Review canonical ID 到现有 UserTask、Reminder、Waiting-For、Inbox 与 Work Log
+  服务的显式委托闭环。
+- 真实 Windows 进程、SQLite、重启、静止备份与隔离恢复的 ACC-020。
+
+## Non-goals
+
+Recurring Reminder、外部通知、邮件/短信/企业微信/手机推送、Web UI、新
+Project/Goal/Outcome 领域、Knowledge 主链路、Agent 自动规划/Tool Calling、MCP 自动
+执行、用户身份、OAuth/JWT/RBAC、强多租户、任意历史 Review、Review Snapshot、LLM
+自动建议并执行、在线跨库一致快照、集群/高可用、复杂编排、大型 migration、全仓
+重构、Plugin framework、Command Bus 重写、大规模 CEO Assistant 重构，以及新增
+Work Log edit/complete/delete。
+
+## Architecture boundaries
+
+1. `core/system/factory.py:create_system()` 与 `SystemContainer` 是唯一 Composition
+   Root。
+2. 所有入口使用同一个 container 中的 canonical services，不组装第二套 repository。
+3. `DailyReviewService` 继续无数据库、无事件、无 persistence、无 LLM、无写入、无
+   独立 lifecycle。
+4. Action Hint 只描述真实 allowed action；Action Execution 必须由 canonical domain
+   service 完成。
+5. 完整 `WorkspaceKey` 在 API、CLI、CEO Assistant、Review、hint 与 mutation 之间
+   一致传递。
+6. revision、idempotency、preview/confirm、Inbox durable claim/Saga 不能被绕过。
+7. Work Log 仍只有 create/get/list。
+8. 默认备份为停机后的完整 data directory 复制；不承诺在线跨库一致快照。
+
+## Implementation phases
+
+### Phase 0 — Product Entry and Lifecycle Gate
+
+只处理阻碍真实使用的入口与生命周期基础问题：
+
+- Local Daily Profile 与稳定绝对数据目录；
+- 完整 WorkspaceKey CLI 传递；
+- 非敏感最终配置展示与稳定配置失败；
+- API health/readiness/shutdown；
+- partial startup rollback；
+- 重复 shutdown 与当前双 Scheduler shutdown 调用的幂等证明；
+- Scheduler/Reminder/Inbox Saga/Waiting-For 新进程恢复；
+- 防止数据目录调整静默遗弃旧数据。
+
+Phase 0 未通过不得进入 Phase 1。
+
+### Phase 1 — Daily Review CLI
+
+仅实现：
+
+```powershell
+python -m cli daily-review --date today
+python -m cli daily-review --date yesterday
+python -m cli daily-review --date today --json
+```
+
+必须直接复用现有 `DailyReviewService.query_from_input()`、`get()` 与纯 Presenter。
+
+### Phase 2 — Deterministic Action Hints
+
+只实现 ADR-063 的纯 presentation model。不得执行、持久化、调用 LLM 或新增 Action
+数据库。
+
+### Phase 3 — Review-to-Action Entrypoint Closure
+
+只补齐真实动作矩阵中缺失的薄委托。不得复制领域 mutation、建立第二 Command Bus 或
+为 Work Log 发明新 mutation。
+
+### Phase 4 — Continuous Daily Acceptance
+
+冻结 Approved Implementation Head 后，使用真实 Windows 进程与真实 SQLite 执行
+ACC-020；验收使用 mock/test Provider，Provider calls 必须为 0。
+
+## Stop conditions
+
+- main 不再等于授权 Base，或存在未处理 Product PR；
+- 需要两个以上独立 Product SP；
+- 需要修改多个领域 schema、migration、Action/Review 数据库或 snapshot；
+- 需要 LLM 选择对象、动作或写入内容；
+- 需要绕过 WorkspaceKey、revision、idempotency、confirmation 或 Inbox Saga；
+- 需要 DailyReviewService / Presenter 写入；
+- 需要第二套 Command Bus 或大规模 CEO Assistant 重构；
+- 需要新增 Work Log mutation；
+- Scheduler restart 出现重复执行、丢失 job 或状态漂移；
+- Scheduler shutdown 幂等无法证明；
+- 数据目录变更可能静默丢弃旧数据；
+- 恢复需要在线跨库事务或一致快照；
+- Windows 无法稳定启动、停止和恢复。
+
+触发后只提交审计证据或 Blocking Finding，不得扩大实现。
+
+## Required tests
+
+每个实现 Phase 必须执行与变更风险相称的定向测试，并至少执行：
+
+```powershell
+python -m pytest tests/governance -q
+python -m pytest tests/core/test_version.py -q
+python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no
+python -m pytest tests -q --tb=no
+python -m ruff check <changed-python-files>
+python -m build
+git diff --check
+```
+
+不得删除测试、扩大 skip/xfail、放宽断言或用 product change 掩盖验收 driver/harness
+错误。真实 Provider 测试不属于普通门禁。
+
+## ACC-020
+
+正式验收定义见
+`docs/acceptance/SP-020-local-daily-operating-loop.md`。所有场景当前均为
+`PLANNING_BASELINE / NOT_EXECUTED`。Planning merge 不等于执行 ACC-020。
+
+## Release boundary
+
+```text
+Current Product Version:
+0.34.0 / UNCHANGED
+
+Target Version:
+0.35.0 candidate only
+
+Version change:
+NOT AUTHORIZED
+
+Tag:
+NOT AUTHORIZED / UNCHANGED
+
+GitHub Release:
+NOT AUTHORIZED / UNCHANGED
+```
+
+## Governance state
+
+```text
+SP-020 Planning Baseline:
+DEFINED / PENDING INDEPENDENT REVIEW
+
+SP-020 Implementation:
+NOT APPROVED / NOT STARTED
+
+ACC-020:
+PLANNING_BASELINE / NOT_EXECUTED
+```

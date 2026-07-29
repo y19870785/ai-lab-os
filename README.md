@@ -1,6 +1,9 @@
 # AI-Lab OS
 
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
+>
+> SP-020 已定义 Local Daily Operating Loop Planning Baseline；Implementation 未批准、
+> 未启动，ACC-020 未执行。当前产品行为仍以 SP-019 封存基线为准。
 
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
@@ -139,6 +142,8 @@ Governance
 - Knowledge 真实主链路、Web UI、Docker 受控 build/run 与长期稳定性尚未完成正式验证。
 - 普通 GitHub Quality Gate 显式排除 `tests/real`；真实 Provider 结果不能由普通门禁推导。
 - CI-002 与 QUALITY-001 等已确认技术债记录在 `project_state.json`。
+- SP-020 规划所针对的当前缺口仍存在：没有正式 Daily Review CLI、稳定绝对数据目录的
+  Local Daily Profile、确定性 Action Hint，以及 restart/静止备份/隔离恢复正式验收。
 
 ## 开发与测试
 
@@ -163,6 +168,10 @@ python -m ruff check <changed-python-files>
 - [项目机器状态](project_state.json)：版本、已验证历史基线、当前 SP、质量门禁、技术债与稳定发布授权。
 - [项目大脑](docs/project/PROJECT_BRAIN.md)：长期架构事实与封存产品事实。
 - [Roadmap](docs/project/ROADMAP.md)：版本范围、里程碑与候选 SP。
+- [SP-020 Implementation Task](docs/project/SP-020-IMPLEMENTATION-TASK.md)：未来实现阶段、
+  停止条件与授权边界；当前未获 Implementation 授权。
+- [ACC-020](docs/acceptance/SP-020-local-daily-operating-loop.md)：本地日常闭环、
+  restart 与 Quiescent Backup/Restore 的未来验收合同；当前 NOT_EXECUTED。
 - [Changelog](CHANGELOG.md)：按产品版本记录用户可见变化。
 - [v0.34.0 Alpha Release Notes](docs/releases/v0.34.0-alpha.md)：本候选版本范围、升级说明与限制。
 - [Known Limitations](docs/project/KNOWN_LIMITATIONS.md)：当前限制的可读汇总。

@@ -12,7 +12,7 @@
 | Latest Completed SP | SP-019 |
 | Current Product SP | None |
 | Current Governance Task | None |
-| Next Candidate SP | None |
+| Next Candidate SP | SP-020 — Local Daily Operating Loop & Review-to-Action Closure |
 | SP-014 | APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-014B | APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED |
 | ACC-014 | PASSED / FINAL（A～L 全部通过） |
@@ -33,12 +33,21 @@
 | RFC-028 | Adopted |
 | ADR-061 / ADR-062 | Accepted |
 | ACC-019 | PASSED / FINAL（A～M 全部通过） |
+| SP-020 | PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| RFC-029 | Proposed / Planning Baseline |
+| ADR-063 / ADR-064 | Proposed / Planning Baseline |
+| ACC-020 | PLANNING_BASELINE / NOT_EXECUTED（A～V 均未执行） |
 
 根目录 `project_state.json` 是唯一机器可读仓库治理状态与稳定发布授权源；本页是便于人工阅读的摘要。当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在治理文件中维护自指的 current-main 镜像；运行时产品版本仍只来自 `pyproject.toml`。
 
 ## Product baseline
 
 v0.34.0 Alpha 之上的 v0.35 开发线已合并 canonical Work Log 与 Daily Review。Daily Review 通过唯一 `DailyReviewService` 确定性聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox，并由 API、CEO Assistant 和兼容 `/brief` 共用；ACC-019 A～M 与 post-merge verification 均已通过。
+
+SP-020 已建立 Planning Baseline，方向为 Windows Local Daily Profile、直接复用现有
+`DailyReviewService` 的正式 CLI、纯确定性 Action Hint、canonical
+Review-to-Action 委托，以及 restart / Quiescent Backup / isolated restore 验收。
+这不是 Implementation 授权；Current Product SP 与 Current Governance Task 仍为 None。
 
 SP-014 通过 PR #32 合并，SP-014B 通过 PR #33 合并，最终治理对账通过 PR #34 合并。ACC-014 的场景 A～L 均为 PASSED，场景 K 的中文小时兼容缺口已由 SP-014B 修复并在 main 复验。
 
@@ -66,4 +75,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 None。SP-019 已合并、通过 ACC-019 A～M 与 post-merge Quality Gate、完成治理对账并封存。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。
+Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。SP-020 为 `PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。
