@@ -14,7 +14,7 @@ Planning Branch:
 docs/sp-020-local-daily-operating-loop-planning
 
 Planning PR:
-TBD — assigned by GitHub when the Draft Planning PR is created
+#53 (Draft)
 
 Suggested Future Implementation Branch:
 feat/sp-020-local-daily-operating-loop
