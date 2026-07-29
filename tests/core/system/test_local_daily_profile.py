@@ -8,6 +8,8 @@ import pytest
 
 from core.system.settings import load_system_settings
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 def _profile_env(monkeypatch, tmp_path: Path) -> None:
     values = {
@@ -99,3 +101,15 @@ def test_empty_profile_keeps_legacy_defaults(monkeypatch, tmp_path):
     )
     assert settings.profile_name == ""
     assert settings.data_dir == (tmp_path / "data").resolve()
+
+
+def test_local_daily_startup_script_supports_windows_powershell() -> None:
+    script = (PROJECT_ROOT / "scripts" / "start-local-daily.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "$PSScriptRoot" in script
+    assert "IsPathRooted($env:AI_LAB_PYTHON)" in script
+    assert "GetFullPath($env:AI_LAB_PYTHON, $ProjectRoot)" not in script
+    assert "--require-local-daily" in script
+    assert "--host 127.0.0.1" in script
