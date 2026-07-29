@@ -7,6 +7,8 @@
 - 将仓库自有 Markdown 的标题、普通叙述与治理提示统一为中文，同时保留代码、命令、API、字段、状态值与历史证据。
 - 新增确定性治理门禁，检查清单完整性、中文一级标题、长篇纯英文叙述、未完成翻译标记与相对链接。
 - 本任务不修改产品代码、Schema、依赖、CI、版本、Tag 或 Release，也不授权或启动 SP-020 产品实施。
+- DOCS-001 已通过独立审查；Approved Head `d7a6662dddaac87b41562e2348f69e04112b2be4` 由 PR #55 Squash Merge 为 `2d04f1b8574fde43b1d64a53d1ad22573073a4ef`，合并时间为 `2026-07-29T14:43:26Z`。
+- 合并后的 main Quality Gate run `30462290819` 为 SUCCESS；DOCS-001 已完成治理对账并封存，版本 `0.34.0`、Tag 与 Release 保持不变。
 
 ### SP-020 本地每日运行闭环规划基线
 - 定义 Windows Local Daily Profile、稳定绝对数据目录、显式 timezone/Provider/feature/auth 配置与 localhost 启动边界。

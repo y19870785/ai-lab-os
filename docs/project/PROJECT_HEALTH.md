@@ -5,7 +5,7 @@
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前没有 Product SP；当前 Governance Task 是 DOCS-001。下一候选 SP-020 仅完成 Planning Baseline，Implementation 未批准、未启动。这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前没有 Product SP，也没有 Governance Task。DOCS-001 已通过独立审查、合并、main Quality Gate、对账并封存。下一候选 SP-020 仅完成 Planning Baseline，Implementation 未批准、未启动。这些能力不等同于生产级多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -20,8 +20,10 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | SP-019 reconciliation merge main | `934075ceefe39ede3c624b621b7673d62f6d06dd` / run `30387237549` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
-| Current governance task | DOCS-001 |
-| DOCS-001 | IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN |
+| Current governance task | None |
+| DOCS-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / RECONCILED / ARCHIVED |
+| DOCS-001 merge | PR #55 / `2d04f1b8574fde43b1d64a53d1ad22573073a4ef` / `2026-07-29T14:43:26Z` |
+| DOCS-001 main Quality Gate | run `30462290819` / SUCCESS |
 | Next candidate | SP-020 / Planning Baseline approved, merged and reconciled |
 | SP-020 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 | ACC-020 | PLANNING_BASELINE / NOT_EXECUTED |

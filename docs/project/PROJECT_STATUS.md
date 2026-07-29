@@ -11,9 +11,9 @@
 | 最近合并的 SP | SP-019 |
 | 最近完成的 SP | SP-019 |
 | 当前 Product SP | None |
-| 当前治理任务 | DOCS-001 |
+| 当前治理任务 | None |
 | 下一候选 SP | SP-020 — Local Daily Operating Loop & Review-to-Action Closure |
-| DOCS-001 | IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN |
+| DOCS-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / RECONCILED / ARCHIVED |
 | SP-014 | APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-014B | APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED |
 | ACC-014 | PASSED / FINAL（A～L 全部通过） |
@@ -48,7 +48,14 @@ v0.34.0 Alpha 之上的 v0.35 开发线已合并 canonical Work Log 与 Daily Re
 SP-020 已建立 Planning Baseline，方向为 Windows Local Daily Profile、直接复用现有
 `DailyReviewService` 的正式 CLI、纯确定性 Action Hint、canonical
 Review-to-Action 委托，以及 restart / Quiescent Backup / isolated restore 验收。
-这不是 Implementation 授权；Current Product SP 仍为 None，Current Governance Task 为 DOCS-001。
+这不是 Implementation 授权；Current Product SP 仍为 None，Current Governance Task 为 None。
+
+DOCS-001 已通过独立审查。Approved Head
+`d7a6662dddaac87b41562e2348f69e04112b2be4` 由 PR #55 Squash Merge 为
+`2d04f1b8574fde43b1d64a53d1ad22573073a4ef`，合并时间
+`2026-07-29T14:43:26Z`；main Quality Gate run `30462290819` 为 SUCCESS。
+该任务覆盖 176 个 Git 跟踪 Markdown 文件，并建立语言政策、完整清单、统一术语表
+与自动化治理门禁；现已完成对账并封存。
 
 SP-014 通过 PR #32 合并，SP-014B 通过 PR #33 合并，最终治理对账通过 PR #34 合并。ACC-014 的场景 A～L 均为 PASSED，场景 K 的中文小时兼容缺口已由 SP-014B 修复并在 main 复验。
 
@@ -76,4 +83,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 None，Current Governance Task 为 DOCS-001，Next Candidate SP 为 SP-020。SP-020 Planning Baseline 已通过独立审查，并由 PR #53 Squash Merge 至 main `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`；main Quality Gate `30441534383` 为 SUCCESS。Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。
+Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。DOCS-001 已独立审查通过、合并、完成 main Quality Gate、对账并封存。SP-020 Planning Baseline 已通过独立审查，并由 PR #53 Squash Merge 至 main `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`；main Quality Gate `30441534383` 为 SUCCESS。Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。
