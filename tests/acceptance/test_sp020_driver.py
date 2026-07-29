@@ -215,6 +215,7 @@ def test_driver_rejects_head_and_driver_hash_mismatch(tmp_path, monkeypatch):
     )
     monkeypatch.setenv("AI_LAB_PROVIDER_MODE", "test")
     monkeypatch.setenv("AI_LAB_API_TOKEN", "token")
+    monkeypatch.setattr(driver, "_is_windows", lambda: True)
     with pytest.raises(driver.HarnessError, match="driver SHA-256 mismatch"):
         driver.validate_harness(args, DRIVER)
 
@@ -232,6 +233,7 @@ def test_driver_rejects_missing_secret(tmp_path, monkeypatch):
         evidence_dir=(tmp_path / "evidence").resolve(),
         api_port=_free_port(),
     )
+    monkeypatch.setattr(driver, "_is_windows", lambda: True)
     with pytest.raises(driver.HarnessError, match="API token"):
         driver.validate_harness(args, DRIVER)
 
