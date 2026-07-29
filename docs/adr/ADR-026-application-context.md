@@ -1,9 +1,9 @@
-﻿# ADR-026: Application Context Design
+# ADR-026：Application Context 设计
 
 **Date:** 2026-07-13
 **Status:** Accepted
 
-## Decision
+## 决策
 
 所有 Application 请求通过 `ApplicationContext` 统一携带隔离信息（WorkspaceKey），不通过全局变量或线程局部存储。
 

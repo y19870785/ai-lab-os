@@ -1,12 +1,22 @@
-# ADR-012: Pipeline Architecture for Knowledge Ingestion
+# ADR-012：Knowledge 摄取管线架构
 
-## Status
-Accepted (2026-07-12)
+## 状态
 
-## Decision
-Knowledge ingestion uses a Pipeline Architecture: Reader -> Cleaner -> Normalizer -> Metadata Extractor -> Chunker -> Embedding -> Vector Store. Each step is plug-in and independently testable.
+Accepted（2026-07-12）
 
-## Rationale
-- Monolithic ingest() is not extensible
-- Each step should be swappable without touching others
-- New parsers (PDF, HTML) plug in as Reader implementations
+## 决策
+
+Knowledge 摄取采用 Pipeline Architecture：
+
+```text
+Reader -> Cleaner -> Normalizer -> Metadata Extractor
+-> Chunker -> Embedding -> Vector Store
+```
+
+每一步都可插拔并可独立测试。
+
+## 理由
+
+- 单体 `ingest()` 难以扩展；
+- 每一步都应在不修改其他步骤的情况下替换；
+- PDF、HTML 等新解析器可作为 Reader 实现接入。

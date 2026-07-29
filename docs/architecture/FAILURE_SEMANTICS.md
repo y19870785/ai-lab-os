@@ -31,7 +31,7 @@ retryable, severity, trace_id, cause_type, details
 
 `retryable=True` 只表示调用方可以根据策略重试，不表示运行时已经自动重试。超时、短暂不可用和部分依赖故障通常可重试；校验错误、权限错误、冲突和缺少配置默认不可重试。
 
-## Agent
+## Agent 智能体
 
 Agent 失败返回 `status=failed`、空 `answer` 和结构化 `failure`，Runtime 生命周期从 `RUNNING` 进入 `ERROR`。主要错误码包括：
 
@@ -47,19 +47,19 @@ LLM 已成功回答但 Memory 保存失败时，回答保留，状态为 `degrad
 
 请求级能力开关是强契约：当请求启用 Memory、Knowledge 或 Tool 时，对应 Manager、Registry 或 Executor 必须已经配置；否则返回 `failed + FailureInfo`。只有请求显式将对应开关设为 `false` 时才允许跳过。
 
-## Task
+## Task 任务
 
 每个 Workflow 使用独立 attempt 循环。`max_retries=N` 表示首次执行后最多再重试 N 次。Retry 事件记录当前 `attempt`、`next_attempt` 和 `max_attempts`。达到上限后立即 fail-fast，不继续后续 Workflow。
 
 空计划默认返回 `task.plan.empty`；完成态的 `errors` 必须为空；失败或超时态必须携带 `FailureInfo`。Checkpoint 只在 Workflow 真正完成后推进索引，因此不会跳过失败步骤或重复已完成步骤。
 
-## Scheduler
+## Scheduler 调度器
 
 Scheduler 保存最近 tick 时间、最近成功 tick、最近失败、连续失败数和后台 Job task 集合。成功 tick 清零连续失败；失败达到配置阈值后进入 `failed`，阈值前进入 `degraded`。
 
 后台 task 必须被持有、观察异常并在 shutdown 时等待或取消。关闭顺序为停止 tick、阻止新任务、收集后台任务、发布关闭事件、关闭 Persistence。
 
-## API
+## API 入口
 
 统一错误响应：
 

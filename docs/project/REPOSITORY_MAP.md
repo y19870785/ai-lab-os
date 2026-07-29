@@ -32,7 +32,7 @@
 
 ## 核心模块入口
 
-| 模块 | Manager/Runtime | Protocol | Registry |
+| 模块 | 管理器/运行时 | 协议 | 注册表 |
 |---|---|---|---|
 | Memory | `core/memory/manager.py` | `core/memory/protocol.py` | — |
 | Knowledge | `core/knowledge/manager.py` | `core/knowledge/protocol.py` | — |
@@ -103,7 +103,7 @@
 
 ## Demo 入口
 
-| Demo | 路径 |
+| 演示 | 路径 |
 |---|---|
 | Enterprise Assistant | `examples/enterprise_assistant/` |
 | Daily Assistant | `examples/daily_assistant/` |

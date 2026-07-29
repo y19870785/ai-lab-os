@@ -1,4 +1,4 @@
-# AI-Lab OS
+# AI-Lab OS 中文使用说明
 
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
@@ -77,7 +77,7 @@ python -m pip install -e .
 
 ## 运行 Profile
 
-| Profile | 用途 | 关键边界 |
+| 配置（Profile） | 用途 | 关键边界 |
 |---|---|---|
 | Minimal Core | Core、Memory 与基础 Runtime 开发 | 不自动安装 API、真实 Provider 或 Knowledge 大型依赖 |
 | Local | API、CLI、Mock Provider、测试和构建 | 推荐的本地开发组合 |
@@ -165,6 +165,9 @@ python -m ruff check <changed-python-files>
 
 ## 文档导航
 
+- [文档政策](docs/project/DOCUMENTATION_POLICY.md)：简体中文主要叙述语言、技术标识、原始证据、链接与例外管理规则。
+- [Markdown 文档清单](docs/project/MARKDOWN_INVENTORY.md)：全部 Git 跟踪 Markdown 的范围、初始语言和最终治理状态。
+- [统一术语表](docs/project/TERMINOLOGY_GLOSSARY.md)：中英文术语、技术标识与适用语境。
 - [项目机器状态](project_state.json)：版本、已验证历史基线、当前 SP、质量门禁、技术债与稳定发布授权。
 - [项目大脑](docs/project/PROJECT_BRAIN.md)：长期架构事实与封存产品事实。
 - [Roadmap](docs/project/ROADMAP.md)：版本范围、里程碑与候选 SP。

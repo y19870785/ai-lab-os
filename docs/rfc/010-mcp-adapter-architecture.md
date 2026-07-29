@@ -1,4 +1,4 @@
-﻿# RFC-010: MCP Adapter Architecture
+# RFC-010：MCP 适配器架构
 
 **状态：** Accepted
 **版本：** v0.19.0

@@ -1,4 +1,4 @@
-﻿# ADR-019: Tool Invocation Pipeline
+# ADR-019：Tool 调用管线
 
 **状态：** Accepted
 **版本：** v0.19.0

@@ -1,4 +1,4 @@
-# ADR-030：Canonical UserTask Domain
+# ADR-030：规范 UserTask 领域
 
 ## 状态
 

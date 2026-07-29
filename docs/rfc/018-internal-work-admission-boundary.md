@@ -1,101 +1,125 @@
-# RFC-018: Internal Work Admission Boundary
+# RFC-018：内部工作准入边界
 
-## Status
+## 状态
 
 Adopted
 
-## Adoption Record
+## 采用记录
 
-- Implemented by SP-008
-- Merged via PR #16
-- Approved Head: `536d1563baaecf5d50eeefc93dfdb0dbbfe3c659`
-- Merge Commit: `1858d4991379058948559cc96e2672df44e42b67`
-- Adoption Date: 2026-07-16
+- 由 SP-008 实现；
+- 通过 PR #16 合并；
+- Approved Head：`536d1563baaecf5d50eeefc93dfdb0dbbfe3c659`；
+- Merge Commit：`1858d4991379058948559cc96e2672df44e42b67`；
+- Adoption Date：2026-07-16。
 
-## Context
+## 背景
 
-SP-007 rejects new FastAPI business requests after the system leaves `READY`, but direct process-internal calls could still enter `ApplicationRuntime`, `CEOAssistant`, or Scheduler dispatch without the FastAPI dependency. SP-008 closes that gap without adding a second lifecycle truth.
+SP-007 在系统离开 `READY` 后拒绝新的 FastAPI 业务请求，但进程内直接调用仍可绕过
+FastAPI Dependency 进入 `ApplicationRuntime`、`CEOAssistant` 或 Scheduler dispatch。
+SP-008 在不新增第二个生命周期权威来源的前提下关闭该缺口。
 
-## Goals
+## 目标
 
-- Reuse `SystemContainer` lifecycle states and SP-007 `FailureInfo` codes.
-- Check new internal work once at its outermost canonical boundary.
-- Preserve work accepted before the transition to `DRAINING`.
-- Fail construction when a production entrypoint lacks admission injection.
+- 复用 `SystemContainer` Lifecycle State 与 SP-007 `FailureInfo` code；
+- 只在最外层 canonical boundary 检查一次新工作；
+- 保留转换到 `DRAINING` 前已接受的工作；
+- 生产入口缺少准入注入时构造失败。
 
-## Non-goals
+## 非目标
 
-- In-flight counters, drain timeouts, forced cancellation, or waiting for all work.
-- Gates on initialization, shutdown, health, diagnostics, persistence, or cleanup.
-- New product behavior, database changes, or distributed admission.
+- In-flight counter、drain timeout、强制取消或等待全部工作；
+- Initialization、Shutdown、Health、Diagnostics、Persistence 或 Cleanup Gate；
+- 新产品行为、数据库变更或 Distributed Admission。
 
-## Audit Findings
+## 审计结论
 
-| Path | Classification | Decision |
-|---|---|---|
-| `ApplicationRuntime.execute()` | Direct application work | Canonical gated entrypoint |
-| `CEOAssistant.run()` | Direct assistant work | Gated; nested runtime dispatch reuses accepted scope |
-| CLI one-shot and interactive commands | New user work | Covered through `ApplicationRuntime.execute()` |
-| Scheduler `_tick()` claim/dispatch | Background producer | Gated before claim and task creation |
-| Task/Workflow/Agent execution | Accepted downstream work | No repeated gate |
-| Reminder Bridge API operations | API-admitted work | No repeated gate |
-| Reminder Scheduler handler | Scheduler-admitted work | No repeated gate |
-| Recovery, migration, health, start, shutdown | System operation | Excluded |
-| Alpha Assistant direct invocation | Prototype outside production composition | Excluded until it becomes a registered product entrypoint |
+| 路径 | 分类 | 决策 |
+| --- | --- | --- |
+| `ApplicationRuntime.execute()` | 直接 Application 工作 | canonical gated entrypoint |
+| `CEOAssistant.run()` | 直接 Assistant 工作 | 经过 Gate，嵌套 Runtime dispatch 复用 scope |
+| CLI 单次与交互命令 | 新用户工作 | 通过 `ApplicationRuntime.execute()` 覆盖 |
+| Scheduler `_tick()` claim/dispatch | 后台 Producer | Claim 与创建 Task 前经过 Gate |
+| Task/Workflow/Agent execution | 已接受下游工作 | 不重复 Gate |
+| Reminder Bridge API operation | API 已准入工作 | 不重复 Gate |
+| Reminder Scheduler handler | Scheduler 已准入工作 | 不重复 Gate |
+| Recovery、Migration、Health、Start、Shutdown | 系统操作 | 排除 |
+| Alpha Assistant 直接调用 | 生产组合外 Prototype | 注册为产品入口前排除 |
 
-## Canonical Work Entrypoints
+## 规范工作入口
 
-The included boundaries are `ApplicationRuntime.execute()`, direct `CEOAssistant.run()`, and Scheduler due-job dispatch. CLI commands do not own a second gate because every business command invokes the shared `ApplicationRuntime` instance.
+纳入边界的是 `ApplicationRuntime.execute()`、直接 `CEOAssistant.run()` 和 Scheduler
+due-job dispatch。CLI 不拥有第二个 Gate，因为每个业务命令都调用共享
+`ApplicationRuntime`。
 
-## Admission Ownership
+## 准入所有权与依赖注入
 
-`WorkAdmissionGate` owns admission semantics and reads the same `LifecycleStateMachine` instance held by `SystemContainer`. `SystemContainer.ensure_accepting_work()` delegates to this gate, so API and internal callers share one failure contract.
+`WorkAdmissionGate` 拥有准入语义，读取 `SystemContainer` 持有的同一个
+`LifecycleStateMachine`。`SystemContainer.ensure_accepting_work()` 委托该 Gate，因此
+API 与内部调用方共享一个 Failure 合同。
 
-## Dependency Injection Strategy
+组合根在构造 Runtime 前创建一个 Lifecycle 与一个 Gate，并显式注入
+`ApplicationRuntime`、`CEOAssistant`、Scheduler 与 `SystemContainer`。生产构造缺少
+Dependency 时失败；独立测试使用显式 test-only permissive admission object。
 
-The Composition Root constructs one lifecycle and one gate before runtime construction. `ApplicationRuntime`, `CEOAssistant`, Scheduler, and `SystemContainer` receive that gate explicitly. Their constructors require the dependency, so production omission fails during construction. Standalone tests use an explicit test-only permissive admission object.
+`core.system` 使用 lazy public export 避免
+`applications.runtime -> core.system.admission -> core.system.__init__` Import Cycle。
 
-`core.system` uses lazy public exports to avoid the concrete `applications.runtime -> core.system.admission -> core.system.__init__` import cycle while preserving the existing public import surface. A regression test imports all five supported public symbols together.
+## 已接受工作的语义
 
-## Accepted-work Semantics
+`WorkAdmissionGate.admit()` 创建与当前 `asyncio.Task` Identity 绑定的 capability。同一
+Task 的嵌套调用复用 Scope，不重新读取 Lifecycle。外层在 `READY` 通过后，即使状态转到
+`DRAINING`，同一工作的后续调用也不会被拒绝。
 
-`WorkAdmissionGate.admit()` creates an accepted-work capability bound to the identity of the current `asyncio.Task`. Nested calls in that same Task reuse the scope and do not re-read lifecycle. When an outer call passes in `READY`, a later transition to `DRAINING` does not reject that already accepted same-work continuation.
+复制 Context 不会授予准入。普通 `asyncio.create_task()` 可能复制 `ContextVar`，但 Task
+Identity 不匹配 Owner；它调用 canonical entrypoint 时仍被视为新工作并重新检查状态。
 
-Context copying alone never grants admission. A normal `asyncio.create_task()` may copy the ContextVar value, but its Task identity does not match the scope owner, so any canonical entrypoint call is classified as new work and checks the current lifecycle again. A detached child that starts new work after its parent scope ends is therefore rejected during `DRAINING`.
+Scheduler 是狭窄例外：due job 准入并 claim 后，使用 `spawn_accepted_task()` 为执行 Task
+创建显式所有权 capability。其他 Producer 不获得隐式 Child Task propagation。
 
-Scheduler is the narrow exception: after a due job is admitted and claimed, it uses `spawn_accepted_task()` to create the execution Task with a new capability explicitly owned by that Task. No other producer receives implicit child-task propagation.
+## Scheduler 与 Reminder 边界
 
-## Scheduler and Reminder Boundary
+Scheduler 在 Claim due job 或创建后台 Task 前检查准入。生命周期拒绝会结束该 Tick，
+且不 Claim、不持久化 Run、不调用 Handler、不发布 work-started Event。准入后只有
+Scheduler 使用 `spawn_accepted_task()`。Reminder Bridge 没有后台 Tick；API operation
+沿用 API 准入，Reminder handler 在 Scheduler 拥有的 accepted Task 内执行。
 
-Scheduler checks admission before a due job is claimed or a background execution task is created. A lifecycle rejection ends that tick without claiming, persisting a run, invoking a handler, or publishing a work-started event. After admission, Scheduler alone uses `spawn_accepted_task()` for the owned job continuation. Reminder Bridge owns no background tick; API operations remain API-admitted and reminder handler execution runs inside the Scheduler-owned accepted task.
+## 失败传播
 
-## Failure Propagation
+内部调用方收到原始 `FailureException`，Code 集中定义：
 
-Internal callers receive the original `FailureException`. Codes remain centralized:
+- `CREATED` / `STARTING`：`system.not_ready`；
+- `DRAINING`：`system.draining`；
+- `STOPPED`：`system.stopped`；
+- `FAILED`：`system.failed`。
 
-- `CREATED` / `STARTING`: `system.not_ready`
-- `DRAINING`: `system.draining`
-- `STOPPED`: `system.stopped`
-- `FAILED`: `system.failed`
+全部使用 Category `unavailable`、Component `system.lifecycle`、Operation
+`admit_request` 和 `retryable=true`。
 
-All use category `unavailable`, component `system.lifecycle`, operation `admit_request`, and `retryable=true`.
+## 已考虑的替代方案
 
-## Alternatives Considered
+- 在 API、Runtime、Assistant、Task 与 Workflow 层重复检查：拒绝，会在关闭开始后终止
+  已接受工作；
+- 将 `SystemContainer` 注入业务模块：拒绝，会形成宽依赖与构造 Cycle；
+- 使用调用方控制的 Metadata Flag：拒绝，会导致意外绕过准入。
 
-- Repeating a check in API, runtime, assistant, task, and workflow layers was rejected because it can terminate already accepted work after shutdown starts.
-- Injecting `SystemContainer` into business modules was rejected because it creates a broad dependency and a construction cycle.
-- Passing a caller-controlled metadata flag was rejected because it permits accidental admission bypass.
+## 兼容性
 
-## Compatibility
+SP-007 HTTP 503、`Retry-After: 1`、公开 Health Endpoint、API Authentication 和 CORS
+保持不变。本文记录的历史产品版本为 `0.33.0`。
 
-SP-007 HTTP 503 behavior, `Retry-After: 1`, public health endpoints, API authentication, and CORS behavior remain unchanged. Product version remains `0.33.0`.
+FastAPI 业务路由通过 `get_system()` 解析 `ApplicationRuntime`，先执行 API Lifecycle
+检查；`ApplicationRuntime.execute()` 再在实际工作边界检查，从而关闭 Dependency 到
+Execution 的 Race。准入后，下游同一 Task 复用 capability。
 
-FastAPI business routes resolve `ApplicationRuntime` through `get_system()`, which performs the API-level lifecycle check. `ApplicationRuntime.execute()` checks again at the actual work boundary, intentionally closing the dependency-to-execution race; once admitted, downstream same-Task calls reuse the capability. No business route may import an unguarded system or runtime resolver.
+## 测试策略
 
-## Testing Strategy
+测试覆盖所有 Lifecycle State、完整 `FailureInfo`、同一 Task exact-once nesting、
+detached child isolation、已准入 in-flight completion、Scheduler claim/run rejection、
+真实组合根 Identity Wiring、FastAPI Resolver allowlist、公开 `core.system` Import、
+API/Security Regression、Lifecycle Regression 与完整测试套件。
 
-Tests cover all lifecycle states, complete `FailureInfo`, exact-once same-Task nesting, detached child isolation, accepted in-flight completion, persisted Scheduler claim/run rejection, real Composition Root identity wiring, FastAPI resolver allowlisting, public `core.system` imports, API/security regression, lifecycle regression, and the full suite.
+## 已知限制
 
-## Known Limitations
-
-There is still no process-wide in-flight counter, drain timeout, forced cancellation, multi-process admission coordination, or zero-downtime guarantee. `spawn_accepted_task()` remains limited to Scheduler-owned continuation. The Alpha Assistant prototype, recovery, and migration policy remain explicitly outside this work-admission boundary.
+仍无进程级 in-flight counter、drain timeout、强制取消、多进程准入协调或零停机保证。
+`spawn_accepted_task()` 仅限 Scheduler-owned continuation；Alpha Assistant Prototype、
+Recovery 与 Migration Policy 明确不在该边界。

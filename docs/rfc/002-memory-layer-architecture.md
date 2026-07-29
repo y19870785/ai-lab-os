@@ -1,8 +1,8 @@
-﻿# RFC-002: Memory Layer Architecture
+# RFC-002：记忆层架构
 
-## Metadata
+## 元数据
 
-| Field        | Value                                |
+| 字段 | 值 |
 | ------------ | ------------------------------------ |
 | **RFC 编号** | 002                                  |
 | **标题**     | Memory Layer 架构设计                  |
@@ -33,7 +33,7 @@ Core Layer         Memory Layer          Knowledge Layer
 
 从另一个维度看，Memory Layer 是 AI-Lab 的"记忆系统"，类比人类记忆的分层模型：
 
-| 记忆类型     | 对应层      | 特征                       | 实现技术               |
+| 记忆类型 | 对应层 | 特征 | 实现技术 |
 | ------------ | ----------- | -------------------------- | ---------------------- |
 | 工作记忆     | Core 短期   | 当前会话上下文，易失         | Redis / 内存 Dict      |
 | 情景记忆     | Memory      | 历史会话、交互记录，可检索   | Vector DB + SQL        |
@@ -279,7 +279,7 @@ class DecisionOutcome(str, Enum):
 
 **与 Episodic Memory 的区别**：
 
-| 维度         | Episodic Memory          | Decision Memory          |
+| 维度 | 情景记忆 | 决策记忆 |
 | ------------ | ------------------------ | ------------------------ |
 | 记录粒度     | 整次交互（对话/任务）      | 单个决策点                |
 | 内容核心     | 对话内容、任务上下文       | 推理链、备选方案、选择理由 |
@@ -290,7 +290,7 @@ class DecisionOutcome(str, Enum):
 
 **与 Knowledge Layer DecisionKnowledge 的边界**：
 
-| 维度         | Decision Memory（系统记忆）   | DecisionKnowledge（外部知识）  |
+| 维度 | Decision Memory（系统记忆） | DecisionKnowledge（外部知识） |
 | ------------ | --------------------------- | ----------------------------- |
 | 创建者       | 系统自动记录                  | 用户手动管理                   |
 | 生命周期     | 受遗忘策略管理（自动衰减删除）   | 用户决定保留与否                |
@@ -495,7 +495,7 @@ relation 表：id, source_id, target_id, relation_type, weight, properties(JSON)
 
 ## 5. 影响分析
 
-| 维度       | 影响说明                                         |
+| 维度 | 影响说明 |
 | ---------- | ------------------------------------------------ |
 | 性能       | 记忆检索增加 Agent 启动延迟（~50-200ms 向量检索）；Consolidation 为后台异步任务 |
 | 存储       | 新增向量存储（Chroma 本地文件）；SQLite 语义存储；Redis 可选用于会话记忆 |
@@ -516,7 +516,7 @@ relation 表：id, source_id, target_id, relation_type, weight, properties(JSON)
 7. 更新 `config/default.yaml`：加入 Memory 配置段
 8. 编写 Memory Layer 单元测试
 
-### Phase 1.2b：Semantic Memory + Consolidation
+### 阶段 1.2b：语义记忆 + 整合
 
 1. 实现 `semantic.py`：基于 SQLite 的 Entity-Relation 存储
 2. 实现 `consolidation.py`：记忆整合引擎（摘要聚合 + 重要性衰减 + 遗忘执行）

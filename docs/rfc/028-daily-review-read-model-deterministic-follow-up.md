@@ -1,4 +1,4 @@
-# RFC-028 — Daily Review Read Model & Deterministic Follow-up View
+# RFC-028：每日复盘读取模型与确定性跟进视图
 
 Status: Adopted
 Date: 2026-07-26
@@ -193,7 +193,7 @@ relevant_time_fields
 
 日期事实只在相关事实时间位于 `[period_start, period_end)` 时进入相应 section：
 
-| Source fact | Section | reason_code | effective_at |
+| 来源事实 | 分区 | reason_code | effective_at |
 |---|---|---|---|
 | Work Log `completed` | completed | `work_log.completed` | `occurred_at` |
 | Work Log `in_progress` | in_progress | `work_log.in_progress` | `occurred_at` |
@@ -224,7 +224,7 @@ predicate=status pending at as_of
 
 首版只允许以下候选：
 
-| reason_code | Deterministic predicate | Severity |
+| reason_code | 确定性谓词 | 严重程度 |
 |---|---|---:|
 | `user_task.overdue` | active 且 `due_at < as_of` | 10 |
 | `user_task.due_soon` | active 且 `as_of <= due_at < as_of + 24h` | 40 |
@@ -313,7 +313,7 @@ not_configured
 
 已启用来源发生 runtime error、数据完整性错误或 legacy projection failure 时，整份 Review fail closed，不返回看似完整的部分成功结果。
 
-| Code | Category | Meaning |
+| 代码 | 类别 | 含义 |
 |---|---|---|
 | `daily_review.unavailable` | DISABLED | 配置显式关闭 DailyReviewService |
 | `daily_review.unavailable` | NOT_CONFIGURED | Composition Root 未组合所需 DailyReviewService |

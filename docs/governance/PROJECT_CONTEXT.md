@@ -1,4 +1,4 @@
-﻿# AI-Lab Project Context
+# AI-Lab 项目上下文
 
 > AI-Lab 的长期状态文件。任何新的 AI Agent 或开发者读取此文件后，应能快速理解项目全貌。
 

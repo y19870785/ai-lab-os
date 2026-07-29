@@ -46,7 +46,7 @@ Coordination 是独立层。Tool Runtime 与 MCP Adapter 是 Agent/Provider 边�
 
 Supporting subsystems: Tool Runtime（Sandbox / Permissions / Audit）与 MCP Adapter（协议转换）。
 
-## Task Runtime
+## 任务运行时（Task Runtime）
 
 ```
 TaskRuntime
@@ -60,7 +60,7 @@ TaskRuntime
   └── EventBus Integration (9 种 Task 事件)
 ```
 
-## Scheduler Runtime
+## 调度运行时（Scheduler Runtime）
 
 ```
 SchedulerRuntime (Tick-loop)
@@ -72,7 +72,7 @@ SchedulerRuntime (Tick-loop)
   └── ReminderSchedulerBridge → reminders.db / reconciliation
 ```
 
-## Workflow Engine
+## 工作流引擎（Workflow Engine）
 
 ```
 WorkflowRuntime
@@ -98,6 +98,6 @@ SP-005 合并前的 Windows 本地完整验证为 `888 passed, 27 warnings in 45
 
 SP-008 合并前 Windows 本地 Python 3.12 验证为 `977 passed, 27 warnings in 49.17s`，零失败、零错误；这是历史记录，不是 GitHub Actions 或跨平台 CI 结果。
 
-## SP-009 Natural-Language Reminder Closure
+## SP-009 自然语言提醒闭环
 
 自然语言提醒闭环通过 Composition Root 注入 `TaskReminderIntentParser`、`Clock` 与 `NaturalLanguageReminderOrchestrator`，复用既有 Reminder Saga 和 Scheduler CAS/Occurrence 语义。站内聚合状态来自持久化组件。SP-009 已通过 PR #19 合并并完成对账：**APPROVED / MERGED / RECONCILED / ARCHIVED**；merge commit 为 `b1274d066cbc01053144cba8d5654a5f8c8a21da`。RFC-019 已 Adopted，ADR-039 与 ADR-040 已 Accepted。

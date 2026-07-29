@@ -18,7 +18,7 @@ SP-001 已通过 PR #1 合并到 `main`。`core.system.create_system()` 现为�
 
 `core/bootstrap.py` 仅是兼容包装器，不再保存另一套组装逻辑。
 
-## SystemContainer
+## SystemContainer 系统容器
 
 `core/system/container.py` 明确持有单进程内唯一的 EventBus、DatabaseManager、ProviderRegistry、ProviderFactory、LLM Provider、MemoryManager、KnowledgeManager、ToolRegistry、ToolExecutor、AgentRuntime、WorkflowRuntime、SchedulerRuntime、TaskRuntime、CoordinationRuntime、ApplicationRegistry、ApplicationRuntime 和 CEOAssistant。
 
@@ -54,7 +54,7 @@ EventBus → Providers → Memory Stores → Knowledge → Tools
 
 Knowledge、Scheduler、Coordination 当前默认 `disabled`，必须通过设置显式启用。禁用状态会出现在健康检查中，不会伪装为 `healthy`。
 
-## No Fake Success
+## 禁止虚假成功
 
 以下行为已从主链路移除：
 

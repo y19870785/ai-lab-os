@@ -1,12 +1,12 @@
-# ADR-053：Inbox Source and Workspace Boundary
+# ADR-053：Inbox Source 与 Workspace 边界
 
 Status: Accepted
 
-## Validation Record
+## 验证记录
 
 - Implemented by SP-014 and merged through PR #32 as `5bad5d412f9f2dabb158527a96c20c6e95e86d6e`.
-- ACC-014 verified API, CLI and CEO Assistant Composition Root integration, canonical default workspace behavior, list isolation, and denied cross-workspace get/resolve/dismiss operations without claim or target creation.
-- No known SP-014 blocking item remains; multi-user identity, RBAC and strong multi-tenant isolation remain out of scope.
+- ACC-014 已验证 API、CLI 与 CEO Assistant 的组合根集成、规范默认工作空间行为、列表隔离，以及跨工作空间 get/resolve/dismiss 被拒绝且不创建 claim 或目标对象。
+- 当前不存在已知的 SP-014 阻塞项；多用户身份、RBAC 与强多租户隔离仍不在范围内。
 
 ## 决策
 

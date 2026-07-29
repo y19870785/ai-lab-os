@@ -1,5 +1,14 @@
-# SR-001 - First Testable Product Slice Assessment
+# SR-001 — 首个可测试产品切片评估
 
+## 中文摘要
+
+SR-001 是 SP-009 启动前形成的独立历史评估证据。评估比较了自然语言 Task/Reminder 闭环、Work Log 查询闭环与 Daily Work Brief 三个候选方向，并建议优先选择 Candidate A：通过 CEO Assistant 把既有 UserTask、Reminder、Scheduler 与 Occurrence 接成可查询、可重启验证的用户流程。
+
+该评估只形成建议，没有启动 SP-009，也没有创建分支、PR 或产品实现。后续 SP 的真实生命周期以 `project_state.json` 和对应合并、验收记录为准。为保留独立审查原貌，下面的英文评估正文作为原始历史证据完整保留；其英文状态与建议不得解释为当前治理状态。
+
+## 原始独立评估证据
+
+~~~~text
 ## Executive Summary
 
 本评估基于 `main` commit `30cf12c794fe037e6e2372a2e1eead24d4af87f8`，产品版本为 `0.33.0`。审计结论如下：
@@ -179,7 +188,7 @@ flowchart TD
 - Reminder restart integration: real Composition Root, real SchedulerPersistence, real wait/tick, real restart and idempotency.
 - No test covers natural language -> UserTask -> Reminder -> Scheduler -> Occurrence -> user query.
 
-### Status
+### 状态
 
 `Implemented + partially Wired + partially Reachable + Persisted + Observable by IDs + Tested`, but **not end-to-end user-testable from one natural-language request**.
 
@@ -223,7 +232,7 @@ flowchart TD
 - `workspace_id`/tenant/namespace are not persisted or enforced for work logs. API `ChatRequest.session_id` is also not transferred to `ApplicationRequest.workspace_key`.
 - Existing `test_work_log_query` directly reads MemoryManager and counts rows; it is not a user query test.
 
-### Status
+### 状态
 
 Write path is `Implemented + Wired + Reachable + Persisted + Tested`. Query path is **Partial / not reliably Observable / not end-to-end verified / not user-testable**.
 
@@ -263,7 +272,7 @@ flowchart TD
 - Component tests manually assemble CEOAssistant with stores and permissive admission. No API/CLI Composition Root test verifies all brief sections together.
 - The existing `tests/applications/ceo_assistant/test_end_to_end.py` is a component integration test, not a user-level end-to-end test: it bypasses API/CLI, creates its own services and calls private `_handle_brief()`.
 
-### Status
+### 状态
 
 Manual brief is `Implemented + Wired + Reachable + source-data Persisted + immediately Observable + Tested`, but the target scheduled/persisted daily brief is **not end-to-end verified or complete**.
 
@@ -505,3 +514,4 @@ SP-009 - Natural-Language Reminder Closure with In-App Status
 ```
 
 SR-001 只形成建议。SP-009 尚未启动，无分支、无 PR、无实现。
+~~~~

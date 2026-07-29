@@ -5,9 +5,9 @@
 **Previous Tag:** `v0.33.0`
 **Authorized publication:** Tag `v0.34.0` / GitHub Pre-release
 
-## Current capability baseline
+## 当前能力基线
 
-| Capability | Governance contract | v0.34.0 source state |
+| 能力 | 治理合同 | v0.34.0 源码状态 |
 |---|---|---|
 | Canonical UserTask | SP-004 | Integrated / Verified |
 | Reminder / Scheduler Bridge | SP-005、SP-009～SP-011 | Integrated / Verified / Disabled by default |
@@ -18,15 +18,15 @@
 | Unified Inbox / Capture-to-Action | RFC-024 / ADR-052～053 | Integrated / Verified / ACC-014 passed |
 | Chinese numeral reminder hours | SP-014B | Integrated / Verified within documented deterministic scope |
 
-## Compatibility boundary
+## 兼容性边界
 
 v0.34.0 是从 v0.33.0 源码基线推进的治理与能力汇总，不引入数据库 schema 迁移，也不改变默认启用策略。既有 API、CLI 与 CEO Assistant 继续复用 Composition Root 和 canonical services。
 
 Reminder 中文小时仅支持今天/明天、明确上午/下午/晚上及一至十二小时，可复用既有半、一刻和数字分钟能力。复杂日期、模糊或相对时间、中文分钟、Recurring Reminder 与 LLM 时间解析不在范围内。
 
-## Runtime modules
+## 运行时模块
 
-| Module | Internal contract version | Minimum historical baseline |
+| 模块 | 内部合同版本 | 最低历史基线 |
 |---|---:|---|
 | Core / Database / Memory | 1.0 | v0.13.0 |
 | Provider / Knowledge | 1.0 | v0.15.0 / v0.16.0 |

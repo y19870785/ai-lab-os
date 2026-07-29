@@ -1,4 +1,4 @@
-# ADR-032：Reminder Effectively-Once Occurrence
+# ADR-032：提醒事项有效单次执行
 
 ## 状态
 

@@ -1,15 +1,15 @@
-# RFC-029 — Local Daily Operating Loop & Review-to-Action Closure
+# RFC-029：本地日常运行循环与复盘到行动闭环
 
-- Status: Adopted
-- SP: SP-020
-- Date: 2026-07-29
-- Base: `934075ceefe39ede3c624b621b7673d62f6d06dd`
-- Planning branch: `docs/sp-020-local-daily-operating-loop-planning`
-- Planning review: APPROVED
-- Planning PR: #53 / MERGED
-- Planning merge commit: `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`
-- Post-planning main Quality Gate: `30441534383` / SUCCESS
-- Implementation: NOT APPROVED / NOT STARTED
+- 状态：Adopted
+- SP：SP-020
+- 日期：2026-07-29
+- Base：`934075ceefe39ede3c624b621b7673d62f6d06dd`
+- 规划分支：`docs/sp-020-local-daily-operating-loop-planning`
+- 规划审查：APPROVED
+- 规划 PR：#53 / MERGED
+- 规划合并 Commit：`fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`
+- 规划后 main Quality Gate：`30441534383` / SUCCESS
+- 产品实施：NOT APPROVED / NOT STARTED
 
 ## 当前问题
 
@@ -62,7 +62,7 @@ Windows 本地日常运行合同。当前主要缺口不是新的领域模型，
 - FastAPI lifespan 为长运行 API 进程持有一个 `SystemContainer`；CLI 单次命令通常
   创建、启动并在 `finally` 中关闭一个独立 `SystemContainer`。
 
-### Daily Review
+### 每日复盘（Daily Review）
 
 - `DailyReviewService` 只读取五个 canonical service，不拥有数据库、EventBus、
   lifecycle、snapshot 或独立 persistence，也不调用 Provider / LLM。
@@ -94,7 +94,7 @@ Windows 本地日常运行合同。当前主要缺口不是新的领域模型，
 - 目前没有覆盖长时间运行、完整资源回收、进程级 restart recovery、完整 data
   directory 备份与隔离恢复的正式验收基线。
 
-## Local Daily Profile
+## 本地每日配置（Local Daily Profile）
 
 未来实现必须提供一个命名明确、可复现的 Windows Local Daily Profile。配置必须显式
 显示并固定：
@@ -127,7 +127,7 @@ Provider secret 只能显示“已配置/未配置”，不得回显值。
 配置错误必须转为稳定 `FailureInfo` 或明确的启动失败，不得自动选择其他数据目录、
 关闭 auth、启用 mock 或忽略无效 timezone。
 
-## Daily Review CLI
+## 每日复盘 CLI
 
 未来正式入口：
 
@@ -176,7 +176,7 @@ Hint 不调用 LLM、不自动选择动作、不执行动作、不持久化、�
 
 ### 当前真实动作矩阵
 
-| 对象 | ID | READ | WRITE | API | CLI | CEO Assistant | revision / idempotency / confirm |
+| 对象 | ID | READ | WRITE | API | CLI | CEO Assistant 入口 | revision / idempotency / confirmation 合同 |
 |---|---|---|---|---|---|---|---|
 | UserTask | `ut_...` | list/get | create/update/complete/cancel | `/tasks` | `task` 当前经 CEO Assistant | create/read/update/complete/cancel | update 当前接受调用方 `expected_revision`；complete/cancel 当前不接受调用方 revision；无通用客户端 idempotency；模糊自然语言 fail closed |
 | Reminder | `rem_...` | list/get/status/occurrences | create/reschedule/cancel | `/reminders` | `reminders`, `reminder-status`, `reminder-reschedule`, `reminder-cancel` | create/read/reschedule/cancel | reschedule 支持 expected revision；创建支持 idempotency key；写意图必须明确 |
@@ -328,26 +328,26 @@ Snapshot、LLM 自动建议并执行、在线跨库一致快照、集群/高可�
 
 ## 实施阶段
 
-### Phase 0 — Product Entry and Lifecycle Gate
+### 阶段 0 — 产品入口与生命周期门禁
 
 固定 Local Daily Profile、绝对数据目录、完整 WorkspaceKey、有效配置展示、health /
 readiness / shutdown、scheduler 幂等与 restart recovery。只有门禁通过才进入 Phase 1。
 
-### Phase 1 — Daily Review CLI
+### 阶段 1 — 每日复盘 CLI
 
 只建立直接调用现有 `DailyReviewService` 的 CLI。
 
-### Phase 2 — Deterministic Action Hints
+### 阶段 2 — 确定性操作提示
 
 只建立纯 presentation Action Hint，不执行动作。
 
-### Phase 3 — Review-to-Action Entrypoint Closure
+### 阶段 3 — 回顾到操作入口闭环
 
 只允许补齐 ACC-020 日常用户闭环实际需要的薄入口委托，不为入口对称性补齐所有领域
 动作，不复制领域业务逻辑，不追求 API、CLI、CEO Assistant 的完整矩阵对称，也不新增
 Work Log mutation。
 
-### Phase 4 — Continuous Daily Acceptance
+### 阶段 4 — 持续每日验收
 
 通过真实 Windows 进程、真实 SQLite、持续运行窗口、停止/重启、静止备份与隔离恢复
 执行 ACC-020。

@@ -1,4 +1,4 @@
-﻿# ADR-018: Adapter Pattern
+# ADR-018：Adapter 模式
 
 **状态：** Accepted
 **版本：** v0.19.0

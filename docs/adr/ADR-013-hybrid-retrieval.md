@@ -1,13 +1,18 @@
-# ADR-013: Hybrid Retrieval Strategy
+# ADR-013：混合检索策略
 
-## Status
-Accepted (2026-07-12)
+## 状态
 
-## Decision
-Use Hybrid Retrieval combining vector search (semantic) and keyword search (exact). Default weights: vector 0.7, keyword 0.3. Ranking further boosts freshness, importance, confidence. Future LLM reranker plugs into KnowledgeRanker.
+Accepted（2026-07-12）
 
-## Rationale
-- Vector-only misses exact keyword matches
-- Keyword-only lacks semantic understanding
-- Hybrid gives best of both worlds
-- LLM reranker is future work, not v0.15.0
+## 决策
+
+采用结合向量搜索（语义）与关键词搜索（精确）的混合检索。默认权重为向量 0.7、关键词
+0.3，并根据 freshness、importance 与 confidence 进一步调整排序。未来的 LLM reranker
+通过 `KnowledgeRanker` 接入。
+
+## 理由
+
+- 仅使用向量搜索可能漏掉精确关键词；
+- 仅使用关键词搜索缺少语义理解；
+- 混合检索兼顾两类能力；
+- LLM reranker 属于未来工作，不属于 v0.15.0。

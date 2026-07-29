@@ -1,4 +1,4 @@
-﻿# AI-Lab Architecture
+# AI-Lab 架构
 
 ## 整体架构
 
@@ -29,7 +29,7 @@
 
 ### 各层职责
 
-| 层级        | 职责                                 | 核心模块                                        |
+| 层级 | 职责 | 核心模块 |
 | ----------- | ------------------------------------ | ----------------------------------------------- |
 | Governance  | 跨层治理：定义规则和约束               | 6 个策略文件（开发/Agent/知识/模型/版本）         |
 | Core        | 基础设施：被所有上层依赖               | Config / Logging / Message Bus / Data / Identity |
@@ -45,7 +45,7 @@
 - **同层模块间通过 Message Bus 解耦**
 - **不允许跨层依赖**：Application 不可直接依赖 Core
 
-## Governance Layer
+## 治理层（Governance Layer）
 
 ### 定位
 
@@ -74,7 +74,7 @@ Governance Layer 不是传统的"业务层"，而是跨层的治理体系——�
 ---
 
 
-## Core Layer
+## 核心层（Core Layer）
 
 ### 职责
 
@@ -119,7 +119,7 @@ core/
 - **Agent 管理**：注册、生命周期、状态查询
 - **身份管理**：API Key / JWT 认证，RBAC 授权
 
-## Memory Layer
+## 记忆层（Memory Layer）
 
 ### 职责
 
@@ -127,7 +127,7 @@ core/
 
 ### 四层记忆
 
-| 记忆类型     | 对应层      | 特征                     | Phase 1 存储 |
+| 记忆类型 | 对应层 | 特征 | Phase 1 存储 |
 | ------------ | ----------- | ------------------------ | ------------ |
 | Session      | 短期        | 当前会话上下文，TTL 过期   | 内存 Dict    |
 | Episodic     | 长期        | 历史交互记录，语义检索     | Chroma       |
@@ -165,9 +165,9 @@ count = await memory.count()
 
 详见 [RFC-002: Memory Layer Architecture](docs/rfc/002-memory-layer-architecture.md)。
 
-## Knowledge Layer
+## 知识层（Knowledge Layer）
 
-## Knowledge Layer
+## 知识层（Knowledge Layer）
 
 ### 职责
 
@@ -176,7 +176,7 @@ count = await memory.count()
 
 ### 五种知识类型
 
-| 知识类型     | 定义                       | 存储方式           | 检索方式               |
+| 知识类型 | 定义 | 存储方式 | 检索方式 |
 | ------------ | -------------------------- | ------------------ | ---------------------- |
 | 文档知识     | 外部文档数据               | SQLite + Chroma    | 关键词 + 向量混合检索   |
 | 实体知识     | 命名实体及属性             | SQLite + Chroma    | ID 查找 + 语义相似     |
@@ -237,7 +237,7 @@ knowledge/
 详见 [RFC-004: Knowledge Layer Architecture](docs/rfc/004-knowledge-layer-architecture.md)。
 
 
-## Agent Layer
+## 智能体层（Agent Layer）
 
 ### 职责
 
@@ -299,7 +299,7 @@ Agent Scheduler → 路由到目标 Agent Instance
 
 详见 [RFC-003: Agent Architecture](docs/rfc/003-agent-architecture.md)。
 
-## Application Layer
+## 应用层（Application Layer）
 
 > 待设计（Phase 2.1）
 

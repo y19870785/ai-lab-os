@@ -1,32 +1,34 @@
-﻿# Benchmark Report —— v0.22.1
+# Benchmark 历史报告 —— v0.22.1
 
-## Environment
+> 本文件是 v0.22.1 的历史快照，不代表当前性能基线。`TBD` 表示当时未记录具体数据。
 
-- OS: Windows
-- Python: 3.10.9
-- Date: 2026-07-13
+## 环境
 
-## Results
+- OS：Windows
+- Python：3.10.9
+- 日期：2026-07-13
 
-### Memory Layer
+## 结果
 
-| Operation | Count | Time | Throughput |
-|-----------|-------|------|------------|
+### 记忆层（Memory Layer）
+
+| 操作 | 数量 | 时间 | 吞吐量 |
+| --- | --- | --- | --- |
 | save | 1000 | TBD | TBD ops/s |
 | retrieve | 500 | TBD | TBD ops/s |
 | delete | 500 | TBD | TBD ops/s |
 
-### Provider Layer (Mock)
+### Provider 层（Mock）
 
-| Operation | Count | Time | Throughput |
-|-----------|-------|------|------------|
+| 操作 | 数量 | 时间 | 吞吐量 |
+| --- | --- | --- | --- |
 | LLM generate | 100 | TBD | TBD req/s |
 | LLM stream | 50 | TBD | TBD req/s |
 
-### Stress Test
+### 压力测试
 
-| Scenario | Count | Time | Status |
-|----------|-------|------|--------|
+| 场景 | 数量 | 时间 | 状态 |
+| --- | --- | --- | --- |
 | Memory ops | 1000 | TBD | ✅ |
 | Workflow creation | 500 | TBD | ✅ |
 | Task creation | 200 | TBD | ✅ |
@@ -34,4 +36,4 @@
 | Tool calls | 100 | TBD | ✅ |
 | Message bus | 200 | TBD | ✅ |
 
-> Note: Detailed timing data available by running `python benchmarks/benchmark_memory.py`
+> 详细计时需要实际运行 `python benchmarks/benchmark_memory.py`；本文件未记录运行结果。

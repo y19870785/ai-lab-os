@@ -1,4 +1,4 @@
-﻿# AI-Lab Development Policy
+# AI-Lab 开发政策
 
 > 开发规范。重大设计先文档，代码实现后同步更新。
 

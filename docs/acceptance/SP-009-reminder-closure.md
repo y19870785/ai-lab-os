@@ -1,8 +1,9 @@
-# SP-009 Natural-Language Reminder Closure Acceptance
+# SP-009 自然语言 Reminder 闭环验收
 
-This Windows PowerShell procedure validates the in-app product result. It uses explicit mock provider mode; no external notification is expected.
+以下 Windows PowerShell 流程验证站内产品结果。流程显式使用 Mock Provider，不预期任何
+外部通知。
 
-## Configure An Isolated Local Runtime
+## 配置隔离的本地 Runtime
 
 ```powershell
 $env:AI_LAB_PROVIDER_MODE = "mock"
@@ -16,13 +17,13 @@ $env:AI_LAB_DATA_DIR = "$PWD\data\sp009-acceptance"
 $env:AI_LAB_SQLITE_DIR = "$env:AI_LAB_DATA_DIR\sqlite"
 ```
 
-## Start The API
+## 启动 API
 
 ```powershell
 python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
 ```
 
-Keep that terminal open. In a second PowerShell terminal, set the same environment variables and prepare headers:
+保持该终端运行。在第二个 PowerShell 终端设置相同环境变量并准备 Header：
 
 ```powershell
 $headers = @{
@@ -31,7 +32,7 @@ $headers = @{
 }
 ```
 
-## Create A Reminder Due In One Or Two Minutes
+## 创建一至两分钟后到期的 Reminder
 
 ```powershell
 $target = (Get-Date).AddMinutes(2)
@@ -44,13 +45,19 @@ $created.metadata | Format-List
 $reminderId = $created.metadata.reminder_id
 ```
 
-Task due dates and Reminder scheduling are separate. For example, `添加任务：明天下午3点联系张经理` creates a UserTask with `due_at`, but creates no Reminder or Scheduler Job. A Reminder phrase must contain a supported future time. Independent requests may omit `Idempotency-Key` and receive distinct chains; retries that must reuse a chain should send the same explicit key.
+Task due date 与 Reminder schedule 是不同维度。例如
+`添加任务：明天下午3点联系张经理` 只创建带 `due_at` 的 UserTask，不创建 Reminder 或
+Scheduler Job。Reminder 表达必须包含受支持的未来时间。独立请求可以省略
+`Idempotency-Key` 并获得不同链路；需要复用链路的 Retry 应发送同一显式 Key。
 
-The response must contain `task_id`, `reminder_id`, `scheduler_job_id`, `scheduled_for`, `timezone`, and `reminder_status=scheduled`.
+响应必须包含 `task_id`、`reminder_id`、`scheduler_job_id`、`scheduled_for`、
+`timezone` 与 `reminder_status=scheduled`。
 
-API JSON responses explicitly declare `application/json; charset=utf-8`. If a local PowerShell host displays Chinese incorrectly, first inspect the response `Content-Type`; do not change the system code page or `.env` as part of this acceptance. SP-010 adds a list-oriented verification command in `docs/acceptance/SP-010-reminder-inbox.md`.
+API JSON 响应显式声明 `application/json; charset=utf-8`。若本地 PowerShell 中文显示
+异常，先检查 Response `Content-Type`，不得在本次验收中修改系统 Code Page 或 `.env`。
+SP-010 的列表验证命令见 `SP-010-reminder-inbox.md`。
 
-## Query The In-App Status
+## 查询站内状态
 
 ```powershell
 Invoke-RestMethod -Headers $headers `
@@ -59,13 +66,14 @@ Invoke-RestMethod -Headers $headers `
 python -m cli reminder-status $reminderId
 ```
 
-## Restart Persistence Check
+## 重启持久化检查
 
-Stop Uvicorn with Ctrl+C, run the same startup command again, then repeat the status query. The same Reminder must still be `scheduled` or already `triggered`; its IDs must not change.
+使用 Ctrl+C 停止 Uvicorn，再执行同一启动命令并重复状态查询。同一个 Reminder 必须仍为
+`scheduled` 或已变为 `triggered`，且 ID 不得改变。
 
-## Due-Time And Effectively-Once Check
+## 到期时间与 Effectively-once 检查
 
-After the due time:
+到期后执行：
 
 ```powershell
 $status = Invoke-RestMethod -Headers $headers `
@@ -76,12 +84,12 @@ $status | Format-List
 $occurrences | Format-Table
 ```
 
-## Acceptance Criteria
+## 验收标准
 
-- UserTask, Reminder, and Scheduler Job IDs are returned and persisted.
-- Restart preserves the scheduled chain.
-- At due time the aggregate status becomes `triggered`.
-- Exactly one `ReminderOccurrence` is returned after repeated queries and another restart.
-- A failed execution is shown as `retrying` or `failed`, never as `triggered`.
-- No email, WeChat, SMS, popup, or other external notification is expected.
-- SQLite does not need to be opened manually to determine success.
+- 返回并持久化 UserTask、Reminder 与 Scheduler Job ID；
+- 重启后保留计划链路；
+- 到期时聚合状态变为 `triggered`；
+- 重复查询并再次重启后，只返回一个 `ReminderOccurrence`；
+- 执行失败显示为 `retrying` 或 `failed`，不得显示为 `triggered`；
+- 不预期 Email、WeChat、SMS、Popup 或其他外部通知；
+- 无需人工打开 SQLite 即可判断成功。

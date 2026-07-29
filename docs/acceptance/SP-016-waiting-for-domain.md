@@ -1,4 +1,4 @@
-# SP-016 — Canonical Waiting-For Domain Acceptance
+# SP-016 规范 Waiting-For 领域验收
 
 状态：PASSED / FINAL
 

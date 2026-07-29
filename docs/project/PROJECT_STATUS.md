@@ -1,18 +1,19 @@
-# AI-Lab Project Status
+# AI-Lab 项目状态
 
-**Date:** 2026-07-29
-**Source Version:** v0.34.0 Alpha / Release Authorized
-**Verified release baseline:** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
+**日期：** 2026-07-29
+**源码版本：** v0.34.0 Alpha / Release Authorized
+**已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
-## Current governance state
+## 当前治理状态
 
-| Item | State |
+| 项目 | 状态 |
 |---|---|
-| Latest Merged SP | SP-019 |
-| Latest Completed SP | SP-019 |
-| Current Product SP | None |
-| Current Governance Task | None |
-| Next Candidate SP | SP-020 — Local Daily Operating Loop & Review-to-Action Closure |
+| 最近合并的 SP | SP-019 |
+| 最近完成的 SP | SP-019 |
+| 当前 Product SP | None |
+| 当前治理任务 | DOCS-001 |
+| 下一候选 SP | SP-020 — Local Daily Operating Loop & Review-to-Action Closure |
+| DOCS-001 | IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN |
 | SP-014 | APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-014B | APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED |
 | ACC-014 | PASSED / FINAL（A～L 全部通过） |
@@ -40,18 +41,18 @@
 
 根目录 `project_state.json` 是唯一机器可读仓库治理状态与稳定发布授权源；本页是便于人工阅读的摘要。当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在治理文件中维护自指的 current-main 镜像；运行时产品版本仍只来自 `pyproject.toml`。
 
-## Product baseline
+## 产品基线
 
 v0.34.0 Alpha 之上的 v0.35 开发线已合并 canonical Work Log 与 Daily Review。Daily Review 通过唯一 `DailyReviewService` 确定性聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox，并由 API、CEO Assistant 和兼容 `/brief` 共用；ACC-019 A～M 与 post-merge verification 均已通过。
 
 SP-020 已建立 Planning Baseline，方向为 Windows Local Daily Profile、直接复用现有
 `DailyReviewService` 的正式 CLI、纯确定性 Action Hint、canonical
 Review-to-Action 委托，以及 restart / Quiescent Backup / isolated restore 验收。
-这不是 Implementation 授权；Current Product SP 与 Current Governance Task 仍为 None。
+这不是 Implementation 授权；Current Product SP 仍为 None，Current Governance Task 为 DOCS-001。
 
 SP-014 通过 PR #32 合并，SP-014B 通过 PR #33 合并，最终治理对账通过 PR #34 合并。ACC-014 的场景 A～L 均为 PASSED，场景 K 的中文小时兼容缺口已由 SP-014B 修复并在 main 复验。
 
-## Quality baseline
+## 质量基线
 
 最终发布提交前的已验证 main 基线对应 GitHub Quality Gate run `29855987444`：Ruff SUCCESS，pytest (non-real) SUCCESS，`1163 passed, 6 skipped, 27 warnings`。该 commit 是历史验证基线，不是 tracked 文件对自身当前 commit 的声明。真实 Provider 测试不属于普通门禁。
 
@@ -65,7 +66,7 @@ SP-019 Planning PR #48 已由 Approved Planning Head `282dd939ff264b0f23d5070b6f
 
 SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf90947380ec43473` Squash Merge 为 main `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`，合并时间 `2026-07-28T17:18:41Z`；自动 push Quality Gate run `30382312419` 的 Ruff 与 pytest (non-real) 均为 SUCCESS。Approved Implementation Head 为 `1f2975503cd79047137a4a9f47096668fd4341c5`，ACC-019 A～M 为 PASSED / FINAL。
 
-## Release state
+## 发布状态
 
 - 源码版本：`0.34.0`
 - 成熟度：Alpha / local-first / single-user-oriented
@@ -75,4 +76,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。SP-020 Planning Baseline 已通过独立审查，并由 PR #53 Squash Merge 至 main `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`；main Quality Gate `30441534383` 为 SUCCESS。Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。
+Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 None，Current Governance Task 为 DOCS-001，Next Candidate SP 为 SP-020。SP-020 Planning Baseline 已通过独立审查，并由 PR #53 Squash Merge 至 main `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`；main Quality Gate `30441534383` 为 SUCCESS。Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。

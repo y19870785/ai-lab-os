@@ -1,35 +1,35 @@
 # AI-Lab Project Brain —— 项目大脑
 
-> Product Version: v0.34.0
-> Last Completed SP: SP-019
-> Current SP: None
-> Current Governance Task: None
-> Next Candidate SP: SP-020
-> Next Candidate Direction: Local Daily Operating Loop & Review-to-Action Closure
-> SP-020 Status: PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
-> ACC-020 Status: PLANNING_BASELINE / NOT_EXECUTED
-> SP-020 Design: RFC-029 Adopted; ADR-063 and ADR-064 Accepted
-> SP-020 Planning Merge: PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
-> SP-016 Status: APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
-> ACC-016 Status: PASSED / FINAL
-> SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
-> ACC-017 Status: PASSED / FINAL
-> SP-017 Design: RFC-026 Adopted; ADR-056 and ADR-057 Accepted
-> SP-018 Status: APPROVED / MERGED / ACCEPTED / POST-MERGE VERIFIED / RECONCILED / ARCHIVED
-> ACC-018 Status: PASSED / FINAL
-> SP-018 Design: RFC-027 Adopted; ADR-058, ADR-059 and ADR-060 Accepted
-> SP-019 Status: APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED
-> ACC-019 Status: PASSED / FINAL
-> SP-019 Design: RFC-028 Adopted; ADR-061 and ADR-062 Accepted
-> SP-019 Planning Merge Baseline: `e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / Quality Gate run `30205853257` / SUCCESS
-> SP-019 Feature Merge: `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / Quality Gate run `30382312419` / SUCCESS
-> Release Stage: v0.34.0 Alpha / RELEASE_AUTHORIZED
-> Verified Release Baseline: `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
-> SP-015 Base Commit: `57444274abd4e568a6af72b218d50290de563654`
-> SP-015 Branch: `chore/sp-015-release-governance-consolidation`
-> SP-015 Status: APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED
-> SP-015A Status: APPROVED / MERGED / RECONCILED / ARCHIVED
-> SP-015R Status: APPROVED / MERGED / RECONCILED / ARCHIVED
+> 产品版本：v0.34.0
+> 最近完成的 Product SP：SP-019
+> 当前 Product SP：None
+> 当前治理任务：DOCS-001
+> 下一候选 Product SP：SP-020
+> 下一候选方向：本地日常运行循环与复盘到行动闭环
+> SP-020 状态：PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
+> ACC-020 状态：PLANNING_BASELINE / NOT_EXECUTED
+> SP-020 设计：RFC-029 Adopted；ADR-063 与 ADR-064 Accepted
+> SP-020 规划合并：PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
+> SP-016 状态：APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
+> ACC-016 状态：PASSED / FINAL
+> SP-017 状态：APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
+> ACC-017 状态：PASSED / FINAL
+> SP-017 设计：RFC-026 Adopted；ADR-056 与 ADR-057 Accepted
+> SP-018 状态：APPROVED / MERGED / ACCEPTED / POST-MERGE VERIFIED / RECONCILED / ARCHIVED
+> ACC-018 状态：PASSED / FINAL
+> SP-018 设计：RFC-027 Adopted；ADR-058、ADR-059 与 ADR-060 Accepted
+> SP-019 状态：APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED
+> ACC-019 状态：PASSED / FINAL
+> SP-019 设计：RFC-028 Adopted；ADR-061 与 ADR-062 Accepted
+> SP-019 规划合并基线：`e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / Quality Gate run `30205853257` / SUCCESS
+> SP-019 功能合并：`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / Quality Gate run `30382312419` / SUCCESS
+> 发布阶段：v0.34.0 Alpha / RELEASE_AUTHORIZED
+> 已验证发布基线：`22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
+> SP-015 Base Commit：`57444274abd4e568a6af72b218d50290de563654`
+> SP-015 分支：`chore/sp-015-release-governance-consolidation`
+> SP-015 状态：APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED
+> SP-015A 状态：APPROVED / MERGED / RECONCILED / ARCHIVED
+> SP-015R 状态：APPROVED / MERGED / RECONCILED / ARCHIVED
 > Authorized Tag: v0.34.0
 > GitHub Release Type: Pre-release
 
@@ -60,7 +60,7 @@ AI 可以收集、整理、分析和提醒；最终业务判断与重要审批�
 
 ## 永久架构事实
 
-### Canonical Composition Root
+### 规范组合根
 
 唯一入口是 `core/system/factory.py:create_system()`，容器定义在 `core/system/container.py`。API lifespan、CLI、CEO Assistant、兼容 Bootstrap 与集成测试共用同一 Factory 和领域服务装配。
 
@@ -189,7 +189,7 @@ tests/real: explicitly excluded
 
 历史本地测试只能作为对应时间和环境的记录，不替代当前 GitHub Quality Gate；真实 Provider 结果也不由普通门禁推导。
 
-## v0.34.0 Alpha / Release Authorized
+## v0.34.0 Alpha / 已授权发布
 
 本 Alpha 版本收口 UserTask、Reminder Core、Reminder Management、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action、统一 Composition Root 和治理一致性。
 
@@ -213,4 +213,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。SP-020 Planning Baseline 已通过独立审查并合并、对账；Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。
+SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 DOCS-001，Next Candidate SP 为 SP-020。SP-020 Planning Baseline 已通过独立审查并合并、对账；Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。

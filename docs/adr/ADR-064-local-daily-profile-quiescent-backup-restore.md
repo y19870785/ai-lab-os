@@ -1,4 +1,4 @@
-# ADR-064 — Local Daily Profile and Quiescent Backup/Restore Contract
+# ADR-064：本地日常运行配置与静止备份/恢复合同
 
 - Status: Accepted
 - Date: 2026-07-29

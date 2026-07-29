@@ -1,10 +1,10 @@
-# ADR-041: Reminder Inbox Query Boundary
+# ADR-041：Reminder Inbox 查询边界
 
-## Status
+## 状态
 
 Accepted
 
-## Acceptance Record
+## 验收记录
 
 - Accepted through SP-010
 - PR: #21
@@ -12,11 +12,11 @@ Accepted
 - Merge Commit: `af437afc32dcb17da68d600d6840ec94c8cbe681`
 - Accepted Date: `2026-07-16`
 
-## Context
+## 背景
 
 单条 Reminder 聚合状态已经由 ADR-040 定义，但列表查询需要跨 UserTask、Reminder、Scheduler Job 与 ReminderOccurrence 读取事实。它们并不共享一个数据库连接，也没有可诚实声明的跨库 SQL JOIN。
 
-## Decision
+## 决策
 
 Composition Root 创建唯一 `ReminderInboxService`。该服务通过 Reminder Repository 的稳定 SQL 分页读取候选记录，用关联 UserTask 校验 workspace，然后复用 ADR-040 的共享聚合函数读取 Scheduler Job 与最新 Occurrence。
 
@@ -24,7 +24,7 @@ Repository 排序固定为 `remind_at ASC, id ASC`。Service 采用固定 100 �
 
 Inbox 是只读查询边界，不创建 UserTask、Reminder 或 Scheduler Job。CEO Assistant 只消费共享 Service，不直接查询 Reminder Repository。
 
-## Consequences
+## 后果
 
 - 查询结果来自持久化真相，重启后不丢失；
 - 内存占用受页大小和扫描批次约束；

@@ -1,4 +1,4 @@
-# RFC-027 — Work Log Query Boundary & Context Closure
+# RFC-027：工作日志查询边界与上下文闭环
 
 Status: Adopted
 
@@ -10,7 +10,7 @@ AI-Lab 已能通过 CEO Assistant、`POST /work-logs` 和 Inbox resolution 写�
 
 SP-019 Daily Review 需要可靠的只读 Work Log 数据基础。SP-018 先收口 Work Log 自身，不提前实现 Daily Review、自动建议或主动推送。
 
-## 2. Current State Audit
+## 2. 当前状态审计
 
 ### 2.1 写入入口
 
@@ -85,7 +85,7 @@ SP-019 Daily Review 需要可靠的只读 Work Log 数据基础。SP-018 先收�
 - Agenda/Brief 在正确 Workspace 内读取相同的新旧记录。
 - 任何模糊查询保持 READ、零副作用。
 
-## 6. WorkLogRecord
+## 6. 工作日志记录（WorkLogRecord）
 
 规划模型：
 
@@ -112,7 +112,7 @@ WorkLogRecord
 
 新建默认 `status=completed`。tag 去首尾空白、空值丢弃、保持首次出现顺序并按 Unicode casefold 去重；不做同义词或 LLM 归一化。SP-018 只提供 create/get/list，不提供 update/delete。
 
-## 7. WorkspaceKey
+## 7. 工作空间键（WorkspaceKey）
 
 canonical scope 是：
 
@@ -229,7 +229,7 @@ Legacy adapter 是纯读取边界。它只识别 `content` 为 dict 且 `content
 
 公开 `get` 接受 canonical `wl_...`、`wl_legacy_...`，以及唯一受限的历史 Inbox alias `inbox_wl_<合法历史格式>`。普通随机 Memory ID 不作为公开 alias。Repository 对 canonical digest 做内部 lookup；对 Inbox alias 则精确定位同 ID row 并执行来源与 Workspace 验证。
 
-### 13.1 Legacy Work Log Projection Table
+### 13.1 旧工作日志投影表
 
 投影规则在 SP-018 实施前固定如下，不留给实现阶段自由猜测：
 
@@ -263,7 +263,7 @@ Legacy adapter 是纯读取边界。它只识别 `content` 为 dict 且 `content
 - alias lookup 与 canonical lookup 都是 READ，不创建行、不修改 resolution claim、InboxItem 或历史 event。
 - `inbox_wl_...` 仅是 Work Log lookup alias，不是 Context Ref；新 `context_refs` 仍只接受 Inbox Item ID `inbox_...`。
 
-## 14. Legacy Workspace
+## 14. 旧工作空间
 
 Legacy 行只有在能证明完整 Workspace 三元组时归入该 scope。缺少任一字段的旧记录只能属于 canonical default：
 
@@ -275,7 +275,7 @@ namespace=default
 
 不得按当前请求、session、人名或模型推断归属。已有 Inbox Work Log 的 `content.metadata` 完整三元组优先；只有外层单独 workspace_id 但缺 tenant/namespace 时仍按缺失完整 scope 处理为 default。
 
-## 15. Context refs
+## 15. 上下文引用
 
 ```text
 WorkLogContextRef
@@ -325,7 +325,7 @@ WorkLogUserErrorPresenter
 
 明确写入才 create；查询全部是 `IntentEffect.READ`、零副作用。支持 today、ID、target、tag、status、日期范围的确定性解析。明确但未知或空的 status 必须 `work_log.query_invalid`，不得回落为无过滤查询。模糊查询返回列表、示例或要求补充过滤条件，绝不降级成写入。LLM 可生成普通聊天文本，但不能决定持久化查询、字段、context ref 或成功。
 
-## 19. Daily Agenda
+## 19. 每日议程
 
 实施后 Work Log 来源改为 WorkLogService：
 
@@ -338,15 +338,15 @@ WorkLogUserErrorPresenter
 - `source_id` 使用公开 canonical identity（新记录 `wl_...`、legacy 投影 `wl_legacy_...`）；
 - Agenda 保持只读聚合，不把 Agenda 逻辑放入 WorkLogService。
 
-## 20. Daily Brief
+## 20. 每日简报
 
 SP-018 只把 Brief 的 Work Log 来源从 MemoryManager 改为 WorkLogService，提供今日/最近记录、完整 Workspace、稳定时间范围与排序。Task/Reminder/Waiting-For 完整复盘、自动建议、自动写入和主动推送仍属于 SP-019 或后续。
 
-## 21. FailureInfo
+## 21. FailureInfo 失败信息
 
 所有错误 `component=work_log`；Presenter 只替换 message。
 
-| Code | Category | HTTP | CLI | Retryable | 中文提示 |
+| 代码 | 类别 | HTTP | CLI | 可重试 | 中文提示 |
 |---|---|---:|---:|---|---|
 | `work_log.not_configured` | NOT_CONFIGURED | 503 | 2 | false | 工作记录服务未配置 |
 | `work_log.not_found` | NOT_FOUND | 404 | 2 | false | 未找到该工作记录 |
@@ -404,7 +404,7 @@ ACC-018 A～O 覆盖 canonical create、Workspace、时间、ID、过滤、分�
 
 实施回滚只撤回入口到 WorkLogService 的代码连接，不删除或重写 `episodic_memories` 行。由于不建新库、不做自动迁移，旧记录仍保持可读；已写入的 canonical `wl_...` 行仍是合法 Episodic Work Log，可由兼容读取识别。
 
-## 28. Future Work
+## 28. 未来工作
 
 - SP-019 Daily Review & Follow-up Brief；
 - 基于真实性能数据的 JSON expression index 或专用 Schema 决策；

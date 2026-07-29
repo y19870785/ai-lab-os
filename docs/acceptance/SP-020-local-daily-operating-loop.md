@@ -1,4 +1,4 @@
-# ACC-020 — Local Daily Operating Loop & Review-to-Action Closure
+# ACC-020 本地日常运行闭环与 Review-to-Action 验收
 
 - SP: SP-020
 - Status: PLANNING_BASELINE / NOT_EXECUTED
@@ -51,14 +51,14 @@ evidence 及对应 SQLite 行。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-D — Daily Agenda
+## ACC-020-D — 每日议程
 
 通过正式入口读取 today Agenda，确认启用 source 的真实对象出现、排序稳定、完整
 WorkspaceKey 生效；读取不得产生新业务对象或 Provider call。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-E — Daily Review today / yesterday
+## ACC-020-E — 每日复盘 today / yesterday
 
 通过 API 与正式 `daily-review` CLI 查询 today/yesterday。验证二者直接复用同一
 `DailyReviewService` 合同，日期、timezone、DST、`as_of`、source status、canonical
@@ -66,7 +66,7 @@ ID、reason code、全局排序与分页一致。CLI `--json` 必须与 structur
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-F — Deterministic Action Hint
+## ACC-020-F — 确定性操作提示
 
 对固定 Review payload 重复生成 hints，结果与顺序必须完全相同。每条包含
 `source_type/source_id/status/reason_code/allowed_action/required_arguments/
@@ -77,7 +77,7 @@ unsupported 组合不得伪造动作。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-G — UserTask mutation
+## ACC-020-G — UserTask 变更
 
 分别验证：
 
@@ -95,7 +95,7 @@ revision/status 为依据。未来 `complete/cancel expected_revision` 不得在
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-H — Waiting-For mutation
+## ACC-020-H — Waiting-For 变更
 
 依据 Review 中 canonical `wf_...` 执行 follow-up 或 resolve，并验证 history event 与
 revision。另验证 snooze/cancel/reopen 的 action hint 只在真实状态允许时出现；stale
@@ -103,7 +103,7 @@ revision 与模糊表达不写入。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-I — Inbox resolution
+## ACC-020-I — Inbox 处理
 
 依据 canonical `inbox_...` 将 pending item 显式 resolution 为 UserTask、Reminder、
 Waiting-For、Work Log、Note 或 Dismiss 中的选定目标。验证 durable claim、target ID、
@@ -118,7 +118,7 @@ source resolution 状态、竞争与重试幂等；Waiting-For 缺少确认字�
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-K — Workspace isolation
+## ACC-020-K — 工作空间隔离
 
 workspace B 使用相同查询、猜测到的 canonical ID 与 mutation 路径均不得看到或修改
 workspace A 数据。API、CLI、CEO Assistant、Daily Review、Action Hint 与 canonical

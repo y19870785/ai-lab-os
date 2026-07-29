@@ -12,24 +12,24 @@ RFC：RFC-027 — Adopted
 
 ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
-> ACC-018 A～O 已在 Approved Head 上完整重跑并全部通过；Feature PR 与 post-merge main Quality Gate 均成功，合并后本地全量验证与 focused smoke 通过。
+> ACC-018 A～O 已在 Approved Head 上完整重跑并全部通过；Feature PR 与合并后 main Quality Gate 均成功，合并后本地全量验证与聚焦冒烟测试通过。
 
 ## 审计基线
 
-- Planning PR：#45
-- Feature PR：#46
-- Approved Head：`e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`
-- Feature Merge Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`
-- Merged At：`2026-07-26T09:35:04Z`
-- SP-018A Reconciliation PR：#47（MERGED）
-- SP-018A Reconciliation Merge Commit：`4e0d730a8bfdefa6277c7526a028e7247d7ddc43`
-- SP-018A Reconciled At：`2026-07-26T10:32:07Z`
-- Post-Reconciliation main Quality Gate Run：`30198434517`（automatic `push` / SUCCESS）
+- 规划 PR：#45
+- 功能 PR：#46
+- 批准 Head：`e941cadc783a6ac8a4bd3c75b55adf77e0a651a3`
+- 功能合并 Commit：`83ecb557fedd1d898712afc59ad13b3e0a684413`
+- 合并时间：`2026-07-26T09:35:04Z`
+- SP-018A 对账 PR：#47（MERGED）
+- SP-018A 对账合并 Commit：`4e0d730a8bfdefa6277c7526a028e7247d7ddc43`
+- SP-018A 对账时间：`2026-07-26T10:32:07Z`
+- 对账后 main Quality Gate Run：`30198434517`（automatic `push` / SUCCESS）
 - PR Quality Gate Run：`30195401115`
-- Post-Merge main Quality Gate Run：`30196719409`（automatic `push` / SUCCESS）
-- Independent Review：`APPROVED`
+- 合并后 main Quality Gate Run：`30196719409`（automatic `push` / SUCCESS）
+- 独立审查：`APPROVED`
 - ACC-018 A～O：PASSED / FINAL
-- Post-merge verification：PASSED
+- 合并后验证：PASSED
 
 首次 ACC-018 在 Head `41ffcba093f149e31dee06c987a5305c651c349a` 的场景 L 发现：显式非法 Work Log ID 会扩大为无过滤查询，因此该 Head 验收失败。随后通过修复 Head `dc3796c25e4db33521c9b266ec87c32974e7b159` 收紧显式非法 ID，并在 Approved Head `e941cadc783a6ac8a4bd3c75b55adf77e0a651a3` 完成大小写不敏感候选修复；A～O 从头完整重跑并全部通过。小写、大写和混合大小写非法 ID 均以 `work_log.id_invalid` fail closed，且不调用 query/list fallback。
 
@@ -73,7 +73,7 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
 任何无效 harness、编码错误或 driver 断言错误必须单列为 `INVALID_ACCEPTANCE_HARNESS`，不得计作产品失败或通过。
 
-## ACC-018-A：Canonical create
+## ACC-018-A：规范创建
 
 通过 WorkLogService 创建新记录，验证：
 
@@ -156,13 +156,13 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
 状态：PASSED
 
-## ACC-018-H：Legacy Workspace fail closed
+## ACC-018-H：旧工作空间失败关闭
 
 验证缺少完整 Workspace 的旧记录只在 `default/default/default` 可见；只有 workspace_id 或 session metadata 不足以归属其他 scope。读取不得自动补齐或重新归属。
 
 状态：PASSED
 
-## ACC-018-I：Context refs
+## ACC-018-I：上下文引用
 
 显式保存和查询 `ut_`、`rem_`、`wf_`、`inbox_` 引用。验证 kind/prefix、重复、长度、非法前缀 fail closed；服务关闭时 `not_checked`，不存在或 Workspace 不匹配时 `unresolved`，且创建不被非事务性 existence check 阻塞。不得自动猜测。
 

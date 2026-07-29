@@ -1,38 +1,45 @@
-# ADR-008: Unified Memory API
+# ADR-008：统一 Memory API
 
-## Status
-Accepted (2026-07-12)
+## 状态
 
-## Context
-AI-Lab Memory Layer has four memory types (Session/Episodic/Semantic/Decision). Each was developed in separate phases (2.2 through 2.6), leading to slight API inconsistencies between stores.
+Accepted（2026-07-12）
 
-## Decision
-All Memory Stores MUST implement the identical 8-method interface defined in `MemoryStore` protocol:
+## 背景
 
-| Method | Signature | Semantics |
-|--------|-----------|-----------|
-| `save` | `(item: MemoryItem) -> str` | Store a single item, return ID |
-| `batch_save` | `(items: list[MemoryItem]) -> list[str]` | Batch store, return IDs |
-| `get` | `(id: str) -> MemoryItem | None` | Retrieve by ID |
-| `query` | `(spec: MemoryQuery) -> list[MemoryItem]` | Search by criteria |
-| `delete` | `(id: str) -> bool` | Delete by ID, return success |
-| `count` | `(filter: MemoryFilter | None) -> int` | Count with optional filter |
-| `initialize` | `() -> None` | Idempotent store init |
-| `close` | `() -> None` | Idempotent resource release |
+AI-Lab Memory Layer 包含 Session、Episodic、Semantic 和 Decision 四类 Memory。它们
+分别在 2.2 至 2.6 阶段开发，导致不同 Store 的 API 略有差异。
 
-Rationale:
-- No store may have extra methods that other stores lack (beyond type-specific convenience wrappers at the high-level API)
-- `count()` must respect `filter` parameter — previously SessionMemory/Semantic/Decision ignored it
-- `initialize()` ensures SQLite stores create tables before use; SessionMemory is a no-op
-- `close()` exists for resource lifecycle even when DatabaseManager manages connections
+## 决策
 
-## Consequences
-- All four stores now expose exactly 8 identical public methods
-- `MemoryQuery` gained `offset`, `sort_by`, `sort_desc` for pagination
-- `MemoryFilter` dropped `tags` (moved to `MemoryQuery.filters`)
-- Backward compatible: no existing callers break
-- Testing surface is uniform across stores
+所有 Memory Store 必须实现 `MemoryStore` protocol 定义的相同八方法接口：
 
-## Alternatives Considered
-- **Keep asymmetry**: Rejected — would force callers to check `isinstance()` before calling methods, violating LSP
-- **Split into separate protocols**: Rejected — four stores share 90% semantics, one protocol is cleaner
+| 方法 | 签名 | 语义 |
+| --- | --- | --- |
+| `save` | `(item: MemoryItem) -> str` | 保存单个对象并返回 ID |
+| `batch_save` | `(items: list[MemoryItem]) -> list[str]` | 批量保存并返回 ID |
+| `get` | `(id: str) -> MemoryItem | None` | 按 ID 读取 |
+| `query` | `(spec: MemoryQuery) -> list[MemoryItem]` | 按条件查询 |
+| `delete` | `(id: str) -> bool` | 按 ID 删除并返回是否成功 |
+| `count` | `(filter: MemoryFilter | None) -> int` | 使用可选过滤器计数 |
+| `initialize` | `() -> None` | 幂等初始化 Store |
+| `close` | `() -> None` | 幂等释放资源 |
+
+采用该接口的理由：
+
+- Store 不得额外暴露其他 Store 缺少的方法；高层 API 的类型专用便利封装除外；
+- `count()` 必须应用 `filter`，此前 SessionMemory、Semantic 和 Decision 忽略该参数；
+- `initialize()` 确保 SQLite Store 在使用前建表；SessionMemory 为 no-op；
+- 即使连接由 DatabaseManager 管理，也需要 `close()` 表达资源生命周期。
+
+## 后果
+
+- 四个 Store 统一暴露八个公开方法；
+- `MemoryQuery` 增加用于分页的 `offset`、`sort_by` 和 `sort_desc`；
+- `MemoryFilter` 删除 `tags`，相关条件移入 `MemoryQuery.filters`；
+- 现有调用方保持兼容；
+- 不同 Store 的测试接口保持一致。
+
+## 已考虑的替代方案
+
+- **保留不对称接口**：拒绝。调用方将被迫在调用前检查 `isinstance()`，违反 LSP；
+- **拆分多个 protocol**：拒绝。四个 Store 共享大部分语义，统一 protocol 更清晰。

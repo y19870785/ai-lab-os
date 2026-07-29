@@ -1,9 +1,9 @@
-﻿# ADR-028: Unified Application Runtime
+# ADR-028：统一 Application Runtime
 
 **Date:** 2026-07-13
 **Status:** Accepted
 
-## Decision
+## 决策
 
 CLI 和 REST API 共享同一个 `ApplicationRuntime` 实例，不各自创建。
 

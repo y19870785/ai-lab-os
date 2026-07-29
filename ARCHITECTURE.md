@@ -1,4 +1,4 @@
-﻿# AI-Lab 架构文档
+# AI-Lab 架构文档
 
 ## v0.34.0 Alpha 产品基线
 
@@ -213,7 +213,7 @@ Application → Task → Scheduler → Workflow → Agent → Knowledge → Prov
 
 ---
 
-## Task Runtime（v0.22.0）
+## 任务运行时（v0.22.0）
 
 Task Runtime 是 Scheduler + Workflow 之上的统一任务编排中心。
 
@@ -253,7 +253,7 @@ CREATED → READY → RUNNING → COMPLETED
 
 ---
 
-## Scheduler Layer（v0.21.0）
+## 调度层（v0.21.0）
 
 ```
 Application
@@ -275,7 +275,7 @@ SchedulerRuntime（Tick-loop）
 
 ---
 
-## Workflow Layer（v0.20.0）
+## 工作流层（v0.20.0）
 
 ```
 CREATED → READY → PLANNING → RUNNING → COMPLETED / FAILED / CANCELLED
@@ -285,7 +285,7 @@ CREATED → READY → PLANNING → RUNNING → COMPLETED / FAILED / CANCELLED
 
 ---
 
-## Agent Runtime（v0.17.0）
+## 智能体运行时（v0.17.0）
 
 ```
 Application → AgentRuntime → AgentExecutor → ContextBuilder → LLM → Tool → Memory
@@ -293,7 +293,7 @@ Application → AgentRuntime → AgentExecutor → ContextBuilder → LLM → To
 
 ---
 
-## Knowledge Layer（v0.16.0）
+## 知识层（v0.16.0）
 
 ```
 Ingestion → Chunking（6 策略）→ Embedding → Hybrid Retrieval → Ranking
@@ -301,13 +301,13 @@ Ingestion → Chunking（6 策略）→ Embedding → Hybrid Retrieval → Ranki
 
 ---
 
-## Provider Layer（v0.15.0）
+## Provider 层（v0.15.0）
 
 四种协议（LLM / Embedding / Vector / Storage）+ Mock 实现。Model Agnostic 原则。
 
 ---
 
-## Tool Runtime（v0.18.0）+ MCP Adapter（v0.19.0）
+## 工具运行时（v0.18.0）+ MCP 适配器（v0.19.0）
 
 ```
 Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
@@ -317,13 +317,13 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 ---
 
-## Memory Layer
+## 记忆层（Memory Layer）
 
 四层记忆：Session（内存）| Episodic（SQLite）| Semantic（SQLite）| Decision（SQLite）
 
 ---
 
-## Governance Layer
+## 治理层（Governance Layer）
 
 6 策略文件 + RFC/ADR 体系 + Project Health 机制。
 
@@ -351,12 +351,12 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 | v0.13.0 ~ v0.7.0 | 2026-07-12 | Memory Layer + Core Runtime |
 | v0.6.0 ~ v0.1.0 | 2026-07-11~12 | Foundation Phase + Governance |
 
-### SP-006: API Security Boundary (Implementation Candidate)
-- pplications/security/ module: centralized Authenticator + ApiSecurityConfig
-- Bearer-token auth with constant-time comparison (hmac.compare_digest)
-- CORS explicit allowlist (no wildcard when auth enabled)
-- Protected routes require Depends(require_auth); health/metrics remain public
-- Status: Merged PR #12, APPROVED / Merged
+### SP-006：API 安全边界（实施候选）
+- `applications/security/` 模块集中提供 Authenticator 与 ApiSecurityConfig。
+- Bearer-token 认证使用恒定时间比较 `hmac.compare_digest`。
+- CORS 使用显式 allowlist；启用认证时不允许通配符。
+- 受保护路由要求 `Depends(require_auth)`；health/metrics 保持公开。
+- 状态：通过 PR #12 合并，`APPROVED / MERGED`。
 
 > SP-007 System Lifecycle Admission Gate: APPROVED / MERGED / RECONCILED / ARCHIVED. PR #14 以 Approved Head `527ecba0ee411edb260b5bbcfdfc24dfa22a5bb4` 合并，main Squash Commit 为 `ceb8ac4b120898d2d83dbe0e3afb4dd52dcb85ee`，时间为 `2026-07-16T10:08:47Z`，版本仍为 `0.33.0`。
 
@@ -366,7 +366,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 > 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。当前源码版本为 `0.34.0` Alpha Candidate；v0.34.0 Tag 和 GitHub Release 尚未创建。
 
-## SP-009 Natural-Language Reminder Closure
+## SP-009 自然语言提醒闭环
 
 `CEOAssistant -> TaskReminderIntentParser -> NaturalLanguageReminderOrchestrator -> UserTaskService -> ReminderSchedulerBridge -> SchedulerRuntime` 是已合并生产链。Parser 将 intent kind 与可选 `due_at` 分开：task-only 可保存截止时间但不创建 Reminder/Job；Reminder 必须具有受支持的未来时间。小时可使用既有阿拉伯数字，或在明确 `上午/下午/晚上` 时使用中文 `一` 至 `十二`；不带 period 的中文小时不做隐式猜测。时间由注入的 UTC Clock 与 `AI_LAB_TIMEZONE` 解释，持久化保持 UTC。无显式幂等键的 API 请求生成独立请求键，显式键继续提供重试复用与冲突检测。`ReminderStatusView` 从真实 Task、Reminder、Job 与 Occurrence 聚合站内状态，不使用 LLM 或 EventBus 作为真相。
 

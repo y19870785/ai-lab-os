@@ -1,4 +1,4 @@
-﻿# ADR-025: Task Dependency Design
+# ADR-025：Task 依赖设计
 
 **状态：** Accepted
 **版本：** v0.22.0

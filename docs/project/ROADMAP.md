@@ -1,4 +1,4 @@
-# AI-Lab Roadmap
+# AI-Lab 路线图
 
 **Last Updated:** 2026-07-29
 **Current Version:** v0.34.0 Alpha / Release Authorized
@@ -12,7 +12,7 @@ Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR�
 - 每个产品版本必须明确功能范围、验收结果、Tag 和 Release Notes。
 - 候选 SP 不代表已经批准、排期或启动。
 
-## v0.34.0 Alpha
+## v0.34.0 Alpha 阶段
 
 目标成熟度：**Alpha / local-first / single-user-oriented**。
 
@@ -60,7 +60,7 @@ Planning Baseline，但尚未批准 Implementation，也未启动：
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
 | SP-016 | Canonical Waiting-For Domain & Agenda Closure | COMPLETED / ARCHIVED |
-| SP-017 | Follow-up Interaction & Capture Closure — Deterministic Waiting-For interaction, Inbox capture confirmation, and durable Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |
+| SP-017 | 跟进交互与捕获闭环——确定性 Waiting-For 交互、Inbox 捕获确认和持久化 Inbox-to-Waiting-For 转换 | COMPLETED / ARCHIVED |
 | SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
 | SP-019 | Daily Review Read Model & Deterministic Follow-up View | APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-020 | Local Daily Operating Loop & Review-to-Action Closure | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |

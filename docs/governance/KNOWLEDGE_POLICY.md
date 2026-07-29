@@ -1,4 +1,4 @@
-﻿# AI-Lab Knowledge Policy
+# AI-Lab Knowledge 政策
 
 > 知识管理规范。定义知识的分类、进入、审核、版本、删除和可信度管理。
 

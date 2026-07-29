@@ -1,4 +1,4 @@
-﻿# ADR-021: Workflow State Machine
+# ADR-021：Workflow 状态机
 
 **状态：** Accepted
 **版本：** v0.20.0

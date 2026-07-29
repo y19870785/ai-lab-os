@@ -7,7 +7,7 @@
 
 ### Core 层
 
-| 文件 | 测试目标 | Mock/Real | 状态 |
+| 文件 | 测试目标 | Mock/Real 类型 | 状态 |
 |---|---|---|---|
 | `tests/core/bus/` | EventBus 发布/订阅/队列 | Mock | ✅ |
 | `tests/core/database/` | DatabaseManager 连接池 | Mock | ✅ |
@@ -25,9 +25,9 @@
 | `tests/core/task/` | Task Runtime/Dependency | Mock | ✅ |
 | `tests/core/coordination/` | Multi-Agent Orchestrator | Mock | ✅ |
 
-### Integration
+### 集成测试
 
-| 文件 | 测试目标 | Mock/Real | 状态 |
+| 文件 | 测试目标 | Mock/Real 类型 | 状态 |
 |---|---|---|---|
 | `tests/integration/test_agent_tool_flow.py` | Agent + Tool 集成 | Mock | ✅ |
 | `tests/integration/test_agent_memory_flow.py` | Agent + Memory 集成 | Mock | ✅ |
@@ -40,9 +40,9 @@
 | `tests/integration/test_knowledge_pipeline.py` | Knowledge Pipeline | Mock | ✅ |
 | `tests/integration/test_mcp_client.py` | MCP Client | Mock | ✅ |
 
-### CEO Assistant
+### CEO Assistant 助手
 
-| 文件 | 测试目标 | Mock/Real | 状态 |
+| 文件 | 测试目标 | Mock/Real 类型 | 状态 |
 |---|---|---|---|
 | `tests/applications/ceo_assistant/test_daily_brief.py` | Daily Brief | Mock | ✅ |
 | `tests/applications/ceo_assistant/test_work_log.py` | Work Log | Mock | ✅ |
@@ -50,16 +50,16 @@
 | `tests/applications/ceo_assistant/test_decision.py` | Decision | Mock | ✅ |
 | `tests/applications/ceo_assistant/test_knowledge_qa.py` | Knowledge QA | Mock | ✅ |
 
-### CLI
+### CLI 入口
 
-| 文件 | 测试目标 | Mock/Real | 状态 |
+| 文件 | 测试目标 | Mock/Real 类型 | 状态 |
 |---|---|---|---|
 | `tests/cli/test_ceo_interactive.py` | CLI Intent Router + 命令 | Mock | ✅ |
 | `tests/api/test_api_models.py` | API Models + CLI 导入 | Mock | ✅ |
 
 ### 可靠性
 
-| 文件 | 测试目标 | Mock/Real | 状态 |
+| 文件 | 测试目标 | Mock/Real 类型 | 状态 |
 |---|---|---|---|
 | `tests/recovery/` | 系统恢复 | Mock | ✅ |
 | `tests/fault_injection/` | 故障注入 | Mock | ✅ |
@@ -67,17 +67,17 @@
 | `tests/deployment/` | 部署验证 | Mock | ✅ |
 | `tests/field/` | 现场验证 | Mock | ✅ |
 
-### Real Provider
+### 真实 Provider
 
-| 文件 | 测试目标 | Mock/Real | 状态 |
+| 文件 | 测试目标 | Mock/Real 类型 | 状态 |
 |---|---|---|---|
 | `tests/real/test_ceo_assistant_deepseek.py` | DeepSeek 真实 API | Real | 5 errors（机器代理兼容） |
 | `tests/real/test_deepseek_integration.py` | DeepSeek 集成 | Real | — |
 | `tests/real/test_knowledge_pipeline_real.py` | Knowledge 真实验证 | Real | — |
 
-### Applications
+### 应用
 
-| 文件 | 测试目标 | Mock/Real | 状态 |
+| 文件 | 测试目标 | Mock/Real 类型 | 状态 |
 |---|---|---|---|
 | `tests/applications/test_runtime.py` | ApplicationRuntime | Mock | ✅ |
 

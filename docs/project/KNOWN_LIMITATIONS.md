@@ -1,4 +1,4 @@
-# AI-Lab Known Limitations
+# AI-Lab 已知限制
 
 > 当前源码版本：`v0.34.0` Alpha | 更新日期：2026-07-29
 

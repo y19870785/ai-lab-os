@@ -1,4 +1,4 @@
-# ADR-054 — Model Waiting-For as a Separate Canonical Domain
+# ADR-054：独立规范 Waiting-For 领域
 
 Status: Accepted
 

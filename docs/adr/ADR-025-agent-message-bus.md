@@ -1,16 +1,16 @@
-﻿# ADR-025: Agent Message Bus Design
+# ADR-025：Agent Message Bus 设计
 
 **Date:** 2026-07-13
 **Status:** Accepted
 
-## Context
+## 背景
 
 Agent 间通信需要可靠的消息传递机制。选项：
 1. 直接函数调用（耦合高）
 2. 共享内存队列
 3. 基于 EventBus 的消息总线
 
-## Decision
+## 决策
 
 采用 **基于 EventBus 的 AgentMessageBus**。
 
@@ -21,7 +21,7 @@ Agent 间通信需要可靠的消息传递机制。选项：
 - 支持点对点、广播、请求-响应三种模式
 - 消息历史可回溯
 
-## Consequences
+## 后果
 
 - AgentMessageBus 依赖底层 Event Bus
 - 消息异步传递，需要处理超时

@@ -1,4 +1,4 @@
-# RFC-025 — Canonical Waiting-For Domain and Agenda Closure
+# RFC-025：规范等待事项领域与议程闭环
 
 Status: Adopted
 
@@ -57,7 +57,7 @@ Waiting-For 是独立 canonical domain，不通过增加 `UserTaskStatus.WAITING
 
 事件记录应能回答上次何时催办、累计催办次数、延期原因以及最终如何解决。修订 WaitingFor 当前快照不得覆盖或删除既有事件。
 
-## Workspace
+## 工作空间（Workspace）
 
 每个 Waiting-For 与 Event 都必须使用一等 `WorkspaceKey`。Repository 和 Service 的 get、list 与 mutation 均显式接收 workspace；不得只把 workspace 放入通用 metadata，也不得把 workspace 当成可选展示字段。
 

@@ -13,12 +13,25 @@
   "latest_merged_sp": "SP-019",
   "latest_completed_sp": "SP-019",
   "current_sp": null,
-  "current_governance_task": null,
+  "current_governance_task": "DOCS-001",
   "next_candidate_sp": "SP-020",
   "next_candidate_name": "Local Daily Operating Loop & Review-to-Action Closure",
   "development_status": "sp_020_planning_baseline_approved_merged_reconciled_implementation_not_approved_not_started",
   "current_work": null,
   "updated_at": "2026-07-29",
+  "governance_tasks": {
+    "DOCS-001": {
+      "name": "Repository Markdown Chinese Standardization and Documentation Governance",
+      "type": "DOCUMENTATION_GOVERNANCE",
+      "base_commit": "6d888725dbe8f31f77c46d2ebdc2dd9ef8612d29",
+      "branch": "docs/docs-001-markdown-chinese-governance",
+      "status": "IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN",
+      "product_code_changed": false,
+      "version_changed": false,
+      "tag_changed": false,
+      "release_changed": false
+    }
+  },
   "governance_sources": {
     "machine_readable_project_state": "project_state.json",
     "runtime_product_version": "pyproject.toml:[project].version",

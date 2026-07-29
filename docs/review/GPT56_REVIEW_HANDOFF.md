@@ -53,7 +53,7 @@ Workflow → Agent → Knowledge → Provider → Memory → Core
 
 ## 真实 Provider
 
-| Provider | 类型 | 状态 |
+| Provider 提供方 | 类型 | 状态 |
 |---|---|---|
 | DeepSeek (deepseek-v4-flash) | LLM | ✅ 已接入 |
 | SentenceTransformer (all-MiniLM-L6-v2) | Embedding 384d | ✅ 可用 |

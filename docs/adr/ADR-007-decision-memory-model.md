@@ -1,8 +1,8 @@
-﻿# ADR-007: Decision Memory 模型
+# ADR-007: Decision Memory 模型
 
-## Metadata
+## 元数据
 
-| Field        | Value                                |
+| 字段 | 值 |
 | ------------ | ------------------------------------ |
 | **ADR 编号** | 007                                  |
 | **标题**     | Decision Memory 模型                  |

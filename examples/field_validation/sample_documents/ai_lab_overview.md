@@ -10,7 +10,7 @@ AI-Lab 是一个个人级 AI 操作系统，采用分层架构：
 - **Agent Runtime**: 智能 Agent 运行时
 - **Tool Runtime**: 统一工具执行框架
 
-## API
+## API 入口
 
 - REST API: http://localhost:8000
 - OpenAPI Docs: http://localhost:8000/docs

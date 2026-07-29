@@ -1,4 +1,4 @@
-# Waiting-For Canonical Domain
+# 规范 Waiting-For 领域
 
 ## Domain 与状态机
 
@@ -16,7 +16,7 @@ Repository 与 Service 的读写均显式接收一等 `WorkspaceKey`，空 tenan
 
 FastAPI 在 `/waiting-for` 暴露 create、list、get、history、follow-up、snooze、resolve、cancel 与 reopen；workspace 只来自请求上下文。CLI 通过 `python -m cli waiting-for ...` 暴露相同生命周期。两者都从 `create_system` 得到同一个 canonical Service，不自行组装 Repository。
 
-## Daily Agenda
+## 每日议程（Daily Agenda）
 
 Composition Root 无论 Reminder/Scheduler 是否启用都会创建 Waiting-For 与 Daily Agenda。Agenda 分别探测 UserTask、Reminder、Waiting-For、Work Log 可选来源；禁用来源不报错，已启用来源的运行错误以 `agenda.query_failed` 失败关闭。Waiting-For 的复查/期望时间映射为 ACTION 或 ATTENTION，resolved/cancelled 映射为 COMPLETED，Agenda 不复制领域真相。
 

@@ -1,37 +1,41 @@
-# ADR-040: Reminder Status Aggregation Contract
+# ADR-040：Reminder 状态聚合合同
 
-## Status
+## 状态
 
 Accepted
 
-## Acceptance Record
+## 验收记录
 
-- Accepted through SP-009
-- PR: #19
-- Merge Commit: `b1274d066cbc01053144cba8d5654a5f8c8a21da`
-- Accepted Date: `2026-07-16`
+- 由 SP-009 Accepted；
+- PR：#19；
+- Merge Commit：`b1274d066cbc01053144cba8d5654a5f8c8a21da`；
+- Accepted Date：`2026-07-16`。
 
-## Context
+## 背景
 
-Reminder lifecycle facts are distributed across UserTask, Reminder, Scheduler Job, JobRun, and ReminderOccurrence. A database row or EventBus event alone is not a stable user-visible result.
+Reminder 生命周期事实分布在 UserTask、Reminder、Scheduler Job、JobRun 和
+ReminderOccurrence 中。单个数据库 Row 或 EventBus Event 不能构成稳定的用户可见结果。
 
-## Decision
+## 决策
 
-`ReminderStatusView` is the station-internal read contract. It is assembled on demand from persisted services and exposes identifiers, scheduled time and timezone, component statuses, latest occurrence, latest sanitized `FailureInfo`, and retryability.
+`ReminderStatusView` 是站内读取合同。它按需从持久化 Service 组合，暴露标识符、计划
+时间与 timezone、组件状态、最新 occurrence、最新脱敏 `FailureInfo` 和 retryability。
 
-The aggregate state is:
+聚合状态规则：
 
-- `cancelled` when Reminder is cancelled;
-- `triggered` when Reminder or the latest occurrence is triggered;
-- `retrying` when the Scheduler Job is retrying;
-- `failed` when Reminder or Scheduler reached failure;
-- otherwise `scheduled`.
+- Reminder cancelled 时为 `cancelled`；
+- Reminder 或最新 occurrence triggered 时为 `triggered`；
+- Scheduler Job retrying 时为 `retrying`；
+- Reminder 或 Scheduler failed 时为 `failed`；
+- 其他情况为 `scheduled`。
 
-The API exposes `GET /reminders/{reminder_id}/status`; CLI exposes `python -m cli reminder-status <reminder_id>`. Both resolve the same Composition Root service. LLM text, logs, EventBus events, and in-memory caches are excluded as truth sources.
+API 暴露 `GET /reminders/{reminder_id}/status`，CLI 暴露
+`python -m cli reminder-status <reminder_id>`。两者解析同一个组合根 Service。LLM 文本、
+日志、EventBus Event 和内存 Cache 不作为权威来源。
 
-## Consequences
+## 后果
 
-- Restart-safe status is available without inspecting SQLite manually.
-- Failure is visible without exposing internal exception text.
-- Existing component enums remain authoritative; no second domain enum is created.
-- The current view represents one Reminder and its latest occurrence, not a full inbox.
+- 重启后仍可查询状态，无需人工查看 SQLite；
+- 可以展示失败而不泄露内部异常文本；
+- 既有组件 Enum 仍是权威，不创建第二个领域 Enum；
+- 当前 View 表示一个 Reminder 及其最新 occurrence，不是完整 Inbox。

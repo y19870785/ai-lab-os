@@ -1,29 +1,31 @@
-﻿# ADR-016: Tool Registry Pattern
+# ADR-016：Tool Registry 模式
 
-**Status:** Accepted
-**Version:** v0.18.0
-**Date:** 2026-07-12
+**状态：** Accepted
+**版本：** v0.18.0
+**日期：** 2026-07-12
 
-## Context
+## 背景
 
-AI-Lab needs to support a growing number of tools (100+) across multiple categories. Each tool must be discoverable by name, category, tag, and capability. Tools must be lazily instantiated to avoid startup cost.
+AI-Lab 需要支持跨多个类别、数量可能超过 100 的 Tool。每个 Tool 必须能够按名称、类别、
+Tag 和 capability 发现，并延迟实例化以避免启动成本。
 
-## Decision
+## 决策
 
-Adopt **Registry + Factory** pattern:
+采用 Registry + Factory 模式：
 
-- `ToolRegistry` holds `ToolInfo` metadata and a `ToolFactory` callable for each tool.
-- Tools are NOT instantiated at registration time.
-- On first `get(name)`, the factory is called and the instance is cached.
-- `search()` supports filtering by category, tag, and name pattern.
+- `ToolRegistry` 保存每个 Tool 的 `ToolInfo` 元数据与 `ToolFactory` callable；
+- 注册时不得实例化 Tool；
+- 第一次 `get(name)` 时调用 factory，并缓存实例；
+- `search()` 支持按类别、Tag 和名称模式过滤。
 
-## Alternatives Considered
+## 已考虑的替代方案
 
-1. **Direct instantiation at registration** — Rejected. Would eagerly load all tools, increasing startup cost and memory for rarely-used tools.
-2. **Service Locator / DI container** — Rejected. Overkill for current needs; simple dict-based registry is sufficient and testable.
-3. **Auto-discovery only** — Rejected. Explicit registration gives control over tool metadata; auto-discovery will be layered on top.
+1. **注册时直接实例化**：拒绝。会预加载全部 Tool，增加启动成本和低频 Tool 的内存占用；
+2. **Service Locator / DI container**：拒绝。对当前需求过重，字典式 Registry 已足够且易测；
+3. **仅使用自动发现**：拒绝。显式注册可以控制 Tool 元数据，自动发现可在其上分层实现。
 
-## Consequences
+## 后果
 
-- **Positive:** Lazy loading, low startup cost, simple and testable.
-- **Negative:** Factory functions must be pure (no side effects); cached instances mean tool state persists across calls — acceptable for stateless tools but requires attention for stateful ones.
+- **正面：** 延迟加载、启动成本低、结构简单且易测；
+- **负面：** Factory 必须无副作用；缓存意味着 Tool 状态会跨调用保留，无状态 Tool 可接受，
+  有状态 Tool 需要额外注意。

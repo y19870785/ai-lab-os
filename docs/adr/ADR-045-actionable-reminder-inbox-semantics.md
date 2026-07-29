@@ -1,9 +1,9 @@
-# ADR-045: Actionable Reminder Inbox Semantics
+# ADR-045：可行动 Reminder Inbox 语义
 
 **Status:** Accepted
 **Date:** 2026-07-17
 
-## Acceptance Record
+## 验收记录
 
 - Accepted through SP-011
 - PR #23
@@ -11,11 +11,11 @@
 - Merge Commit: `5c4b442b2b5c7f934ac381020ba8b310976d5d3a`
 - Accepted Date: 2026-07-17
 
-## Context
+## 背景
 
-The existing `upcoming` filter means only that `scheduled_for >= now`. It correctly supports historical and diagnostic combinations, but it can include future cancelled reminders and therefore does not answer the product question "what needs attention next?"
+既有 `upcoming` 过滤仅表示 `scheduled_for >= now`。它适用于历史与诊断组合，但可能包含未来已取消提醒，因此不能回答“接下来需要关注什么”这一产品问题。
 
-## Decision
+## 决策
 
 Add the explicit `pending` inbox view:
 
@@ -24,12 +24,12 @@ status in (scheduled, retrying)
 and scheduled_for >= now
 ```
 
-The view is shared by API, CLI `reminders --pending`, and deterministic CEO Assistant phrases such as "查看待处理提醒". Existing no-parameter list behavior remains all-items for compatibility. Explicit combinations such as `status=cancelled&time_scope=upcoming` remain supported.
+该视图由 API、CLI `reminders --pending` 和“查看待处理提醒”等确定性 CEO Assistant 短语共享。为保持兼容，无参数列表仍返回全部项目；`status=cancelled&time_scope=upcoming` 等显式组合继续受支持。
 
-The phrase "查看我的提醒" uses the pending view and may summarize terminal counts separately. It does not create a Reminder or hide terminal records from explicit queries.
+“查看我的提醒”使用待处理视图，并可单独汇总终态数量。它不会创建 Reminder，也不会从显式查询中隐藏终态记录。
 
-## Consequences
+## 后果
 
-- Product-facing pending results exclude cancelled and triggered items.
-- The lower-level time filter remains composable and backward compatible.
-- Status aggregation remains centralized; no second public Reminder status enum is introduced.
+- 面向产品的 pending 结果排除 cancelled 与 triggered 项。
+- 底层时间过滤保持可组合与向后兼容。
+- 状态聚合继续集中管理，不引入第二个公开 Reminder 状态枚举。
