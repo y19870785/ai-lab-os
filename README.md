@@ -87,16 +87,69 @@ python -m pip install -e .
 
 运行行为由环境配置控制。默认关闭的能力不会因为代码存在而自动成为可用产品功能。
 
-Local Daily Profile 可从 `config/local-daily.env.example` 复制配置并替换本机路径和
-secret，然后执行：
+### Windows Local Daily 首次启动
+
+使用项目支持的 Python 3.12，从仓库根目录完成一次可复现配置：
 
 ```powershell
-.\scripts\start-local-daily.ps1
-python -m cli profile
-python -m cli daily-review --date today
-python -m cli daily-review --date yesterday --json
+py -3.12 -m venv .venv_312
+$Python = ".\.venv_312\Scripts\python.exe"
+& $Python -m pip install -e ".[local]"
+
+Copy-Item .\config\local-daily.env.example .\.env
+notepad .\.env
 ```
 
+在根目录 `.env` 中至少把 `AI_LAB_DATA_DIR`、`AI_LAB_SQLITE_DIR` 改成真实、稳定的
+绝对本机路径，把 `AI_LAB_API_TOKEN` 改成仅自己持有的随机 secret，并核对
+`AI_LAB_TIMEZONE`、`AI_LAB_TENANT_ID`、`AI_LAB_WORKSPACE_ID`、
+`AI_LAB_NAMESPACE`、`AI_LAB_SESSION_ID` 与 `AI_LAB_AGENT_ID`。不得把示例 token
+或业务数据目录提交到 Git。
+
+启动前先验证最终 Profile；只有精确的 `local-daily` 才会成功：
+
+```powershell
+& $Python -m cli profile --require-local-daily
+.\scripts\start-local-daily.ps1 -Port 8000
+```
+
+启动脚本从 `$PSScriptRoot` 固定仓库根目录、根目录 `.env` 和项目 Python；调用脚本时
+所在的 working directory 不会改变配置或 data root。脚本只绑定 `127.0.0.1`。
+
+在第二个 PowerShell 窗口验证真实进程：
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health/live
+Invoke-RestMethod http://127.0.0.1:8000/health/ready
+
+# 无 token 的业务请求必须失败（HTTP 401）。
+try {
+    Invoke-RestMethod http://127.0.0.1:8000/agenda -ErrorAction Stop
+    throw "未授权请求意外成功"
+} catch {
+    $_.Exception.Response.StatusCode.value__  # 401
+}
+
+$Token = (Get-Content .\.env |
+    Where-Object { $_ -like "AI_LAB_API_TOKEN=*" } |
+    Select-Object -First 1).Split("=", 2)[1]
+$Headers = @{ Authorization = "Bearer $Token" }
+Invoke-RestMethod http://127.0.0.1:8000/agenda -Headers $Headers
+Invoke-RestMethod "http://127.0.0.1:8000/daily-review?date=today" -Headers $Headers
+```
+
+回到服务窗口按 `Ctrl+C`。进程必须完成优雅关闭并释放
+`DatabaseManager.connection_count` 到 0；Phase 0 自动化测试和 ACC-020 driver 会记录
+shutdown、background task 与连接数证据。若进程不能退出、仍占用 SQLite 或端口，不得
+直接复制运行中的数据目录并声称备份成功。
+
+服务停止后仍可运行独立 CLI（每次请求使用同一 Profile WorkspaceKey 和新的
+trace ID）：
+
+```powershell
+& $Python -m cli daily-review --date today
+& $Python -m cli daily-review --date yesterday --json
+```
 ## 典型使用入口
 
 ```powershell

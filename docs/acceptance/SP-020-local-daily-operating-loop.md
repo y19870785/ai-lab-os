@@ -24,6 +24,13 @@
 driver/harness 错误必须标记 `INVALID_ACCEPTANCE_HARNESS` 并废弃该次运行；产品失败不得
 通过改 driver、skip、xfail 或放宽断言掩盖。
 
+`--prepare-only` 只能生成 `PREPARED_NOT_EXECUTED` 清单；所有未测量字段必须为
+`null`、空集合或 `NOT_MEASURED`，不得把未执行命令、Provider call 或场景写成 0 /
+PASS。非 prepare 模式必须实际启动 Uvicorn、执行入口与 A～V，不能退化为 no-op。
+实施审查期间最多允许一次显式
+`REHEARSAL / NOT_FORMAL_ACCEPTANCE`；它不冻结 Implementation Head，也不改变本文件
+任何场景状态。
+
 ## ACC-020-A — Local Profile 启动与配置错误
 
 验证显式 absolute `AI_LAB_DATA_DIR`、`AI_LAB_SQLITE_DIR`、IANA timezone、Provider
@@ -70,7 +77,8 @@ ID、reason code、全局排序与分页一致。CLI `--json` 必须与 structur
 
 对固定 Review payload 重复生成 hints，结果与顺序必须完全相同。每条包含
 `source_type/source_id/status/reason_code/allowed_action/required_arguments/
-requires_revision/requires_confirmation/available_entrypoints`，并逐条证明对应真实
+requires_revision/requires_idempotency_key/requires_confirmation/
+requires_durable_claim/saga_contract/available_entrypoints`，并逐条证明对应真实
 领域合同。`available_entrypoints` 只包含当前真实安全入口；每个 allowed action 至少
 一个入口即可，不要求 API、CLI 与 CEO Assistant 三者齐全，也不得列出尚未存在的入口。
 unsupported 组合不得伪造动作。
@@ -83,15 +91,14 @@ unsupported 组合不得伪造动作。
 
 - UserTask update 当前接受调用方 `expected_revision`，缺失时按当前兼容合同处理，
   stale revision 必须 fail closed；
-- 当前 UserTask complete/cancel 的 API 与 Service 不接受调用方 revision，而是读取最新
-  对象并使用读取时 revision 更新 repository；
-- SP-020 未来实现必须为 Review-to-Action UserTask complete/cancel 增加显式
-  `expected_revision`。实现后，hint 必须声明 `requires_revision=true`，缺失或 stale
-  revision 必须 fail closed。
+- 历史 `/tasks/{id}/complete|cancel` API 仍兼容不提供调用方 revision；
+- SP-020 Review-to-Action UserTask complete/cancel 已显式要求
+  `expected_revision`；hint 声明 `requires_revision=true`，缺失或 stale revision
+  必须 fail closed，包括对象已处于相同 terminal status 的情况。
 
 另一 workspace 与模糊对象始终不得写入。成功以 `tasks.db` 当前对象
-revision/status 为依据。未来 `complete/cancel expected_revision` 不得在实现前被记为
-当前能力。
+revision/status 为依据。成功 response 必须使用公共 `TaskResponse`，保留 `overdue`
+派生值，不暴露 `legacy_source_id` 或内部 workspace metadata。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 

@@ -385,6 +385,16 @@ class UserTaskService:
             task_id=task_id,
             trace_id=trace_id,
         )
+        if (
+            expected_revision is not None
+            and expected_revision != current.revision
+        ):
+            await self._publish("user_task.failed", task_id, trace_id, "failed")
+            self._raise(
+                UserTaskConflictError("stale expected_revision"),
+                target.value,
+                trace_id,
+            )
         if current.status == target:
             await self._coordinate_terminal(current, trace_id)
             return current

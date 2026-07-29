@@ -70,6 +70,7 @@ async def execute_ceo_request(user_input: str) -> tuple[ApplicationResponse, str
         response = await system.application_runtime.execute(ApplicationRequest(
             application_name="ceo-assistant",
             user_input=user_input,
+            workspace_key=workspace_from_settings(settings),
         ))
         return response, settings.provider_mode
     finally:
@@ -223,13 +224,14 @@ async def query_daily_agenda(
                 operation="list",
                 retryable=False,
             ))
+        workspace_key = workspace_from_settings(settings)
         return await system.daily_agenda.list(
-            workspace_key=workspace_from_settings(settings),
+            workspace_key=workspace_key,
             view=view,
             window_hours=window_hours,
             limit=limit,
             offset=offset,
-            trace_id="cli",
+            trace_id=workspace_key.trace_id,
         )
     finally:
         await system.shutdown()

@@ -18,22 +18,11 @@ from api.models import (
     WaitingForResponse,
     WaitingForSnoozeRequest,
 )
+from api.workspace import workspace_from_request
 from core.system.container import SystemContainer
 from core.waiting_for import WaitingForView
-from core.workspace.models import WorkspaceKey
 
 router = APIRouter(prefix="/waiting-for", tags=["waiting-for"])
-
-
-def _workspace(request: Request) -> WorkspaceKey:
-    return WorkspaceKey(
-        tenant_id=getattr(request.state, "tenant_id", "default"),
-        workspace_id=getattr(request.state, "workspace_id", "default"),
-        namespace=getattr(request.state, "namespace", "default"),
-        session_id=getattr(request.state, "session_id", ""),
-        agent_id=getattr(request.state, "agent_id", ""),
-        trace_id=getattr(request.state, "trace_id", ""),
-    )
 
 
 def _item(item, *, now) -> WaitingForResponse:
@@ -58,7 +47,9 @@ async def create_waiting_for(
     system: SystemContainer = Depends(get_system),
 ):
     result = await system.waiting_for_service.create(
-        workspace_key=_workspace(request), source="api", **body.model_dump()
+        workspace_key=workspace_from_request(request),
+        source="api",
+        **body.model_dump(),
     )
     return WaitingForMutationResponse(
         item=_item(result.item, now=system.clock.now()), event=_event(result.event)
@@ -74,7 +65,10 @@ async def list_waiting_for(
     system: SystemContainer = Depends(get_system),
 ):
     page = await system.waiting_for_service.list(
-        workspace_key=_workspace(request), view=view, limit=limit, offset=offset
+        workspace_key=workspace_from_request(request),
+        view=view,
+        limit=limit,
+        offset=offset,
     )
     return WaitingForPageResponse(
         items=[_item(value, now=page.generated_at) for value in page.items],
@@ -93,7 +87,8 @@ async def get_waiting_for(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.waiting_for_service.get(
-        workspace_key=_workspace(request), waiting_for_id=waiting_for_id
+        workspace_key=workspace_from_request(request),
+        waiting_for_id=waiting_for_id,
     )
     return _item(item, now=system.clock.now())
 
@@ -107,7 +102,7 @@ async def list_waiting_for_events(
     system: SystemContainer = Depends(get_system),
 ):
     page = await system.waiting_for_service.list_events(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         waiting_for_id=waiting_for_id,
         limit=limit,
         offset=offset,
@@ -128,7 +123,7 @@ async def _mutation(
     system: SystemContainer,
 ) -> WaitingForMutationResponse:
     values = {
-        "workspace_key": _workspace(request),
+        "workspace_key": workspace_from_request(request),
         "waiting_for_id": waiting_for_id,
         "expected_revision": body.expected_revision,
         "source": "api",

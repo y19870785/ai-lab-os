@@ -148,6 +148,51 @@ async def test_not_found_and_optimistic_concurrency(tmp_path: Path):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("action", ["complete", "cancel"])
+async def test_terminal_transition_checks_caller_revision_before_idempotency(
+    tmp_path: Path,
+    action: str,
+):
+    manager, _, service = await _service(tmp_path)
+    task = await service.create(workspace_key=WORKSPACE, title=action)
+    method = getattr(service, action)
+
+    with pytest.raises(FailureException) as active_stale:
+        await method(
+            workspace_key=WORKSPACE,
+            task_id=task.id,
+            expected_revision=task.revision + 1,
+        )
+    assert active_stale.value.failure.category == ErrorCategory.CONFLICT
+    assert (await service.get(
+        workspace_key=WORKSPACE,
+        task_id=task.id,
+    )).revision == task.revision
+
+    terminal = await method(
+        workspace_key=WORKSPACE,
+        task_id=task.id,
+        expected_revision=task.revision,
+    )
+    with pytest.raises(FailureException) as terminal_stale:
+        await method(
+            workspace_key=WORKSPACE,
+            task_id=task.id,
+            expected_revision=task.revision,
+        )
+    assert terminal_stale.value.failure.category == ErrorCategory.CONFLICT
+    unchanged = await service.get(workspace_key=WORKSPACE, task_id=task.id)
+    assert unchanged.revision == terminal.revision
+    exact = await method(
+        workspace_key=WORKSPACE,
+        task_id=task.id,
+        expected_revision=terminal.revision,
+    )
+    assert exact.revision == terminal.revision
+    manager.close_all()
+
+
+@pytest.mark.asyncio
 async def test_schema_is_idempotent_and_data_survives_restart(tmp_path: Path):
     manager_a, repository_a, service_a = await _service(tmp_path)
     await service_a.initialize()

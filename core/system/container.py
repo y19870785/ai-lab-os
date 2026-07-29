@@ -458,11 +458,7 @@ class SystemContainer:
             "shutdown_failures": list(self.shutdown_failures),
             "provider_mode": self.settings.provider_mode,
             "components": components,
-            "background_tasks": (
-                len(self.scheduler_runtime._background_tasks)
-                if self.scheduler_runtime is not None
-                else 0
-            ),
+            "background_tasks": int(scheduler_health.get("running_jobs", 0)),
             "database_connections": self.database_manager.connection_count,
         }
 

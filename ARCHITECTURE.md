@@ -150,7 +150,10 @@ Daily Review CLI 将来只能直接复用现有无数据库、无事件、无 LL
 两次 Scheduler shutdown 调用）、连接释放和新进程恢复。备份只规划优雅停机后的完整
 data directory Quiescent Backup 与隔离恢复，不承诺在线跨 SQLite 一致快照。上述内容
 实现分支已提供严格 Local Daily Profile、共享 Composition Root 的 Daily Review CLI、
-纯确定性 Action Hint 和委托 canonical UserTaskService 的 revision-aware 薄入口。Phase 0
+纯确定性 Action Hint 和委托 canonical UserTaskService 的 revision-aware 薄入口。API
+由共享 request-to-WorkspaceKey 适配器统一传递 tenant、workspace、namespace、
+session、agent 与 trace；缺失 header 使用 Profile 默认值，显式空白 header 在访问
+任何 canonical source 前以 validation FailureInfo 拒绝。Phase 0
 自动化门禁已覆盖 partial-start rollback、重复 shutdown、持续 tick、连接观测和新容器恢复。
 Action Hint 不写数据库、不发布事件、不调用 Provider，也不声明不存在的入口。
 

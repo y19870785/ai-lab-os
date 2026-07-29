@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependencies import get_system
+from api.models import TaskResponse
+from api.task_presenter import task_response
+from api.workspace import workspace_from_request
 from core.daily_review import (
     DEFAULT_DAILY_REVIEW_LIMIT,
     DEFAULT_DAILY_REVIEW_OFFSET,
@@ -13,20 +16,8 @@ from core.daily_review import (
 )
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.system.container import SystemContainer
-from core.workspace.models import WorkspaceKey
 
 router = APIRouter(prefix="/daily-review", tags=["daily-review"])
-
-
-def _workspace(request: Request) -> WorkspaceKey:
-    return WorkspaceKey(
-        tenant_id=getattr(request.state, "tenant_id", "default"),
-        workspace_id=getattr(request.state, "workspace_id", "default"),
-        namespace=getattr(request.state, "namespace", "default"),
-        session_id=getattr(request.state, "session_id", ""),
-        agent_id=getattr(request.state, "agent_id", ""),
-        trace_id=getattr(request.state, "trace_id", ""),
-    )
 
 
 def _service(system: SystemContainer, trace_id: str):
@@ -59,7 +50,7 @@ async def get_daily_review(
         trace_id=trace_id,
     )
     return await service.get(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         query=query,
     )
 
@@ -81,7 +72,7 @@ async def get_action_hints(
         trace_id=trace_id,
     )
     review = await service.get(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         query=query,
     )
     return build_action_hints(review)
@@ -111,15 +102,20 @@ async def _transition_user_task(
             operation=action,
         ))
     method = service.complete if action == "complete" else service.cancel
-    return await method(
-        workspace_key=_workspace(request),
+    request_as_of = service.current_instant()
+    task = await method(
+        workspace_key=workspace_from_request(request),
         task_id=task_id,
         expected_revision=body.expected_revision,
         trace_id=getattr(request.state, "trace_id", ""),
     )
+    return task_response(task, service=service, request_as_of=request_as_of)
 
 
-@router.post("/actions/user-tasks/{task_id}/complete")
+@router.post(
+    "/actions/user-tasks/{task_id}/complete",
+    response_model=TaskResponse,
+)
 async def complete_user_task_from_review(
     task_id: str,
     body: ReviewUserTaskTransitionRequest,
@@ -135,7 +131,10 @@ async def complete_user_task_from_review(
     )
 
 
-@router.post("/actions/user-tasks/{task_id}/cancel")
+@router.post(
+    "/actions/user-tasks/{task_id}/cancel",
+    response_model=TaskResponse,
+)
 async def cancel_user_task_from_review(
     task_id: str,
     body: ReviewUserTaskTransitionRequest,

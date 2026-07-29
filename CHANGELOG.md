@@ -6,7 +6,8 @@
 - 新增严格的 Windows Local Daily Profile、稳定绝对数据目录校验、安全配置摘要、完整 WorkspaceKey 默认值与覆盖能力。
 - 新增正式 `daily-review` CLI、纯确定性 Action Hint，以及带显式 `expected_revision` 的 Review-to-Action UserTask complete/cancel 薄 API。
 - Phase 0 已通过自动化生命周期门禁，覆盖持续 Scheduler tick、一次性 Job、周期 health 快照、partial-start rollback、重复 shutdown、连接释放与新容器恢复。
-- 新增 ACC-020 driver 准备工具与入口矩阵审计；正式 ACC-020 仍为 `PLANNING_BASELINE / NOT_EXECUTED`，等待独立审查冻结 Implementation Head。
+- 将 ACC-020 driver 从准备脚手架补全为可执行 Windows harness：prepare-only 保持未测量语义，rehearsal/formal 模式真实启动 Uvicorn、执行 A～V、Provider spy、静止备份与隔离恢复；正式 ACC-020 仍为 `PLANNING_BASELINE / NOT_EXECUTED`，等待独立审查冻结 Implementation Head。
+- 收紧 Local Daily Profile、完整 WorkspaceKey、Action Hint 三元决策键、terminal stale revision、公共 TaskResponse 与 Scheduler health 公共读取合同。
 - 未新增 Schema、Migration、依赖或 CI；版本保持 `0.34.0`，Tag 与 GitHub Release 不变。
 
 ### DOCS-001 全仓 Markdown 中文规范与统一治理

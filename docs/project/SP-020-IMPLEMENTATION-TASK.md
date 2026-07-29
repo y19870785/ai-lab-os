@@ -23,11 +23,11 @@ Planning Status:
 PLANNING_BASELINE_APPROVED / MERGED / RECONCILED
 
 Implementation:
-NOT APPROVED / NOT STARTED
+AUTHORIZED / IMPLEMENTED / PENDING INDEPENDENT REVIEW
 ```
 
-本任务书定义未来授权边界，不是实施授权。任何 Phase 都必须等待 Planning PR 独立审查、
-合并以及 Owner 的新一轮明确授权。
+本任务书定义实施授权边界。Planning PR 已独立审查、合并并对账，Owner 后续已授予
+一次 SP-020 产品实施授权；当前 Draft PR 尚未通过独立审查、正式 ACC-020 或合并门禁。
 
 ## 范围
 
@@ -65,9 +65,9 @@ Work Log edit/complete/delete。
    一致传递。
 6. revision、idempotency、preview/confirm、Inbox durable claim/Saga 必须按动作分别
    声明并遵守，不能被绕过。UserTask update 当前接受调用方 `expected_revision`；
-   complete/cancel 当前只使用 Service 读取到的最新 revision，API 与 Service 不接受
-   调用方 revision。SP-020 未来实现必须为 Review-to-Action 的 UserTask
-   complete/cancel 增加显式 `expected_revision`。
+   历史 tasks complete/cancel 入口仍兼容省略调用方 revision；SP-020 的
+   Review-to-Action UserTask complete/cancel 已增加显式 `expected_revision`，并在
+   terminal idempotency 之前拒绝 stale revision。
 7. Work Log 仍只有 create/get/list。
 8. 默认备份为停机后的完整 data directory 复制；不承诺在线跨库一致快照。
 
@@ -76,7 +76,7 @@ Work Log edit/complete/delete。
 SP-020 产品实施需要一次明确的 Owner 授权。Phase 0 是同一次实施授权内部的强制质量
 门禁；通过 Phase 0 后不需要再次请求 Owner 授权。若 Phase 0 失败、触发停止条件、需要
 改变已批准范围、拆分 Product SP 或引入新的架构决策，必须立即停止并重新请求 Owner
-决策。本 Planning Baseline 尚未授予该实施授权。
+决策。该一次实施授权已在 Planning Baseline 合并对账后由 Owner 明确授予。
 
 ### 阶段 0 — 产品入口与生命周期门禁
 
@@ -187,10 +187,13 @@ NOT AUTHORIZED / UNCHANGED
 
 ```text
 SP-020 Planning Baseline:
-DEFINED / PENDING INDEPENDENT REVIEW
+APPROVED / MERGED / RECONCILED
 
 SP-020 Implementation:
-NOT APPROVED / NOT STARTED
+AUTHORIZED / PHASE_0_PASSED / PHASE_1_IMPLEMENTED /
+PHASE_2_IMPLEMENTED / PHASE_3_IMPLEMENTED /
+AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW /
+DRAFT_PR_OPEN
 
 ACC-020:
 PLANNING_BASELINE / NOT_EXECUTED

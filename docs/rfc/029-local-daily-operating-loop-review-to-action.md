@@ -9,7 +9,7 @@
 - 规划 PR：#53 / MERGED
 - 规划合并 Commit：`fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`
 - 规划后 main Quality Gate：`30441534383` / SUCCESS
-- 产品实施：NOT APPROVED / NOT STARTED
+- 产品实施：AUTHORIZED / IMPLEMENTED ON DRAFT PR / PENDING INDEPENDENT REVIEW
 
 ## 当前问题
 
@@ -18,7 +18,8 @@ Agenda 与 Daily Review，但这些能力尚未形成一个可复现、可安全
 Windows 本地日常运行合同。当前主要缺口不是新的领域模型，而是入口、配置、动作提示、
 生命周期与数据保护之间的闭环。
 
-本 RFC 只定义未来实现边界。它不批准产品实现，不改变现有运行时行为。
+本 RFC 是已批准的规划合同。后续 Owner 授权已启动产品实施；当前实现位于 Draft PR，
+尚未通过独立审查、正式 ACC-020、Ready 或 Merge 门禁。
 
 ## 真实用户日常场景
 
@@ -71,9 +72,10 @@ Windows 本地日常运行合同。当前主要缺口不是新的领域模型，
 - 每个 item 输出 canonical `source_type`、`source_id`、`status`、
   `reason_code`、`effective_at` 与 relevant time fields。
 - API 与 CEO Assistant 使用同一个 `DailyReviewService`。
-- 当前没有正式 `daily-review` CLI；`brief` CLI 只是通过 CEO Assistant 固定请求
-  “今日简报”。
-- 当前 Presenter 只展示事实与 canonical ID，不展示可执行动作。
+- 当前已有直接复用同一 service 的 `daily-review` CLI；`brief` CLI 继续通过 CEO
+  Assistant 使用同一 WorkspaceKey。
+- Daily Review Presenter 仍只展示事实与 canonical ID；独立 Action Hint Presenter
+  只展示通过完整三元决策键验证的真实安全入口，不执行动作。
 
 ### 生命周期与恢复
 
@@ -96,7 +98,7 @@ Windows 本地日常运行合同。当前主要缺口不是新的领域模型，
 
 ## 本地每日配置（Local Daily Profile）
 
-未来实现必须提供一个命名明确、可复现的 Windows Local Daily Profile。配置必须显式
+实现提供一个命名明确、可复现的 Windows Local Daily Profile。配置必须显式
 显示并固定：
 
 ```text
@@ -129,7 +131,7 @@ Provider secret 只能显示“已配置/未配置”，不得回显值。
 
 ## 每日复盘 CLI
 
-未来正式入口：
+当前正式入口：
 
 ```powershell
 python -m cli daily-review --date today
@@ -160,7 +162,10 @@ reason_code
 allowed_action
 required_arguments
 requires_revision
+requires_idempotency_key
 requires_confirmation
+requires_durable_claim
+saga_contract
 available_entrypoints
 ```
 
@@ -173,6 +178,24 @@ Hint 不得把尚未存在的入口描述为可用入口。
 
 Hint 不调用 LLM、不自动选择动作、不执行动作、不持久化、不创建 snapshot，也不改变
 现有 Daily Review 分类和分页。Hint 与 Action Execution 严格分离。
+
+实现固定以下完整、不可变决策键；只匹配 `source_type + status + reason_code` 的精确
+组合，错误 source、terminal/unsupported status 或伪造 reason 均返回零 hint：
+
+```text
+user_task + active + user_task.overdue|user_task.due_soon
+waiting_for + open + waiting_for.expected_overdue|waiting_for.review_due
+reminder + failed + reminder.failed
+reminder + scheduled|retrying + reminder.due_soon
+inbox + pending + inbox.pending
+```
+
+`inbox.pending` 不使用 wildcard action/entrypoint。它分别列出
+`resolve_to_task`、`resolve_to_reminder`、`resolve_to_work_log`、
+`resolve_to_waiting_for`、`resolve_as_note` 与 `dismiss`，每项绑定
+`POST /inbox/{id}/resolve/task|reminder|work-log|waiting-for|note` 或
+`POST /inbox/{id}/dismiss` 以及对应 `inbox resolve-*|dismiss` CLI，并按动作声明
+必需参数、confirmation 与 `InboxResolutionClaim` Saga。
 
 ### 当前真实动作矩阵
 
@@ -191,15 +214,16 @@ UserTask update:
 当前 Service 接受调用方 expected_revision；API PATCH 通过 revision 字段传入。
 
 UserTask complete/cancel:
-当前 Service 会读取最新对象，并使用读取时的 current.revision 执行 repository update；
-当前 API 与 Service 均不接受调用方提供的 expected_revision。
+历史 `/tasks/{id}/complete|cancel` 兼容入口仍允许省略调用方 revision，并由 Service
+读取最新对象后使用 current revision。SP-020 新增的 Review-to-Action 薄 API 与
+Service 显式接受 `expected_revision`；无论 active 或已处于同一 terminal status，
+stale revision 都先于 terminal idempotency 检查而 fail closed。
 
-SP-020 future implementation decision:
-Review-to-Action 的 UserTask complete/cancel 必须增加显式 expected_revision，
-防止用户依据旧 Daily Review 操作已经变化的对象。
+Review-to-Action decision:
+UserTask complete/cancel 已增加显式 expected_revision，防止用户依据旧 Daily Review
+操作已经变化的对象。
 ```
 
-以上 `complete/cancel expected_revision` 是未来 SP-020 产品实现范围，不是当前能力。
 revision、idempotency、durable claim/Saga 与 confirmation 必须按动作分别声明，不得
 套用一个统一 mutation 规则。
 
@@ -239,6 +263,13 @@ Mutate explicitly by canonical ID
 workspace。canonical ID 不能绕过 workspace ownership。跨 workspace 的同 ID、旧
 数据别名或缺失 workspace evidence 必须按既有兼容合同处理或 fail closed，不能回退到
 无过滤查询。
+
+API 统一由共享 request-to-WorkspaceKey helper 构造 tenant、workspace、namespace、
+session、agent 与 trace。header 缺失时使用 Profile 默认值；任一
+`X-Tenant-ID`、`X-Workspace-ID`、`X-Namespace`、`X-Session-ID`、
+`X-Agent-ID` 显式存在但为空白时，在读取或写入 canonical source 前返回稳定 validation
+FailureInfo。Chat 的非空 body session 覆盖 header/Profile session；空白 body session
+回退到已验证请求上下文。CLI 每个独立请求生成新的 trace ID，并在单次请求内保持一致。
 
 ## FailureInfo 合同
 
@@ -358,7 +389,8 @@ Phase 0 是同一次 SP-020 实施授权内部的强制质量门禁，不需要�
 授权。Phase 0 失败、触发停止条件、需要改变已批准范围、需要拆分 Product SP，或需要
 引入新的架构决策时，必须立即停止并重新请求 Owner 决策。
 
-本 Planning Baseline 尚未授予这一次 SP-020 产品实施授权。
+Owner 已在规划合并后授予一次 SP-020 产品实施授权；当前 Draft PR 仍需独立审查，
+实施 Head 尚未冻结，正式 ACC-020 尚未执行。
 
 ## 停止条件
 
@@ -396,7 +428,8 @@ SP-020 Planning Baseline:
 APPROVED / MERGED / RECONCILED
 
 SP-020 Implementation:
-NOT APPROVED / NOT STARTED
+AUTHORIZED / IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED /
+PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN
 
 ACC-020:
 PLANNING_BASELINE / NOT_EXECUTED

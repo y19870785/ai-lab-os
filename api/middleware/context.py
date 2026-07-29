@@ -1,23 +1,35 @@
-﻿"""Context middleware —— 构建 ApplicationContext。"""
+"""Validate workspace headers and build the request context."""
+
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from core.errors import ErrorCategory, FailureException, FailureInfo
+
+_WORKSPACE_HEADERS = {
+    "X-Tenant-ID": ("tenant_id", "default"),
+    "X-Workspace-ID": ("workspace_id", "default"),
+    "X-Namespace": ("namespace", "default"),
+    "X-Session-ID": ("session_id", ""),
+    "X-Agent-ID": ("agent_id", ""),
+}
 
 
 class ContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         defaults = getattr(request.app.state, "workspace_defaults", {})
-        request.state.tenant_id = request.headers.get(
-            "X-Tenant-ID", defaults.get("tenant_id", "default")
-        )
-        request.state.workspace_id = request.headers.get(
-            "X-Workspace-ID", defaults.get("workspace_id", "default")
-        )
-        request.state.namespace = request.headers.get(
-            "X-Namespace", defaults.get("namespace", "default")
-        )
-        request.state.session_id = request.headers.get(
-            "X-Session-ID", defaults.get("session_id", "")
-        )
-        request.state.agent_id = request.headers.get(
-            "X-Agent-ID", defaults.get("agent_id", "")
-        )
+        for header, (attribute, fallback) in _WORKSPACE_HEADERS.items():
+            if header in request.headers:
+                value = request.headers[header].strip()
+                if not value:
+                    raise FailureException(FailureInfo(
+                        code="workspace.header_invalid",
+                        category=ErrorCategory.VALIDATION,
+                        message=f"{header} must not be blank",
+                        component="api.workspace",
+                        operation="resolve",
+                        retryable=False,
+                        details={"header": header},
+                    ))
+            else:
+                value = str(defaults.get(attribute, fallback)).strip()
+            setattr(request.state, attribute, value)
         return await call_next(request)

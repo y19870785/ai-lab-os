@@ -74,6 +74,8 @@ class SystemSettings:
             raise ValueError("timezone_name must be a valid IANA timezone") from exc
         if self.scheduler_tick_interval <= 0:
             raise ValueError("scheduler_tick_interval must be positive")
+        if self.profile_name not in {"", "local-daily"}:
+            raise ValueError(f"Unsupported AI_LAB_PROFILE: {self.profile_name}")
         if self.profile_name == "local-daily":
             if not raw_data_dir.is_absolute():
                 raise ValueError("AI_LAB_DATA_DIR must be an absolute path")
@@ -202,6 +204,8 @@ def load_system_settings(
     data_dir = Path(os.getenv("AI_LAB_DATA_DIR", str(root / "data")))
     sqlite_dir = Path(os.getenv("AI_LAB_SQLITE_DIR", str(data_dir / "sqlite")))
     profile_name = os.getenv("AI_LAB_PROFILE", "").strip().lower()
+    if profile_name not in {"", "local-daily"}:
+        raise ValueError(f"Unsupported AI_LAB_PROFILE: {profile_name}")
     local_daily = profile_name == "local-daily"
     if local_daily:
         required = (

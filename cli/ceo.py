@@ -8,23 +8,24 @@
 - /help /brief /tasks /records /decisions /knowledge /new-session /status /clear /exit
 """
 
+# ruff: noqa: ASYNC221, BLE001, S110
+
 import asyncio
 import os
 import sys
 
+from applications.ceo_assistant.intent import decide_intent
+from cli.workspace import workspace_from_settings
+from core import __version__
+from core.provider_mode import get_provider_info
+from core.system import create_system, load_system_settings
+
 # 强制 stdin/stdout 为 UTF-8，解决 Windows 管道中文乱码（pytest 下 stdin 可能不可 reconfigure）
 try:
-    import sys
     sys.stdin.reconfigure(encoding='utf-8')
     sys.stdout.reconfigure(encoding='utf-8')
 except Exception:
     pass
-
-from core.provider_mode import get_provider_info
-from core import __version__
-from core.system import create_system, load_system_settings
-from applications.ceo_assistant.intent import decide_intent
-
 
 HELP_TEXT = """
 可用命令：
@@ -49,7 +50,7 @@ def _detect_intent(text: str) -> str:
     return "command" if text.lstrip().startswith("/") else decide_intent(text).intent
 
 
-async def _handle_command(runtime, cmd: str, args: str):
+async def _handle_command(runtime, cmd: str, args: str, workspace_key=None):
     """执行 / 开头的快捷命令。"""
     from applications.models import ApplicationRequest
 
@@ -59,25 +60,40 @@ async def _handle_command(runtime, cmd: str, args: str):
         return HELP_TEXT.strip()
     elif cmd == "brief":
         resp = await runtime.execute(ApplicationRequest(
-            application_name="ceo-assistant", user_input="简报"))
+            application_name="ceo-assistant",
+            user_input="简报",
+            workspace_key=workspace_key,
+        ))
         return resp.answer if resp and resp.answer else "暂无简报。"
     elif cmd == "tasks":
         resp = await runtime.execute(ApplicationRequest(
-            application_name="ceo-assistant", user_input="查看待办任务"))
+            application_name="ceo-assistant",
+            user_input="查看待办任务",
+            workspace_key=workspace_key,
+        ))
         return resp.answer if resp and resp.answer else "暂无待办任务。"
     elif cmd == "records":
         resp = await runtime.execute(ApplicationRequest(
-            application_name="ceo-assistant", user_input="查看工作记录"))
+            application_name="ceo-assistant",
+            user_input="查看工作记录",
+            workspace_key=workspace_key,
+        ))
         return resp.answer if resp and resp.answer else "暂无工作记录。"
     elif cmd == "decisions":
         resp = await runtime.execute(ApplicationRequest(
-            application_name="ceo-assistant", user_input="查看决策记录"))
+            application_name="ceo-assistant",
+            user_input="查看决策记录",
+            workspace_key=workspace_key,
+        ))
         return resp.answer if resp and resp.answer else "暂无决策记录。"
     elif cmd == "knowledge":
         if not args.strip():
             return "用法：/knowledge <问题>"
         resp = await runtime.execute(ApplicationRequest(
-            application_name="ceo-assistant", user_input=args.strip()))
+            application_name="ceo-assistant",
+            user_input=args.strip(),
+            workspace_key=workspace_key,
+        ))
         return resp.answer if resp and resp.answer else "未找到相关知识。"
     elif cmd == "new-session":
         return "新会话已开始。"
@@ -100,6 +116,7 @@ async def _handle_command(runtime, cmd: str, args: str):
 async def run_ceo():
     """交互式 CEO Assistant 主循环。"""
     settings = load_system_settings()
+    workspace_key = workspace_from_settings(settings)
     info = get_provider_info()
 
     print("=" * 40)
@@ -111,8 +128,15 @@ async def run_ceo():
         print(f"  模型：{info['model']}")
         print(f"  API Key：{info['api_key_masked']}")
     else:
-        print(f"  提示：当前未配置真实 API Key，所有回复均为模拟结果。")
-    print(f"  Workspace：personal")
+        print("  提示：当前未配置真实 API Key，所有回复均为模拟结果。")
+    print(
+        "  Workspace："
+        f"{workspace_key.tenant_id}/"
+        f"{workspace_key.workspace_id}/"
+        f"{workspace_key.namespace}"
+    )
+    print(f"  Session：{workspace_key.session_id or '(empty)'}")
+    print(f"  Agent：{workspace_key.agent_id or '(empty)'}")
     print("=" * 40)
     print()
     print("输入 /help 查看命令，/exit 退出。")
@@ -137,7 +161,10 @@ async def run_ceo():
                 parts = user_input[1:].split(None, 1)
                 cmd = parts[0].lower()
                 a = parts[1] if len(parts) > 1 else ""
-                result = await _handle_command(runtime, cmd, a)
+                request_workspace = workspace_key.model_copy(
+                    update={"trace_id": workspace_from_settings(settings).trace_id}
+                )
+                result = await _handle_command(runtime, cmd, a, request_workspace)
                 if result is None:
                     print("再见！")
                     break
@@ -149,6 +176,9 @@ async def run_ceo():
             req = ApplicationRequest(
                 application_name="ceo-assistant",
                 user_input=user_input,
+                workspace_key=workspace_key.model_copy(
+                    update={"trace_id": workspace_from_settings(settings).trace_id}
+                ),
             )
             try:
                 resp = await runtime.execute(req)

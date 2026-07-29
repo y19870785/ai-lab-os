@@ -38,7 +38,7 @@ async def test_partial_start_rolls_back_and_failed_container_cannot_restart(
     assert system.accepting_work is False
     assert system.database_manager.connection_count == 0
     assert system.event_bus.is_running is False
-    assert not system.scheduler_runtime._background_tasks
+    assert (await system.scheduler_runtime.health())["running_jobs"] == 0
     assert system.scheduler_runtime._tick_task is None
     with pytest.raises(SystemInitializationError, match="cannot be restarted"):
         await system.start()
@@ -98,7 +98,7 @@ async def test_sustained_ticks_one_shot_idle_shutdown_and_restart(tmp_path):
     await system.shutdown()
     assert system.lifecycle_state == SystemLifecycleState.STOPPED
     assert system.database_manager.connection_count == 0
-    assert not system.scheduler_runtime._background_tasks
+    assert (await system.scheduler_runtime.health())["running_jobs"] == 0
     assert system.scheduler_runtime._tick_task is None
 
     restored = await create_system(settings)

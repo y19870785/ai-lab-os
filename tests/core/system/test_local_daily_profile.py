@@ -76,3 +76,26 @@ def test_local_daily_profile_fails_closed(
     monkeypatch.setenv(name, value)
     with pytest.raises(ValueError, match=message):
         load_system_settings(load_dotenv=False)
+
+
+@pytest.mark.parametrize(
+    "profile",
+    ["local_daily", "localdaily", "local-day", "production", "invalid"],
+)
+def test_unknown_nonempty_profile_fails_closed(monkeypatch, profile):
+    monkeypatch.setenv("AI_LAB_PROFILE", profile)
+    monkeypatch.setenv("AI_LAB_PROVIDER_MODE", "test")
+    with pytest.raises(ValueError, match="Unsupported AI_LAB_PROFILE"):
+        load_system_settings(load_dotenv=False)
+
+
+def test_empty_profile_keeps_legacy_defaults(monkeypatch, tmp_path):
+    monkeypatch.setenv("AI_LAB_PROFILE", "")
+    monkeypatch.setenv("AI_LAB_PROVIDER_MODE", "test")
+    monkeypatch.delenv("AI_LAB_DATA_DIR", raising=False)
+    settings = load_system_settings(
+        project_root=tmp_path,
+        load_dotenv=False,
+    )
+    assert settings.profile_name == ""
+    assert settings.data_dir == (tmp_path / "data").resolve()

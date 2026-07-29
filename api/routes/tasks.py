@@ -8,23 +8,13 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
 from api.models import TaskCreateRequest, TaskResponse, TaskUpdateRequest
+from api.task_presenter import task_response
+from api.workspace import workspace_from_request
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.system.container import SystemContainer
 from core.user_tasks import UserTaskPriority, UserTaskStatus
-from core.workspace.models import WorkspaceKey
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
-
-
-def _workspace(request: Request) -> WorkspaceKey:
-    return WorkspaceKey(
-        tenant_id=getattr(request.state, "tenant_id", "default"),
-        workspace_id=getattr(request.state, "workspace_id", "default"),
-        namespace=getattr(request.state, "namespace", "default"),
-        session_id=getattr(request.state, "session_id", ""),
-        agent_id=getattr(request.state, "agent_id", ""),
-        trace_id=getattr(request.state, "trace_id", ""),
-    )
 
 
 def _service(system: SystemContainer):
@@ -39,13 +29,6 @@ def _service(system: SystemContainer):
     return system.user_task_service
 
 
-def _response(task, *, service, request_as_of: datetime) -> TaskResponse:
-    return TaskResponse(
-        **task.model_dump(),
-        overdue=service.is_overdue(task, as_of=request_as_of),
-    )
-
-
 @router.post("", response_model=TaskResponse, status_code=201)
 async def create_task(req: TaskCreateRequest, request: Request,
                       system: SystemContainer = Depends(get_system)):
@@ -53,11 +36,16 @@ async def create_task(req: TaskCreateRequest, request: Request,
     request_as_of = service.current_instant()
     data = req.model_dump()
     task = await service.create(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         **data, source="api",
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task, service=service, request_as_of=request_as_of)
+    return task_response(
+        task,
+        service=service,
+        request_as_of=request_as_of,
+        include_internal_metadata=True,
+    )
 
 
 @router.get("", response_model=list[TaskResponse])
@@ -79,7 +67,7 @@ async def list_tasks(
     service = _service(system)
     request_as_of = service.current_instant()
     tasks = await service.list(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         trace_id=getattr(request.state, "trace_id", ""),
         status=status,
         priority=priority,
@@ -95,7 +83,12 @@ async def list_tasks(
         as_of=request_as_of,
     )
     return [
-        _response(task, service=service, request_as_of=request_as_of)
+        task_response(
+            task,
+            service=service,
+            request_as_of=request_as_of,
+            include_internal_metadata=True,
+        )
         for task in tasks
     ]
 
@@ -106,11 +99,16 @@ async def get_task(task_id: str, request: Request,
     service = _service(system)
     request_as_of = service.current_instant()
     task = await service.get(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         task_id=task_id,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task, service=service, request_as_of=request_as_of)
+    return task_response(
+        task,
+        service=service,
+        request_as_of=request_as_of,
+        include_internal_metadata=True,
+    )
 
 
 @router.patch("/{task_id}", response_model=TaskResponse)
@@ -122,12 +120,17 @@ async def update_task(task_id: str, req: TaskUpdateRequest, request: Request,
     if "revision" in changes:
         changes["expected_revision"] = changes.pop("revision")
     task = await service.update(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         task_id=task_id,
         **changes,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task, service=service, request_as_of=request_as_of)
+    return task_response(
+        task,
+        service=service,
+        request_as_of=request_as_of,
+        include_internal_metadata=True,
+    )
 
 
 @router.post("/{task_id}/complete", response_model=TaskResponse)
@@ -136,11 +139,16 @@ async def complete_task(task_id: str, request: Request,
     service = _service(system)
     request_as_of = service.current_instant()
     task = await service.complete(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         task_id=task_id,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task, service=service, request_as_of=request_as_of)
+    return task_response(
+        task,
+        service=service,
+        request_as_of=request_as_of,
+        include_internal_metadata=True,
+    )
 
 
 @router.post("/{task_id}/cancel", response_model=TaskResponse)
@@ -149,8 +157,13 @@ async def cancel_task(task_id: str, request: Request,
     service = _service(system)
     request_as_of = service.current_instant()
     task = await service.cancel(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         task_id=task_id,
         trace_id=getattr(request.state, "trace_id", ""),
     )
-    return _response(task, service=service, request_as_of=request_as_of)
+    return task_response(
+        task,
+        service=service,
+        request_as_of=request_as_of,
+        include_internal_metadata=True,
+    )

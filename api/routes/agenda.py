@@ -1,10 +1,12 @@
 """Daily Agenda read-only API."""
 
+# ruff: noqa: B008
+
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
+from api.workspace import workspace_from_request
 from core.system.container import SystemContainer
-from core.workspace.models import WorkspaceKey
 
 router = APIRouter(prefix="/agenda", tags=["agenda"])
 
@@ -27,12 +29,7 @@ async def get_agenda(
             trace_id=getattr(request.state, "trace_id", ""),
         ))
     return (await system.daily_agenda.list(
-        workspace_key=WorkspaceKey(
-            tenant_id=getattr(request.state, "tenant_id", "default"),
-            workspace_id=getattr(request.state, "workspace_id", "default"),
-            namespace=getattr(request.state, "namespace", "default"),
-            trace_id=getattr(request.state, "trace_id", ""),
-        ),
+        workspace_key=workspace_from_request(request),
         view=view, window_hours=window_hours, limit=limit, offset=offset,
         trace_id=getattr(request.state, "trace_id", ""),
     )).model_dump(mode="json")

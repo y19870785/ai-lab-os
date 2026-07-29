@@ -1462,7 +1462,10 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
     assert (
         "- 规划后 main Quality Gate：`30441534383` / SUCCESS"
     ) in text["rfc"]
-    assert "- 产品实施：NOT APPROVED / NOT STARTED" in text["rfc"]
+    assert (
+        "- 产品实施：AUTHORIZED / IMPLEMENTED ON DRAFT PR / "
+        "PENDING INDEPENDENT REVIEW"
+    ) in text["rfc"]
     assert "- Status: Accepted" in text["adr063"]
     assert "- Status: Accepted" in text["adr064"]
     assert (
@@ -1481,10 +1484,8 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
         "`DailyReviewService` 只读取五个 canonical service，不拥有数据库、EventBus、"
         in text["rfc"]
     )
-    assert (
-        "当前没有正式 `daily-review` CLI；`brief` CLI 只是通过 CEO Assistant 固定请求"
-        in text["rfc"]
-    )
+    assert "当前正式入口：" in text["rfc"]
+    assert "python -m cli daily-review --date today" in text["rfc"]
     assert (
         "`SystemContainer._run_shutdown()` 在同一流程中两次调用\n"
         "  `SchedulerRuntime.shutdown()`"
@@ -1521,6 +1522,33 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
     assert (
         "revision、idempotency、durable claim/Saga 与 confirmation 按动作分别声明"
         in text["adr063"]
+    )
+    assert (
+        "user_task + active + user_task.overdue|user_task.due_soon"
+        in text["rfc"]
+    )
+    assert (
+        "reminder + scheduled|retrying + reminder.due_soon"
+        in text["rfc"]
+    )
+    assert all(
+        action in text["rfc"]
+        for action in (
+            "resolve_to_task",
+            "resolve_to_reminder",
+            "resolve_to_work_log",
+            "resolve_to_waiting_for",
+            "resolve_as_note",
+            "dismiss",
+        )
+    )
+    assert (
+        "header 缺失时使用 Profile 默认值"
+        in text["rfc"]
+    )
+    assert (
+        "显式存在但为空白时，在读取或写入 canonical source 前返回稳定 validation"
+        in text["rfc"]
     )
     assert (
         "| Work Log | `wl_...`（另有只读 legacy） | list/get | create only |"
@@ -1569,17 +1597,16 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
         "UserTask update:\n"
         "当前 Service 接受调用方 expected_revision；API PATCH 通过 revision 字段传入。\n\n"
         "UserTask complete/cancel:\n"
-        "当前 Service 会读取最新对象，并使用读取时的 current.revision 执行 repository update；\n"
-        "当前 API 与 Service 均不接受调用方提供的 expected_revision。\n\n"
-        "SP-020 future implementation decision:\n"
-        "Review-to-Action 的 UserTask complete/cancel 必须增加显式 expected_revision，\n"
-        "防止用户依据旧 Daily Review 操作已经变化的对象。"
+        "历史 `/tasks/{id}/complete|cancel` 兼容入口仍允许省略调用方 revision，并由 Service\n"
+        "读取最新对象后使用 current revision。SP-020 新增的 Review-to-Action 薄 API 与\n"
+        "Service 显式接受 `expected_revision`；无论 active 或已处于同一 terminal status，\n"
+        "stale revision 都先于 terminal idempotency 检查而 fail closed。\n\n"
+        "Review-to-Action decision:\n"
+        "UserTask complete/cancel 已增加显式 expected_revision，防止用户依据旧 Daily Review\n"
+        "操作已经变化的对象。"
     )
     assert user_task_revision_contract in text["rfc"]
-    assert (
-        "以上 `complete/cancel expected_revision` 是未来 SP-020 产品实现范围，不是当前能力。"
-        in text["rfc"]
-    )
+    assert "不是当前能力" not in text["rfc"]
     assert (
         "仅当\nAction Hint 声明 `requires_revision=true` 时，缺失或 stale revision 才必须 fail\n"
         "closed；需要 idempotency key、durable claim/Saga 或 confirmation 的动作分别按自身\n"
@@ -1609,7 +1636,7 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
         "Planning Status:\n"
         "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED\n\n"
         "Implementation:\n"
-        "NOT APPROVED / NOT STARTED"
+        "AUTHORIZED / IMPLEMENTED / PENDING INDEPENDENT REVIEW"
     ) in text["task"]
     assert "Phase 0 未通过不得进入 Phase 1。" in text["task"]
     assert "Version change:\nNOT AUTHORIZED" in text["task"]
@@ -1626,6 +1653,59 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
     assert (
         "任何 Scheduler 重复执行/丢 job、shutdown 非幂等、数据目录静默漂移"
         in text["acceptance"]
+    )
+    assert (
+        "`--prepare-only` 只能生成 `PREPARED_NOT_EXECUTED` 清单"
+        in text["acceptance"]
+    )
+    assert (
+        "requires_revision/requires_idempotency_key/requires_confirmation/"
+        in text["acceptance"]
+    )
+    entrypoint_audit = json.loads(
+        (
+            ROOT / "docs/project/SP-020-ENTRYPOINT-AUDIT.json"
+        ).read_text(encoding="utf-8")
+    )
+    inbox_actions = {
+        entry["allowed_action"]: entry
+        for entry in entrypoint_audit["entries"]
+        if entry["source_type"] == "inbox"
+    }
+    assert set(inbox_actions) == {
+        "resolve_to_task",
+        "resolve_to_reminder",
+        "resolve_to_work_log",
+        "resolve_to_waiting_for",
+        "resolve_as_note",
+        "dismiss",
+    }
+    assert all(
+        "*" not in entry["existing_api_entrypoint"]
+        and "*" not in entry["existing_cli_entrypoint"]
+        and entry["saga_contract"] == "InboxResolutionClaim"
+        for entry in inbox_actions.values()
+    )
+    readme = (ROOT / "README.md").read_text(encoding="utf-8-sig")
+    launcher = (
+        ROOT / "scripts/start-local-daily.ps1"
+    ).read_text(encoding="utf-8-sig")
+    assert (
+        "Copy-Item .\\config\\local-daily.env.example .\\.env"
+        in readme
+    )
+    assert (
+        "& $Python -m cli profile --require-local-daily"
+        in readme
+    )
+    assert all(
+        contract in launcher
+        for contract in (
+            '$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path',
+            "Set-Location -LiteralPath $ProjectRoot",
+            "& $Python -m cli profile --require-local-daily",
+            "--host 127.0.0.1",
+        )
     )
 
     decision_index = (
