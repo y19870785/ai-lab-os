@@ -1,4 +1,4 @@
-# SP-013 Daily Agenda Manual Acceptance
+# SP-013 Daily Agenda 人工验收
 
 Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 
@@ -23,15 +23,15 @@ Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 - CI-001 Quality Gate: PR #30, Squash Commit
   `7750b1ebd2cc6f937496c904bf1d482952b1b52c`
 
-## Acceptance Environment
+## 验收环境
 
-- Python 3.12
-- Mock Provider; no real model keys
-- Independent data directory
+- Python 3.12。
+- Mock Provider；不使用真实模型密钥。
+- 独立数据目录。
 - `Asia/Shanghai`
-- Reminders and Scheduler enabled
-- API auth explicitly disabled only for the isolated local acceptance harness
-- No direct SQLite operations
+- 启用 Reminders 与 Scheduler。
+- 仅在隔离的本地验收 Harness 中显式禁用 API auth。
+- 不直接操作 SQLite。
 
 ## Scenario Results
 
@@ -40,10 +40,10 @@ Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 | A — Today | PASSED | Today items included; tomorrow items excluded; read-only |
 | B — Next 3 Hours | PASSED | +1h/+2h included; +5h excluded; read-only |
 | C — Attention | PASSED | Overdue UserTask and failed Reminder included; normal Reminder excluded |
-| D — Completed | PASSED | Triggered Reminder and today's Work Log included; yesterday's Work Log and unfinished Task excluded |
+| D — 已完成 | PASSED | 包含已触发 Reminder 和今日 Work Log；排除昨日 Work Log 与未完成 Task |
 | E — No Side Effects | PASSED | UserTask, Reminder and Work Log counts and ID sets unchanged |
-| F — Restart | PASSED | Same data directory preserved agenda identities and aggregate state after restart |
-| G — Natural Language | PASSED | Daily Agenda inputs returned `daily_agenda/read` without provider noise |
+| F — 重启 | PASSED | 重启后同一数据目录保留议程标识与聚合状态 |
+| G — 自然语言 | PASSED | Daily Agenda 输入返回 `daily_agenda/read`，且没有 Provider 噪声 |
 | H — SP-012 Compatibility | PASSED | “今天都有什么事？” remained `reminder_list/read` with no writes |
 
 ## SP-013C C / D Retest
@@ -95,7 +95,7 @@ The six skipped tests are Windows-only batch-script tests. The Windows local bas
 1102 passed, 5 deselected
 ```
 
-The SP-013C reconciliation reran the required explicit-ignore command:
+SP-013C 对账重新执行了要求的显式 ignore 命令：
 
 ```text
 python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no
@@ -103,6 +103,4 @@ python -m pytest tests --ignore=tests/real -m "not real" -q --tb=no
 Exit code: 0
 ```
 
-The explicit `--ignore=tests/real` prevents those tests from entering collection, so this run
-does not report the five marker-deselected tests. The platform and command-scope counts are
-complementary rather than conflicting; no real-provider result is claimed here.
+显式 `--ignore=tests/real` 会阻止这些测试进入收集阶段，因此该次运行不会报告五个由 marker 取消选择的测试。平台统计与命令范围统计互为补充，并不冲突；此处不声称获得任何真实 Provider 结果。

@@ -1,4 +1,4 @@
-# ACC-020 — Local Daily Operating Loop & Review-to-Action Closure
+# ACC-020 本地日常运行闭环与 Review-to-Action 验收
 
 - SP: SP-020
 - Status: PLANNING_BASELINE / NOT_EXECUTED
