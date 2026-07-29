@@ -1,5 +1,6 @@
+# AI-Lab OS 更新日志
 
-## [Unreleased]
+## [Unreleased] 未发布
 
 ### DOCS-001 全仓 Markdown 中文规范与统一治理
 - 建立简体中文主要叙述语言政策、Git 跟踪 Markdown 完整清单与统一术语表。
@@ -7,7 +8,7 @@
 - 新增确定性治理门禁，检查清单完整性、中文一级标题、长篇纯英文叙述、未完成翻译标记与相对链接。
 - 本任务不修改产品代码、Schema、依赖、CI、版本、Tag 或 Release，也不授权或启动 SP-020 产品实施。
 
-### SP-020 Local Daily Operating Loop Planning Baseline
+### SP-020 本地每日运行闭环规划基线
 - 定义 Windows Local Daily Profile、稳定绝对数据目录、显式 timezone/Provider/feature/auth 配置与 localhost 启动边界。
 - 规划直接复用现有 `DailyReviewService` 的正式 Daily Review CLI，以及纯确定性、无 LLM、无写入的 Action Hint presentation。
 - 固定 Review canonical ID 只能委托现有 UserTask、Reminder、Waiting-For、Inbox 与 Work Log 服务；不新增 Action/Review 数据库、第二 Command Bus 或 Work Log mutation。
@@ -15,14 +16,14 @@
 - RFC-029、ADR-063、ADR-064 与 ACC-020 均为 Planning Baseline；SP-020 Implementation 未批准、未启动，ACC-020 未执行。
 - 产品版本保持 `0.34.0`；Tag 与 GitHub Release 均未改变。
 
-### SP-019 Daily Review Read Model & Deterministic Follow-up View
+### SP-019 每日回顾读取模型与确定性跟进视图
 - 以唯一、非持久化、纯只读 `DailyReviewService` 聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox，支持 `today` / `yesterday`、IANA timezone、DST、当前 follow-up 与 pending Inbox。
 - API、CEO Assistant 与兼容 `/brief` 共享相同 query、Workspace、分类、全局排序、分页与失败语义。
 - ACC-019 A～M 已在冻结实现 Head 正式执行并全部通过，Provider calls 为 0。
 - Feature PR #51 已 Squash Merge 为 `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`，main Quality Gate `30382312419` 成功；PR #52 完成治理对账。
 - RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted；SP-019 已合并、验收、对账并封存。
 
-### SP-018 Work Log Query Boundary & Context Closure
+### SP-018 工作日志查询边界与上下文闭环
 - 实现唯一 `WorkLogService` 与类型化 create/get/list 边界；CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 共享同一服务。
 - `SQLiteWorkLogRepository` 复用既有 `episodic.db / episodic_memories` 与 `DatabaseManager` connection ownership；没有 `work_logs.db`、新表、索引或迁移。
 - 新记录使用 `wl_<32 hex>`；旧随机 Memory ID 以稳定 `wl_legacy_<sha256>` 只读投影，历史 `inbox_wl_...` 仅作受限兼容 alias。
@@ -34,7 +35,7 @@
 - RFC-027 为 Adopted；ADR-058～ADR-060 为 Accepted；SP-018 状态为 `APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED`。
 - 产品版本、Tag 与 Release 不变。
 
-### SP-017 Follow-up Interaction & Capture Closure
+### SP-017 跟进交互与捕获闭环
 - 通过 PR #43 以 Squash Merge 完成确定性 Waiting-For 读取、Inbox 捕获与确认，以及显式 lifecycle interaction。
 - 自然语言模糊表达只创建 pending Inbox；确认后复用持久化 Inbox-to-Waiting-For Saga，并以 Inbox ID 确定性派生唯一 `wf_...` ID。
 - Lifecycle mutation 只接受 canonical `wf_...` ID；重复确认、崩溃恢复和跨进程竞争保持幂等。
@@ -86,7 +87,7 @@
 - 状态：`APPROVED / MERGED / RECONCILED / ARCHIVED`。
 - 产品版本保持 `0.33.0`；未创建 Tag 或 GitHub Release。
 
-### SP-010 Reminder Inbox
+### SP-010 提醒收件箱
 - 新增由 API、CLI 与确定性 CEO Assistant 查询共享的持久化 Reminder Inbox。
 - 新增 `GET /reminders`，支持 status、today、upcoming、分页与稳定排序。
 - 新增 `python -m cli reminders`，提供人类可读与 JSON 输出。
@@ -149,7 +150,7 @@
 - Windows 隔离 Python 3.12 本地最终验证：`888 passed, 27 warnings in 45.19s`；不是 GitHub Actions 或跨平台 CI 结果。
 - 审查修复：Scheduler 管理操作改为数据库状态、revision 与 claim 条件写；EventBus post-commit 失败只降低 observability；过期 claim 遵守 retry delay；RUNNING Reminder Job 的 reschedule 返回 409 且不修改 Reminder。
 
-### SP-004 UserTask
+### SP-004 UserTask 用户任务
 
 - **状态**：Completed
 - **Merge PR**：#8
@@ -170,7 +171,7 @@
 - SP-004 Windows 本地完整验证：`847 passed, 27 warnings in 38.81s`；不是 GitHub Actions 结果。首次全量测试的 5 个错误来自 pytest 子进程继承的 SOCKS 代理；仅清理测试子进程代理变量后全量通过，未修改系统代理或 `.env`。
 - 产品版本保持 `0.33.0`；本次合并未创建 v0.34.0 Tag 或 GitHub Release，SP-005 Reminder & Scheduler Bridge 为下一项开发。
 
-## [0.33.0] - 2026-07-15
+## [0.33.0] - 2026-07-15 版本
 
 ### 版本治理
 
@@ -197,7 +198,7 @@
 
 ---
 
-## SP-003 - Completed（2026-07-15）
+## SP-003 已完成（2026-07-15）
 
 **Merge PR**：[#5](https://github.com/y19870785/ai-lab-os/pull/5)
 
@@ -209,7 +210,7 @@
 
 **合并时间**：`2026-07-14T19:59:33Z`
 
-### DatabaseManager Connection Ownership
+### DatabaseManager 连接所有权
 
 - Composition Root 将同一个 `DatabaseManager` 注入 Episodic、Semantic、Decision 三个 SQLite Memory Store。
 - 新增显式 `ConnectionLease`：Managed Mode 在完整借用周期持有 per-database lock，退出时不关闭共享连接；Standalone Mode 关闭自身创建的 operation-scoped connection。
@@ -225,7 +226,7 @@
 
 ---
 
-## SP-002 - Completed（2026-07-14）
+## SP-002 已完成（2026-07-14）
 
 **Merge PR**：[#3](https://github.com/y19870785/ai-lab-os/pull/3)
 **合并方式**：Squash Merge
@@ -259,7 +260,7 @@
 
 ---
 
-## SP-001 - Completed（2026-07-14）
+## SP-001 已完成（2026-07-14）
 
 ### 架构稳定化
 
@@ -290,7 +291,7 @@
 
 ---
 
-## [0.32.4] - 2026-07-13
+## [0.32.4] - 2026-07-13 版本
 
 ### Interactive First Experience Fix —— 交互式首次体验修复
 
@@ -322,140 +323,79 @@
 **First Experience Gate**：PASS ✓
 
 ---
-# 鏇存柊鏃ュ織
+## [0.32.3] - 2026-07-13 版本
 
-## [0.32.3] 鈥?2026-07-13
+### CEO Assistant 发布清理
 
-### CEO Assistant Release Cleanup 鈥?鍙戝竷鍓嶆竻鐞?
-**鍏ㄥ眬娴嬭瘯淇**锛?- 鏍瑰洜锛歳eal/ 娴嬭瘯鐨?`load_dotenv()` 灏?`OPENAI_API_KEY` 娉ㄥ叆 `os.environ`锛屾薄鏌撳悗缁櫘閫氭祴璇曠殑 mode detection
-- 淇锛氬垱寤?`tests/conftest.py` 鍏ㄥ眬 `isolate_api_keys` fixture + `tests/real/conftest.py` 瑕嗙洊
-- 缁撴灉锛氬叏灞€娴嬭瘯浠?692/2 鍒?**699/0 passed**
-
-**涓夌粍闂ㄧ**锛?| 鍛戒护 | Passed | Failed |
-|------|--------|--------|
-| `pytest tests/ -q -m "not real"` | 694 | 0 |
-| `pytest tests/real/ -q -m real` | 5 | 0 |
-| `pytest tests/ -q` | **699** | **0** |
-
-**涓€閿惎鍔?*锛歚scripts/start.bat` / `scripts/setup.bat` / `scripts/diagnose.bat` / `scripts/stop.bat`
-
-**Stability Gate**: PASS
-**First Experience Gate**: PASS
+- 修复 `tests/real/` 加载 API Key 后污染普通测试的全局测试隔离问题。
+- 新增全局 `isolate_api_keys` fixture，并由 `tests/real/conftest.py` 覆盖真实 Provider 场景。
+- 非 real 测试 694 项、real 测试 5 项，全量 699 项均通过。
+- `scripts/start.bat`、`scripts/setup.bat`、`scripts/diagnose.bat` 与 `scripts/stop.bat` 提供一键操作入口。
+- Stability Gate 与 First Experience Gate 均通过。
 
 ---
 
-## [0.32.2] 鈥?2026-07-13
+## [0.32.2] - 2026-07-13 版本
 
-### CEO Assistant First Run 鈥?棣栨杩愯绋冲畾鍖?
-**娴嬭瘯淇**锛?- 淇 test_task_priority_high 鏂█鍊?(涓啋楂?
-- 淇 test_conversation_memory task 璺敱闂
-- 淇鍏ㄥ眬 test collection import 椤哄簭鍐茬獊 (recovery/integration)
-- 淇 real/ async fixture 閰嶇疆
+### CEO Assistant 首次运行稳定化
 
-**娴嬭瘯缁撴灉**锛?- 鍏ㄩ噺 (涓嶅惈 real/): 694 passed, 0 failed, 26 warnings
-- Real Provider (鍗曠嫭): 5 passed, 0 failed
-- real/ 鍏ㄥ眬妯″紡: 4 涓?async fixture collection error (宸茬煡闄愬埗)
-
-**閰嶇疆鏍囧噯鍖?*锛?- 鏀寔 `AI_LAB_LLM_PROVIDER` 绛夋柊鐜鍙橀噺
-- 鍏煎鏃?`OPENAI_API_KEY` 绛夊彉閲?(deprecated)
-
-**涓€閿惎鍔?*锛歚python -m cli chat` 鍙洿鎺ュ惎鍔?CEO Assistant
-
-**Stability Gate**: PASS (鏅€氭祴璇?0 failed, DeepSeek 鐪熷疄楠岃瘉閫氳繃)
+- 修复任务优先级断言、conversation memory 的 task 路由、测试 collection 导入顺序冲突和 real async fixture 配置。
+- 非 real 测试 694 项通过；单独执行的真实 Provider 测试 5 项通过。
+- 统一 `AI_LAB_LLM_PROVIDER` 等环境变量，同时兼容已弃用的 `OPENAI_API_KEY` 等旧变量。
+- `python -m cli chat` 可直接启动 CEO Assistant。
 
 ---
 
-## [0.32.0] 鈥?2026-07-13
+## [0.32.0] - 2026-07-13 版本
 
-### CEO Assistant MVP 鈥?AI-Lab 棣栦釜鐪熷疄涓氬姟搴旂敤
+### CEO Assistant MVP：AI-Lab 首个真实业务应用
 
-**浜у搧瀹氫綅**锛氳秴鍝ョ殑涓汉宸ヤ綔鎬绘帶鍔╂墜锛屼粠 Framework First 杞悜 Application First銆?
-#### 鏍稿績鑳藉姏锛? 涓棴鐜級
+- 产品定位从 Framework First 转向 Application First，提供工作记录、待办任务、决策记录、知识问答、每日简报和多轮对话。
+- 新增 `brief`、`log`、`task`、`decide` 与 `chat` CLI 命令。
+- 新增 `POST /work-logs`、`POST /decisions`、`GET /brief` 与 `POST /knowledge/ask` API 路由。
+- 新增 `applications/ceo_assistant/`、`product/`、对应 CLI 命令与 API 路由，以及本地 SentenceTransformer Embedding Provider。
+- 修复 DatabaseManager、KnowledgeManager、Chroma metadata、CLI UTF-8、意图优先级与 MemoryManager 调用接口。
+- 完成 DeepSeek LLM、本地 Embedding、Chroma Vector Store、Document QA Pipeline 与 Personal Assistant Demo 的真实 Provider 验证。
+- 全量 647 项测试通过。
 
-- **宸ヤ綔璁板綍**锛氳嚜鐒惰瑷€杈撳叆 鈫?瀹炰綋鎻愬彇锛堟棩鏈?瀵硅薄/浜嬮」/鐘舵€?鏍囩锛夆啋 Episodic Memory 瀛樺偍
-- **寰呭姙浠诲姟**锛氬垱寤轰换鍔?鈫?鎴鏃堕棿/浼樺厛绾?鐘舵€佺鐞?鈫?鏌ヨ/鏇存柊/瀹屾垚
-- **鍐崇瓥璁板綍**锛氬喅绛栬鏄?鈫?trigger/alternatives/chosen/reason 鎻愬彇 鈫?Decision Memory 瀛樺偍
-- **鐭ヨ瘑闂瓟**锛氭枃妗ｅ鍏?鈫?Chunk/Embedding/Vector 鈫?Hybrid Retrieval 鈫?寮曠敤鏉ユ簮
-- **姣忔棩绠€鎶?*锛氬熀浜庣湡瀹?Task/Memory 鏁版嵁 鈫?寰呭姙/閫炬湡/宸ヤ綔璁板綍/鍐崇瓥/寤鸿浼樺厛绾?- **澶氳疆瀵硅瘽**锛歋ession 涓婁笅鏂?+ Memory 鍥炴函 + LLM 鐢熸垚
-
-#### CLI 鍛戒护锛堟柊澧?5 涓級
-
-```bash
-python -m cli brief          # 姣忔棩绠€鎶?python -m cli log <鍐呭>      # 璁板綍宸ヤ綔
-python -m cli task <鍐呭>     # 鍒涘缓/鏌ョ湅浠诲姟
-python -m cli decide <鍐呭>   # 璁板綍鍐崇瓥
-python -m cli chat <娑堟伅>     # 澶氳疆瀵硅瘽
-```
-
-#### REST API锛堟柊澧?4 涓矾鐢憋級
-
-- `POST /work-logs` 鈥?宸ヤ綔璁板綍
-- `POST /decisions` 鈥?鍐崇瓥璁板綍
-- `GET /brief` 鈥?姣忔棩绠€鎶?- `POST /knowledge/ask` 鈥?鐭ヨ瘑闂瓟
-
-#### 鏂板鏂囦欢
-
-- `applications/ceo_assistant/` 鈥?CEO Assistant 搴旂敤锛坅pplication.py / manifest.yaml / prompts / README锛?- `product/` 鈥?浜у搧鏂囨。锛圴ISION / REQUIREMENTS / USE_CASES / BUSINESS_WORKFLOWS / PRODUCT_ROADMAP锛?- `cli/commands/{brief,log,task,decide,ask}_cmd.py` 鈥?CEO Assistant CLI 鍛戒护
-- `api/routes/{work_logs,decisions,brief,knowledge}.py` 鈥?REST API 璺敱
-- `core/providers/embedding/local.py` 鈥?鏈湴 SentenceTransformer Embedding Provider
-
-#### 淇
-
-- DatabaseManager bootstrap 鍒濆鍖栦慨澶嶏紙`_noop`锛?- KnowledgeManager bootstrap 鏋勯€犲弬鏁颁慨澶?- Chroma Vector Provider metadata 绌?dict 淇
-- CLI 缂栫爜缁熶竴 UTF-8
-- CEO Assistant 鎰忓浘妫€娴嬩紭鍏堢骇淇锛堝喅绛?> 浠诲姟 > 宸ヤ綔璁板綍锛?- MemoryManager.save_memory 璋冪敤鎺ュ彛瀵归綈
-
-#### 鐪熷疄 Provider 楠岃瘉
-
-| 缁勪欢 | 鐘舵€?|
-|------|------|
-| DeepSeek LLM (deepseek-chat V3) | 鉁?generate / streaming / 澶氳疆 |
-| 鏈湴 Embedding (SentenceTransformer) | 鉁?384d, all-MiniLM-L6-v2 |
-| Chroma Vector Store | 鉁?insert / search / metadata |
-| Document QA Pipeline | 鉁?ingest 鈫?chunk 鈫?embed 鈫?search |
-| Personal Assistant Demo | 鉁?3 杞璇?+ Episodic Memory |
-
-#### 娴嬭瘯
-
-- 鍏ㄩ噺 647 娴嬭瘯闆跺洖褰?
 ---
 
-## [0.31.0] - 2026-07-13
+## [0.31.0] - 2026-07-13 版本
 
-### Alpha Field Validation
+### Alpha 现场验证
 
-- 缁熶竴鍚姩鍏ュ彛銆佺幆澧冮厤缃€佹寔涔呭寲楠岃瘉銆佹晠闅滄敞鍏ャ€佸彲瑙傛祴鎬с€丗ield Demo
-- 647 娴嬭瘯
+- 完成统一启动入口、环境配置、持久化、故障注入、可观测性与 Field Demo 验证。
+- 全量 647 项测试通过。
 
 ---
 
 <details>
-<summary>鍘嗗彶鐗堟湰 (v0.1.0 鈥?v0.30.0)</summary>
+<summary>历史版本（v0.1.0 - v0.30.0）</summary>
 
-## [0.30.0] 鈥?Application Foundation & Alpha Deployment
-## [0.23.0] 鈥?Multi-Agent Coordination
-## [0.22.0] 鈥?Task Runtime
-## [0.21.0] 鈥?Scheduler Runtime
-## [0.20.0] 鈥?Workflow Engine
-## [0.19.0] 鈥?MCP Adapter + End-to-End Integration
-## [0.18.0] 鈥?Tool System
-## [0.17.0] 鈥?Agent Runtime
-## [0.16.0] 鈥?Knowledge Layer
-## [0.15.0] 鈥?Provider Layer
-## [0.14.0] 鈥?Architecture Stabilization
-## [0.13.0] 鈥?Core & Memory Stabilization
-## [0.12.0] 鈥?Memory Layer Integration
-## [0.11.0] 鈥?Semantic & Decision Memory
-## [0.10.0] 鈥?Episodic Memory
-## [0.9.0] 鈥?Memory Consolidation Engine
-## [0.8.0] 鈥?Session Memory Implementation
-## [0.7.0] 鈥?Core Runtime Implementation
-## [0.6.1] 鈥?Decision Memory 鏋舵瀯璁捐
-## [0.5.0] 鈥?Governance Layer
-## [0.4.0] 鈥?Knowledge Layer 鏋舵瀯璁捐
-## [0.3.0] 鈥?Agent Architecture
-## [0.2.0] 鈥?Memory Layer 鏋舵瀯璁捐
-## [0.1.0] 鈥?Core Layer 鏋舵瀯璁捐
+## [0.30.0] - Application Foundation 与 Alpha 部署
+## [0.23.0] - 多智能体协作
+## [0.22.0] - Task 运行时
+## [0.21.0] - Scheduler 运行时
+## [0.20.0] - 工作流引擎
+## [0.19.0] - MCP Adapter 与端到端集成
+## [0.18.0] - 工具系统
+## [0.17.0] - Agent 运行时
+## [0.16.0] - 知识层
+## [0.15.0] - Provider 层
+## [0.14.0] - 架构稳定化
+## [0.13.0] - Core 与 Memory 稳定化
+## [0.12.0] - Memory 层集成
+## [0.11.0] - Semantic 与 Decision Memory
+## [0.10.0] - 情景记忆（Episodic Memory）
+## [0.9.0] - Memory 整合引擎
+## [0.8.0] - Session Memory 实现
+## [0.7.0] - Core 运行时实现
+## [0.6.1] - Decision Memory 架构设计
+## [0.5.0] - 治理层
+## [0.4.0] - 知识层架构设计
+## [0.3.0] - Agent 架构
+## [0.2.0] - Memory 层架构设计
+## [0.1.0] - Core 层架构设计
 
 </details>
 

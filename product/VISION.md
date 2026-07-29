@@ -27,7 +27,7 @@ AI-Lab 是一个运行在超哥桌面和 NAS 上的 AI 操作系统。
 
 ## 首批产品
 
-### CEO Assistant (v0.32.0)
+### CEO Assistant 助手（v0.32.0）
 
 超哥的个人工作总控助手，是 AI-Lab 的第一个真实业务应用。
 

@@ -62,7 +62,7 @@ REGISTERED → READY → RUNNING → (IDLE) → STOPPED
 
 ## Event 类型
 
-| Event | 触发条件 |
+| 事件 | 触发条件 |
 | --- | --- |
 | `tool.registered` | Tool 加入 Registry |
 | `tool.executed` | Tool 执行成功 |

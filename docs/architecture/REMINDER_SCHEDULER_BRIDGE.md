@@ -26,7 +26,7 @@ Scheduler 不依赖 CEO Assistant，也不使用特殊 Workflow 名称模拟 Rem
 
 `ReminderOccurrence` 保存计划时间、实际触发时间、状态、attempt、trace ID 和脱敏 FailureInfo。`UNIQUE(reminder_id, scheduled_at)` 与唯一 `idempotency_key` 均由 SQLite 强制执行。
 
-## Scheduler Claim
+## 调度器领取（Scheduler Claim）
 
 SchedulerPersistence 使用 SQLite 单事务条件 `UPDATE` 取得 Job：只有 `status`、`next_run_at`、claim expiry 同时符合条件且 affected rows 为 1 的 Runtime 才能执行。每次 claim 使用唯一 token；续租和终态写入均校验 token，旧 owner 不能覆盖新 owner。数据库事务只保护 claim 和状态写入，绝不包围业务 Handler。
 

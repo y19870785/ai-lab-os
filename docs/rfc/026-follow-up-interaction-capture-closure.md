@@ -51,7 +51,7 @@ SP-017 建立“确定性 Follow-up 交互 + Inbox 持久化确认 + Waiting-For
 
 对应 intent 与 effect：
 
-| Intent | Effect |
+| 意图 | 效果 |
 |---|---|
 | `waiting_for_list` | READ |
 | `waiting_for_detail` | READ |
@@ -139,7 +139,7 @@ wf_inbox_<stable digest of inbox item id>
 
 同一个 Inbox Item 最多产生一个 Waiting-For；重试必须复用同一 ID；不按文本相似度去重，也不使用 LLM 判断重复。
 
-## Inbox-to-Waiting-For Saga
+## Inbox 到 Waiting-For Saga
 
 规划为 `InboxService` 注入 canonical `WaitingForService` 并增加 `resolve_to_waiting_for()`：
 
@@ -159,7 +159,7 @@ Waiting-For metadata 至少记录 `inbox_item_id` 与 `inbox_source`，不得复
 
 ## API 与 CLI 规划
 
-### API
+### API 入口
 
 规划新增：
 
@@ -176,7 +176,7 @@ resolved_target_id = wf_...
 
 不得创建第二种 Inbox Response Contract。
 
-### CLI
+### CLI 入口
 
 规划新增：
 
@@ -188,7 +188,7 @@ python -m cli inbox resolve-waiting-for <INBOX_ID>
 
 ## CEO Assistant Intent 规划
 
-| Intent | Effect |
+| 意图 | 效果 |
 |---|---|
 | `waiting_for_list` | READ |
 | `waiting_for_detail` | READ |
@@ -249,14 +249,14 @@ SP-017 不包含：
 
 ## 未来实现工作流
 
-### Workstream A — Inbox Target Extension
+### 工作流 A — Inbox 目标扩展
 
 - enum 与 claim validation
 - `WaitingForService` 注入与 `resolve_to_waiting_for`
 - API/CLI
 - restart / recovery
 
-### Workstream B — Deterministic Follow-up Intent
+### 工作流 B — 确定性跟进意图
 
 - parser 与 effect contract
 - read handlers
@@ -264,7 +264,7 @@ SP-017 不包含：
 - lifecycle handlers
 - error presenter
 
-### Workstream C — Interaction Acceptance
+### 工作流 C — 交互验收
 
 - 真实 CEO Assistant entrypoint
 - 真实 CLI/API

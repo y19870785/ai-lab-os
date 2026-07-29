@@ -26,7 +26,7 @@
 | EventBus | `core/bus/bus.py` | publish / subscribe / unsubscribe / start / stop |
 | DatabaseManager | `core/database/manager.py` | get_connection / close_all / health_check / vacuum / backup / restore |
 
-## Provider
+## Provider 提供方
 
 | 模块 | 入口文件 | 协议 |
 |---|---|---|

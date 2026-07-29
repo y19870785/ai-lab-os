@@ -22,7 +22,7 @@
 
 ## 各 Layer 文件数
 
-| Layer | 文件数 |
+| 层 | 文件数 |
 | --- | --- |
 | Governance | 6 |
 | Core（bus、db、logging、config、tools） | 25 |
@@ -34,7 +34,7 @@
 
 ## 测试分布
 
-| Module | 测试数 |
+| 模块 | 测试数 |
 | --- | --- |
 | core/bus | 29 |
 | core/database | 8 |

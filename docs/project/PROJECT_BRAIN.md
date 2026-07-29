@@ -60,7 +60,7 @@ AI 可以收集、整理、分析和提醒；最终业务判断与重要审批�
 
 ## 永久架构事实
 
-### Canonical Composition Root
+### 规范组合根
 
 唯一入口是 `core/system/factory.py:create_system()`，容器定义在 `core/system/container.py`。API lifespan、CLI、CEO Assistant、兼容 Bootstrap 与集成测试共用同一 Factory 和领域服务装配。
 
@@ -189,7 +189,7 @@ tests/real: explicitly excluded
 
 历史本地测试只能作为对应时间和环境的记录，不替代当前 GitHub Quality Gate；真实 Provider 结果也不由普通门禁推导。
 
-## v0.34.0 Alpha / Release Authorized
+## v0.34.0 Alpha / 已授权发布
 
 本 Alpha 版本收口 UserTask、Reminder Core、Reminder Management、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action、统一 Composition Root 和治理一致性。
 

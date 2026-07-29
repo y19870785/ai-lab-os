@@ -20,7 +20,7 @@ python -m cli chat "Hello"
 python -m api.app  # 启动 REST API
 ```
 
-## Docker Compose
+## Docker Compose 部署
 
 ```bash
 docker compose -f deploy/docker-compose.yml build

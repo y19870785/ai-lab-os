@@ -73,7 +73,7 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
 任何无效 harness、编码错误或 driver 断言错误必须单列为 `INVALID_ACCEPTANCE_HARNESS`，不得计作产品失败或通过。
 
-## ACC-018-A：Canonical create
+## ACC-018-A：规范创建
 
 通过 WorkLogService 创建新记录，验证：
 
@@ -156,13 +156,13 @@ ADR：ADR-058、ADR-059、ADR-060 — Accepted
 
 状态：PASSED
 
-## ACC-018-H：Legacy Workspace fail closed
+## ACC-018-H：旧工作空间失败关闭
 
 验证缺少完整 Workspace 的旧记录只在 `default/default/default` 可见；只有 workspace_id 或 session metadata 不足以归属其他 scope。读取不得自动补齐或重新归属。
 
 状态：PASSED
 
-## ACC-018-I：Context refs
+## ACC-018-I：上下文引用
 
 显式保存和查询 `ut_`、`rem_`、`wf_`、`inbox_` 引用。验证 kind/prefix、重复、长度、非法前缀 fail closed；服务关闭时 `not_checked`，不存在或 Workspace 不匹配时 `unresolved`，且创建不被非事务性 existence check 阻塞。不得自动猜测。
 

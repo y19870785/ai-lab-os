@@ -33,9 +33,9 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 
 当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在本页维护自指的 `Current main` 镜像。
 
-## Module health
+## 模块健康度
 
-| Module | State | Boundary |
+| 模块 | 状态 | 边界 |
 |---|---|---|
 | Core / Database / Memory | Integrated / Verified | Composition Root、失败语义与连接所有权已收口 |
 | Provider / Agent / Workflow / Task | Integrated / Verified | 真实 Provider 需单独授权配置，不属于普通门禁 |
@@ -53,7 +53,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |
 | API / CLI / CEO Assistant | Integrated / Verified / Alpha | 仍是本地 Alpha 使用边界 |
 
-## Open quality debt
+## 未关闭质量债务
 
 - QUALITY-001：Ruff 是 changed-files gate，不代表全仓历史 Ruff 已清零。
 - Scheduler 测试曾出现一次短暂 `running` 时序波动；唯一重跑通过，未在 SP-014B 或 SP-015 中修改 Scheduler。

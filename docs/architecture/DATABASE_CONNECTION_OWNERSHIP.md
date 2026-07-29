@@ -9,7 +9,7 @@
 
 ## 所有权模型
 
-### Managed Mode
+### 托管模式（Managed Mode）
 
 - Composition Root 创建进程内唯一 `DatabaseManager`。
 - 三个 Memory Store 接收同一个 Manager，并按逻辑数据库名借用连接。
@@ -17,7 +17,7 @@
 - Store 通过 `ConnectionLease` 使用 borrowed connection；managed lease 在完整借用周期持有对应逻辑数据库的 `RLock`，退出时释放锁但不关闭连接。
 - `Store.close()` 在 Managed Mode 中是幂等空操作，最终由 `DatabaseManager.close_all()` 关闭连接。
 
-### Standalone Mode
+### 独立模式（Standalone Mode）
 
 - 未注入 Manager 时，Store 保留独立使用方式。
 - Store 为每次操作创建 owned connection。

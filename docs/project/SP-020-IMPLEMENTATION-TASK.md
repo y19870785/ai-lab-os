@@ -50,7 +50,7 @@ Project/Goal/Outcome 领域、Knowledge 主链路、Agent 自动规划/Tool Call
 重构、Plugin framework、Command Bus 重写、大规模 CEO Assistant 重构，以及新增
 Work Log edit/complete/delete。
 
-## Architecture boundaries
+## 架构边界
 
 1. `core/system/factory.py:create_system()` 与 `SystemContainer` 是唯一 Composition
    Root。
@@ -71,14 +71,14 @@ Work Log edit/complete/delete。
 7. Work Log 仍只有 create/get/list。
 8. 默认备份为停机后的完整 data directory 复制；不承诺在线跨库一致快照。
 
-## Implementation phases
+## 实施阶段
 
 SP-020 产品实施需要一次明确的 Owner 授权。Phase 0 是同一次实施授权内部的强制质量
 门禁；通过 Phase 0 后不需要再次请求 Owner 授权。若 Phase 0 失败、触发停止条件、需要
 改变已批准范围、拆分 Product SP 或引入新的架构决策，必须立即停止并重新请求 Owner
 决策。本 Planning Baseline 尚未授予该实施授权。
 
-### Phase 0 — Product Entry and Lifecycle Gate
+### 阶段 0 — 产品入口与生命周期门禁
 
 只处理阻碍真实使用的入口与生命周期基础问题：
 
@@ -95,7 +95,7 @@ SP-020 产品实施需要一次明确的 Owner 授权。Phase 0 是同一次实�
 
 Phase 0 未通过不得进入 Phase 1。
 
-### Phase 1 — Daily Review CLI
+### 阶段 1 — 每日回顾 CLI
 
 仅实现：
 
@@ -107,23 +107,23 @@ python -m cli daily-review --date today --json
 
 必须直接复用现有 `DailyReviewService.query_from_input()`、`get()` 与纯 Presenter。
 
-### Phase 2 — Deterministic Action Hints
+### 阶段 2 — 确定性操作提示
 
 只实现 ADR-063 的纯 presentation model。不得执行、持久化、调用 LLM 或新增 Action
 数据库。
 
-### Phase 3 — Review-to-Action Entrypoint Closure
+### 阶段 3 — 回顾到操作入口闭环
 
 只补齐 ACC-020 日常用户闭环实际需要的薄入口委托。不得为了入口对称性补齐所有领域
 动作，不追求 API、CLI、CEO Assistant 的完整矩阵对称，不得复制领域 mutation、
 建立第二 Command Bus 或为 Work Log 发明新 mutation。
 
-### Phase 4 — Continuous Daily Acceptance
+### 阶段 4 — 持续每日验收
 
 冻结 Approved Implementation Head 后，使用真实 Windows 进程与真实 SQLite 执行
 ACC-020；验收使用 mock/test Provider，Provider calls 必须为 0。
 
-## Stop conditions
+## 停止条件
 
 - main 不再等于授权 Base，或存在未处理 Product PR；
 - 需要两个以上独立 Product SP；
@@ -141,7 +141,7 @@ ACC-020；验收使用 mock/test Provider，Provider calls 必须为 0。
 
 触发后只提交审计证据或 Blocking Finding，不得扩大实现。
 
-## Required tests
+## 必需测试
 
 每个实现 Phase 必须执行与变更风险相称的定向测试，并至少执行：
 
@@ -158,13 +158,13 @@ git diff --check
 不得删除测试、扩大 skip/xfail、放宽断言或用 product change 掩盖验收 driver/harness
 错误。真实 Provider 测试不属于普通门禁。
 
-## ACC-020
+## ACC-020 验收
 
 正式验收定义见
 `docs/acceptance/SP-020-local-daily-operating-loop.md`。所有场景当前均为
 `PLANNING_BASELINE / NOT_EXECUTED`。Planning merge 不等于执行 ACC-020。
 
-## Release boundary
+## 发布边界
 
 ```text
 Current Product Version:
@@ -183,7 +183,7 @@ GitHub Release:
 NOT AUTHORIZED / UNCHANGED
 ```
 
-## Governance state
+## 治理状态
 
 ```text
 SP-020 Planning Baseline:

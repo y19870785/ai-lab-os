@@ -77,7 +77,7 @@ python -m pip install -e .
 
 ## 运行 Profile
 
-| Profile | 用途 | 关键边界 |
+| 配置（Profile） | 用途 | 关键边界 |
 |---|---|---|
 | Minimal Core | Core、Memory 与基础 Runtime 开发 | 不自动安装 API、真实 Provider 或 Knowledge 大型依赖 |
 | Local | API、CLI、Mock Provider、测试和构建 | 推荐的本地开发组合 |

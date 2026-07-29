@@ -19,7 +19,7 @@ Switching from OpenAI to a local model requires:
 - Changing one `ProviderConfig` entry
 - Zero changes to Agent or Knowledge code
 
-## Enforcement
+## 执行约束
 - 代码审查规则：在 `core/providers/` 之外出现任何 `import openai`、`import chromadb` 或 `import anthropic` 都视为违规。
 - All provider adapter packages go in `core/providers/{type}/adapters/` (future)
 - Test suites use MockProvider, never mock real SDKs directly

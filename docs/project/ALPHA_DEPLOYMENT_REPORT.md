@@ -13,7 +13,7 @@ AI-Lab v0.30.0 Application Foundation 完成。项目具备：
 - 安全边界基础实现
 - 636 个测试，零回归
 
-## Deployment
+## 部署
 
 ```bash
 docker compose -f deploy/docker-compose.yml up -d

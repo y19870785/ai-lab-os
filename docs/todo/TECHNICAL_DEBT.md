@@ -51,14 +51,14 @@
   `DatabaseManager` 使用 SQLite，应对齐或拆分配置对象。
 - **文件：** `core/config.py`、`core/database/manager.py`
 
-### TD-008：Audit Lambda Closure（P3）
+### TD-008：审计 Lambda 闭包（P3）
 
 - **状态：** Deferred
 - **说明：** `MemoryAuditor` 通过带默认参数的 Lambda 捕获 Closure；虽然可用，但
   `functools.partial` 更易读。
 - **文件：** `core/memory/audit.py`
 
-### TD-009：Knowledge Layer Stub（P1）
+### TD-009：知识层 Stub（P1）
 
 - **状态：** Deferred
 - **说明：** 当时 `knowledge/manager.py` 与 `knowledge/ingestion.py` 仍为 Skeleton。

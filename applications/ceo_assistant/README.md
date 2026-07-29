@@ -1,10 +1,10 @@
 # CEO Assistant 使用说明
-# AI-Lab 第一个真实业务应用
-# 超哥的个人工作总控助手
+
+AI-Lab 第一个真实业务应用，也是超哥的个人工作总控助手。
 
 ## 使用方法
 
-### CLI
+### CLI 入口
 
 ```bash
 # 每日简报
@@ -26,7 +26,7 @@ python -m cli ask "蜂蜡面包袋FDA检测需要关注什么？"
 python -m cli chat "你好，帮我看看今天的工作"
 ```
 
-### REST API
+### REST API 入口
 
 ```bash
 # 每日简报

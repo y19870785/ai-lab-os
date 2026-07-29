@@ -10,7 +10,7 @@
 
 ## 结果
 
-### Memory Layer
+### 记忆层（Memory Layer）
 
 | 操作 | 数量 | 时间 | 吞吐量 |
 | --- | --- | --- | --- |
@@ -18,7 +18,7 @@
 | retrieve | 500 | TBD | TBD ops/s |
 | delete | 500 | TBD | TBD ops/s |
 
-### Provider Layer（Mock）
+### Provider 层（Mock）
 
 | 操作 | 数量 | 时间 | 吞吐量 |
 | --- | --- | --- | --- |

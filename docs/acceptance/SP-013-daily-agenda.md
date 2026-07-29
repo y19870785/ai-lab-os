@@ -2,7 +2,7 @@
 
 Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 
-## Final Acceptance
+## 最终验收
 
 - Automated acceptance: PASSED
 - Code review: APPROVED
@@ -12,7 +12,7 @@ Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 - Product version: `0.33.0`
 - Tag / Release: absent
 
-## GitHub Baselines
+## GitHub 基线
 
 - SP-013 feature: PR #27, Squash Commit
   `67c5ea922a1a6bd935a3c7c31e43fd83e3d32aa1`
@@ -33,9 +33,9 @@ Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 - 仅在隔离的本地验收 Harness 中显式禁用 API auth。
 - 不直接操作 SQLite。
 
-## Scenario Results
+## 场景结果
 
-| Scenario | Result | Verified outcome |
+| 场景 | 结果 | 已验证结果 |
 |---|---|---|
 | A — Today | PASSED | Today items included; tomorrow items excluded; read-only |
 | B — Next 3 Hours | PASSED | +1h/+2h included; +5h excluded; read-only |
@@ -46,7 +46,7 @@ Status: APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED
 | G — 自然语言 | PASSED | Daily Agenda 输入返回 `daily_agenda/read`，且没有 Provider 噪声 |
 | H — SP-012 Compatibility | PASSED | “今天都有什么事？” remained `reminder_list/read` with no writes |
 
-## SP-013C C / D Retest
+## SP-013C 场景 C / D 复测
 
 The final retest ran on `main` commit
 `23b54be4bd3030c564c2e1a0325eaf36199357fe` with freshly seeded, date-correct
@@ -61,13 +61,13 @@ python -m cli agenda --completed --json
 
 Both commands exited with code `0`; neither emitted `agenda.query_failed`.
 
-### C — Attention
+### C — 待关注（Attention）
 
 - Included overdue UserTask `ut_374ff65a05ed4db788a3d48462507899`
 - Included failed Reminder `rem_cc66b86aaac542228386f1f13fe680db`
 - Excluded normal scheduled Reminder `rem_e442d5b6ea9f49a88b71fc3bbf3304ca`
 
-### D — Completed
+### D — 已完成（Completed）
 
 - Included triggered Reminder `rem_b119ad07e86e419c8beeeeb272e8dc6f`
 - Included today's Work Log `f2baefe6718a474fb12ef79de639048d`
@@ -80,7 +80,7 @@ For both reads, the before/after snapshots were identical:
 - Reminder: 8 objects, same ID set
 - Work Log: 2 objects, same ID set
 
-## Quality Gate Baselines
+## 质量门禁基线
 
 GitHub Ubuntu Quality Gate after SP-013B merge:
 

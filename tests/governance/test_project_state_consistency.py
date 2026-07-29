@@ -323,16 +323,16 @@ def test_sp016_adopted_artifacts_debt_and_current_documents_are_consistent() -> 
     assert "J 保持 `AUTOMATED_VERIFICATION_PASSED`" in acceptance
     roadmap_rows = (
         "| SP-016 | Canonical Waiting-For Domain & Agenda Closure |",
-        "| SP-017 | Follow-up Interaction & Capture Closure —",
+        "| SP-017 | 跟进交互与捕获闭环——",
         "| SP-018 | Work Log Query Boundary & Context Closure |",
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View |",
     )
     positions = [roadmap.index(row) for row in roadmap_rows]
     assert positions == sorted(positions)
     assert (
-        "| SP-017 | Follow-up Interaction & Capture Closure — Deterministic "
-        "Waiting-For interaction, Inbox capture confirmation, and durable "
-        "Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |"
+        "| SP-017 | 跟进交互与捕获闭环——确定性 Waiting-For 交互、"
+        "Inbox 捕获确认和持久化 Inbox-to-Waiting-For 转换 | "
+        "COMPLETED / ARCHIVED |"
     ) in roadmap
 
     open_debt = state["open_technical_debt"]
@@ -563,7 +563,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert all(f"ACC-017-{letter}" in acceptance for letter in "ABCDEFGHIJKLMNO")
 
     ordered_rows = (
-        "| SP-017 | Follow-up Interaction & Capture Closure —",
+        "| SP-017 | 跟进交互与捕获闭环——",
         "| SP-018 | Work Log Query Boundary & Context Closure |",
         "| SP-019 | Daily Review Read Model & Deterministic Follow-up View |",
     )
@@ -774,7 +774,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
         "SP-019 Planning Baseline 已通过独立审查并由 PR #48 Squash Merge"
         in brain
     )
-    assert "Legacy Work Log Projection Table" in rfc
+    assert "旧工作日志投影表" in rfc
     assert "普通随机 Memory ID 仍不作为公开 alias" in rfc
     assert "历史 `inbox_wl_<合法历史格式>` 是唯一受限兼容 lookup alias" in rfc
     assert "返回同一对象的 canonical `wl_legacy_" in rfc
@@ -1542,11 +1542,11 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         in text["rfc"]
     )
     assert (
-        "Phase 0 — Product Entry and Lifecycle Gate"
+        "阶段 0 — 产品入口与生命周期门禁"
         in text["rfc"]
     )
     assert (
-        "Phase 4 — Continuous Daily Acceptance"
+        "阶段 4 — 持续每日验收"
         in text["rfc"]
     )
     owner_authorization_contract = (
@@ -1658,10 +1658,8 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
     )
 
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8-sig")
-    assert "### SP-020 Local Daily Operating Loop Planning Baseline" in changelog
-    assert "### SP-019 Daily Review Read Model & Deterministic Follow-up View" in (
-        changelog
-    )
+    assert "### SP-020 本地每日运行闭环规划基线" in changelog
+    assert "### SP-019 每日回顾读取模型与确定性跟进视图" in changelog
     assert "SP-019 保持 candidate、未批准、未启动" not in changelog
 
     project_health = (

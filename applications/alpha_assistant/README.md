@@ -4,12 +4,12 @@ AI-Lab 首个可运行业务应用。
 
 ## 运行方式
 
-### CLI
+### CLI 入口
 ```bash
 python -m cli chat "Hello, what can you do?"
 ```
 
-### REST API
+### REST API 入口
 ```bash
 python -m api.app
 # Then: curl -X POST http://localhost:8000/chat -H "Content-Type: application/json" -d '{"user_input":"Hello"}'

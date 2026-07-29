@@ -22,14 +22,14 @@ Orchestrator / Agent Runtime
 Knowledge / Memory / Tool / Provider
 ```
 
-## Key Decisions
+## 关键决策
 
 1. ApplicationRuntime 是唯一业务入口，不直接访问 Provider/DB/Tool
 2. WorkspaceKey 作为统一隔离键，所有底层调用携带
 3. ApplicationManifest 声明所有依赖，禁止散落注册
 4. CLI 和 API 共享同一个 ApplicationRuntime
 
-## Files
+## 文件
 
 - `applications/` — ApplicationRuntime + Registry + Manifest
 - `core/workspace/` — Tenant + Workspace + WorkspaceKey

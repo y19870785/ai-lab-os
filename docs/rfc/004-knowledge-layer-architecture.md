@@ -2,7 +2,7 @@
 
 ## 元数据
 
-| Field        | Value                                |
+| 字段 | 值 |
 | ------------ | ------------------------------------ |
 | **RFC 编号** | 004                                  |
 | **标题**     | Knowledge Layer 架构设计               |
@@ -419,7 +419,7 @@ class ChunkMethod(str, Enum):
 
 **五种知识类型推荐的 Chunk 策略：**
 
-| 知识类型   | Chunk 方法      | Chunk 大小 | Overlap | 说明                       |
+| 知识类型 | Chunk 方法 | Chunk 大小 | 重叠 | 说明 |
 | ---------- | --------------- | ---------- | ------- | -------------------------- |
 | 文档       | RECURSIVE       | 512 tokens | 64      | 通用文档，平衡精确度和语义 |
 | 文档(PDF)  | PDF             | 页面级      | 0       | 按页面切，保留原始布局      |
@@ -454,7 +454,7 @@ class EmbeddingProvider(ABC):
 
 **内置 Provider 实现规划：**
 
-| Provider | 场景 | 备注 |
+| Provider 提供方 | 场景 | 备注 |
 | --- | --- | --- |
 | `OpenAIEmbedding` | 云端 | 高质量，需 API Key |
 | `OllamaEmbedding` | 本地 | 隐私优先，需本地模型 |
@@ -724,7 +724,7 @@ knowledge/
 
 ## 5. 影响分析
 
-| 维度       | 影响说明                                         |
+| 维度 | 影响说明 |
 | ---------- | ------------------------------------------------ |
 | 性能       | Ingestion 是大 IO 操作，异步执行；检索延迟受 embedding API 和向量检索速度影响（~50-300ms） |
 | 存储       | 新增 Document Store（SQLite/文件），Entity Store（SQLite），Graph Store（SQLite/Neo4j），Vector Store（Chroma） |

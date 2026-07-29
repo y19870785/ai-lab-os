@@ -34,7 +34,7 @@ AgentOrchestrator (唯一入口)
 Agent Runtime → Workflow Runtime → Task Runtime
 ```
 
-## Key Design Decisions
+## 关键设计决策
 
 1. **Orchestrator 是唯一入口**：Application 层只和 Orchestrator 交互
 2. **复用 Task Runtime**：Delegator 委托给 Task Runtime，不重新实现任务调度
@@ -42,7 +42,7 @@ Agent Runtime → Workflow Runtime → Task Runtime
 4. **AgentMessageBus 基于 EventBus**：所有消息通过事件系统发布
 5. **Protocol First**：所有模块遵循 Protocol 接口
 
-## Data Flow
+## 数据流
 
 ```mermaid
 sequenceDiagram
@@ -60,7 +60,7 @@ sequenceDiagram
     Orchestrator-->>App: CoordinationResult
 ```
 
-## Files
+## 文件
 
 - `core/coordination/models.py` — 数据模型
 - `core/coordination/protocol.py` — 抽象接口
