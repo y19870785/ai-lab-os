@@ -306,3 +306,26 @@ def test_stop_api_cleans_up_process_on_failure(tmp_path):
     )
     driver._stop_api(process, stdout, stderr)
     assert process.poll() is not None
+
+
+def test_windows_ctrl_break_exit_requires_shutdown_completion(
+    tmp_path, monkeypatch
+):
+    log = tmp_path / "stderr.log"
+    log.write_text(
+        "Application shutdown complete.\nFinished server process [42]\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(driver.os, "name", "nt")
+    driver._assert_graceful_shutdown(
+        exit_code=3,
+        stderr_path=log,
+        label="test",
+    )
+    log.write_text("abrupt exit", encoding="utf-8")
+    with pytest.raises(driver.ProductAcceptanceError):
+        driver._assert_graceful_shutdown(
+            exit_code=3,
+            stderr_path=log,
+            label="test",
+        )

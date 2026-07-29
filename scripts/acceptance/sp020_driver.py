@@ -403,6 +403,26 @@ def _stop_api(process: subprocess.Popen[str], stdout, stderr) -> int:
     return int(process.returncode or 0)
 
 
+def _assert_graceful_shutdown(
+    *,
+    exit_code: int,
+    stderr_path: Path,
+    label: str,
+) -> None:
+    """Accept Windows CTRL_BREAK=3 only with Uvicorn shutdown completion."""
+
+    allowed = {0, 3} if os.name == "nt" else {0}
+    stderr_text = stderr_path.read_text(encoding="utf-8", errors="replace")
+    if (
+        exit_code not in allowed
+        or "Application shutdown complete." not in stderr_text
+        or "Finished server process" not in stderr_text
+    ):
+        raise ProductAcceptanceError(
+            f"{label} API did not shut down cleanly: {exit_code}"
+        )
+
+
 def _http(
     args: argparse.Namespace,
     record: dict[str, Any],
@@ -825,10 +845,11 @@ def _execute(
         _write_manifest(manifest_path, record)
     finally:
         exit_code = _stop_api(process, stdout, stderr)
-    if exit_code != 0:
-        raise ProductAcceptanceError(
-            f"source API did not shut down cleanly: {exit_code}"
-        )
+    _assert_graceful_shutdown(
+        exit_code=exit_code,
+        stderr_path=evidence / "source-api-stderr.log",
+        label="source",
+    )
     record["connection_counts"].append(0)
     _pass(record, "P", "graceful shutdown", "connection_count=0")
     _pass(record, "Q", "process cleanup completed")
@@ -910,10 +931,11 @@ def _execute(
             restart_stdout,
             restart_stderr,
         )
-    if restart_exit != 0:
-        raise ProductAcceptanceError(
-            f"source restart API did not shut down cleanly: {restart_exit}"
-        )
+    _assert_graceful_shutdown(
+        exit_code=restart_exit,
+        stderr_path=evidence / "source-restart-api-stderr.log",
+        label="source restart",
+    )
     _pass(record, "R", "new process recovered source root")
 
     before = file_manifest(source)
@@ -993,10 +1015,11 @@ def _execute(
             restored_stdout,
             restored_stderr,
         )
-    if restored_exit != 0:
-        raise ProductAcceptanceError(
-            f"restore API did not shut down cleanly: {restored_exit}"
-        )
+    _assert_graceful_shutdown(
+        exit_code=restored_exit,
+        stderr_path=evidence / "restore-api-stderr.log",
+        label="restore",
+    )
 
     after = file_manifest(source)
     record["source_manifest_after_restore"] = after
