@@ -63,9 +63,9 @@ Planning Baseline，但尚未批准 Implementation，也未启动：
 | SP-017 | Follow-up Interaction & Capture Closure — Deterministic Waiting-For interaction, Inbox capture confirmation, and durable Inbox-to-Waiting-For conversion | COMPLETED / ARCHIVED |
 | SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
 | SP-019 | Daily Review Read Model & Deterministic Follow-up View | APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
-| SP-020 | Local Daily Operating Loop & Review-to-Action Closure | PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| SP-020 | Local Daily Operating Loop & Review-to-Action Closure | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 
-ACC-016、ACC-017、ACC-018 与 ACC-019 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted；UserTask Workspace Query Closure Phase 0 与 Daily Review 均已合并、验证并封存。SP-020 的 RFC-029、ADR-063、ADR-064 均为 Proposed / Planning Baseline，ACC-020 为 PLANNING_BASELINE / NOT_EXECUTED。候选不代表批准、排期或启动。
+ACC-016、ACC-017、ACC-018 与 ACC-019 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted；UserTask Workspace Query Closure Phase 0 与 Daily Review 均已合并、验证并封存。SP-020 Planning Baseline 已通过独立审查并由 PR #53 合并，RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Implementation 仍未授权，ACC-020 为 PLANNING_BASELINE / NOT_EXECUTED。候选不代表产品实现批准、排期或启动。
 
 ## 后续候选版本
 

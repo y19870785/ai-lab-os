@@ -163,7 +163,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+        "sp_020_planning_baseline_approved_merged_reconciled_"
+        "implementation_not_approved_not_started"
     )
     assert state["next_candidate_sp"] == "SP-020"
     assert state["next_candidate_name"] == (
@@ -467,7 +468,8 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "Local Daily Operating Loop & Review-to-Action Closure"
     )
     assert state["development_status"] == (
-        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+        "sp_020_planning_baseline_approved_merged_reconciled_"
+        "implementation_not_approved_not_started"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -891,7 +893,8 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["current_version"] == "0.34.0"
     assert state["version"] == "v0.34.0"
     assert state["development_status"] == (
-        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+        "sp_020_planning_baseline_approved_merged_reconciled_"
+        "implementation_not_approved_not_started"
     )
     assert state["current_work"] is None
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
@@ -1326,7 +1329,8 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert (
         "| Current product SP | None |\n"
         "| Current governance task | None |\n"
-        "| Next candidate | SP-020 / Planning Baseline only |"
+        "| Next candidate | SP-020 / Planning Baseline approved, merged and "
+        "reconciled |"
     ) in project_health
     assert (
         "| SP-019 Phase 0 | UserTask Workspace Query Closure / "
@@ -1362,7 +1366,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         assert "SP-020" not in historical_document
 
 
-def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> None:
+def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
     state = _load_state()
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
@@ -1377,7 +1381,8 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
         "Local Daily Operating Loop & Review-to-Action Closure"
     )
     assert state["development_status"] == (
-        "sp_020_planning_baseline_defined_implementation_not_approved_not_started"
+        "sp_020_planning_baseline_approved_merged_reconciled_"
+        "implementation_not_approved_not_started"
     )
     assert state["current_version"] == "0.34.0"
     assert state["version"] == "v0.34.0"
@@ -1385,10 +1390,11 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
 
     assert sp020["status"] == (
-        "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+        "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
+        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
     )
     assert sp020["planning_baseline_defined"] is True
-    assert sp020["planning_baseline_approved"] is False
+    assert sp020["planning_baseline_approved"] is True
     assert sp020["approved"] is False
     assert sp020["implementation_started"] is False
     assert sp020["implementation_complete"] is False
@@ -1401,9 +1407,15 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
     assert sp020["branch"] == (
         "docs/sp-020-local-daily-operating-loop-planning"
     )
-    assert sp020["planning_pr"] is None or (
-        isinstance(sp020["planning_pr"], int) and sp020["planning_pr"] > 0
+    assert sp020["planning_pr"] == 53
+    assert sp020["planning_head"] == (
+        "d09ec3fa52715e59bcb397587659af3ae0852e33"
     )
+    assert sp020["planning_merge_commit"] == (
+        "fbd10fb5c4cd3913bb70d0c17cdd6df9de196625"
+    )
+    assert sp020["planning_merged_at"] == "2026-07-29T09:54:21Z"
+    assert sp020["post_planning_quality_gate_run"] == 30441534383
     assert sp020["target_version"] == "0.35.0"
     assert sp020["rfc"] == "RFC-029"
     assert sp020["adrs"] == ["ADR-063", "ADR-064"]
@@ -1443,8 +1455,19 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
         for name, path in paths.items()
     }
 
-    assert "- Status: Proposed / Planning Baseline" in text["rfc"]
+    assert "- Status: Adopted" in text["rfc"]
+    assert "- Planning review: APPROVED" in text["rfc"]
+    assert "- Planning PR: #53 / MERGED" in text["rfc"]
+    assert (
+        "- Planning merge commit: "
+        "`fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`"
+    ) in text["rfc"]
+    assert (
+        "- Post-planning main Quality Gate: `30441534383` / SUCCESS"
+    ) in text["rfc"]
     assert "- Implementation: NOT APPROVED / NOT STARTED" in text["rfc"]
+    assert "- Status: Accepted" in text["adr063"]
+    assert "- Status: Accepted" in text["adr064"]
     assert (
         "`load_system_settings()` 默认以 `Path.cwd()` 为 project root，并只从该目录加载"
         in text["rfc"]
@@ -1587,7 +1610,7 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
 
     assert (
         "Planning Status:\n"
-        "PLANNING_BASELINE_DEFINED / PENDING INDEPENDENT REVIEW\n\n"
+        "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED\n\n"
         "Implementation:\n"
         "NOT APPROVED / NOT STARTED"
     ) in text["task"]
@@ -1613,15 +1636,15 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
     ).read_text(encoding="utf-8-sig")
     assert (
         "| RFC-029 | Local Daily Operating Loop & Review-to-Action Closure | "
-        "Proposed / Planning Baseline | 2026-07-29 |"
+        "Adopted | 2026-07-29 |"
     ) in decision_index
     assert (
         "| ADR-063 | Daily Review Action Hints as Pure Deterministic "
-        "Presentation | Proposed / Planning Baseline | 2026-07-29 |"
+        "Presentation | Accepted | 2026-07-29 |"
     ) in decision_index
     assert (
         "| ADR-064 | Local Daily Profile and Quiescent Backup/Restore "
-        "Contract | Proposed / Planning Baseline | 2026-07-29 |"
+        "Contract | Accepted | 2026-07-29 |"
     ) in decision_index
 
     known_limitations = (
@@ -1656,6 +1679,6 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
         "run `30387237549` / SUCCESS |"
     ) in project_health
     assert (
-        "| SP-020 | PLANNING_BASELINE_DEFINED / "
+        "| SP-020 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
         "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
     ) in project_health

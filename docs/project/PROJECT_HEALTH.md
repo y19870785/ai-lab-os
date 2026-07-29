@@ -21,9 +21,10 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
 | Current governance task | None |
-| Next candidate | SP-020 / Planning Baseline only |
-| SP-020 | PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| Next candidate | SP-020 / Planning Baseline approved, merged and reconciled |
+| SP-020 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 | ACC-020 | PLANNING_BASELINE / NOT_EXECUTED |
+| SP-020 planning merge | PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / run `30441534383` / SUCCESS |
 | SP-019 Phase 0 | UserTask Workspace Query Closure / ACCEPTED |
 | SP-019 Daily Review | MERGED / VERIFIED / ACCEPTED / ARCHIVED |
 | Latest completed SP | SP-019 / manual acceptance passed / post-merge verified / archived |
@@ -45,7 +46,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
 | Work Log / SP-018 | Integrated / Verified / Archived | RFC-027 Adopted；ADR-058～060 Accepted；ACC-018 A～O PASSED / FINAL |
 | Daily Review / SP-019 | Integrated / Verified / Manual acceptance passed | RFC-028 Adopted；ADR-061、ADR-062 Accepted；ACC-019 A～M PASSED / FINAL；SP-019 archived |
-| Local Daily Loop / SP-020 | Planning only | RFC-029、ADR-063、ADR-064 Proposed / Planning Baseline；ACC-020 NOT_EXECUTED；无产品实现 |
+| Local Daily Loop / SP-020 | Planning approved / merged / reconciled | RFC-029 Adopted；ADR-063、ADR-064 Accepted；ACC-020 NOT_EXECUTED；无产品实现 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

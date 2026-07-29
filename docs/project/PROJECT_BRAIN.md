@@ -6,9 +6,10 @@
 > Current Governance Task: None
 > Next Candidate SP: SP-020
 > Next Candidate Direction: Local Daily Operating Loop & Review-to-Action Closure
-> SP-020 Status: PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
+> SP-020 Status: PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
 > ACC-020 Status: PLANNING_BASELINE / NOT_EXECUTED
-> SP-020 Design: RFC-029, ADR-063 and ADR-064 Proposed / Planning Baseline
+> SP-020 Design: RFC-029 Adopted; ADR-063 and ADR-064 Accepted
+> SP-020 Planning Merge: PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
 > SP-016 Status: APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
 > ACC-016 Status: PASSED / FINAL
 > SP-017 Status: APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
@@ -212,4 +213,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。SP-020 仅为 `PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。
+SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。SP-020 Planning Baseline 已通过独立审查并合并、对账；Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。

@@ -1,6 +1,6 @@
 # ADR-064 — Local Daily Profile and Quiescent Backup/Restore Contract
 
-- Status: Proposed / Planning Baseline
+- Status: Accepted
 - Date: 2026-07-29
 - SP: SP-020
 
@@ -76,5 +76,5 @@ ACC-020 必须使用真实 Windows subprocess、真实 SQLite 与两个不同绝
 
 ## 治理
 
-本 ADR 仅为 Proposed / Planning Baseline，不批准 Local Daily Profile、备份工具、
-schema、migration、version、Tag 或 Release 变更。
+本 ADR 已随独立审查通过并合并的 SP-020 Planning Baseline Accepted，但不批准
+Local Daily Profile、备份工具、schema、migration、version、Tag 或 Release 变更。
