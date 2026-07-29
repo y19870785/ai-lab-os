@@ -1409,6 +1409,15 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
     assert sp020["adrs"] == ["ADR-063", "ADR-064"]
     assert sp020["acceptance"] == "ACC-020 PLANNING_BASELINE / NOT_EXECUTED"
     assert sp020["phase_0_status"] == "REQUIRED / NOT_STARTED"
+    assert sp020["implementation_authorization_contract"] == (
+        "One explicit Owner authorization covers SP-020 implementation; "
+        "Phase 0 is an internal mandatory quality gate and does not require "
+        "a second authorization after passing"
+    )
+    assert sp020["reauthorization_triggers"] == (
+        "Phase 0 failure, stop condition, approved-scope change, Product SP "
+        "split, or new architecture decision"
+    )
 
     assert acc020["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
     assert acc020["manual_acceptance"] is False
@@ -1485,6 +1494,15 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
     assert "不执行或调度动作" in text["adr063"]
     assert "不拥有数据库、不持久化、不创建 snapshot" in text["adr063"]
     assert (
+        "`available_entrypoints` 只列出当前真实存在并符合该动作安全合同的入口。一个\n"
+        "`allowed_action` 至少有一个真实、安全入口即可展示，不要求 API、CLI 与 CEO Assistant\n"
+        "三者同时存在。尚未存在的入口不得被描述为可用"
+    ) in text["adr063"]
+    assert (
+        "revision、idempotency、durable claim/Saga 与 confirmation 按动作分别声明"
+        in text["adr063"]
+    )
+    assert (
         "| Work Log | `wl_...`（另有只读 legacy） | list/get | create only |"
         in text["rfc"]
     )
@@ -1512,10 +1530,60 @@ def test_sp020_planning_baseline_is_defined_but_not_approved_or_started() -> Non
         "Phase 4 — Continuous Daily Acceptance"
         in text["rfc"]
     )
+    owner_authorization_contract = (
+        "SP-020 产品实施需要一次明确的 Owner 授权。\n\n"
+        "Phase 0 是同一次 SP-020 实施授权内部的强制质量门禁，不需要在通过后再次获得 Owner\n"
+        "授权。Phase 0 失败、触发停止条件、需要改变已批准范围、需要拆分 Product SP，或需要\n"
+        "引入新的架构决策时，必须立即停止并重新请求 Owner 决策。"
+    )
+    assert owner_authorization_contract in text["rfc"]
+    assert "每个 Phase 都需要单独 Owner 授权" not in text["rfc"]
+    assert "每个 Phase 都需要单独 Owner 授权" not in text["task"]
+    assert "每个 Phase 都需要单独 Owner 授权" not in text["acceptance"]
     assert (
-        "每个 Phase 都需要单独 Owner 授权；本 Planning Baseline 不批准任何 Phase。"
+        "Phase 0 是同一次实施授权内部的强制质量\n"
+        "门禁；通过 Phase 0 后不需要再次请求 Owner 授权。"
+    ) in text["task"]
+
+    user_task_revision_contract = (
+        "UserTask update:\n"
+        "当前 Service 接受调用方 expected_revision；API PATCH 通过 revision 字段传入。\n\n"
+        "UserTask complete/cancel:\n"
+        "当前 Service 会读取最新对象，并使用读取时的 current.revision 执行 repository update；\n"
+        "当前 API 与 Service 均不接受调用方提供的 expected_revision。\n\n"
+        "SP-020 future implementation decision:\n"
+        "Review-to-Action 的 UserTask complete/cancel 必须增加显式 expected_revision，\n"
+        "防止用户依据旧 Daily Review 操作已经变化的对象。"
+    )
+    assert user_task_revision_contract in text["rfc"]
+    assert (
+        "以上 `complete/cancel expected_revision` 是未来 SP-020 产品实现范围，不是当前能力。"
         in text["rfc"]
     )
+    assert (
+        "仅当\nAction Hint 声明 `requires_revision=true` 时，缺失或 stale revision 才必须 fail\n"
+        "closed；需要 idempotency key、durable claim/Saga 或 confirmation 的动作分别按自身\n"
+        "真实合同验收。"
+    ) in text["acceptance"]
+    assert (
+        "只允许补齐 ACC-020 日常用户闭环实际需要的薄入口委托，不为入口对称性补齐所有领域\n"
+        "动作，不复制领域业务逻辑，不追求 API、CLI、CEO Assistant 的完整矩阵对称"
+    ) in text["rfc"]
+    assert (
+        "只补齐 ACC-020 日常用户闭环实际需要的薄入口委托。不得为了入口对称性补齐所有领域\n"
+        "动作，不追求 API、CLI、CEO Assistant 的完整矩阵对称"
+    ) in text["task"]
+    assert (
+        "多个 Scheduler tick、一次真实 one-shot job 执行、一个明确\n"
+        "   记录起止时间的空闲运行窗口、周期性 health 快照、background task 状态与\n"
+        "   `DatabaseManager.connection_count`"
+    ) in text["rfc"]
+    assert (
+        "持续运行证据不得只包含一次瞬时启动和关闭。driver 必须记录一个明确起止时间的运行\n"
+        "窗口，并至少覆盖：多个 Scheduler tick、一次真实 one-shot job 执行、一个空闲运行\n"
+        "窗口、周期性 health 快照、每次快照的 background task 状态与\n"
+        "`DatabaseManager.connection_count`。"
+    ) in text["acceptance"]
 
     assert (
         "Planning Status:\n"

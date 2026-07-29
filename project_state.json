@@ -384,6 +384,8 @@
       "task_specification": "docs/project/SP-020-IMPLEMENTATION-TASK.md",
       "acceptance": "ACC-020 PLANNING_BASELINE / NOT_EXECUTED",
       "phase_0_status": "REQUIRED / NOT_STARTED",
+      "implementation_authorization_contract": "One explicit Owner authorization covers SP-020 implementation; Phase 0 is an internal mandatory quality gate and does not require a second authorization after passing",
+      "reauthorization_triggers": "Phase 0 failure, stop condition, approved-scope change, Product SP split, or new architecture decision",
       "scope": "Windows Local Daily Profile, Daily Review CLI, deterministic Action Hints, canonical Review-to-Action delegation, lifecycle recovery and quiescent backup/restore acceptance"
     }
   },

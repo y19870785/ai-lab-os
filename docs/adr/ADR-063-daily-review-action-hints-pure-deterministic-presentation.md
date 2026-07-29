@@ -37,11 +37,17 @@ allowed_action
 required_arguments
 requires_revision
 requires_confirmation
-available entrypoints
+available_entrypoints
 ```
 
-相同输入必须产生相同内容和稳定顺序。未知组合、当前领域不支持的 mutation、缺少必要
-revision/confirmation 或不存在真实入口时，不得生成可执行 hint。
+`available_entrypoints` 只列出当前真实存在并符合该动作安全合同的入口。一个
+`allowed_action` 至少有一个真实、安全入口即可展示，不要求 API、CLI 与 CEO Assistant
+三者同时存在。尚未存在的入口不得被描述为可用；没有任何真实安全入口时，不得生成
+该 action hint。
+
+revision、idempotency、durable claim/Saga 与 confirmation 按动作分别声明。只有该
+动作真实需要时，`requires_revision` 或 `requires_confirmation` 才为 true；不得把
+所有 mutation 套入同一个规则。
 
 Action Hint：
 
@@ -76,7 +82,7 @@ Mutate explicitly by canonical ID
 代价：
 
 - 每个动作映射必须跟随真实领域合同更新；
-- 入口不完整时 hint 必须保守省略，而不是承诺未来能力；
+- 一个动作只需至少一个真实安全入口；不会为矩阵对称性虚构或补齐其他入口；
 - Action Hint 与实际执行需要分别测试。
 
 ## 拒绝方案
@@ -91,11 +97,12 @@ Mutate explicitly by canonical ID
 ACC-020 必须验证：
 
 - 同一 Review 输入生成完全相同的 hints；
-- 每个 hint 对应真实存在的领域入口；
+- 每个 hint 的 `available_entrypoints` 至少包含一个真实安全入口，且不包含尚未存在
+  的入口；
 - unsupported status/reason 不生成伪动作；
 - 生成 hint 时数据库、EventBus、Scheduler、Provider call 均无副作用；
-- 执行动作必须经过 canonical service，并满足 Workspace、revision、
-  idempotency 与 confirmation 合同。
+- 执行动作必须经过 canonical service，并按该动作自身声明满足 Workspace、revision、
+  idempotency、durable claim/Saga 或 confirmation 合同。
 
 ## 治理
 

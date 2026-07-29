@@ -16,8 +16,10 @@
 时间、source data root、restore data root、API process PID/port、配置摘要与所有命令
 退出码。两个 data root 必须是不同绝对路径，且不得指向开发 checkout 的默认 `data/`。
 
-每个 mutation 必须记录前后对象、canonical ID、revision、workspace、持久化数据库事实
-与相关 event/Saga 状态。自然语言回复或 HTTP 2xx 不能单独作为成功依据。
+每个 mutation 必须记录前后对象、canonical ID、workspace、持久化数据库事实，以及
+该动作真实需要的 revision、idempotency key、durable claim/Saga、confirmation 与
+相关 event 状态。不得把所有 mutation 套用同一 revision 规则。自然语言回复或 HTTP
+2xx 不能单独作为成功依据。
 
 driver/harness 错误必须标记 `INVALID_ACCEPTANCE_HARNESS` 并废弃该次运行；产品失败不得
 通过改 driver、skip、xfail 或放宽断言掩盖。
@@ -68,16 +70,28 @@ ID、reason code、全局排序与分页一致。CLI `--json` 必须与 structur
 
 对固定 Review payload 重复生成 hints，结果与顺序必须完全相同。每条包含
 `source_type/source_id/status/reason_code/allowed_action/required_arguments/
-requires_revision/requires_confirmation/entrypoints`，并逐条证明对应真实领域合同。
+requires_revision/requires_confirmation/available_entrypoints`，并逐条证明对应真实
+领域合同。`available_entrypoints` 只包含当前真实安全入口；每个 allowed action 至少
+一个入口即可，不要求 API、CLI 与 CEO Assistant 三者齐全，也不得列出尚未存在的入口。
 unsupported 组合不得伪造动作。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
 ## ACC-020-G — UserTask mutation
 
-依据 Review 中 canonical `ut_...` 与当前 revision 完成或取消 task；stale revision、
-另一 workspace 与模糊对象必须 fail closed。成功以 `tasks.db` 当前对象 revision/status
-为依据。
+分别验证：
+
+- UserTask update 当前接受调用方 `expected_revision`，缺失时按当前兼容合同处理，
+  stale revision 必须 fail closed；
+- 当前 UserTask complete/cancel 的 API 与 Service 不接受调用方 revision，而是读取最新
+  对象并使用读取时 revision 更新 repository；
+- SP-020 未来实现必须为 Review-to-Action UserTask complete/cancel 增加显式
+  `expected_revision`。实现后，hint 必须声明 `requires_revision=true`，缺失或 stale
+  revision 必须 fail closed。
+
+另一 workspace 与模糊对象始终不得写入。成功以 `tasks.db` 当前对象
+revision/status 为依据。未来 `complete/cancel expected_revision` 不得在实现前被记为
+当前能力。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
@@ -122,9 +136,12 @@ service 使用相同完整 WorkspaceKey；不得回退到 default/unfiltered que
 
 ## ACC-020-M — 零未确认副作用
 
-对模糊写意图、缺 canonical ID、缺 revision、缺 confirmation、未知 status/reason 与
-unsupported Work Log mutation 做数据库、EventBus、Scheduler 和对象快照。所有前后
-状态必须相同；允许返回只读信息或明确 preview/validation。
+对模糊写意图、缺 canonical ID、未知 status/reason、unsupported Work Log mutation，
+以及缺少动作自身声明的必要参数做数据库、EventBus、Scheduler 和对象快照。仅当
+Action Hint 声明 `requires_revision=true` 时，缺失或 stale revision 才必须 fail
+closed；需要 idempotency key、durable claim/Saga 或 confirmation 的动作分别按自身
+真实合同验收。所有未满足安全前置条件的操作前后状态必须相同；允许返回只读信息或
+明确 preview/validation。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
@@ -136,11 +153,17 @@ unsupported Work Log mutation 做数据库、EventBus、Scheduler 和对象快�
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-O — Scheduler 行为
+## ACC-020-O — Scheduler 与持续运行行为
 
 真实启用 Scheduler/Reminder，验证 one-shot job、claim、run、Reminder 状态与
 effectively-once 事实。重复 tick/并发 claim 不得重复执行。记录 scheduler health、
 jobs、runs、claim token/revision 与 Reminder reconciliation。
+
+持续运行证据不得只包含一次瞬时启动和关闭。driver 必须记录一个明确起止时间的运行
+窗口，并至少覆盖：多个 Scheduler tick、一次真实 one-shot job 执行、一个空闲运行
+窗口、周期性 health 快照、每次快照的 background task 状态与
+`DatabaseManager.connection_count`。完成该窗口后，继续执行优雅关闭、新进程重启与
+恢复验证。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
@@ -196,11 +219,14 @@ today/yesterday Review。允许 `generated_at/as_of` 随新进程时间变化；
 
 ## ACC-020-V — FailureInfo、revision、idempotency 与 Saga
 
-集中验证 config、auth、workspace、date/query、not-found、stale revision、
-unsupported state、dependency、persistence、scheduler、shutdown 与 restore failures
+集中验证 config、auth、workspace、date/query、not-found、动作声明需要时的 missing
+或 stale revision、unsupported state、dependency、persistence、scheduler、shutdown
+与 restore failures
 使用稳定 `FailureInfo` code/category/component/operation/trace_id/retryable，且 details
-不含 secret。重放 idempotency key 与 Inbox resolution claim 不创建第二目标；Saga
-中断后由新进程恢复或明确报告可恢复状态。
+不含 secret。仅当 hint 声明 `requires_revision=true` 时才以缺失或 stale revision
+失败关闭；idempotency key、Inbox durable resolution claim/Saga 与 confirmation
+分别按动作真实合同验证。重放不得创建第二目标；Saga 中断后由新进程恢复或明确报告
+可恢复状态。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
@@ -216,6 +242,10 @@ Phase 0: PASSED
 No unresolved Product PR or review thread
 No version / tag / release side operation
 ```
+
+SP-020 产品实施只需要一次明确 Owner 授权；Phase 0 是该授权内部的强制质量门禁，
+通过后不需要再次授权。Phase 0 失败、触发停止条件、改变批准范围、拆分 Product SP
+或引入新架构决策时，必须停止并重新请求 Owner 决策。
 
 任何 Scheduler 重复执行/丢 job、shutdown 非幂等、数据目录静默漂移、跨 workspace
 访问、未确认副作用、Provider call、无法隔离恢复或需要在线跨库快照，均为 STOP。

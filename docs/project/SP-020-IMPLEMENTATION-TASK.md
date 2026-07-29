@@ -59,13 +59,24 @@ Work Log edit/complete/delete。
    独立 lifecycle。
 4. Action Hint 只描述真实 allowed action；Action Execution 必须由 canonical domain
    service 完成。
+   `available_entrypoints` 只列出当前真实存在且安全的入口；一个 action 至少有一个
+   真实安全入口即可展示，不要求 API、CLI、CEO Assistant 三者同时存在。
 5. 完整 `WorkspaceKey` 在 API、CLI、CEO Assistant、Review、hint 与 mutation 之间
    一致传递。
-6. revision、idempotency、preview/confirm、Inbox durable claim/Saga 不能被绕过。
+6. revision、idempotency、preview/confirm、Inbox durable claim/Saga 必须按动作分别
+   声明并遵守，不能被绕过。UserTask update 当前接受调用方 `expected_revision`；
+   complete/cancel 当前只使用 Service 读取到的最新 revision，API 与 Service 不接受
+   调用方 revision。SP-020 未来实现必须为 Review-to-Action 的 UserTask
+   complete/cancel 增加显式 `expected_revision`。
 7. Work Log 仍只有 create/get/list。
 8. 默认备份为停机后的完整 data directory 复制；不承诺在线跨库一致快照。
 
 ## Implementation phases
+
+SP-020 产品实施需要一次明确的 Owner 授权。Phase 0 是同一次实施授权内部的强制质量
+门禁；通过 Phase 0 后不需要再次请求 Owner 授权。若 Phase 0 失败、触发停止条件、需要
+改变已批准范围、拆分 Product SP 或引入新的架构决策，必须立即停止并重新请求 Owner
+决策。本 Planning Baseline 尚未授予该实施授权。
 
 ### Phase 0 — Product Entry and Lifecycle Gate
 
@@ -78,6 +89,8 @@ Work Log edit/complete/delete。
 - partial startup rollback；
 - 重复 shutdown 与当前双 Scheduler shutdown 调用的幂等证明；
 - Scheduler/Reminder/Inbox Saga/Waiting-For 新进程恢复；
+- 多个 Scheduler tick、一次真实 one-shot job、空闲运行窗口、周期性 health 快照、
+  background task 状态与 DatabaseManager connection count 的持续运行证据；
 - 防止数据目录调整静默遗弃旧数据。
 
 Phase 0 未通过不得进入 Phase 1。
@@ -101,8 +114,9 @@ python -m cli daily-review --date today --json
 
 ### Phase 3 — Review-to-Action Entrypoint Closure
 
-只补齐真实动作矩阵中缺失的薄委托。不得复制领域 mutation、建立第二 Command Bus 或
-为 Work Log 发明新 mutation。
+只补齐 ACC-020 日常用户闭环实际需要的薄入口委托。不得为了入口对称性补齐所有领域
+动作，不追求 API、CLI、CEO Assistant 的完整矩阵对称，不得复制领域 mutation、
+建立第二 Command Bus 或为 Work Log 发明新 mutation。
 
 ### Phase 4 — Continuous Daily Acceptance
 

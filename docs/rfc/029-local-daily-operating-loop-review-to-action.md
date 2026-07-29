@@ -157,12 +157,15 @@ allowed_action
 required_arguments
 requires_revision
 requires_confirmation
-entrypoints: api / cli / ceo_assistant
+available_entrypoints
 ```
 
 Hint 只能由 `source_type + status + reason_code + 当前真实领域合同` 确定。相同输入
-必须产生相同顺序和内容。未知组合、无真实 mutation 的对象或入口不完整时，必须省略
-该动作或返回稳定不可用说明，不得猜测。
+必须产生相同顺序和内容。`available_entrypoints` 只列出当前真实存在并符合 Workspace、
+revision、idempotency、confirmation 与 Saga 安全合同的入口。一个 `allowed_action`
+至少存在一个真实、安全入口即可展示，不要求同时存在 API、CLI 和 CEO Assistant
+三种入口；不存在任何真实安全入口时，必须省略该动作或返回稳定不可用说明。Action
+Hint 不得把尚未存在的入口描述为可用入口。
 
 Hint 不调用 LLM、不自动选择动作、不执行动作、不持久化、不创建 snapshot，也不改变
 现有 Daily Review 分类和分页。Hint 与 Action Execution 严格分离。
@@ -171,16 +174,35 @@ Hint 不调用 LLM、不自动选择动作、不执行动作、不持久化、�
 
 | 对象 | ID | READ | WRITE | API | CLI | CEO Assistant | revision / idempotency / confirm |
 |---|---|---|---|---|---|---|---|
-| UserTask | `ut_...` | list/get | create/update/complete/cancel | `/tasks` | `task` 当前经 CEO Assistant | create/read/update/complete/cancel | mutation 使用当前 revision 防并发；无通用客户端 idempotency；模糊自然语言 fail closed |
+| UserTask | `ut_...` | list/get | create/update/complete/cancel | `/tasks` | `task` 当前经 CEO Assistant | create/read/update/complete/cancel | update 当前接受调用方 `expected_revision`；complete/cancel 当前不接受调用方 revision；无通用客户端 idempotency；模糊自然语言 fail closed |
 | Reminder | `rem_...` | list/get/status/occurrences | create/reschedule/cancel | `/reminders` | `reminders`, `reminder-status`, `reminder-reschedule`, `reminder-cancel` | create/read/reschedule/cancel | reschedule 支持 expected revision；创建支持 idempotency key；写意图必须明确 |
 | Waiting-For | `wf_...` | list/get/history | create/follow-up/snooze/resolve/cancel/reopen | `/waiting-for` | `waiting-for` | capture-confirm create，显式 ID lifecycle mutations | 所有 lifecycle mutation 要 expected revision；自然语言创建先 preview/capture 再按 Inbox ID confirm |
 | Inbox | `inbox_...` | list/get | capture；resolve to UserTask/Reminder/Waiting-For/Work Log/Note；dismiss | `/inbox` | `inbox` | capture/read/confirm resolution | durable resolution claim/Saga 提供幂等与竞争恢复；Waiting-For resolution 要显式确认字段 |
 | Work Log | `wl_...`（另有只读 legacy） | list/get | create only | `/work-logs` | `work-log` | create/list/get | create 可使用 idempotency；不存在 edit/complete/delete mutation |
 
+UserTask revision 的当前事实与 SP-020 决策必须分开记录：
+
+```text
+UserTask update:
+当前 Service 接受调用方 expected_revision；API PATCH 通过 revision 字段传入。
+
+UserTask complete/cancel:
+当前 Service 会读取最新对象，并使用读取时的 current.revision 执行 repository update；
+当前 API 与 Service 均不接受调用方提供的 expected_revision。
+
+SP-020 future implementation decision:
+Review-to-Action 的 UserTask complete/cancel 必须增加显式 expected_revision，
+防止用户依据旧 Daily Review 操作已经变化的对象。
+```
+
+以上 `complete/cancel expected_revision` 是未来 SP-020 产品实现范围，不是当前能力。
+revision、idempotency、durable claim/Saga 与 confirmation 必须按动作分别声明，不得
+套用一个统一 mutation 规则。
+
 最终实现前必须用代码与测试再次核对每个 entrypoint。Hint 只可展示当前确实存在且符合
-Workspace、revision、idempotency、preview/confirm 合同的动作。成功以 canonical
-SQLite 持久化对象、revision、resolution claim / Saga 或对应事件事实为依据，不以
-自然语言回复为依据。
+各动作真实安全合同的入口；不追求 API、CLI、CEO Assistant 矩阵对称。成功以
+canonical SQLite 持久化对象、revision、resolution claim / Saga、confirmation 或
+对应事件事实为依据，不以自然语言回复为依据。
 
 ## Review-to-Action 委托边界
 
@@ -237,8 +259,12 @@ Phase 0 必须先证明：
 6. 新进程从同一目录恢复 scheduler jobs、过期 claims、reminder reconciliation、
    Inbox Saga 与 Waiting-For；
 7. 不发生重复执行、丢失 job、对象状态漂移或旧数据静默遗弃。
+8. 持续运行窗口必须覆盖多个 Scheduler tick、一次真实 one-shot job 执行、一个明确
+   记录起止时间的空闲运行窗口、周期性 health 快照、background task 状态与
+   `DatabaseManager.connection_count`；之后再执行优雅关闭、新进程重启和恢复验证。
 
 若任一项无法证明，停止后续 CLI / hint / delegation 实现并报告 blocking finding。
+一次瞬时启动和关闭不能作为持续运行验证通过的依据。
 
 ## 静止备份与隔离恢复
 
@@ -313,13 +339,22 @@ readiness / shutdown、scheduler 幂等与 restart recovery。只有门禁通过
 
 ### Phase 3 — Review-to-Action Entrypoint Closure
 
-仅补齐动作矩阵中确实缺失的入口委托，不复制领域逻辑，不新增 Work Log mutation。
+只允许补齐 ACC-020 日常用户闭环实际需要的薄入口委托，不为入口对称性补齐所有领域
+动作，不复制领域业务逻辑，不追求 API、CLI、CEO Assistant 的完整矩阵对称，也不新增
+Work Log mutation。
 
 ### Phase 4 — Continuous Daily Acceptance
 
-通过真实 Windows 进程、真实 SQLite、停止/重启、静止备份与隔离恢复执行 ACC-020。
+通过真实 Windows 进程、真实 SQLite、持续运行窗口、停止/重启、静止备份与隔离恢复
+执行 ACC-020。
 
-每个 Phase 都需要单独 Owner 授权；本 Planning Baseline 不批准任何 Phase。
+SP-020 产品实施需要一次明确的 Owner 授权。
+
+Phase 0 是同一次 SP-020 实施授权内部的强制质量门禁，不需要在通过后再次获得 Owner
+授权。Phase 0 失败、触发停止条件、需要改变已批准范围、需要拆分 Product SP，或需要
+引入新的架构决策时，必须立即停止并重新请求 Owner 决策。
+
+本 Planning Baseline 尚未授予这一次 SP-020 产品实施授权。
 
 ## 停止条件
 
