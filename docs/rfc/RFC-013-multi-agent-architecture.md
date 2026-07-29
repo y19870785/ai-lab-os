@@ -1,14 +1,14 @@
-﻿# RFC-013: Multi-Agent Coordination Architecture
+# RFC-013：多智能体协调架构
 
 **Version:** 1.0
 **Date:** 2026-07-13
 **Status:** Implemented (v0.23.0)
 
-## Summary
+## 摘要
 
 定义 AI-Lab 多 Agent 协作架构。新增 `core/coordination/` 作为 Multi-Agent Coordinating Layer，使 AI-Lab 从单 Agent Runtime 演化为多 Agent 协作系统。
 
-## Motivation
+## 动机
 
 当前 Agent Runtime 仅支持单 Agent 执行。未来需要：
 - 多 Agent 协作完成复杂任务
@@ -18,7 +18,7 @@
 
 需要一个新的协调层，不修改 Agent Runtime 核心职责。
 
-## Architecture
+## 架构
 
 ```
 Application

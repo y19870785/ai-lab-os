@@ -1,6 +1,6 @@
-﻿# RFC-002: Memory Layer Architecture
+# RFC-002：记忆层架构
 
-## Metadata
+## 元数据
 
 | Field        | Value                                |
 | ------------ | ------------------------------------ |

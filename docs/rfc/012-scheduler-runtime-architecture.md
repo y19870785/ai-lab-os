@@ -1,4 +1,4 @@
-﻿# RFC-012: Scheduler Runtime Architecture
+# RFC-012：调度器运行时架构
 
 **状态：** Accepted
 **版本：** v0.21.0

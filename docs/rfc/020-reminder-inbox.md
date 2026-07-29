@@ -1,10 +1,10 @@
-# RFC-020: Reminder Inbox and User-Friendly Local Access
+# RFC-020：提醒收件箱与用户友好的本地访问
 
-## Status
+## 状态
 
 Adopted
 
-## Adoption Record
+## 采纳记录
 
 - Implemented by SP-010
 - Merged via PR #21
@@ -12,7 +12,7 @@ Adopted
 - Merge Commit: `af437afc32dcb17da68d600d6840ec94c8cbe681`
 - Adoption Date: `2026-07-16`
 
-## Context
+## 背景
 
 SP-009 提供了按 `reminder_id` 查询单条聚合状态的真实闭环，但用户无法在不知道 ID 的情况下查看自己的提醒。SP-010 增加持久化站内 Inbox，并保持 Reminder、Scheduler 与 UserTask 的既有所有权边界。
 
@@ -44,6 +44,6 @@ Reminder 与 UserTask 位于不同 SQLite 数据库，不伪装成跨库 JOIN。
 
 API JSON 成功与失败响应显式声明 `application/json; charset=utf-8`，JSON 字节使用 UTF-8。PowerShell 验收优先按响应 charset 解码；CLI 的 `--json` 使用 `ensure_ascii=False` 输出中文。此契约不解决所有历史 Windows 终端代码页问题。
 
-## Known Limitations
+## 已知限制
 
 SP-010 不实现 Web UI、外部通知、Recurring Reminder、全文搜索、跨 workspace 管理视图、用户身份、RBAC、分布式查询或 Reminder Inbox 推送。跨 SQLite 聚合不是快照事务；深度稀疏过滤的成本可能随记录量增长。

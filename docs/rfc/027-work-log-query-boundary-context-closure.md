@@ -1,4 +1,4 @@
-# RFC-027 — Work Log Query Boundary & Context Closure
+# RFC-027：工作日志查询边界与上下文闭环
 
 Status: Adopted
 

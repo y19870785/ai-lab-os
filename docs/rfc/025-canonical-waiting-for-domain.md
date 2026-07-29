@@ -1,4 +1,4 @@
-# RFC-025 — Canonical Waiting-For Domain and Agenda Closure
+# RFC-025：规范等待事项领域与议程闭环
 
 Status: Adopted
 

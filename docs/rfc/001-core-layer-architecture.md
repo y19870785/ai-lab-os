@@ -1,6 +1,6 @@
-﻿# RFC-001: Core Layer Architecture
+# RFC-001：核心层架构
 
-## Metadata
+## 元数据
 
 | Field        | Value                                |
 | ------------ | ------------------------------------ |

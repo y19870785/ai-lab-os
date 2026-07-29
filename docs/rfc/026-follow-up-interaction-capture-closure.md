@@ -1,4 +1,4 @@
-# RFC-026 — Follow-up Interaction and Capture Closure
+# RFC-026：跟进交互与捕获闭环
 
 Status: Adopted
 

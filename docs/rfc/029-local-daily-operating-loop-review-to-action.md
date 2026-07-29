@@ -1,15 +1,15 @@
-# RFC-029 — Local Daily Operating Loop & Review-to-Action Closure
+# RFC-029：本地日常运行循环与复盘到行动闭环
 
-- Status: Adopted
-- SP: SP-020
-- Date: 2026-07-29
-- Base: `934075ceefe39ede3c624b621b7673d62f6d06dd`
-- Planning branch: `docs/sp-020-local-daily-operating-loop-planning`
-- Planning review: APPROVED
-- Planning PR: #53 / MERGED
-- Planning merge commit: `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`
-- Post-planning main Quality Gate: `30441534383` / SUCCESS
-- Implementation: NOT APPROVED / NOT STARTED
+- 状态：Adopted
+- SP：SP-020
+- 日期：2026-07-29
+- Base：`934075ceefe39ede3c624b621b7673d62f6d06dd`
+- 规划分支：`docs/sp-020-local-daily-operating-loop-planning`
+- 规划审查：APPROVED
+- 规划 PR：#53 / MERGED
+- 规划合并 Commit：`fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`
+- 规划后 main Quality Gate：`30441534383` / SUCCESS
+- 产品实施：NOT APPROVED / NOT STARTED
 
 ## 当前问题
 

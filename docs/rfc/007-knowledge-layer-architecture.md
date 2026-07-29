@@ -1,12 +1,15 @@
-# RFC-007: Knowledge Layer Architecture
+# RFC-007：Knowledge Layer 架构
 
-## Status
-Accepted (2026-07-12)
+## 状态
 
-## Overview
-Knowledge Layer provides unified document ingestion, chunking, embedding, vector storage, and hybrid retrieval. All through Provider Layer protocols.
+Accepted（2026-07-12）
 
-## Architecture
+## 概述
+
+Knowledge Layer 通过 Provider Layer protocol 提供统一的文档摄取、Chunk、Embedding、
+Vector Storage 与混合检索。
+
+## 架构
 
 ```mermaid
 graph TD
@@ -23,14 +26,16 @@ graph TD
     RANK --> RESULT[Result]
 ```
 
-## Components
-- IngestionPipeline: clean, normalize, metadata, chunk, embed, index
-- ChunkStrategy: 6 strategies (fixed/sentence/paragraph/markdown/recursive/token_window)
-- HybridRetriever: vector + keyword with configurable weights
-- KnowledgeRanker: composite scoring (vector + keyword + freshness + importance + confidence)
-- KnowledgeManager: unified entry point
+## 组件
 
-## Design
-- Provider Agnostic: all external access through Provider Layer
-- Strategy Pattern: chunkers, retrievers, rankers are plug-in
-- 8-method KnowledgeStore protocol aligned with MemoryStore
+- `IngestionPipeline`：Clean、Normalize、Metadata、Chunk、Embed 与 Index；
+- `ChunkStrategy`：fixed、sentence、paragraph、markdown、recursive、token_window 六种策略；
+- `HybridRetriever`：可配置权重的 Vector + Keyword；
+- `KnowledgeRanker`：组合 Vector、Keyword、Freshness、Importance 与 Confidence 分数；
+- `KnowledgeManager`：统一入口。
+
+## 设计
+
+- Provider Agnostic：外部访问统一经过 Provider Layer；
+- Strategy Pattern：Chunker、Retriever 与 Ranker 可插拔；
+- 八方法 `KnowledgeStore` protocol 与 `MemoryStore` 对齐。

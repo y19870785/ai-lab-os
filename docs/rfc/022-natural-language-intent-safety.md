@@ -1,4 +1,4 @@
-# RFC-022：Natural-Language Intent Safety
+# RFC-022：自然语言意图安全
 
 状态：Adopted
 
@@ -44,6 +44,6 @@ Reminder 查询与错误引导不调用 LLM，也不显示 Mock/API Key 提示�
 
 单元测试固定优先级与 effect；真实 FastAPI lifespan、Composition Root、SQLite、Reminder Inbox 和 Memory 测试对比查询前后 Work Log、UserTask、Reminder 数量。手工验收按 `docs/acceptance/SP-012-intent-safety-reminder-query.md` 执行。
 
-## Known Limitations
+## 已知限制
 
 本 RFC 不实现 LLM 意图分类、多轮指代、模糊搜索、复杂相对时间、Recurring Reminder、外部通知或 Web UI。

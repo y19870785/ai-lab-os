@@ -1,4 +1,4 @@
-# RFC-028 — Daily Review Read Model & Deterministic Follow-up View
+# RFC-028：每日复盘读取模型与确定性跟进视图
 
 Status: Adopted
 Date: 2026-07-26

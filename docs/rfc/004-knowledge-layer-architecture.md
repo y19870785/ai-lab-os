@@ -1,6 +1,6 @@
-﻿# RFC-004: Knowledge Layer Architecture
+# RFC-004：知识层架构
 
-## Metadata
+## 元数据
 
 | Field        | Value                                |
 | ------------ | ------------------------------------ |

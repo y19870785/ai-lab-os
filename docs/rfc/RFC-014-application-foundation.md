@@ -1,14 +1,14 @@
-﻿# RFC-014: Application Foundation Architecture
+# RFC-014：应用基础架构
 
 **Version:** 1.0
 **Date:** 2026-07-13
 **Status:** Implemented (v0.30.0)
 
-## Summary
+## 摘要
 
 建立 AI-Lab Application Foundation，实现 Application Runtime + Workspace/Tenant 隔离 + REST API + CLI，使 AI-Lab 具备可部署、可调用的 Alpha 产品入口。
 
-## Architecture
+## 架构
 
 ```
 CLI / REST API
