@@ -134,8 +134,14 @@ def _port_is_free(port: int) -> bool:
     return True
 
 
+def _is_windows() -> bool:
+    """Keep the real ACC-020 platform gate injectable for harness tests."""
+
+    return os.name == "nt"
+
+
 def validate_harness(args: argparse.Namespace, driver: Path) -> dict[str, str]:
-    if os.name != "nt":
+    if not _is_windows():
         raise HarnessError("ACC-020 requires Windows")
     repo = args.repository_root.resolve()
     if not args.repository_root.is_absolute() or not (repo / ".git").exists():
@@ -389,7 +395,10 @@ def _start_api(
 def _stop_api(process: subprocess.Popen[str], stdout, stderr) -> int:
     if process.poll() is None:
         try:
-            process.send_signal(signal.CTRL_BREAK_EVENT)
+            shutdown_signal = (
+                signal.CTRL_BREAK_EVENT if os.name == "nt" else signal.SIGINT
+            )
+            process.send_signal(shutdown_signal)
             process.wait(timeout=20)
         except (OSError, subprocess.TimeoutExpired):
             process.terminate()

@@ -67,8 +67,21 @@ def _run(
     evidence = (evidence or (tmp_path / "evidence")).resolve()
     monkeypatch.setenv("AI_LAB_PROVIDER_MODE", "test")
     monkeypatch.setenv("AI_LAB_API_TOKEN", "test-token")
+    harness_entry = (
+        "import importlib.util,sys;"
+        "path=sys.argv.pop(1);"
+        "spec=importlib.util.spec_from_file_location("
+        "'sp020_driver_harness_test',path);"
+        "module=importlib.util.module_from_spec(spec);"
+        "sys.modules[spec.name]=module;"
+        "spec.loader.exec_module(module);"
+        "module._is_windows=lambda:True;"
+        "raise SystemExit(module.main())"
+    )
     command = [
         sys.executable,
+        "-c",
+        harness_entry,
         str(DRIVER),
         "--frozen-head",
         actual_head,
@@ -94,6 +107,12 @@ def _run(
         encoding="utf-8",
         check=False,
     )
+
+
+def test_real_driver_platform_gate_fails_closed(monkeypatch) -> None:
+    monkeypatch.setattr(driver, "_is_windows", lambda: False)
+    with pytest.raises(driver.HarnessError, match="ACC-020 requires Windows"):
+        driver.validate_harness(SimpleNamespace(), DRIVER)
 
 
 def test_prepare_only_writes_unmeasured_a_to_v_manifest(
