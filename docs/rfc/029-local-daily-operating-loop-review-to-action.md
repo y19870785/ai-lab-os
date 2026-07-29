@@ -62,7 +62,7 @@ Windows 本地日常运行合同。当前主要缺口不是新的领域模型，
 - FastAPI lifespan 为长运行 API 进程持有一个 `SystemContainer`；CLI 单次命令通常
   创建、启动并在 `finally` 中关闭一个独立 `SystemContainer`。
 
-### 每日回顾（Daily Review）
+### 每日复盘（Daily Review）
 
 - `DailyReviewService` 只读取五个 canonical service，不拥有数据库、EventBus、
   lifecycle、snapshot 或独立 persistence，也不调用 Provider / LLM。
@@ -127,7 +127,7 @@ Provider secret 只能显示“已配置/未配置”，不得回显值。
 配置错误必须转为稳定 `FailureInfo` 或明确的启动失败，不得自动选择其他数据目录、
 关闭 auth、启用 mock 或忽略无效 timezone。
 
-## 每日回顾 CLI
+## 每日复盘 CLI
 
 未来正式入口：
 
@@ -333,7 +333,7 @@ Snapshot、LLM 自动建议并执行、在线跨库一致快照、集群/高可�
 固定 Local Daily Profile、绝对数据目录、完整 WorkspaceKey、有效配置展示、health /
 readiness / shutdown、scheduler 幂等与 restart recovery。只有门禁通过才进入 Phase 1。
 
-### 阶段 1 — 每日回顾 CLI
+### 阶段 1 — 每日复盘 CLI
 
 只建立直接调用现有 `DailyReviewService` 的 CLI。
 

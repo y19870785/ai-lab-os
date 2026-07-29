@@ -16,7 +16,7 @@
 - RFC-029、ADR-063、ADR-064 与 ACC-020 均为 Planning Baseline；SP-020 Implementation 未批准、未启动，ACC-020 未执行。
 - 产品版本保持 `0.34.0`；Tag 与 GitHub Release 均未改变。
 
-### SP-019 每日回顾读取模型与确定性跟进视图
+### SP-019 每日复盘读取模型与确定性跟进视图
 - 以唯一、非持久化、纯只读 `DailyReviewService` 聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox，支持 `today` / `yesterday`、IANA timezone、DST、当前 follow-up 与 pending Inbox。
 - API、CEO Assistant 与兼容 `/brief` 共享相同 query、Workspace、分类、全局排序、分页与失败语义。
 - ACC-019 A～M 已在冻结实现 Head 正式执行并全部通过，Provider calls 为 0。
@@ -329,7 +329,7 @@
 
 - 修复 `tests/real/` 加载 API Key 后污染普通测试的全局测试隔离问题。
 - 新增全局 `isolate_api_keys` fixture，并由 `tests/real/conftest.py` 覆盖真实 Provider 场景。
-- 非 real 测试 694 项、real 测试 5 项，全量 699 项均通过。
+- 全局测试从 692 passed、2 failed 修复为 699 passed、0 failed；其中 non-real 测试 694 passed、0 failed，real Provider 测试 5 passed、0 failed。
 - `scripts/start.bat`、`scripts/setup.bat`、`scripts/diagnose.bat` 与 `scripts/stop.bat` 提供一键操作入口。
 - Stability Gate 与 First Experience Gate 均通过。
 
@@ -340,9 +340,12 @@
 ### CEO Assistant 首次运行稳定化
 
 - 修复任务优先级断言、conversation memory 的 task 路由、测试 collection 导入顺序冲突和 real async fixture 配置。
-- 非 real 测试 694 项通过；单独执行的真实 Provider 测试 5 项通过。
+- non-real 测试：694 passed、0 failed、26 warnings。
+- 单独 real Provider 测试：5 passed、0 failed。
+- 已知限制：当时全局 real 模式仍有 4 个 async fixture collection error；这是 v0.32.2 的历史状态，不代表当前测试结果。
 - 统一 `AI_LAB_LLM_PROVIDER` 等环境变量，同时兼容已弃用的 `OPENAI_API_KEY` 等旧变量。
 - `python -m cli chat` 可直接启动 CEO Assistant。
+- Stability Gate：PASS（普通测试 0 failed，DeepSeek 真实验证通过）。
 
 ---
 
@@ -356,7 +359,7 @@
 - 新增 `applications/ceo_assistant/`、`product/`、对应 CLI 命令与 API 路由，以及本地 SentenceTransformer Embedding Provider。
 - 修复 DatabaseManager、KnowledgeManager、Chroma metadata、CLI UTF-8、意图优先级与 MemoryManager 调用接口。
 - 完成 DeepSeek LLM、本地 Embedding、Chroma Vector Store、Document QA Pipeline 与 Personal Assistant Demo 的真实 Provider 验证。
-- 全量 647 项测试通过。
+- 全量 647 项测试通过，零回归。
 
 ---
 

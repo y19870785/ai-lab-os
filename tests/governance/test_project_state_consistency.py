@@ -1659,7 +1659,22 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
 
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8-sig")
     assert "### SP-020 本地每日运行闭环规划基线" in changelog
-    assert "### SP-019 每日回顾读取模型与确定性跟进视图" in changelog
+    assert "### SP-019 每日复盘读取模型与确定性跟进视图" in changelog
+    assert (
+        "全局测试从 692 passed、2 failed 修复为 699 passed、0 failed"
+        in changelog
+    )
+    assert "non-real 测试：694 passed、0 failed、26 warnings" in changelog
+    assert "单独 real Provider 测试：5 passed、0 failed" in changelog
+    assert (
+        "当时全局 real 模式仍有 4 个 async fixture collection error"
+        in changelog
+    )
+    assert (
+        "Stability Gate：PASS（普通测试 0 failed，DeepSeek 真实验证通过）"
+        in changelog
+    )
+    assert "全量 647 项测试通过，零回归" in changelog
     assert "SP-019 保持 candidate、未批准、未启动" not in changelog
 
     project_health = (

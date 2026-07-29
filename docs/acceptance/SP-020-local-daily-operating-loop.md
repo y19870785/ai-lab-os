@@ -58,7 +58,7 @@ WorkspaceKey 生效；读取不得产生新业务对象或 Provider call。
 
 状态：PLANNING_BASELINE / NOT_EXECUTED
 
-## ACC-020-E — 每日回顾 today / yesterday
+## ACC-020-E — 每日复盘 today / yesterday
 
 通过 API 与正式 `daily-review` CLI 查询 today/yesterday。验证二者直接复用同一
 `DailyReviewService` 合同，日期、timezone、DST、`as_of`、source status、canonical

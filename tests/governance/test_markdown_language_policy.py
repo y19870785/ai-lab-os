@@ -54,15 +54,18 @@ PENDING_TRANSLATION_MARKERS = (
 MOJIBAKE_FRAGMENTS = (
     "\ufffd",
     "涓€",
-    "閿",
-    "锛",
-    "鈥",
-    "鏋",
-    "鍘",
-    "棣",
-    "娴",
-    "Ã",
-    "Â",
+    "鏇存柊",
+    "鍏ㄥ眬",
+    "娴嬭瘯",
+    "閿惎",
+    "棣栨",
+    "鏋舵瀯",
+    "鍘嗗彶",
+    "鈥?",
+    "Ã©",
+    "Ã¤",
+    "Ã¥",
+    "Â ",
     "â€",
     "ä¸",
     "å…",
@@ -446,7 +449,10 @@ def test_language_gate_regression_examples() -> None:
             "# 中文标题\n\n| Field | Value |\n| --- | --- |\n| `id` | `x` |\n",
         )
     )
-    assert _mojibake_failures("sample.md", "# 中文标题\n涓€閿") != []
+    assert not _mojibake_failures("sample.md", "# 中文标题\n操作娴熟")
+    assert not _mojibake_failures("sample.md", "# 中文标题\n林棣安完成了检查")
+    assert _mojibake_failures("sample.md", "# 中文标题\n鏇存柊鏃ュ織") != []
+    assert _mojibake_failures("sample.md", "# 中文标题\n\ufffd") != []
     assert _mojibake_failures("sample.md", "# 中文标题\n????") != []
     assert not _table_failures(
         "sample.md",
