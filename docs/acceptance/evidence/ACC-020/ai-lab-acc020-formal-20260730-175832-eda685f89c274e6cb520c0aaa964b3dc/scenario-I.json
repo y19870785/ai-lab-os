@@ -1,0 +1,133 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:39.789230+00:00",
+  "ended_at": "2026-07-30T09:58:39.971741+00:00",
+  "entrypoints": [
+    "POST /inbox/{id}/resolve/waiting-for",
+    "POST /inbox/{id}/resolve/task",
+    "POST /inbox/{id}/resolve/note"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "POST",
+      "path": "/inbox/inbox_3af83c69af35495ea7877a98ad00288b/resolve/waiting-for",
+      "status": 400
+    },
+    {
+      "method": "POST",
+      "path": "/inbox/inbox_3af83c69af35495ea7877a98ad00288b/resolve/waiting-for",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/inbox/inbox_3af83c69af35495ea7877a98ad00288b/resolve/waiting-for",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/inbox/inbox_3af83c69af35495ea7877a98ad00288b/resolve/task",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/inbox",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/inbox/inbox_bd6dded43dc148bbaa52b25af1aac8de/resolve/note",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "target_id": "wf_inbox_71e2192872dcec03744a672d",
+    "resolved_status": "resolved"
+  },
+  "object_ids": [
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "wf_inbox_71e2192872dcec03744a672d",
+    "inbox_bd6dded43dc148bbaa52b25af1aac8de"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [],
+  "database_evidence": [
+    "i-missing-before.json",
+    "i-missing-after.json",
+    "i-inbox-claim-sqlite.json"
+  ],
+  "spy_evidence": [
+    "events.log"
+  ],
+  "checks": [
+    {
+      "name": "competing resolution",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "durable claim",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "missing waiting confirmation",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "note or dismiss",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "resolution replay",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "single target",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "source resolved",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "target id",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    },
+    {
+      "name": "target resolution",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-I-evidence.json"
+    }
+  ]
+}

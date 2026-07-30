@@ -1,0 +1,161 @@
+{
+  "formal_run_id": "ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "path": "evidence-index.json",
+      "sha256": "34e473a0caab1f132f2b2959f125df69005eda6b318f1b7db5187cb2b5ea9fa2",
+      "size": 11540
+    },
+    {
+      "path": "failure-info-summary.json",
+      "sha256": "5b4f68d44df129605f7eb57bd3c0d391a969182f58f868eda512730575dc87b0",
+      "size": 12144
+    },
+    {
+      "path": "formal-manifest.sanitized.json",
+      "sha256": "7fee87d66ba783fa98384c1b7f189c1dc256dd4058236debc83538606915c045",
+      "size": 499076
+    },
+    {
+      "path": "README.txt",
+      "sha256": "de0ddd248540096d7a795020a25ffc20e975e13b417fdf7b9db695df7d5ca452",
+      "size": 861
+    },
+    {
+      "path": "redaction-manifest.json",
+      "sha256": "ec5a837c2f30de144787e0469137ff665327e2640a9576f7b175a92f8995337e",
+      "size": 938
+    },
+    {
+      "path": "run-metadata.json",
+      "sha256": "67ae6ad5e3a17f043490063f5fff8515f0d9ed100f89afdfaf4ac7d4f46cf05f",
+      "size": 1615
+    },
+    {
+      "path": "scenario-A.json",
+      "sha256": "dab485f2dc9ea404fc4ad3dbb7fa8d6cdca6f253170a848eb7540992dd27fc2c",
+      "size": 5663
+    },
+    {
+      "path": "scenario-B.json",
+      "sha256": "a3abf2f89d92353e4cbbe50447d29ae9545ceea20b950f1302658972ebefe9aa",
+      "size": 7811
+    },
+    {
+      "path": "scenario-C.json",
+      "sha256": "d08d1f6feeee45b36b3abf497dd4791b88fdb9706e37b53dc82a5d891c42b743",
+      "size": 2963
+    },
+    {
+      "path": "scenario-D.json",
+      "sha256": "69f1b28265867defeb5c26bf510e2977035f6fb6b601aa071f40ab5e12245099",
+      "size": 2224
+    },
+    {
+      "path": "scenario-E.json",
+      "sha256": "5248e8b879b3f0ef7c7ab5857a7a0a882086e12e989978c3c839089d4343acc8",
+      "size": 3242
+    },
+    {
+      "path": "scenario-F.json",
+      "sha256": "486ca24aa69e8c423a1128bf5ee69a38e666b82fa142dff28525d15d198fbff4",
+      "size": 8965
+    },
+    {
+      "path": "scenario-G.json",
+      "sha256": "17a7d9d0d9af0798b8dce785e152e605aa80b3fc7b417c1092917dae5e9838f3",
+      "size": 6054
+    },
+    {
+      "path": "scenario-H.json",
+      "sha256": "0d1ef3b2958de649cb9b159362e5b8f34e648ce940796d9410f480142c2fb1ea",
+      "size": 4095
+    },
+    {
+      "path": "scenario-I.json",
+      "sha256": "0069bcca0bc02b47537e3c6e06c1ad66a3460458751ea5c6267b3d4248a3e812",
+      "size": 3230
+    },
+    {
+      "path": "scenario-J.json",
+      "sha256": "dea8b0b7ebdb95d7fbf5a94cee07f0be0030a0d42bcf79f22cb5bc6321ff1d56",
+      "size": 2678
+    },
+    {
+      "path": "scenario-K.json",
+      "sha256": "0c9bd3e73744090f24b909d8b0ae43247eda4da6640d052c1c1d8343ca4ad1fd",
+      "size": 3856
+    },
+    {
+      "path": "scenario-L.json",
+      "sha256": "5219f11462ef06a288d4a47fad87adbf45ce259295bf1d91d5328bd89542cf6f",
+      "size": 1448
+    },
+    {
+      "path": "scenario-M.json",
+      "sha256": "2624a9779fe4b6c6f51b56de38e990f73c4db9f020a02fbb76569e6cc269175e",
+      "size": 3604
+    },
+    {
+      "path": "scenario-N.json",
+      "sha256": "3d90c89f6299c0b5ad66c6121e693e5b959f973bff47f26331b9182ca5926d39",
+      "size": 1790
+    },
+    {
+      "path": "scenario-O.json",
+      "sha256": "521cd742e924d6cfb1538b9a3383a0c358158520cbc665d8f21c6023c9c8398b",
+      "size": 8722
+    },
+    {
+      "path": "scenario-P.json",
+      "sha256": "b2964799f8edfad36db31aee2ebaf3dd0dd47c92a5687259acf48a2130bf2b95",
+      "size": 2733
+    },
+    {
+      "path": "scenario-Q.json",
+      "sha256": "bdebea1c95f3ee146348ee9531b0f952d00e4f6d5d3adf6c45b7e5e6fded0ca3",
+      "size": 14106
+    },
+    {
+      "path": "scenario-R.json",
+      "sha256": "bd2eee22b4119ace25e5a53e3480055e67c4469f23271e7776c4a6a8c6d8ebe5",
+      "size": 4021
+    },
+    {
+      "path": "scenario-S.json",
+      "sha256": "e7a0f664e156287d894a4f1ccc435c6bd97499259bc50a6ba7c77c1e44505862",
+      "size": 2407
+    },
+    {
+      "path": "scenario-T.json",
+      "sha256": "5cc34bbb404486eb028bf9eba8bedc92e356a5679413483da8c3d17cdc443d22",
+      "size": 2488
+    },
+    {
+      "path": "scenario-U.json",
+      "sha256": "594c4abce7a0276c72ac84a9b21b77baf82cc8e318c4ff481980b11a1bb3f0bf",
+      "size": 4065
+    },
+    {
+      "path": "scenario-V.json",
+      "sha256": "bb116f3dbeb92625b2a4698ce105b13935f80a8cf5a14da25efd8e48be062522",
+      "size": 3205
+    },
+    {
+      "path": "scheduler-summary.json",
+      "sha256": "5724a8c715afb2bd9d62fe680ed73d6a9a5a803a79c0c1748f9f0ab1210c51df",
+      "size": 18308
+    },
+    {
+      "path": "shutdown-summary.json",
+      "sha256": "069b7855a75b0f957c6f6c67416e57bb7432f3e684405bb8b40e857280b115bd",
+      "size": 57977
+    },
+    {
+      "path": "source-restore-manifest.json",
+      "sha256": "7f5473735533e9b29c99bab76906d195b0d75359fea0d1cf628268bb4f4f1a38",
+      "size": 21612
+    }
+  ]
+}

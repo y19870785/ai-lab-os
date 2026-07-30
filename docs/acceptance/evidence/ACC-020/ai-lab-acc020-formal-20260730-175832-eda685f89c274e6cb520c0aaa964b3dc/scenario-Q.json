@@ -1,0 +1,452 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:45.748531+00:00",
+  "ended_at": "2026-07-30T09:58:47.257643+00:00",
+  "entrypoints": [
+    "independent partial-start-probe subprocess"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "http_statuses": [],
+  "response_facts": {
+    "partial_start": {
+      "failure": {
+        "code": "system.start.dependency_failed",
+        "category": "dependency_failure",
+        "message": "Injected Scheduler initialization failure",
+        "component": "system_container",
+        "operation": "start",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_acc020_q_dependency",
+        "cause_type": "SystemInitializationError",
+        "details": {
+          "probe": "acc020"
+        }
+      },
+      "injected_failure": {
+        "code": "scheduler.initialize.injected_failure",
+        "category": "dependency_failure",
+        "message": "Injected Scheduler initialization failure",
+        "component": "scheduler_runtime",
+        "operation": "initialize",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_acc020_q_dependency",
+        "cause_type": "",
+        "details": {
+          "probe": "acc020"
+        }
+      },
+      "restart_failure": {
+        "code": "system.restart.failed_container",
+        "category": "dependency_failure",
+        "message": "Failed SystemContainer cannot be restarted",
+        "component": "system_container",
+        "operation": "restart",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_acc020_q_restart",
+        "cause_type": "SystemInitializationError",
+        "details": {
+          "probe": "acc020"
+        }
+      },
+      "lifecycle": "failed",
+      "event_bus_stopped": true,
+      "background_tasks": 0,
+      "connection_count": 0,
+      "rollback_order": [
+        "container_shutdown_before",
+        "scheduler_shutdown_before",
+        "scheduler_shutdown_after",
+        "scheduler_shutdown_before",
+        "scheduler_shutdown_after",
+        "service_close_before",
+        "service_close_after",
+        "service_close_before",
+        "service_close_after",
+        "service_close_before",
+        "service_close_after",
+        "service_close_before",
+        "service_close_after",
+        "service_close_before",
+        "service_close_after",
+        "event_bus_stop_before",
+        "event_bus_stop_after",
+        "database_close_before",
+        "database_close_after",
+        "container_shutdown_after",
+        "container_shutdown_before",
+        "container_shutdown_after",
+        "container_shutdown_before",
+        "container_shutdown_after"
+      ],
+      "rollback_order_valid": true
+    },
+    "job_evidence": {
+      "job_id": "02a909cd61bf4d82a9e38a22203dbaea",
+      "reminder_id": "rem_c888fd29f48246aca00491959e41cf03",
+      "before_shutdown": {
+        "execution_count": 1,
+        "jobs": [
+          {
+            "id": "02a909cd61bf4d82a9e38a22203dbaea",
+            "name": "reminder:rem_c888fd29f48246aca00491959e41cf03",
+            "description": "",
+            "version": "1.0.0",
+            "tags": "[\"reminder\"]",
+            "metadata": "{}",
+            "trigger_type": "one_shot",
+            "cron_expression": "",
+            "interval_seconds": 0,
+            "run_at": "2026-07-30T09:58:46.551130+00:00",
+            "event_type": "",
+            "trigger_timezone": "UTC",
+            "next_run_at": null,
+            "workflow_name": "",
+            "workflow_variables": "{}",
+            "status": "completed",
+            "max_retries": 3,
+            "timeout": 300,
+            "max_concurrent": 1,
+            "retry_count": 0,
+            "run_count": 1,
+            "last_run_at": "2026-07-30T09:58:46.574364+00:00",
+            "last_result": "success",
+            "created_at": "2026-07-30T09:58:46.505118+00:00",
+            "action_type": "reminder",
+            "action_payload": "{\"reminder_id\": \"rem_c888fd29f48246aca00491959e41cf03\", \"scheduled_at\": \"2026-07-30T09:58:46.551130+00:00\"}",
+            "trace_id": "trace_acc020_q_job",
+            "claim_token": "[REDACTED]",
+            "claim_expires_at": null,
+            "last_error": null,
+            "updated_at": "2026-07-30T09:58:46.574364+00:00",
+            "revision": 3
+          }
+        ],
+        "runs": [
+          {
+            "run_id": "27f3597cba3d",
+            "job_id": "02a909cd61bf4d82a9e38a22203dbaea",
+            "attempt": 1,
+            "started_at": "2026-07-30T09:58:46.568360+00:00",
+            "finished_at": "2026-07-30T09:58:46.574364+00:00",
+            "status": "success",
+            "claim_token": "[REDACTED]",
+            "failure": null,
+            "trace_id": "trace_acc020_q_job"
+          }
+        ],
+        "occurrences": [
+          {
+            "id": "occ_a8aacc0b319042dcbae3a99b6ce76d89",
+            "reminder_id": "rem_c888fd29f48246aca00491959e41cf03",
+            "user_task_id": "ut_fa1ccb2794d04d84b44ace26ccbb12f5",
+            "scheduled_at": "2026-07-30T09:58:46.551130+00:00",
+            "triggered_at": "2026-07-30T09:58:46.571334+00:00",
+            "status": "triggered",
+            "trace_id": "trace_acc020_q_job",
+            "failure": null,
+            "idempotency_key": "rem_c888fd29f48246aca00491959e41cf03:2026-07-30T09:58:46.551130+00:00",
+            "attempt": 1
+          }
+        ],
+        "business_event_count": 45
+      },
+      "after_shutdown": {
+        "execution_count": 1,
+        "jobs": [
+          {
+            "id": "02a909cd61bf4d82a9e38a22203dbaea",
+            "name": "reminder:rem_c888fd29f48246aca00491959e41cf03",
+            "description": "",
+            "version": "1.0.0",
+            "tags": "[\"reminder\"]",
+            "metadata": "{}",
+            "trigger_type": "one_shot",
+            "cron_expression": "",
+            "interval_seconds": 0,
+            "run_at": "2026-07-30T09:58:46.551130+00:00",
+            "event_type": "",
+            "trigger_timezone": "UTC",
+            "next_run_at": null,
+            "workflow_name": "",
+            "workflow_variables": "{}",
+            "status": "completed",
+            "max_retries": 3,
+            "timeout": 300,
+            "max_concurrent": 1,
+            "retry_count": 0,
+            "run_count": 1,
+            "last_run_at": "2026-07-30T09:58:46.574364+00:00",
+            "last_result": "success",
+            "created_at": "2026-07-30T09:58:46.505118+00:00",
+            "action_type": "reminder",
+            "action_payload": "{\"reminder_id\": \"rem_c888fd29f48246aca00491959e41cf03\", \"scheduled_at\": \"2026-07-30T09:58:46.551130+00:00\"}",
+            "trace_id": "trace_acc020_q_job",
+            "claim_token": "[REDACTED]",
+            "claim_expires_at": null,
+            "last_error": null,
+            "updated_at": "2026-07-30T09:58:46.574364+00:00",
+            "revision": 3
+          }
+        ],
+        "runs": [
+          {
+            "run_id": "27f3597cba3d",
+            "job_id": "02a909cd61bf4d82a9e38a22203dbaea",
+            "attempt": 1,
+            "started_at": "2026-07-30T09:58:46.568360+00:00",
+            "finished_at": "2026-07-30T09:58:46.574364+00:00",
+            "status": "success",
+            "claim_token": "[REDACTED]",
+            "failure": null,
+            "trace_id": "trace_acc020_q_job"
+          }
+        ],
+        "occurrences": [
+          {
+            "id": "occ_a8aacc0b319042dcbae3a99b6ce76d89",
+            "reminder_id": "rem_c888fd29f48246aca00491959e41cf03",
+            "user_task_id": "ut_fa1ccb2794d04d84b44ace26ccbb12f5",
+            "scheduled_at": "2026-07-30T09:58:46.551130+00:00",
+            "triggered_at": "2026-07-30T09:58:46.571334+00:00",
+            "status": "triggered",
+            "trace_id": "trace_acc020_q_job",
+            "failure": null,
+            "idempotency_key": "rem_c888fd29f48246aca00491959e41cf03:2026-07-30T09:58:46.551130+00:00",
+            "attempt": 1
+          }
+        ],
+        "business_event_count": 45
+      }
+    },
+    "scheduler_shutdown_calls": [
+      {
+        "started_at": "2026-07-30T09:58:46.605287+00:00",
+        "finished_at": "2026-07-30T09:58:46.606285+00:00",
+        "exception": null,
+        "lifecycle_before": "ready",
+        "lifecycle_after": "ready",
+        "background_tasks": 0,
+        "connection_count": 7,
+        "job_count": 1,
+        "run_count": 1,
+        "occurrence_count": 1,
+        "counts_before": {
+          "jobs": 1,
+          "runs": 1,
+          "occurrences": 1
+        }
+      },
+      {
+        "started_at": "2026-07-30T09:58:46.609286+00:00",
+        "finished_at": "2026-07-30T09:58:46.610286+00:00",
+        "exception": null,
+        "lifecycle_before": "ready",
+        "lifecycle_after": "ready",
+        "background_tasks": 0,
+        "connection_count": 7,
+        "job_count": 1,
+        "run_count": 1,
+        "occurrence_count": 1,
+        "counts_before": {
+          "jobs": 1,
+          "runs": 1,
+          "occurrences": 1
+        }
+      }
+    ],
+    "container_shutdown_calls": [
+      {
+        "started_at": "2026-07-30T09:58:46.614288+00:00",
+        "finished_at": "2026-07-30T09:58:46.647459+00:00",
+        "exception": null,
+        "lifecycle_before": "ready",
+        "lifecycle_after": "stopped",
+        "background_tasks": 0,
+        "connection_count": 0,
+        "job_count": 1,
+        "run_count": 1,
+        "occurrence_count": 1,
+        "counts_before": {
+          "jobs": 1,
+          "runs": 1,
+          "occurrences": 1
+        }
+      },
+      {
+        "started_at": "2026-07-30T09:58:46.651458+00:00",
+        "finished_at": "2026-07-30T09:58:46.651458+00:00",
+        "exception": null,
+        "lifecycle_before": "stopped",
+        "lifecycle_after": "stopped",
+        "background_tasks": 0,
+        "connection_count": 0,
+        "job_count": 1,
+        "run_count": 1,
+        "occurrence_count": 1,
+        "counts_before": {
+          "jobs": 1,
+          "runs": 1,
+          "occurrences": 1
+        }
+      }
+    ],
+    "final_background_tasks": 0,
+    "final_connection_count": 0,
+    "final_lifecycle": "stopped",
+    "publish_after_stop_error": {
+      "code": "event_bus.publish.stopped",
+      "category": "dependency_failure",
+      "message": "Bus is not running",
+      "component": "event_bus",
+      "operation": "publish",
+      "retryable": false,
+      "severity": "error",
+      "trace_id": "trace_acc020_q_publish",
+      "cause_type": "RuntimeError",
+      "details": {
+        "probe": "acc020"
+      }
+    },
+    "draining_lifecycle": "draining",
+    "draining_error": {
+      "code": "system.draining",
+      "category": "unavailable",
+      "message": "AI-Lab system is not accepting new work",
+      "component": "system.lifecycle",
+      "operation": "admit_request",
+      "retryable": true,
+      "severity": "error",
+      "trace_id": "trace_acc020_q_draining",
+      "cause_type": "",
+      "details": {}
+    },
+    "shutdown_failure": {
+      "failure": {
+        "code": "system.shutdown.component_failed",
+        "category": "dependency_failure",
+        "message": "Injected component shutdown failure",
+        "component": "waiting_for_service",
+        "operation": "shutdown",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_acc020_v_shutdown",
+        "cause_type": "",
+        "details": {
+          "probe": "acc020"
+        }
+      },
+      "shutdown_failures": [
+        "waiting_for_service"
+      ],
+      "lifecycle": "failed",
+      "event_bus_stopped": true,
+      "background_tasks": 0,
+      "connection_count": 0
+    },
+    "restore_failure": {
+      "failure": {
+        "code": "restore.data_invalid",
+        "category": "dependency_failure",
+        "message": "UserTask initialize failed",
+        "component": "restore",
+        "operation": "open",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_acc020_v_restore",
+        "cause_type": "SystemInitializationError",
+        "details": {
+          "probe": "acc020"
+        }
+      },
+      "exit_code": 2,
+      "lifecycle": "failed",
+      "connection_count": 0
+    }
+  },
+  "object_ids": [],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [],
+  "database_evidence": [
+    "partial-start-probe.json"
+  ],
+  "spy_evidence": [
+    "shutdown.log",
+    "events.log"
+  ],
+  "checks": [
+    {
+      "name": "connections zero",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "double scheduler shutdown",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "event bus stopped",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "external repeated shutdown",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "failed container cannot restart",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "no duplicate execution",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "partial startup failure",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "rollback order",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    },
+    {
+      "name": "tasks cleaned",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-Q-evidence.json"
+    }
+  ]
+}

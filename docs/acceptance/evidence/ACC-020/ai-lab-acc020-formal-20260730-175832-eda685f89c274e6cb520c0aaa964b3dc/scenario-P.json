@@ -1,0 +1,112 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:47.254754+00:00",
+  "ended_at": "2026-07-30T09:58:47.255644+00:00",
+  "entrypoints": [
+    "SIGINT Uvicorn",
+    "SystemContainer.shutdown observer"
+  ],
+  "exit_codes": [
+    3
+  ],
+  "http_statuses": [],
+  "response_facts": {
+    "terminal_health": {
+      "event": "container_shutdown_after",
+      "pid": 14636,
+      "timestamp": "2026-07-30T09:58:45.739530+00:00",
+      "lifecycle": "stopped",
+      "accepting_work": false,
+      "background_tasks": 0,
+      "database_connections": 0,
+      "shutdown_failures": []
+    }
+  },
+  "object_ids": [
+    "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+    "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "wf_a231f325c07945c98421c57081cdbbc8",
+    "wl_c818cd5ef9e04dc7957a52aa13665d37",
+    "ut_f2fe45a3186b4c10af23250db7b655cb",
+    "rem_b8c8bf6845b34595a95ff463a168edd0"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "before": 1,
+      "after": 2
+    }
+  ],
+  "database_evidence": [
+    "shutdown.log"
+  ],
+  "spy_evidence": [
+    "shutdown.log"
+  ],
+  "checks": [
+    {
+      "name": "background tasks converge",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    },
+    {
+      "name": "connection count zero observed",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    },
+    {
+      "name": "database closes last",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    },
+    {
+      "name": "draining rejects work",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    },
+    {
+      "name": "graceful process exit",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    },
+    {
+      "name": "ready draining terminal",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    },
+    {
+      "name": "scheduler services bus stop",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    },
+    {
+      "name": "shutdown failures recorded",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-P-evidence.json"
+    }
+  ]
+}

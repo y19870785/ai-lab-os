@@ -1,0 +1,305 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:39.033426+00:00",
+  "ended_at": "2026-07-30T09:58:39.306277+00:00",
+  "entrypoints": [
+    "GET /daily-review/action-hints?date=today",
+    "core.daily_review.build_action_hints unsupported tuple"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "GET",
+      "path": "/daily-review/action-hints?date=today",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/daily-review/action-hints?date=today",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "hint_count": 10,
+    "hints": [
+      {
+        "source_type": "user_task",
+        "source_id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "status": "active",
+        "reason_code": "user_task.overdue",
+        "allowed_action": "complete",
+        "required_arguments": [
+          "source_id",
+          "expected_revision"
+        ],
+        "requires_revision": true,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": false,
+        "saga_contract": null,
+        "available_entrypoints": [
+          "api:POST /daily-review/actions/user-tasks/{id}/complete"
+        ]
+      },
+      {
+        "source_type": "user_task",
+        "source_id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "status": "active",
+        "reason_code": "user_task.overdue",
+        "allowed_action": "cancel",
+        "required_arguments": [
+          "source_id",
+          "expected_revision"
+        ],
+        "requires_revision": true,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": false,
+        "saga_contract": null,
+        "available_entrypoints": [
+          "api:POST /daily-review/actions/user-tasks/{id}/cancel"
+        ]
+      },
+      {
+        "source_type": "waiting_for",
+        "source_id": "wf_a231f325c07945c98421c57081cdbbc8",
+        "status": "open",
+        "reason_code": "waiting_for.review_due",
+        "allowed_action": "follow_up",
+        "required_arguments": [
+          "source_id",
+          "expected_revision",
+          "note"
+        ],
+        "requires_revision": true,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": false,
+        "saga_contract": null,
+        "available_entrypoints": [
+          "api:POST /waiting-for/{id}/follow-ups",
+          "cli:waiting-for follow-up"
+        ]
+      },
+      {
+        "source_type": "reminder",
+        "source_id": "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+        "status": "scheduled",
+        "reason_code": "reminder.due_soon",
+        "allowed_action": "reschedule",
+        "required_arguments": [
+          "source_id",
+          "expected_revision",
+          "scheduled_for",
+          "timezone"
+        ],
+        "requires_revision": true,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": false,
+        "saga_contract": "ReminderSchedulerBridge",
+        "available_entrypoints": [
+          "api:PATCH /reminders/{id}",
+          "cli:reminder-reschedule"
+        ]
+      },
+      {
+        "source_type": "inbox",
+        "source_id": "inbox_3af83c69af35495ea7877a98ad00288b",
+        "status": "pending",
+        "reason_code": "inbox.pending",
+        "allowed_action": "resolve_to_task",
+        "required_arguments": [
+          "source_id",
+          "title"
+        ],
+        "requires_revision": false,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": true,
+        "saga_contract": "InboxResolutionClaim",
+        "available_entrypoints": [
+          "api:POST /inbox/{id}/resolve/task",
+          "cli:inbox resolve-task"
+        ]
+      },
+      {
+        "source_type": "inbox",
+        "source_id": "inbox_3af83c69af35495ea7877a98ad00288b",
+        "status": "pending",
+        "reason_code": "inbox.pending",
+        "allowed_action": "resolve_to_reminder",
+        "required_arguments": [
+          "source_id",
+          "title",
+          "scheduled_at",
+          "timezone"
+        ],
+        "requires_revision": false,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": true,
+        "saga_contract": "InboxResolutionClaim",
+        "available_entrypoints": [
+          "api:POST /inbox/{id}/resolve/reminder",
+          "cli:inbox resolve-reminder"
+        ]
+      },
+      {
+        "source_type": "inbox",
+        "source_id": "inbox_3af83c69af35495ea7877a98ad00288b",
+        "status": "pending",
+        "reason_code": "inbox.pending",
+        "allowed_action": "resolve_to_work_log",
+        "required_arguments": [
+          "source_id",
+          "title"
+        ],
+        "requires_revision": false,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": true,
+        "saga_contract": "InboxResolutionClaim",
+        "available_entrypoints": [
+          "api:POST /inbox/{id}/resolve/work-log",
+          "cli:inbox resolve-work-log"
+        ]
+      },
+      {
+        "source_type": "inbox",
+        "source_id": "inbox_3af83c69af35495ea7877a98ad00288b",
+        "status": "pending",
+        "reason_code": "inbox.pending",
+        "allowed_action": "resolve_to_waiting_for",
+        "required_arguments": [
+          "source_id",
+          "subject",
+          "waiting_on",
+          "next_review_at",
+          "timezone"
+        ],
+        "requires_revision": false,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": true,
+        "saga_contract": "InboxResolutionClaim",
+        "available_entrypoints": [
+          "api:POST /inbox/{id}/resolve/waiting-for",
+          "cli:inbox resolve-waiting-for"
+        ]
+      },
+      {
+        "source_type": "inbox",
+        "source_id": "inbox_3af83c69af35495ea7877a98ad00288b",
+        "status": "pending",
+        "reason_code": "inbox.pending",
+        "allowed_action": "resolve_as_note",
+        "required_arguments": [
+          "source_id"
+        ],
+        "requires_revision": false,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": true,
+        "saga_contract": "InboxResolutionClaim",
+        "available_entrypoints": [
+          "api:POST /inbox/{id}/resolve/note",
+          "cli:inbox resolve-note"
+        ]
+      },
+      {
+        "source_type": "inbox",
+        "source_id": "inbox_3af83c69af35495ea7877a98ad00288b",
+        "status": "pending",
+        "reason_code": "inbox.pending",
+        "allowed_action": "dismiss",
+        "required_arguments": [
+          "source_id"
+        ],
+        "requires_revision": false,
+        "requires_idempotency_key": false,
+        "requires_confirmation": true,
+        "requires_durable_claim": true,
+        "saga_contract": "InboxResolutionClaim",
+        "available_entrypoints": [
+          "api:POST /inbox/{id}/dismiss",
+          "cli:inbox dismiss"
+        ]
+      }
+    ]
+  },
+  "object_ids": [
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+    "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+    "wf_a231f325c07945c98421c57081cdbbc8"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [],
+  "database_evidence": [
+    "f-before.json",
+    "f-after.json"
+  ],
+  "spy_evidence": [
+    "events.log",
+    "scheduler.log",
+    "calls.log"
+  ],
+  "checks": [
+    {
+      "name": "fields complete",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-F-evidence.json"
+    },
+    {
+      "name": "hint side effects unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-F-evidence.json"
+    },
+    {
+      "name": "reminder idempotency optional",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-F-evidence.json"
+    },
+    {
+      "name": "repeated hints identical",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-F-evidence.json"
+    },
+    {
+      "name": "required arguments callable",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-F-evidence.json"
+    },
+    {
+      "name": "six inbox actions",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-F-evidence.json"
+    },
+    {
+      "name": "unsupported tuple empty",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-F-evidence.json"
+    }
+  ]
+}

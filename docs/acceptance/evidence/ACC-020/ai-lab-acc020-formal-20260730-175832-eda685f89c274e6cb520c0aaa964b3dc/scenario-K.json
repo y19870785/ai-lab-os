@@ -1,0 +1,166 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:40.025156+00:00",
+  "ended_at": "2026-07-30T09:58:41.586970+00:00",
+  "entrypoints": [
+    "API Task GET and mutation with Workspace B",
+    "API Agenda, Review, Hint with Workspace B",
+    "CLI Daily Review with Workspace B",
+    "CEO Assistant /tasks and canonical mutation with Workspace B"
+  ],
+  "exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "http_statuses": [
+    {
+      "method": "GET",
+      "path": "/tasks/ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/daily-review/actions/user-tasks/ut_7bf340f0b78a4ee7a06e1babf0bbd0be/complete",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/agenda",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/daily-review?date=today",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/daily-review/action-hints?date=today",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "api_ids": [],
+    "cli_ids": [],
+    "hint_ids": [],
+    "workspace_b_task_count": 0,
+    "source_before": {
+      "id": "ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "revision": 1,
+      "status": "active"
+    },
+    "source_after": {
+      "id": "ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "revision": 1,
+      "status": "active"
+    }
+  },
+  "object_ids": [
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+    "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+    "wf_a231f325c07945c98421c57081cdbbc8",
+    "wl_c818cd5ef9e04dc7957a52aa13665d37"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "isolated",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "revision": 1,
+      "status": "active"
+    },
+    {
+      "id": "ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "revision": 1,
+      "status": "active"
+    }
+  ],
+  "database_evidence": [
+    "j-after-read.json"
+  ],
+  "spy_evidence": [
+    "k-cli-isolated-stdout.log",
+    "k-ceo-list-isolated-stdout.log",
+    "k-ceo-mutation-isolated-stdout.log"
+  ],
+  "checks": [
+    {
+      "name": "agenda invisible",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    },
+    {
+      "name": "ceo invisible",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    },
+    {
+      "name": "cli invisible",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    },
+    {
+      "name": "hint invisible",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    },
+    {
+      "name": "mutation blocked",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    },
+    {
+      "name": "no default fallback",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    },
+    {
+      "name": "review invisible",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    },
+    {
+      "name": "task invisible",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-K-evidence.json"
+    }
+  ]
+}

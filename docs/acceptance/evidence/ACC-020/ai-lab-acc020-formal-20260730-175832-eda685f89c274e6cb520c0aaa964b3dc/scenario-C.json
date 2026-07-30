@@ -1,0 +1,135 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:37.896008+00:00",
+  "ended_at": "2026-07-30T09:58:38.046168+00:00",
+  "entrypoints": [
+    "POST /tasks",
+    "POST /tasks/{id}/reminders",
+    "POST /inbox",
+    "POST /waiting-for",
+    "POST /work-logs"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/ut_59ba4e2d290b4fb2b1e42bfe3047db48/reminders",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/inbox",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/work-logs",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "revisions": [
+      {
+        "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "revision": 1
+      },
+      {
+        "id": "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+        "revision": 2
+      },
+      {
+        "id": "wf_a231f325c07945c98421c57081cdbbc8",
+        "revision": 1
+      }
+    ]
+  },
+  "object_ids": [
+    "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+    "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "wf_a231f325c07945c98421c57081cdbbc8",
+    "wl_c818cd5ef9e04dc7957a52aa13665d37"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "revision": 1
+    },
+    {
+      "id": "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+      "revision": 2
+    },
+    {
+      "id": "wf_a231f325c07945c98421c57081cdbbc8",
+      "revision": 1
+    }
+  ],
+  "database_evidence": [
+    "c-created-sqlite.json"
+  ],
+  "spy_evidence": [
+    "events.log",
+    "scheduler.log"
+  ],
+  "checks": [
+    {
+      "name": "canonical ids persisted",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-C-evidence.json"
+    },
+    {
+      "name": "canonical prefixes",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-C-evidence.json"
+    },
+    {
+      "name": "five domains created",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-C-evidence.json"
+    },
+    {
+      "name": "revisions recorded",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-C-evidence.json"
+    },
+    {
+      "name": "sqlite rows recorded",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-C-evidence.json"
+    },
+    {
+      "name": "workspace recorded",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-C-evidence.json"
+    }
+  ]
+}
