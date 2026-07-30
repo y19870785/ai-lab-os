@@ -3281,10 +3281,43 @@ def _execute(
         o_started = datetime.now(UTC).isoformat()
         o_http_start = len(record["http_operations"])
         o_command_start = len(record["commands"])
+        _, scheduler_task = _http(
+            args,
+            record,
+            "POST",
+            "/tasks",
+            token=token,
+            headers=workspace_headers,
+            body={"title": "ACC-020 one-shot scheduler task"},
+            expected=(201,),
+        )
+        _, reminder = _http(
+            args,
+            record,
+            "POST",
+            f"/tasks/{scheduler_task['id']}/reminders",
+            token=token,
+            headers=workspace_headers,
+            body={
+                "remind_at": (datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
+                "timezone": "UTC",
+            },
+            expected=(201,),
+        )
+        record["canonical_ids"].extend([scheduler_task["id"], reminder["id"]])
+        _, current_reminder = _http(
+            args,
+            record,
+            "GET",
+            f"/reminders/{reminder['id']}/status",
+            token=token,
+            headers=workspace_headers,
+        )
         idempotency_key = "acc020-reminder-reschedule"
         replay_body = {
             "scheduled_for": (now + timedelta(minutes=5)).isoformat(),
             "timezone": "UTC",
+            "revision": current_reminder["revision"],
         }
         _, reminder_keyed = _http(
             args,
