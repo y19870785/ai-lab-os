@@ -332,7 +332,7 @@ def sqlite_snapshot(data_root: Path) -> dict[str, Any]:
             for table in tables:
                 quoted = table.replace('"', '""')
                 rows = [
-                    {key: row[key] for key in row}
+                    {key: row[key] for key in row.keys()}  # noqa: SIM118
                     for row in connection.execute(
                         f'SELECT * FROM "{quoted}" ORDER BY rowid'
                     )
@@ -938,7 +938,10 @@ _database_close = DatabaseManager.close_all
 async def _record_database_close(self):
     _stamp("database_close_before", connections=self.connection_count)
     try:
-        return await _database_close(self)
+        result = _database_close(self)
+        if hasattr(result, "__await__"):
+            return await result
+        return result
     finally:
         _stamp("database_close_after", connections=self.connection_count)
 DatabaseManager.close_all = _record_database_close
@@ -4404,7 +4407,7 @@ def main() -> int:
     except HarnessError as exc:
         print(f"{HARNESS_FAILURE}: {exc}", file=sys.stderr)
         return 2
-    except Exception as exc:  # noqa: BLE001 - acceptance boundary
+    except ProductAcceptanceError as exc:
         if manifest_path.parent.exists():
             try:
                 current = (
@@ -4422,6 +4425,24 @@ def main() -> int:
                 pass
         print(f"{PRODUCT_FAILURE}: {exc}", file=sys.stderr)
         return 3
+    except Exception as exc:  # noqa: BLE001 - harness boundary
+        if manifest_path.parent.exists():
+            try:
+                current = (
+                    json.loads(manifest_path.read_text(encoding="utf-8"))
+                    if manifest_path.exists()
+                    else {}
+                )
+                current.update({
+                    "status": HARNESS_FAILURE,
+                    "failure_type": type(exc).__name__,
+                    "failure": str(exc),
+                })
+                _write_manifest(manifest_path, current)
+            except Exception:  # noqa: BLE001, S110 - preserve primary failure
+                pass
+        print(f"{HARNESS_FAILURE}: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

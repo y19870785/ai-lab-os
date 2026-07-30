@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 import socket
+import sqlite3
 import subprocess
 import sys
 from pathlib import Path
@@ -269,6 +270,18 @@ def test_manifest_file_schema_and_hashes(tmp_path):
     }]
 
 
+def test_sqlite_snapshot_uses_column_names(tmp_path):
+    root = tmp_path / "data"
+    root.mkdir()
+    database = root / "state.sqlite3"
+    with sqlite3.connect(database) as connection:
+        connection.execute("CREATE TABLE facts (id TEXT, revision INTEGER)")
+        connection.execute("INSERT INTO facts VALUES ('ut_example', 3)")
+    assert driver.sqlite_snapshot(root)["state.sqlite3"]["tables"]["facts"] == [
+        {"id": "ut_example", "revision": 3}
+    ]
+
+
 def test_harness_and_product_failures_are_distinct():
     assert not issubclass(driver.HarnessError, driver.ProductAcceptanceError)
     assert driver.HARNESS_FAILURE != driver.PRODUCT_FAILURE
@@ -417,6 +430,39 @@ def test_nonprepare_mode_dispatches_real_execution(monkeypatch, tmp_path):
     monkeypatch.setattr(driver, "_execute", execute)
     assert driver.main() == 0
     assert calls["execute"] == 1
+
+
+def test_unexpected_driver_exception_is_invalid_harness(monkeypatch, tmp_path):
+    evidence = (tmp_path / "evidence").resolve()
+    args = SimpleNamespace(
+        prepare_only=False,
+        rehearsal=True,
+        formal=False,
+        evidence_dir=evidence,
+        frozen_head="f" * 40,
+        api_port=_free_port(),
+    )
+    monkeypatch.setattr(driver, "parse_args", lambda: args)
+    monkeypatch.setattr(
+        driver,
+        "validate_harness",
+        lambda _args, _driver: {
+            "driver_sha256": _driver_hash(),
+            "source": str((tmp_path / "source").resolve()),
+            "restore": str((tmp_path / "restore").resolve()),
+            "evidence": str(evidence),
+        },
+    )
+    monkeypatch.setattr(
+        driver,
+        "_execute",
+        lambda *_args: (_ for _ in ()).throw(IndexError("driver defect")),
+    )
+    assert driver.main() == 2
+    manifest = json.loads(
+        (evidence / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["status"] == driver.HARNESS_FAILURE
 
 
 def test_driver_uses_existing_work_log_http_status_contract():
