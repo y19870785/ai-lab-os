@@ -163,8 +163,9 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_020_implementation_phase_0_passed_phases_1_to_3_implemented_"
-        "automated_verification_passed_pending_independent_review_draft_pr_open"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "executed_acc_020_passed_pending_independent_evidence_review_"
+        "draft_pr_open"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -460,8 +461,9 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "sp_020_implementation_phase_0_passed_phases_1_to_3_implemented_"
-        "automated_verification_passed_pending_independent_review_draft_pr_open"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "executed_acc_020_passed_pending_independent_evidence_review_"
+        "draft_pr_open"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -881,8 +883,9 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["current_version"] == "0.34.0"
     assert state["version"] == "v0.34.0"
     assert state["development_status"] == (
-        "sp_020_implementation_phase_0_passed_phases_1_to_3_implemented_"
-        "automated_verification_passed_pending_independent_review_draft_pr_open"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "executed_acc_020_passed_pending_independent_evidence_review_"
+        "draft_pr_open"
     )
     assert state["current_work"] is None
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
@@ -1354,7 +1357,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         assert "SP-020" not in historical_document
 
 
-def test_sp020_implementation_is_pending_independent_review() -> None:
+def test_sp020_formal_acceptance_pending_evidence_review() -> None:
     state = _load_state()
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
@@ -1367,8 +1370,9 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "sp_020_implementation_phase_0_passed_phases_1_to_3_implemented_"
-        "automated_verification_passed_pending_independent_review_draft_pr_open"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "executed_acc_020_passed_pending_independent_evidence_review_"
+        "draft_pr_open"
     )
     assert state["current_version"] == "0.34.0"
     assert state["version"] == "v0.34.0"
@@ -1376,10 +1380,9 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
 
     assert sp020["status"] == (
-        "IMPLEMENTATION_AUTHORIZED / PHASE_0_PASSED / PHASE_1_IMPLEMENTED / "
-        "PHASE_2_IMPLEMENTED / PHASE_3_IMPLEMENTED / "
-        "AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / "
-        "DRAFT_PR_OPEN"
+        "IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN / "
+        "FORMAL_ACCEPTANCE_EXECUTED / ACC_020_PASSED / "
+        "PENDING_INDEPENDENT_EVIDENCE_REVIEW / DRAFT_PR_OPEN"
     )
     assert sp020["planning_baseline_defined"] is True
     assert sp020["planning_baseline_approved"] is True
@@ -1389,6 +1392,12 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
     assert sp020["completed"] is False
     assert sp020["reconciled"] is False
     assert sp020["archived"] is False
+    assert sp020["approved_implementation_head"] == (
+        "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+    )
+    assert sp020["acceptance_evidence_head"] == (
+        "7a0944f4ad1deadefe636bf5abc3d30175de0b4d"
+    )
     assert sp020["base_commit"] == (
         "934075ceefe39ede3c624b621b7673d62f6d06dd"
     )
@@ -1407,7 +1416,9 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
     assert sp020["target_version"] == "0.35.0"
     assert sp020["rfc"] == "RFC-029"
     assert sp020["adrs"] == ["ADR-063", "ADR-064"]
-    assert sp020["acceptance"] == "ACC-020 PLANNING_BASELINE / NOT_EXECUTED"
+    assert sp020["acceptance"] == (
+        "ACC-020 A-V PASSED / PENDING_INDEPENDENT_EVIDENCE_REVIEW"
+    )
     assert sp020["phase_0_status"] == "PASSED"
     assert sp020["phase_1_status"] == "IMPLEMENTED"
     assert sp020["phase_2_status"] == "IMPLEMENTED"
@@ -1428,13 +1439,63 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
         "split, or new architecture decision"
     )
 
-    assert acc020["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
-    assert acc020["manual_acceptance"] is False
+    assert acc020["status"] == (
+        "EXECUTED / A-V PASSED / PENDING_INDEPENDENT_EVIDENCE_REVIEW"
+    )
+    assert acc020["manual_acceptance"] is True
+    assert acc020["approved_implementation_head"] == (
+        "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+    )
+    assert acc020["driver_sha256"] == (
+        "99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5"
+    )
+    assert acc020["acceptance_evidence_head"] == (
+        "7a0944f4ad1deadefe636bf5abc3d30175de0b4d"
+    )
     assert acc020["scenarios"] == {
-        letter: "PLANNING_BASELINE / NOT_EXECUTED"
+        letter: "PASSED"
         for letter in "ABCDEFGHIJKLMNOPQRSTUV"
     }
-    assert "has not been executed" in "\n".join(acc020["notes"])
+    assert acc020["notes"] == [
+        (
+            "Formal Run ID: ai-lab-acc020-formal-20260730-175832-"
+            "eda685f89c274e6cb520c0aaa964b3dc"
+        ),
+        "Execution: ONE AND ONLY ONE",
+        (
+            "Frozen Implementation Head: "
+            "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+        ),
+        (
+            "Frozen Driver SHA-256: "
+            "99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5"
+        ),
+        "Provider Calls: 0",
+        "Evidence: 7a0944f4ad1deadefe636bf5abc3d30175de0b4d",
+        "Review: PENDING_INDEPENDENT_EVIDENCE_REVIEW",
+    ]
+
+    evidence_root = (
+        ROOT
+        / "docs/acceptance/evidence/ACC-020"
+        / "ai-lab-acc020-formal-20260730-175832-"
+        "eda685f89c274e6cb520c0aaa964b3dc"
+    )
+    evidence_index = json.loads(
+        (evidence_root / "evidence-index.json").read_text(encoding="utf-8")
+    )
+    assert evidence_index["frozen_implementation_head"] == (
+        "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+    )
+    assert evidence_index["frozen_driver_sha256"] == (
+        "99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5"
+    )
+    assert evidence_index["status"] == "FORMAL_ACCEPTANCE_COMPLETE"
+    assert evidence_index["provider_calls"] == 0
+    assert evidence_index["scenario_results"] == {
+        letter: "PASS"
+        for letter in "ABCDEFGHIJKLMNOPQRSTUV"
+    }
 
     paths = {
         "rfc": ROOT
@@ -1636,7 +1697,9 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
         "Planning Status:\n"
         "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED\n\n"
         "Implementation:\n"
-        "AUTHORIZED / IMPLEMENTED / PENDING INDEPENDENT REVIEW"
+        "IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN /\n"
+        "FORMAL_ACCEPTANCE_EXECUTED / ACC_020_PASSED /\n"
+        "PENDING_INDEPENDENT_EVIDENCE_REVIEW / DRAFT_PR_OPEN"
     ) in text["task"]
     assert "Phase 0 未通过不得进入 Phase 1。" in text["task"]
     assert "Version change:\nNOT AUTHORIZED" in text["task"]
@@ -1645,11 +1708,9 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
 
     for letter in "ABCDEFGHIJKLMNOPQRSTUV":
         assert f"## ACC-020-{letter} —" in text["acceptance"]
-    assert text["acceptance"].count(
-        "状态：PLANNING_BASELINE / NOT_EXECUTED"
-    ) == 22
-    assert "状态：PASSED" not in text["acceptance"]
-    assert "Real Provider calls: MUST remain 0" in text["acceptance"]
+    assert text["acceptance"].count("状态：PASSED") == 22
+    assert "状态：PLANNING_BASELINE / NOT_EXECUTED" not in text["acceptance"]
+    assert "- 真实 Provider 调用：0" in text["acceptance"]
     assert (
         "任何 Scheduler 重复执行/丢 job、shutdown 非幂等、数据目录静默漂移"
         in text["acceptance"]
@@ -1874,11 +1935,6 @@ def test_docs001_is_reconciled_and_archived() -> None:
         "release_changed": False,
     }
 
-    sp020 = state["sp_records"]["SP-020"]
-    acc020 = state["acceptance_records"]["ACC-020"]
-    assert sp020["approved"] is True
-    assert sp020["implementation_started"] is True
-    assert acc020["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
     assert state["current_version"] == "0.34.0"
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
 

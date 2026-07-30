@@ -1,14 +1,18 @@
 # ACC-020 本地日常运行闭环与 Review-to-Action 验收
 
-- SP: SP-020
-- Status: PLANNING_BASELINE / NOT_EXECUTED
-- Manual acceptance: false
-- Base: `934075ceefe39ede3c624b621b7673d62f6d06dd`
-- Provider mode: future acceptance MUST use explicit mock/test
-- Real Provider calls: MUST remain 0
+- 产品 SP：SP-020
+- 验收状态：EXECUTED / A-V PASSED / PENDING_INDEPENDENT_EVIDENCE_REVIEW
+- 人工验收：true
+- 规划基线：`934075ceefe39ede3c624b621b7673d62f6d06dd`
+- 已批准实现 Head：`1c9b69ee45b4e1545b67ecd841cc217e23d4f38f`
+- 冻结 Driver SHA-256：`99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5`
+- 验收证据 Head：`7a0944f4ad1deadefe636bf5abc3d30175de0b4d`
+- Provider 模式：explicit mock
+- 真实 Provider 调用：0
 
-本文件定义未来正式验收。当前没有任何场景已执行或通过；Planning Baseline、自动化测试
-或 Draft PR 均不得被解释为 ACC-020 通过。
+ACC-020 已在冻结实现与冻结 Driver 上执行一次且仅执行一次，A～V 由 Driver 报告为
+22/22 PASS。该结果及脱敏证据包仍等待独立证据复核；Draft PR、正式执行成功或证据
+归档均不得被解释为 SP-020 已合并、完成、对账或封存。
 
 ## 验收冻结与证据规则
 
@@ -83,6 +87,51 @@ background task、connection 以及 job/run/occurrence 数量纳入成功判定�
 状态、安全过滤后的响应事实、对象 ID、Workspace、revision/status，以及 SQLite 或
 spy 证据。
 
+## 正式执行记录
+
+```text
+Formal Run ID:
+ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc
+
+Execution:
+ONE AND ONLY ONE
+
+Frozen Implementation Head:
+1c9b69ee45b4e1545b67ecd841cc217e23d4f38f
+
+Frozen Driver SHA-256:
+99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5
+
+Started:
+2026-07-30T09:58:32.965936Z
+
+Ended:
+2026-07-30T09:58:49.546116Z
+
+Exit Code:
+0
+
+Status:
+FORMAL_ACCEPTANCE_COMPLETE
+
+ACC-020:
+A-V / 22 OF 22 PASSED
+
+Provider Calls:
+0
+
+Acceptance Evidence Head:
+7a0944f4ad1deadefe636bf5abc3d30175de0b4d
+
+Review:
+PENDING_INDEPENDENT_EVIDENCE_REVIEW
+```
+
+脱敏证据位于
+`docs/acceptance/evidence/ACC-020/ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc/`。
+原始 evidence 保持只读且未修改；归档不包含原始数据库、WAL/SHM、token、
+Authorization header、原始日志或真实业务数据。
+
 ## ACC-020-A — Local Profile 启动与配置错误
 
 验证显式 absolute `AI_LAB_DATA_DIR`、`AI_LAB_SQLITE_DIR`、IANA timezone、Provider
@@ -92,7 +141,7 @@ mode、feature flags、auth token 与 `127.0.0.1` bind。启动诊断显示最�
 分别验证无效 timezone、`invalid` Provider、auth enabled 但 token 缺失、相对或冲突
 data/sqlite root 均明确失败，且不会创建或连接另一个 fallback 数据目录。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-B — API readiness 与 health
 
@@ -100,7 +149,7 @@ data/sqlite root 均明确失败，且不会创建或连接另一个 fallback �
 `SystemContainer` READY 且 accepting_work 时成功。受保护业务路由无 token 失败、
 正确 token 成功。记录 component health、provider mode 与 lifecycle。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-C — 真实数据创建
 
@@ -108,14 +157,14 @@ data/sqlite root 均明确失败，且不会创建或连接另一个 fallback �
 Log；核对 `ut_`、`rem_`、`inbox_`、`wf_`、`wl_` canonical IDs、revision、workspace
 evidence 及对应 SQLite 行。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-D — 每日议程
 
 通过正式入口读取 today Agenda，确认启用 source 的真实对象出现、排序稳定、完整
 WorkspaceKey 生效；读取不得产生新业务对象或 Provider call。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-E — 每日复盘 today / yesterday
 
@@ -123,7 +172,7 @@ WorkspaceKey 生效；读取不得产生新业务对象或 Provider call。
 `DailyReviewService` 合同，日期、timezone、DST、`as_of`、source status、canonical
 ID、reason code、全局排序与分页一致。CLI `--json` 必须与 structured API facts 一致。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-F — 确定性操作提示
 
@@ -135,7 +184,7 @@ requires_durable_claim/saga_contract/available_entrypoints`，并逐条证明对
 一个入口即可，不要求 API、CLI 与 CEO Assistant 三者齐全，也不得列出尚未存在的入口。
 unsupported 组合不得伪造动作。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-G — UserTask 变更
 
@@ -152,7 +201,7 @@ unsupported 组合不得伪造动作。
 revision/status 为依据。成功 response 必须使用公共 `TaskResponse`，保留 `overdue`
 派生值，不暴露 `legacy_source_id` 或内部 workspace metadata。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-H — Waiting-For 变更
 
@@ -160,7 +209,7 @@ revision/status 为依据。成功 response 必须使用公共 `TaskResponse`，
 revision。另验证 snooze/cancel/reopen 的 action hint 只在真实状态允许时出现；stale
 revision 与模糊表达不写入。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-I — Inbox 处理
 
@@ -168,14 +217,14 @@ revision 与模糊表达不写入。
 Waiting-For、Work Log、Note 或 Dismiss 中的选定目标。验证 durable claim、target ID、
 source resolution 状态、竞争与重试幂等；Waiting-For 缺少确认字段时不得创建目标。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-J — Review 更新
 
 完成 G/H/I 后再次读取同一 date Review，验证已变更对象按 RFC-028 的事实窗口与
 `as_of` 合同更新，pending Inbox 不再出现，且没有重复、遗漏、snapshot 或自动写入。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-K — 工作空间隔离
 
@@ -183,7 +232,7 @@ workspace B 使用相同查询、猜测到的 canonical ID 与 mutation 路径�
 workspace A 数据。API、CLI、CEO Assistant、Daily Review、Action Hint 与 canonical
 service 使用相同完整 WorkspaceKey；不得回退到 default/unfiltered query。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-L — 零 LLM 调用
 
@@ -191,7 +240,7 @@ service 使用相同完整 WorkspaceKey；不得回退到 default/unfiltered que
 安装 Provider spy。正式运行结束时 Provider calls 必须为 0；不得以 LLM 解析日期、
 选择对象、生成 action 或执行 mutation。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-M — 零未确认副作用
 
@@ -202,7 +251,7 @@ closed；需要 idempotency key、durable claim/Saga 或 confirmation 的动作�
 真实合同验收。所有未满足安全前置条件的操作前后状态必须相同；允许返回只读信息或
 明确 preview/validation。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-N — EventBus 行为
 
@@ -210,7 +259,7 @@ closed；需要 idempotency key、durable claim/Saga 或 confirmation 的动作�
 只发布既有事件合同，event workspace/trace 与持久化对象一致；EventBus 停止后不再
 接受 publish。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-O — Scheduler 与持续运行行为
 
@@ -224,7 +273,7 @@ jobs、runs、claim token/revision 与 Reminder reconciliation。
 `DatabaseManager.connection_count`。完成该窗口后，继续执行优雅关闭、新进程重启与
 恢复验证。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-P — 优雅关闭
 
@@ -233,7 +282,7 @@ jobs、runs、claim token/revision 与 Reminder reconciliation。
 providers、EventBus 依次停止，最后 `DatabaseManager.connection_count=0`。关闭失败
 必须进入 `shutdown_failures` 与 FAILED lifecycle。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-Q — 重复 shutdown 与 partial-start rollback
 
@@ -241,7 +290,7 @@ providers、EventBus 依次停止，最后 `DatabaseManager.connection_count=0`�
 shutdown 都幂等：不重复业务执行、不泄漏 task/connection、不产生虚假 failure。
 注入中途 startup failure，确认已初始化组件被回滚且 container 不可重启。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-R — 新进程重启恢复
 
@@ -249,7 +298,7 @@ shutdown 都幂等：不重复业务执行、不泄漏 task/connection、不产�
 UserTask、Reminder、Scheduler jobs/runs、过期 claims、Inbox resolution Saga、
 Waiting-For/history、Work Log、Agenda 与 Review 一致；不得重复执行、丢 job 或漂移。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-S — 完整数据目录静止备份
 
@@ -257,7 +306,7 @@ Waiting-For/history、Work Log、Agenda 与 Review 一致；不得重复执行�
 所有 SQLite、可能的 `-wal/-shm` 与可选目录。计算文件清单、size 与 SHA-256。不得在
 进程运行时逐库复制并声称一致快照。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-T — 隔离恢复
 
@@ -265,7 +314,7 @@ Waiting-For/history、Work Log、Agenda 与 Review 一致；不得重复执行�
 使用显式 restore profile 与新进程启动，证明没有访问 source root 或 checkout 默认
 `data/`。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-U — 恢复后对象与 Review 一致性
 
@@ -274,7 +323,7 @@ scheduler jobs/runs、Reminder、Inbox claim/Saga、Waiting-For、Agenda 与
 today/yesterday Review。允许 `generated_at/as_of` 随新进程时间变化；其余按正式时间
 语义比较。restore 中追加写入不得改变 source hashes。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## ACC-020-V — FailureInfo、revision、idempotency 与 Saga
 
@@ -287,7 +336,7 @@ today/yesterday Review。允许 `generated_at/as_of` 随新进程时间变化；
 分别按动作真实合同验证。重放不得创建第二目标；Saga 中断后由新进程恢复或明确报告
 可恢复状态。
 
-状态：PLANNING_BASELINE / NOT_EXECUTED
+状态：PASSED
 
 ## 正式执行门禁
 
@@ -313,11 +362,19 @@ SP-020 产品实施只需要一次明确 Owner 授权；Phase 0 是该授权内�
 
 ```text
 ACC-020:
-PLANNING_BASELINE / NOT_EXECUTED
+EXECUTED / A-V PASSED / PENDING_INDEPENDENT_EVIDENCE_REVIEW
 
 manual_acceptance:
-false
+true
 
 All scenarios A-V:
-PLANNING_BASELINE / NOT_EXECUTED
+PASSED
+
+SP-020:
+IMPLEMENTATION_APPROVED /
+APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_EXECUTED /
+ACC_020_PASSED /
+PENDING_INDEPENDENT_EVIDENCE_REVIEW /
+DRAFT_PR_OPEN
 ```

@@ -6,8 +6,10 @@
 - 新增严格的 Windows Local Daily Profile、稳定绝对数据目录校验、安全配置摘要、完整 WorkspaceKey 默认值与覆盖能力。
 - 新增正式 `daily-review` CLI、纯确定性 Action Hint，以及带显式 `expected_revision` 的 Review-to-Action UserTask complete/cancel 薄 API。
 - Phase 0 已通过自动化生命周期门禁，覆盖持续 Scheduler tick、一次性 Job、周期 health 快照、partial-start rollback、重复 shutdown、连接释放与新容器恢复。
-- 将 ACC-020 driver 从准备脚手架补全为可执行 Windows harness：prepare-only 保持未测量语义，rehearsal/formal 模式真实启动 Uvicorn、执行 A～V、Provider spy、静止备份与隔离恢复；正式 ACC-020 仍为 `PLANNING_BASELINE / NOT_EXECUTED`，等待独立审查冻结 Implementation Head。
-- 废弃 Head `bd858807262aa1b89cdb80644895afa970edcf64` 上断言覆盖不足的 rehearsal，分类为 `INVALID_ACCEPTANCE_HARNESS / DISCARDED / INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE`；该记录不是产品失败，原“22/22 PASS”无效，ACC-020 仍未执行。
+- 将 ACC-020 driver 从准备脚手架补全为可执行 Windows harness：prepare-only 保持未测量语义，rehearsal/formal 模式真实启动 Uvicorn、执行 A～V、Provider spy、静止备份与隔离恢复。
+- 正式 ACC-020 在冻结实现 Head `1c9b69ee45b4e1545b67ecd841cc217e23d4f38f` 与冻结 Driver SHA-256 `99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5` 上执行一次且仅执行一次；A～V 报告 22/22 PASS，Provider calls 为 0，状态为 `PENDING_INDEPENDENT_EVIDENCE_REVIEW`。
+- 脱敏正式证据由 Commit `7a0944f4ad1deadefe636bf5abc3d30175de0b4d` 归档；不包含原始数据库、WAL/SHM、token、Authorization header、原始日志或真实业务数据。
+- 废弃 Head `bd858807262aa1b89cdb80644895afa970edcf64` 上断言覆盖不足的 rehearsal，分类为 `INVALID_ACCEPTANCE_HARNESS / DISCARDED / INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE`；该记录不是产品失败，原“22/22 PASS”无效，当时 ACC-020 仍未执行。
 - 收紧 ACC-020 Driver：A～V 只能由完整结构化 checks 判定，证据分别落到真实命令/HTTP 日志、SQLite 快照、EventBus/Scheduler spy、shutdown/partial-start probe 与 source/restore 逐对象比较。
 - 收紧 Local Daily Profile、完整 WorkspaceKey、Action Hint 三元决策键、terminal stale revision、公共 TaskResponse 与 Scheduler health 公共读取合同。
 - 未新增 Schema、Migration、依赖或 CI；版本保持 `0.34.0`，Tag 与 GitHub Release 不变。
