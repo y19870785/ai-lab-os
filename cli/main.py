@@ -1,5 +1,6 @@
 """AI-Lab CLI —— 命令行入口。"""
 import asyncio
+import json
 import sys
 
 from cli.commands import (
@@ -105,7 +106,10 @@ def main():
         else:
             handler(args)
     except FailureException as exc:
-        print(f"{exc.failure.code}: {exc.failure.message}", file=sys.stderr)
+        print(
+            json.dumps(exc.failure.to_dict(), ensure_ascii=False),
+            file=sys.stderr,
+        )
         raise SystemExit(2) from None
 
 

@@ -1819,6 +1819,16 @@ def test_sp020_discarded_rehearsal_and_driver_contract_are_explicit() -> None:
     assert "它不是产品失败" in acceptance
     assert "Approved Implementation Head 仍未冻结" in task
     assert "ACC-020 仍未执行" in task
+    assert "cf0444d27ed47aef8177f5eeea2efe5f3fdd14fb" in combined
+    assert (
+        "5f2a8f51e5d964a7e66b58f800bd26eba70781bca7754a81b38e6664d5c72147"
+        in combined
+    )
+    assert (
+        "INVALID_ACCEPTANCE_HARNESS /\nDISCARDED /\n"
+        "FALSE_POSITIVE_SCENARIO_ASSERTIONS"
+    ) in acceptance
+    assert "它不是产品失败，不改变\nACC-020 A～V 的机器状态" in acceptance
     assert "每项包含 `expected`、`actual`、`passed` 与真实 `evidence_path`" in acceptance
     assert "单独调用描述性 PASS helper\n不能绕过断言" in task
 

@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import signal
 import socket
@@ -1263,91 +1264,386 @@ def _partial_start_probe(
     script.write_text(
         """import asyncio
 import json
+import os
+import sqlite3
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import MethodType
+
+from core.errors import (
+    ErrorCategory,
+    FailureException,
+    FailureInfo,
+    failure_from_exception,
+)
 from core.system import create_system, load_system_settings
+from core.workspace.models import WorkspaceKey
+
+
+def rows(path, statement, parameters=()):
+    if not path.exists():
+        return []
+    with sqlite3.connect(path) as connection:
+        connection.row_factory = sqlite3.Row
+        return [
+            dict(row)
+            for row in connection.execute(statement, parameters)
+        ]
+
+
+def persisted(root, job_id, reminder_id):
+    sqlite_root = root / "sqlite"
+    jobs = rows(
+        sqlite_root / "scheduler.db",
+        "SELECT * FROM jobs WHERE id=? ORDER BY rowid",
+        (job_id,),
+    )
+    runs = rows(
+        sqlite_root / "scheduler.db",
+        "SELECT * FROM job_runs WHERE job_id=? ORDER BY rowid",
+        (job_id,),
+    )
+    occurrences = rows(
+        sqlite_root / "reminders.db",
+        "SELECT * FROM reminder_occurrences WHERE reminder_id=? ORDER BY rowid",
+        (reminder_id,),
+    )
+    spy = Path(os.environ["ACC020_SPY_ROOT"]) / "events.log"
+    events = []
+    if spy.exists():
+        events = [
+            json.loads(line)
+            for line in spy.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+    business = [
+        item for item in events
+        if not str(item.get("topic", "")).startswith("scheduler.")
+    ]
+    return {
+        "execution_count": len(runs),
+        "jobs": jobs,
+        "runs": runs,
+        "occurrences": occurrences,
+        "business_event_count": len(business),
+    }
+
+
+async def settle(runtime):
+    tasks = list(runtime._background_tasks)
+    if tasks:
+        await asyncio.gather(*tasks)
+    await asyncio.sleep(0)
+
+
+async def observed_call(container, callback, root, job_id, reminder_id):
+    before = persisted(root, job_id, reminder_id)
+    started = datetime.now(UTC).isoformat()
+    lifecycle_before = container._lifecycle.state.value
+    exception = None
+    try:
+        await callback()
+    except Exception as exc:
+        exception = failure_from_exception(
+            exc,
+            component="acceptance_probe",
+            operation="shutdown_call",
+            trace_id="trace_acc020_q_shutdown",
+        ).to_dict()
+    finished = datetime.now(UTC).isoformat()
+    after = persisted(root, job_id, reminder_id)
+    return {
+        "started_at": started,
+        "finished_at": finished,
+        "exception": exception,
+        "lifecycle_before": lifecycle_before,
+        "lifecycle_after": container._lifecycle.state.value,
+        "background_tasks": (
+            len(container.scheduler_runtime._background_tasks)
+            if container.scheduler_runtime is not None else 0
+        ),
+        "connection_count": container.database_manager.connection_count,
+        "job_count": len(after["jobs"]),
+        "run_count": len(after["runs"]),
+        "occurrence_count": len(after["occurrences"]),
+        "counts_before": {
+            "jobs": len(before["jobs"]),
+            "runs": len(before["runs"]),
+            "occurrences": len(before["occurrences"]),
+        },
+    }
+
+
+def probe_env(root):
+    os.environ["AI_LAB_DATA_DIR"] = str(root)
+    os.environ["AI_LAB_SQLITE_DIR"] = str(root / "sqlite")
+
+
+def complete_failure(exc, *, component, operation, code, trace_id):
+    return failure_from_exception(
+        exc,
+        component=component,
+        operation=operation,
+        code=code,
+        category=ErrorCategory.DEPENDENCY_FAILURE,
+        trace_id=trace_id,
+        retryable=False,
+        details={"probe": "acc020"},
+    ).to_dict()
 
 async def main():
     output = Path(sys.argv[1])
+    result = {}
+
+    failed_root = output.parent / "q-failed-data"
+    probe_env(failed_root)
     failed = await create_system(load_system_settings(load_dotenv=False))
-    original = failed.waiting_for_service.initialize
-    async def injected(self):
-        raise RuntimeError("acc020 injected partial-start failure")
-    failed.waiting_for_service.initialize = MethodType(
-        injected, failed.waiting_for_service
+    original = failed.scheduler_runtime.initialize
+    injected_failure = FailureInfo(
+        code="scheduler.initialize.injected_failure",
+        category=ErrorCategory.DEPENDENCY_FAILURE,
+        message="Injected Scheduler initialization failure",
+        component="scheduler_runtime",
+        operation="initialize",
+        trace_id="trace_acc020_q_dependency",
+        retryable=False,
+        details={"probe": "acc020"},
     )
-    start_error = ""
+    async def injected(self):
+        raise FailureException(injected_failure)
+    failed.scheduler_runtime.initialize = MethodType(
+        injected, failed.scheduler_runtime
+    )
+    caught = None
     try:
         await failed.start()
     except Exception as exc:
-        start_error = type(exc).__name__ + ": " + str(exc)
-    failed.waiting_for_service.initialize = original
-    failed_health = await failed.health()
-    restart_error = ""
+        caught = complete_failure(
+            exc,
+            component="system_container",
+            operation="start",
+            code="system.start.dependency_failed",
+            trace_id="trace_acc020_q_dependency",
+        )
+    failed.scheduler_runtime.initialize = original
+    failed_final = await failed.health()
+    restart_failure = None
     try:
         await failed.start()
     except Exception as exc:
-        restart_error = type(exc).__name__ + ": " + str(exc)
+        restart_failure = complete_failure(
+            exc,
+            component="system_container",
+            operation="restart",
+            code="system.restart.failed_container",
+            trace_id="trace_acc020_q_restart",
+        )
     await failed.shutdown()
     await failed.shutdown()
     failed_final = await failed.health()
+    shutdown_log = Path(os.environ["ACC020_SPY_ROOT"]) / "shutdown.log"
+    shutdown_rows = []
+    if shutdown_log.exists():
+        shutdown_rows = [
+            json.loads(line)
+            for line in shutdown_log.read_text(encoding="utf-8").splitlines()
+            if line.strip() and json.loads(line).get("pid") == os.getpid()
+        ]
+    order = [item.get("event") for item in shutdown_rows]
+    result["partial_start"] = {
+        "failure": caught,
+        "injected_failure": injected_failure.to_dict(),
+        "restart_failure": restart_failure,
+        "lifecycle": failed_final["lifecycle"],
+        "event_bus_stopped": not failed.event_bus.is_running,
+        "background_tasks": failed_final["background_tasks"],
+        "connection_count": failed_final["database_connections"],
+        "rollback_order": order,
+        "rollback_order_valid": (
+            "event_bus_stop_after" in order
+            and "database_close_after" in order
+            and order.index("event_bus_stop_after")
+            < order.index("database_close_after")
+        ),
+    }
 
     healthy_root = output.parent / "q-healthy-data"
-    import os
-    os.environ["AI_LAB_DATA_DIR"] = str(healthy_root)
-    os.environ["AI_LAB_SQLITE_DIR"] = str(healthy_root / "sqlite")
+    probe_env(healthy_root)
     healthy = await create_system(load_system_settings(load_dotenv=False))
     await healthy.start()
-    if healthy.scheduler_runtime is not None:
-        await healthy.scheduler_runtime.shutdown()
-        await healthy.scheduler_runtime.shutdown()
-    release_close = asyncio.Event()
-    original_close = healthy.waiting_for_service.close
-    async def delayed_close(self):
-        await release_close.wait()
-        return await original_close()
-    healthy.waiting_for_service.close = MethodType(
-        delayed_close, healthy.waiting_for_service
+    workspace = WorkspaceKey(
+        tenant_id="acc020-tenant",
+        workspace_id="q-probe",
+        namespace="daily",
+        session_id="acc020-q",
+        agent_id="acc020-driver",
+        trace_id="trace_acc020_q_job",
     )
-    shutdown_task = asyncio.create_task(healthy.shutdown())
-    while healthy._lifecycle.state.value != "draining":
-        await asyncio.sleep(0)
-    draining_lifecycle = healthy._lifecycle.state.value
-    draining_error = ""
-    try:
-        with healthy.work_admission_gate.admit():
-            pass
-    except Exception as exc:
-        draining_error = type(exc).__name__ + ": " + str(exc)
-    release_close.set()
-    await shutdown_task
-    await healthy.shutdown()
+    task = await healthy.user_task_service.create(
+        workspace_key=workspace,
+        title="ACC-020 Q one-shot execution proof",
+        trace_id=workspace.trace_id,
+    )
+    reminder = await healthy.reminder_bridge.create(
+        workspace_key=workspace,
+        user_task_id=task.id,
+        remind_at=datetime.now(UTC) + timedelta(milliseconds=50),
+        timezone_name="UTC",
+        trace_id=workspace.trace_id,
+    )
+    await asyncio.sleep(0.08)
+    await healthy.scheduler_runtime._tick()
+    await settle(healthy.scheduler_runtime)
+    await healthy.scheduler_runtime._tick()
+    await settle(healthy.scheduler_runtime)
+    stored = await healthy.reminder_repository.get(reminder.id)
+    before = persisted(healthy_root, stored.scheduler_job_id, reminder.id)
+    result["job_evidence"] = {
+        "job_id": stored.scheduler_job_id,
+        "reminder_id": reminder.id,
+        "before_shutdown": before,
+    }
+
+    scheduler_calls = []
+    for _ in range(2):
+        scheduler_calls.append(await observed_call(
+            healthy,
+            healthy.scheduler_runtime.shutdown,
+            healthy_root,
+            stored.scheduler_job_id,
+            reminder.id,
+        ))
+    result["scheduler_shutdown_calls"] = scheduler_calls
+
+    container_calls = []
+    for _ in range(2):
+        container_calls.append(await observed_call(
+            healthy,
+            healthy.shutdown,
+            healthy_root,
+            stored.scheduler_job_id,
+            reminder.id,
+        ))
+    result["container_shutdown_calls"] = container_calls
+    result["job_evidence"]["after_shutdown"] = persisted(
+        healthy_root, stored.scheduler_job_id, reminder.id
+    )
     healthy_final = await healthy.health()
-    publish_after_stop_error = ""
+    result["final_background_tasks"] = healthy_final["background_tasks"]
+    result["final_connection_count"] = healthy_final["database_connections"]
+    result["final_lifecycle"] = healthy_final["lifecycle"]
+    publish_after_stop_failure = None
     try:
         await healthy.event_bus.publish("acc020.after-stop", object())
     except Exception as exc:
-        publish_after_stop_error = type(exc).__name__ + ": " + str(exc)
-    result = {
-        "start_error": start_error,
-        "restart_error": restart_error,
-        "failed_health": failed_health,
-        "failed_final": failed_final,
-        "healthy_final": healthy_final,
-        "event_bus_stopped": not failed.event_bus.is_running,
-        "failed_tasks_clean": failed_health["background_tasks"] == 0,
-        "healthy_tasks_clean": healthy_final["background_tasks"] == 0,
-        "failed_connections": failed_final["database_connections"],
-        "healthy_connections": healthy_final["database_connections"],
-        "failed_lifecycle": failed_final["lifecycle"],
-        "healthy_lifecycle": healthy_final["lifecycle"],
-        "double_shutdown_completed": True,
-        "double_scheduler_shutdown_completed": True,
-        "draining_lifecycle": draining_lifecycle,
-        "draining_error": draining_error,
-        "publish_after_stop_error": publish_after_stop_error,
+        publish_after_stop_failure = complete_failure(
+            exc,
+            component="event_bus",
+            operation="publish",
+            code="event_bus.publish.stopped",
+            trace_id="trace_acc020_q_publish",
+        )
+    result["publish_after_stop_error"] = publish_after_stop_failure
+
+    drain_root = output.parent / "q-draining-data"
+    probe_env(drain_root)
+    drain_container = await create_system(
+        load_system_settings(load_dotenv=False)
+    )
+    await drain_container.start()
+    release_close = asyncio.Event()
+    drain_original_close = drain_container.waiting_for_service.close
+    async def delayed_close(self):
+        await release_close.wait()
+        return await drain_original_close()
+    drain_container.waiting_for_service.close = MethodType(
+        delayed_close, drain_container.waiting_for_service
+    )
+    drain_task = asyncio.create_task(drain_container.shutdown())
+    while drain_container._lifecycle.state.value != "draining":
+        await asyncio.sleep(0)
+    result["draining_lifecycle"] = drain_container._lifecycle.state.value
+    draining_failure = None
+    try:
+        with drain_container.work_admission_gate.admit():
+            pass
+    except Exception as exc:
+        draining_failure = complete_failure(
+            exc,
+            component="system",
+            operation="admit_work",
+            code="system.draining",
+            trace_id="trace_acc020_q_draining",
+        )
+    result["draining_error"] = draining_failure
+    release_close.set()
+    await drain_task
+
+    shutdown_root = output.parent / "q-shutdown-failure-data"
+    probe_env(shutdown_root)
+    shutdown_container = await create_system(
+        load_system_settings(load_dotenv=False)
+    )
+    await shutdown_container.start()
+    shutdown_failure = FailureInfo(
+        code="system.shutdown.component_failed",
+        category=ErrorCategory.DEPENDENCY_FAILURE,
+        message="Injected component shutdown failure",
+        component="waiting_for_service",
+        operation="shutdown",
+        trace_id="trace_acc020_v_shutdown",
+        retryable=False,
+        details={"probe": "acc020"},
+    )
+    original_close = shutdown_container.waiting_for_service.close
+    async def failed_close(self):
+        raise FailureException(shutdown_failure)
+    shutdown_container.waiting_for_service.close = MethodType(
+        failed_close, shutdown_container.waiting_for_service
+    )
+    await shutdown_container.shutdown()
+    shutdown_container.waiting_for_service.close = original_close
+    shutdown_final = await shutdown_container.health()
+    result["shutdown_failure"] = {
+        "failure": shutdown_failure.to_dict(),
+        "shutdown_failures": shutdown_final["shutdown_failures"],
+        "lifecycle": shutdown_final["lifecycle"],
+        "event_bus_stopped": not shutdown_container.event_bus.is_running,
+        "background_tasks": shutdown_final["background_tasks"],
+        "connection_count": shutdown_final["database_connections"],
     }
+
+    restore_root = output.parent / "q-invalid-restore-data"
+    probe_env(restore_root)
+    sqlite_root = restore_root / "sqlite"
+    sqlite_root.mkdir(parents=True, exist_ok=True)
+    (sqlite_root / "tasks.db").write_bytes(b"not-a-sqlite-database")
+    restore_container = await create_system(
+        load_system_settings(load_dotenv=False)
+    )
+    restore_failure = None
+    restore_exit_code = 0
+    try:
+        await restore_container.start()
+    except Exception as exc:
+        restore_exit_code = 2
+        restore_failure = complete_failure(
+            exc,
+            component="restore",
+            operation="open",
+            code="restore.data_invalid",
+            trace_id="trace_acc020_v_restore",
+        )
+    await restore_container.shutdown()
+    restore_final = await restore_container.health()
+    result["restore_failure"] = {
+        "failure": restore_failure,
+        "exit_code": restore_exit_code,
+        "lifecycle": restore_final["lifecycle"],
+        "connection_count": restore_final["database_connections"],
+    }
+
     output.write_text(
         json.dumps(result, ensure_ascii=False, indent=2),
         encoding="utf-8",
@@ -1379,7 +1675,22 @@ def _failure_payload(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _failure_is_complete(value: Any, *, secret: str) -> bool:
+def _contains_sensitive_content(value: Any, *, secrets: tuple[str, ...] = ()) -> bool:
+    serialized = json.dumps(value, ensure_ascii=False, default=str)
+    lowered = serialized.casefold()
+    return (
+        any(secret and secret in serialized for secret in secrets)
+        or bool(re.search(r"\bsk-[A-Za-z0-9_-]{8,}\b", serialized))
+        or bool(re.search(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]{8,}", serialized))
+        or "traceback (most recent call last)" in lowered
+    )
+
+
+def _failure_assessment(
+    value: Any,
+    *,
+    secrets: tuple[str, ...] = (),
+) -> dict[str, Any]:
     failure = _failure_payload(value)
     required = {
         "code",
@@ -1390,13 +1701,179 @@ def _failure_is_complete(value: Any, *, secret: str) -> bool:
         "retryable",
         "details",
     }
-    serialized = json.dumps(_safe(failure, secret=secret), ensure_ascii=False)
-    return (
-        required <= set(failure)
-        and isinstance(failure.get("retryable"), bool)
-        and bool(failure.get("trace_id"))
-        and secret not in serialized
+    missing = sorted(required - set(failure))
+    valid_strings = all(
+        isinstance(failure.get(name), str) and bool(failure.get(name).strip())
+        for name in ("code", "category", "component", "operation", "trace_id")
     )
+    secret_safe = not _contains_sensitive_content(failure, secrets=secrets)
+    return {
+        "complete": (
+            not missing
+            and valid_strings
+            and isinstance(failure.get("retryable"), bool)
+            and isinstance(failure.get("details"), dict)
+            and secret_safe
+        ),
+        "missing": missing,
+        "secret_safe": secret_safe,
+        "traceback_free": (
+            "traceback (most recent call last)"
+            not in json.dumps(failure, ensure_ascii=False, default=str).casefold()
+        ),
+        "failure": failure,
+    }
+
+
+def _failure_is_complete(value: Any, *, secret: str) -> bool:
+    return bool(
+        _failure_assessment(value, secrets=(secret,))["complete"]
+    )
+
+
+def _config_failure_assessment(
+    records: dict[str, dict[str, Any]],
+    *,
+    secret: str,
+) -> dict[str, Any]:
+    expected_cases = {
+        "invalid timezone",
+        "invalid provider",
+        "missing auth token",
+        "relative data root",
+        "relative sqlite root",
+        "sqlite outside data root",
+        "unknown profile",
+    }
+    cases: dict[str, Any] = {}
+    for name in sorted(expected_cases):
+        record = records.get(name, {})
+        assessment = _failure_assessment(
+            record.get("failure"),
+            secrets=(secret,),
+        )
+        cases[name] = {
+            **assessment,
+            "nonzero_exit": record.get("exit_code") not in (None, 0),
+        }
+    return {
+        "complete": (
+            set(records) == expected_cases
+            and all(
+                item["complete"] and item["nonzero_exit"]
+                for item in cases.values()
+            )
+        ),
+        "cases": cases,
+    }
+
+
+def _q_probe_assessment(probe: dict[str, Any]) -> dict[str, bool]:
+    job = probe.get("job_evidence", {})
+    before = job.get("before_shutdown", {})
+    after = job.get("after_shutdown", {})
+    scheduler_calls = probe.get("scheduler_shutdown_calls", [])
+    container_calls = probe.get("container_shutdown_calls", [])
+    required_call_fields = {
+        "started_at",
+        "finished_at",
+        "exception",
+        "lifecycle_before",
+        "lifecycle_after",
+        "background_tasks",
+        "connection_count",
+        "job_count",
+        "run_count",
+        "occurrence_count",
+    }
+    scheduler_calls_real = (
+        len(scheduler_calls) == 2
+        and all(required_call_fields <= set(item) for item in scheduler_calls)
+    )
+    container_calls_real = (
+        len(container_calls) == 2
+        and all(required_call_fields <= set(item) for item in container_calls)
+    )
+    nonempty_execution = (
+        bool(job.get("job_id"))
+        and bool(job.get("reminder_id"))
+        and bool(before.get("jobs"))
+        and bool(before.get("runs"))
+        and bool(before.get("occurrences"))
+        and before.get("execution_count") == 1
+    )
+    unchanged_execution = (
+        nonempty_execution
+        and after.get("execution_count") == 1
+        and after.get("jobs") == before.get("jobs")
+        and after.get("runs") == before.get("runs")
+        and after.get("occurrences") == before.get("occurrences")
+        and after.get("business_event_count")
+        == before.get("business_event_count")
+    )
+    partial = probe.get("partial_start", {})
+    return {
+        "external repeated shutdown": container_calls_real,
+        "double scheduler shutdown": scheduler_calls_real,
+        "partial startup failure": (
+            _failure_assessment(partial.get("failure"))["complete"]
+            and partial.get("lifecycle") == "failed"
+        ),
+        "rollback order": bool(partial.get("rollback_order_valid")),
+        "event bus stopped": partial.get("event_bus_stopped") is True,
+        "tasks cleaned": (
+            partial.get("background_tasks") == 0
+            and probe.get("final_background_tasks") == 0
+        ),
+        "connections zero": (
+            partial.get("connection_count") == 0
+            and probe.get("final_connection_count") == 0
+        ),
+        "failed container cannot restart": (
+            _failure_assessment(partial.get("restart_failure"))["complete"]
+        ),
+        "no duplicate execution": unchanged_execution,
+    }
+
+
+def _workspace_isolation_assessment(model: dict[str, Any]) -> dict[str, bool]:
+    protected = {
+        str(value)
+        for value in model.get("protected_values", [])
+        if str(value)
+    }
+    ceo_list = str(model.get("ceo_list_output", ""))
+    ceo_mutation = str(model.get("ceo_mutation_output", ""))
+    ceo_text = f"{ceo_list}\n{ceo_mutation}"
+    agenda_ids = set(model.get("agenda_ids", []))
+    review_ids = set(model.get("review_ids", []))
+    cli_ids = set(model.get("cli_ids", []))
+    hint_ids = set(model.get("hint_ids", []))
+    primary_ids = set(model.get("primary_ids", []))
+    before = model.get("source_before", {})
+    after = model.get("source_after", {})
+    ceo_empty_or_b_only = (
+        model.get("workspace_b_task_count") == 0
+        or set(model.get("workspace_b_task_ids", [])).isdisjoint(primary_ids)
+    )
+    return {
+        "task invisible": model.get("task_status") == 404,
+        "mutation blocked": (
+            model.get("api_mutation_status") == 404
+            and model.get("ceo_mutation_attempted") is True
+            and model.get("ceo_mutation_blocked") is True
+            and before == after
+        ),
+        "agenda invisible": primary_ids.isdisjoint(agenda_ids),
+        "review invisible": primary_ids.isdisjoint(review_ids),
+        "hint invisible": primary_ids.isdisjoint(hint_ids),
+        "cli invisible": primary_ids.isdisjoint(cli_ids),
+        "ceo invisible": (
+            ceo_empty_or_b_only
+            and all(value not in ceo_text for value in protected)
+        ),
+        "no default fallback": model.get("workspace_id") == "isolated",
+    }
 
 
 def _execute(
@@ -1428,6 +1905,9 @@ def _execute(
         key.removeprefix("X-").lower().replace("-", "_"): value
         for key, value in workspace_headers.items()
     }
+    workspace_a_marker = (
+        "ACC020-WORKSPACE-A-SECRET-MARKER-" + os.urandom(8).hex()
+    )
 
     env = _runtime_env(
         args,
@@ -1472,9 +1952,18 @@ def _execute(
             label=f"profile-negative-{index}",
             expected_codes=(1, 2),
         )
+        raw_stderr = (evidence / str(result["stderr_path"])).read_text(
+            encoding="utf-8",
+            errors="replace",
+        ).strip()
+        try:
+            failure = json.loads(raw_stderr)
+        except json.JSONDecodeError:
+            failure = {"unparseable_stderr": raw_stderr}
         negative_profiles[name] = {
             "exit_code": result["exit_code"],
             "stderr_path": result["stderr_path"],
+            "failure": failure,
         }
     run_command(
         [sys.executable, "-m", "cli", "profile", "--require-local-daily"],
@@ -1489,6 +1978,10 @@ def _execute(
         "checkout_data_before": checkout_data_before,
         "checkout_data_after": file_manifest(repo / "data"),
     }
+    config_assessment = _config_failure_assessment(
+        negative_profiles,
+        secret=token,
+    )
     _finish_scenario(
         record,
         "A",
@@ -1496,8 +1989,9 @@ def _execute(
         entrypoints=["subprocess:python -m cli profile --require-local-daily"],
         actuals={
             **{
-                name: value["exit_code"] != 0
-                for name, value in negative_profiles.items()
+                name: config_assessment["cases"][name]["complete"]
+                and config_assessment["cases"][name]["nonzero_exit"]
+                for name in negative_profiles
             },
             "no checkout data fallback": (
                 checkout_data_before == file_manifest(repo / "data")
@@ -1637,7 +2131,8 @@ def _execute(
             token=token,
             headers=workspace_headers,
             body={
-                "title": "ACC-020 UserTask",
+                "title": workspace_a_marker,
+                "description": f"content:{workspace_a_marker}",
                 "due_at": (now - timedelta(hours=1)).isoformat(),
             },
             expected=(201,),
@@ -2935,6 +3430,14 @@ def _execute(
             **workspace_headers,
             "X-Workspace-ID": "isolated",
         }
+        _, k_source_before = _http(
+            args,
+            record,
+            "GET",
+            f"/tasks/{cross_task['id']}",
+            token=token,
+            headers=workspace_headers,
+        )
         k_task_status, k_task = _http(
             args,
             record,
@@ -2943,6 +3446,14 @@ def _execute(
             token=token,
             headers=isolated_headers,
             expected=(404,),
+        )
+        _, k_workspace_tasks = _http(
+            args,
+            record,
+            "GET",
+            "/tasks",
+            token=token,
+            headers=isolated_headers,
         )
         k_mutation_status, k_mutation = _http(
             args,
@@ -3000,15 +3511,37 @@ def _execute(
             expected_codes=(0,),
         )
         k_cli_review = json.loads(k_cli["stdout"])
-        k_ceo = capture_command(
+        k_ceo_list = capture_command(
             [sys.executable, "-m", "cli", "ceo"],
             env=isolated_env,
             cwd=repo,
             records=record["commands"],
             evidence=evidence,
-            label="k-ceo-isolated",
+            label="k-ceo-list-isolated",
             expected_codes=(0,),
             input_text="/tasks\n/exit\n",
+        )
+        k_ceo_mutation = capture_command(
+            [sys.executable, "-m", "cli", "ceo"],
+            env=isolated_env,
+            cwd=repo,
+            records=record["commands"],
+            evidence=evidence,
+            label="k-ceo-mutation-isolated",
+            expected_codes=(0,),
+            input_text=(
+                f"完成任务 {cross_task['id']}\n"
+                f"取消任务 {cross_task['id']}\n"
+                "/exit\n"
+            ),
+        )
+        _, k_source_after = _http(
+            args,
+            record,
+            "GET",
+            f"/tasks/{cross_task['id']}",
+            token=token,
+            headers=workspace_headers,
         )
         primary_ids = set(canonical_ids)
         k_agenda_ids = {
@@ -3018,6 +3551,51 @@ def _execute(
         k_review_ids = set(_review_ids(k_review))
         k_cli_ids = set(_review_ids(k_cli_review))
         k_hint_ids = {item["source_id"] for item in k_hints}
+        protected_values = {
+            *primary_ids,
+            workspace_a_marker,
+            task["title"],
+            task["description"],
+            cross_task["title"],
+            waiting["item"]["subject"],
+            work_log["subject"],
+        }
+        k_model = {
+            "protected_values": sorted(protected_values),
+            "primary_ids": sorted(primary_ids),
+            "agenda_ids": sorted(k_agenda_ids),
+            "review_ids": sorted(k_review_ids),
+            "cli_ids": sorted(k_cli_ids),
+            "hint_ids": sorted(k_hint_ids),
+            "task_status": k_task_status,
+            "api_mutation_status": k_mutation_status,
+            "workspace_b_task_count": len(k_workspace_tasks),
+            "workspace_b_task_ids": [
+                item.get("id") for item in k_workspace_tasks
+            ],
+            "ceo_list_output": k_ceo_list["stdout"],
+            "ceo_mutation_output": k_ceo_mutation["stdout"],
+            "ceo_mutation_attempted": True,
+            "ceo_mutation_blocked": (
+                k_ceo_mutation["stdout"].count("[错误]") >= 2
+                and "[OK]" not in k_ceo_mutation["stdout"]
+            ),
+            "ceo_mutation_entrypoint": (
+                "REAL_CEO_USER_TASK_MUTATION_ENTRYPOINT"
+            ),
+            "source_before": {
+                "id": k_source_before["id"],
+                "revision": k_source_before["revision"],
+                "status": k_source_before["status"],
+            },
+            "source_after": {
+                "id": k_source_after["id"],
+                "revision": k_source_after["revision"],
+                "status": k_source_after["status"],
+            },
+            "workspace_id": k_review.get("workspace", {}).get("workspace_id"),
+        }
+        k_assessment = _workspace_isolation_assessment(k_model)
         _finish_scenario(
             record,
             "K",
@@ -3026,37 +3604,22 @@ def _execute(
                 "API Task GET and mutation with Workspace B",
                 "API Agenda, Review, Hint with Workspace B",
                 "CLI Daily Review with Workspace B",
-                "CEO Assistant /tasks with Workspace B",
+                "CEO Assistant /tasks and canonical mutation with Workspace B",
             ],
-            actuals={
-                "task invisible": k_task_status == 404,
-                "mutation blocked": k_mutation_status == 404,
-                "agenda invisible": not (primary_ids & k_agenda_ids),
-                "review invisible": not (primary_ids & k_review_ids),
-                "hint invisible": not (primary_ids & k_hint_ids),
-                "cli invisible": not (primary_ids & k_cli_ids),
-                "ceo invisible": all(
-                    value not in k_ceo["stdout"]
-                    for value in primary_ids
-                ),
-                "no default fallback": (
-                    k_cli_review.get("workspace", {}).get("workspace_id")
-                    == "isolated"
-                    and "default" not in {
-                        k_cli_review.get("workspace", {}).get("workspace_id"),
-                        k_review.get("workspace", {}).get("workspace_id"),
-                    }
-                ),
-            },
+            actuals=k_assessment,
             evidence_payload={
                 "task_failure": k_task,
                 "mutation_failure": k_mutation,
                 "agenda": k_agenda,
                 "review": k_review,
                 "hints": k_hints,
+                "workspace_b_tasks": k_workspace_tasks,
                 "cli_review": k_cli_review,
                 "cli_stdout_path": k_cli["stdout_path"],
-                "ceo_stdout_path": k_ceo["stdout_path"],
+                "ceo_list_stdout_path": k_ceo_list["stdout_path"],
+                "ceo_mutation_stdout_path": k_ceo_mutation["stdout_path"],
+                "isolation_model": k_model,
+                "isolation_assessment": k_assessment,
             },
             evidence_dir=evidence,
             secret=token,
@@ -3068,15 +3631,25 @@ def _execute(
                     "api_ids": sorted(k_review_ids),
                     "cli_ids": sorted(k_cli_ids),
                     "hint_ids": sorted(k_hint_ids),
+                    "workspace_b_task_count": len(k_workspace_tasks),
+                    "source_before": k_model["source_before"],
+                    "source_after": k_model["source_after"],
                 },
                 object_ids=sorted(primary_ids),
                 workspace={
                     **record["workspace"],
                     "workspace_id": "isolated",
                 },
-                revision_status=[],
+                revision_status=[
+                    k_model["source_before"],
+                    k_model["source_after"],
+                ],
                 database_evidence=[j_after["path"]],
-                spy_evidence=[k_cli["stdout_path"], k_ceo["stdout_path"]],
+                spy_evidence=[
+                    k_cli["stdout_path"],
+                    k_ceo_list["stdout_path"],
+                    k_ceo_mutation["stdout_path"],
+                ],
             ),
         )
 
@@ -3670,7 +4243,7 @@ def _execute(
     q_new_shutdown = q_shutdown[len(shutdown_observations):]
     q_events_after = len(_read_json_lines(spy_root / "events.log"))
     q_scheduler_after = len(_read_json_lines(spy_root / "scheduler.log"))
-    q_order = [item.get("event") for item in q_new_shutdown]
+    q_assessment = _q_probe_assessment(q_probe)
     source_shutdown = [
         item
         for item in shutdown_observations
@@ -3769,27 +4342,7 @@ def _execute(
         "Q",
         started_at=q_started,
         entrypoints=["independent partial-start-probe subprocess"],
-        actuals={
-            "external repeated shutdown": q_probe["double_shutdown_completed"],
-            "double scheduler shutdown": q_probe["double_scheduler_shutdown_completed"],
-            "partial startup failure": "injected partial-start failure" in q_probe["start_error"],
-            "rollback order": (
-                "event_bus_stop_after" in q_order
-                and "database_close_after" in q_order
-                and q_order.index("event_bus_stop_after")
-                < q_order.index("database_close_after")
-            ),
-            "event bus stopped": q_probe["event_bus_stopped"],
-            "tasks cleaned": (
-                q_probe["failed_tasks_clean"] and q_probe["healthy_tasks_clean"]
-            ),
-            "connections zero": (
-                q_probe["failed_connections"] == 0
-                and q_probe["healthy_connections"] == 0
-            ),
-            "failed container cannot restart": bool(q_probe["restart_error"]),
-            "no duplicate execution": q_scheduler_after == q_before_scheduler,
-        },
+        actuals=q_assessment,
         evidence_payload={
             "probe": q_probe,
             "shutdown_observations": q_new_shutdown,
@@ -4348,20 +4901,66 @@ def _execute(
     failure_checks_by_kind = {
         item["kind"]: item for item in record["failure_info_checks"]
     }
-    config_failure_records = [
-        {
+    config_failure_records = {
+        name: {
             **value,
             "stderr": (evidence / str(value["stderr_path"])).read_text(
                 encoding="utf-8",
                 errors="replace",
             ),
         }
-        for value in negative_profiles.values()
-    ]
-    config_failures_complete = all(
-        item["exit_code"] != 0 and bool(item["stderr"].strip())
-        for item in config_failure_records
+        for name, value in negative_profiles.items()
+    }
+    config_failure_assessment = _config_failure_assessment(
+        config_failure_records,
+        secret=token,
     )
+    dependency_probe = q_probe["partial_start"]
+    dependency_assessment = _failure_assessment(
+        dependency_probe["failure"],
+        secrets=(token,),
+    )
+    shutdown_probe = q_probe["shutdown_failure"]
+    shutdown_assessment = _failure_assessment(
+        shutdown_probe["failure"],
+        secrets=(token,),
+    )
+    restore_probe = q_probe["restore_failure"]
+    restore_assessment = _failure_assessment(
+        restore_probe["failure"],
+        secrets=(token,),
+    )
+    dependency_complete = (
+        dependency_assessment["complete"]
+        and dependency_probe["lifecycle"] == "failed"
+        and dependency_probe["rollback_order_valid"]
+        and dependency_probe["connection_count"] == 0
+        and dependency_probe["background_tasks"] == 0
+    )
+    shutdown_complete = (
+        shutdown_assessment["complete"]
+        and shutdown_probe["shutdown_failures"] == ["waiting_for_service"]
+        and shutdown_probe["lifecycle"] == "failed"
+        and shutdown_probe["event_bus_stopped"] is True
+        and shutdown_probe["background_tasks"] == 0
+        and shutdown_probe["connection_count"] == 0
+    )
+    restore_complete = (
+        restore_assessment["complete"]
+        and restore_probe["exit_code"] != 0
+        and restore_probe["lifecycle"] == "failed"
+        and restore_probe["connection_count"] == 0
+    )
+    all_failure_assessments = [
+        *(item["complete"] for item in record["failure_info_checks"]),
+        *(
+            item["complete"]
+            for item in config_failure_assessment["cases"].values()
+        ),
+        dependency_assessment["complete"],
+        shutdown_assessment["complete"],
+        restore_assessment["complete"],
+    ]
     _finish_scenario(
         record,
         "V",
@@ -4373,7 +4972,7 @@ def _execute(
             "Inbox Saga replay",
         ],
         actuals={
-            "config failure info": config_failures_complete,
+            "config failure info": config_failure_assessment["complete"],
             "auth failure info": failure_checks_by_kind["auth"]["complete"],
             "workspace failure info": failure_checks_by_kind["workspace"]["complete"],
             "date query failure info": (
@@ -4390,14 +4989,11 @@ def _execute(
             "unsupported state failure info": (
                 failure_checks_by_kind["unsupported_state"]["complete"]
             ),
-            "dependency scheduler failure info": bool(q_probe["start_error"]),
+            "dependency scheduler failure info": dependency_complete,
             "shutdown restore failure info": (
-                bool(q_probe["publish_after_stop_error"])
-                and restored_exit in ({0, 3} if os.name == "nt" else {0})
+                shutdown_complete and restore_complete
             ),
-            "failure fields secret safe": all(
-                item["complete"] for item in record["failure_info_checks"]
-            ),
+            "failure fields secret safe": all(all_failure_assessments),
             "idempotency and saga replay": (
                 reminder_replayed == reminder_keyed
                 and replayed_inbox.get("resolved_target_id") == target_id
@@ -4407,6 +5003,10 @@ def _execute(
             "failures": record["failure_info_checks"],
             "internal_failure_records": internal_failure_records,
             "config_failures": config_failure_records,
+            "config_failure_assessment": config_failure_assessment,
+            "dependency_failure_assessment": dependency_assessment,
+            "shutdown_failure_assessment": shutdown_assessment,
+            "restore_failure_assessment": restore_assessment,
             "reminder_replay": [reminder_keyed, reminder_replayed],
             "inbox_replay": [resolved_inbox, replayed_inbox],
             "shutdown_probe": q_probe,

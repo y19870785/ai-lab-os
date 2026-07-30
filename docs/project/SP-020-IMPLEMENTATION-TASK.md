@@ -172,6 +172,13 @@ INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE`。执行过程本身不构成产品失
 对 A～V 的场景断言和证据覆盖不足，不能支持“22/22 PASS”。ACC-020 仍未执行，
 Approved Implementation Head 仍未冻结。
 
+Head `cf0444d27ed47aef8177f5eeea2efe5f3fdd14fb` 上使用 Driver SHA-256
+`5f2a8f51e5d964a7e66b58f800bd26eba70781bca7754a81b38e6664d5c72147`
+执行的 Replacement Rehearsal 也已重新分类为
+`INVALID_ACCEPTANCE_HARNESS / DISCARDED /
+FALSE_POSITIVE_SCENARIO_ASSERTIONS`。Scenario V、Q 与 K 的实际断言不足以支持 PASS；
+这仍是 acceptance harness 问题，不是产品失败，不改变 ACC-020 A～V 的机器状态。
+
 修订后的 Driver 只能通过完整结构化 checks 判定场景；单独调用描述性 PASS helper
 不能绕过断言。每项证据必须落到真实日志、JSON、SQLite 查询结果或快照，并覆盖安全
 响应事实、Workspace、revision/status、EventBus、Scheduler、shutdown、restart 与

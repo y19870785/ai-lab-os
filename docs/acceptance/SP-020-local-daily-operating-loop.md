@@ -46,6 +46,22 @@ INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE
 Rehearsal 名额，也不改变 ACC-020 A～V 的
 `PLANNING_BASELINE / NOT_EXECUTED` 状态。
 
+随后在 Head `cf0444d27ed47aef8177f5eeea2efe5f3fdd14fb`、Driver SHA-256
+`5f2a8f51e5d964a7e66b58f800bd26eba70781bca7754a81b38e6664d5c72147`
+上的 Replacement Rehearsal 也正式分类为：
+
+```text
+INVALID_ACCEPTANCE_HARNESS /
+DISCARDED /
+FALSE_POSITIVE_SCENARIO_ASSERTIONS
+```
+
+该次运行的 Scenario V 仅凭非零退出码、任意 stderr 或错误字符串判定部分
+`FailureInfo`；Scenario Q 没有以非空真实 job/run/occurrence 证明重复 shutdown 后
+执行次数仍为 1；Scenario K 只排除了 canonical ID，未排除 Workspace A 的唯一标题
+和内容标记。因此当时 A～V 的 PASS 结论没有充分断言支持。它不是产品失败，不改变
+ACC-020 A～V 的机器状态。
+
 修订后的 Driver 禁止使用描述性 `_pass()` 直接完成场景。每个场景必须记录具名
 `checks`；每项包含 `expected`、`actual`、`passed` 与真实 `evidence_path`，且只有所有
 必需检查通过时场景才能 PASS。场景证据同时记录起止时间、真实入口、退出码或 HTTP

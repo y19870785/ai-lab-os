@@ -361,8 +361,9 @@ def test_driver_requires_api_cli_and_ceo_scenario_evidence():
     assert '"/daily-review?date=today"' in source
     assert '"/daily-review?date=yesterday"' in source
     assert source.count('"daily-review",') >= 2
-    assert '"CEO Assistant /tasks with Workspace B"' in source
-    assert "k-ceo-isolated" in source
+    assert '"CEO Assistant /tasks and canonical mutation with Workspace B"' in source
+    assert "k-ceo-list-isolated" in source
+    assert "k-ceo-mutation-isolated" in source
 
 
 def test_driver_requires_event_and_source_restore_comparisons():
@@ -398,6 +399,177 @@ def test_safe_evidence_redacts_tokens_and_secret_values():
     serialized = json.dumps(safe)
     assert secret not in serialized
     assert serialized.count("[REDACTED]") >= 3
+
+
+def _complete_failure() -> dict[str, object]:
+    return {
+        "code": "component.operation.failed",
+        "category": "dependency_failure",
+        "component": "component",
+        "operation": "operation",
+        "trace_id": "trace_acc020",
+        "retryable": False,
+        "details": {"probe": "acc020"},
+    }
+
+
+def _complete_config_failures() -> dict[str, dict[str, object]]:
+    return {
+        name: {"exit_code": 2, "failure": _complete_failure()}
+        for name in (
+            "invalid timezone",
+            "invalid provider",
+            "missing auth token",
+            "relative data root",
+            "relative sqlite root",
+            "sqlite outside data root",
+            "unknown profile",
+        )
+    }
+
+
+def test_config_failure_traceback_cannot_pass_scenario_v():
+    records = _complete_config_failures()
+    records["invalid timezone"]["failure"] = {
+        "unparseable_stderr": "Traceback (most recent call last): ValueError"
+    }
+    assessed = driver._config_failure_assessment(records, secret="token")
+    assert assessed["complete"] is False
+    assert assessed["cases"]["invalid timezone"]["complete"] is False
+
+
+@pytest.mark.parametrize(
+    "missing",
+    (
+        "code",
+        "category",
+        "component",
+        "operation",
+        "trace_id",
+        "retryable",
+        "details",
+    ),
+)
+def test_missing_failure_info_field_cannot_pass_scenario_v(missing):
+    failure = _complete_failure()
+    failure.pop(missing)
+    assessed = driver._failure_assessment(failure)
+    assert assessed["complete"] is False
+    assert missing in assessed["missing"]
+
+
+@pytest.mark.parametrize("kind", ("dependency", "shutdown", "restore"))
+def test_plain_error_string_cannot_satisfy_scenario_v(kind):
+    assessed = driver._failure_assessment(f"{kind} failed")
+    assert assessed["complete"] is False
+    assert assessed["failure"] == {}
+
+
+def _complete_q_probe() -> dict[str, object]:
+    call = {
+        "started_at": "2026-01-01T00:00:00Z",
+        "finished_at": "2026-01-01T00:00:01Z",
+        "exception": None,
+        "lifecycle_before": "ready",
+        "lifecycle_after": "stopped",
+        "background_tasks": 0,
+        "connection_count": 0,
+        "job_count": 1,
+        "run_count": 1,
+        "occurrence_count": 1,
+    }
+    persisted = {
+        "execution_count": 1,
+        "jobs": [{"id": "job_q"}],
+        "runs": [{"id": "run_q", "job_id": "job_q"}],
+        "occurrences": [{"id": "occ_q", "reminder_id": "rem_q"}],
+        "business_event_count": 2,
+    }
+    return {
+        "job_evidence": {
+            "job_id": "job_q",
+            "reminder_id": "rem_q",
+            "before_shutdown": persisted,
+            "after_shutdown": dict(persisted),
+        },
+        "scheduler_shutdown_calls": [dict(call), dict(call)],
+        "container_shutdown_calls": [dict(call), dict(call)],
+        "partial_start": {
+            "failure": _complete_failure(),
+            "restart_failure": _complete_failure(),
+            "lifecycle": "failed",
+            "rollback_order_valid": True,
+            "event_bus_stopped": True,
+            "background_tasks": 0,
+            "connection_count": 0,
+        },
+        "final_background_tasks": 0,
+        "final_connection_count": 0,
+    }
+
+
+def test_q_requires_nonempty_real_job_run_and_occurrence():
+    probe = _complete_q_probe()
+    probe["job_evidence"]["before_shutdown"]["runs"] = []
+    assert driver._q_probe_assessment(probe)["no duplicate execution"] is False
+
+
+def test_q_rejects_execution_count_increasing_from_one_to_two():
+    probe = _complete_q_probe()
+    probe["job_evidence"]["after_shutdown"] = {
+        **probe["job_evidence"]["after_shutdown"],
+        "execution_count": 2,
+        "runs": [
+            {"id": "run_q", "job_id": "job_q"},
+            {"id": "run_q_2", "job_id": "job_q"},
+        ],
+    }
+    assert driver._q_probe_assessment(probe)["no duplicate execution"] is False
+
+
+def test_q_completed_flags_cannot_replace_observed_calls():
+    probe = _complete_q_probe()
+    probe["scheduler_shutdown_calls"] = []
+    probe["container_shutdown_calls"] = []
+    probe["double_shutdown_completed"] = True
+    probe["double_scheduler_shutdown_completed"] = True
+    assessed = driver._q_probe_assessment(probe)
+    assert assessed["external repeated shutdown"] is False
+    assert assessed["double scheduler shutdown"] is False
+
+
+def test_k_title_leak_fails_even_when_id_is_hidden():
+    model = {
+        "protected_values": ["ut_secret", "Workspace A unique title"],
+        "primary_ids": ["ut_secret"],
+        "agenda_ids": [],
+        "review_ids": [],
+        "cli_ids": [],
+        "hint_ids": [],
+        "task_status": 404,
+        "api_mutation_status": 404,
+        "workspace_b_task_count": 0,
+        "workspace_b_task_ids": [],
+        "ceo_list_output": "Workspace A unique title",
+        "ceo_mutation_output": "[错误] not found",
+        "ceo_mutation_attempted": True,
+        "ceo_mutation_blocked": True,
+        "source_before": {"revision": 1, "status": "active"},
+        "source_after": {"revision": 1, "status": "active"},
+        "workspace_id": "isolated",
+    }
+    assert driver._workspace_isolation_assessment(model)["ceo invisible"] is False
+
+
+def test_failure_info_with_token_cannot_pass_scenario_v():
+    failure = _complete_failure()
+    failure["details"] = {"message": "Bearer acc020-secret-token"}
+    assessed = driver._failure_assessment(
+        failure,
+        secrets=("acc020-secret-token",),
+    )
+    assert assessed["complete"] is False
+    assert assessed["secret_safe"] is False
 
 
 def test_nonprepare_mode_dispatches_real_execution(monkeypatch, tmp_path):
