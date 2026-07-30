@@ -1886,6 +1886,39 @@ def _source_event_records(
     return records[:probe_start]
 
 
+def _event_contract_assessment(
+    records: list[dict[str, Any]],
+    *,
+    persisted_workspace_id: str,
+    allowed_failure_workspace_ids: set[str],
+) -> bool:
+    required = {
+        "topic",
+        "event_type",
+        "payload",
+        "workspace",
+        "trace_id",
+        "timestamp",
+    }
+    for item in records:
+        if not required <= set(item):
+            return False
+        workspace = item.get("workspace")
+        workspace_id = (
+            workspace.get("workspace_id")
+            if isinstance(workspace, dict)
+            else None
+        )
+        if not item.get("trace_id") or not workspace_id:
+            return False
+        if str(item.get("topic", "")).endswith(".failed"):
+            if workspace_id not in allowed_failure_workspace_ids:
+                return False
+        elif workspace_id != persisted_workspace_id:
+            return False
+    return True
+
+
 def _execute(
     args: argparse.Namespace,
     record: dict[str, Any],
@@ -4387,6 +4420,14 @@ def _execute(
         if not item["topic"].startswith("scheduler.")
         and item["topic"] != "acc020.after-stop"
     ]
+    event_contract_complete = _event_contract_assessment(
+        business_events,
+        persisted_workspace_id=record["workspace"]["workspace_id"],
+        allowed_failure_workspace_ids={
+            record["workspace"]["workspace_id"],
+            "isolated",
+        },
+    )
     _finish_scenario(
         record,
         "N",
@@ -4398,15 +4439,9 @@ def _execute(
                 and j_event_before == j_event_after
             ),
             "mutations emit existing events": bool(business_events),
-            "event workspace trace persisted": all(
-                event_fields <= set(item)
-                and item["workspace"]
-                for item in event_records
-            ) and all(
-                item["trace_id"]
-                and item["workspace"].get("workspace_id")
-                == record["workspace"]["workspace_id"]
-                for item in business_events
+            "event workspace trace persisted": (
+                all(event_fields <= set(item) for item in event_records)
+                and event_contract_complete
             ),
             "publish after stop fails closed": bool(q_probe["publish_after_stop_error"]),
         },

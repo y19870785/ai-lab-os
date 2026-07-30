@@ -571,6 +571,37 @@ def test_scenario_n_excludes_independent_q_probe_workspace_events():
     assert selected == source
 
 
+def test_scenario_n_distinguishes_persisted_and_failed_event_workspaces():
+    def event(topic: str, workspace_id: str, trace_id: str = "trace") -> dict:
+        return {
+            "topic": topic,
+            "event_type": topic,
+            "payload": {},
+            "workspace": {"workspace_id": workspace_id},
+            "trace_id": trace_id,
+            "timestamp": "2026-01-01T00:00:00Z",
+        }
+
+    assert driver._event_contract_assessment(
+        [
+            event("user_task.updated", "workspace-a"),
+            event("user_task.failed", "isolated"),
+        ],
+        persisted_workspace_id="workspace-a",
+        allowed_failure_workspace_ids={"workspace-a", "isolated"},
+    )
+    assert not driver._event_contract_assessment(
+        [event("user_task.updated", "isolated")],
+        persisted_workspace_id="workspace-a",
+        allowed_failure_workspace_ids={"workspace-a", "isolated"},
+    )
+    assert not driver._event_contract_assessment(
+        [event("user_task.failed", "isolated", trace_id="")],
+        persisted_workspace_id="workspace-a",
+        allowed_failure_workspace_ids={"workspace-a", "isolated"},
+    )
+
+
 def test_failure_info_with_token_cannot_pass_scenario_v():
     failure = _complete_failure()
     failure["details"] = {"message": "Bearer acc020-secret-token"}
