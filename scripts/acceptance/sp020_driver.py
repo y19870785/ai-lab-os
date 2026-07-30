@@ -2079,20 +2079,43 @@ def _execute(
         inbox_actions = {
             hint["allowed_action"] for hint in inbox_hints
         }
+        entrypoint_arguments = {
+            ("user_task", "complete"): ("source_id", "expected_revision"),
+            ("user_task", "cancel"): ("source_id", "expected_revision"),
+            ("waiting_for", "follow_up"): (
+                "source_id",
+                "expected_revision",
+                "note",
+            ),
+            ("reminder", "reschedule"): (
+                "source_id",
+                "expected_revision",
+                "scheduled_for",
+                "timezone",
+            ),
+            ("inbox", "resolve_to_task"): ("source_id", "title"),
+            ("inbox", "resolve_to_reminder"): (
+                "source_id",
+                "title",
+                "scheduled_at",
+                "timezone",
+            ),
+            ("inbox", "resolve_to_work_log"): ("source_id", "title"),
+            ("inbox", "resolve_to_waiting_for"): (
+                "source_id",
+                "subject",
+                "waiting_on",
+                "next_review_at",
+                "timezone",
+            ),
+            ("inbox", "resolve_as_note"): ("source_id",),
+            ("inbox", "dismiss"): ("source_id",),
+        }
         callable_arguments = all(
-            all(
-                argument
-                in {
-                    "source_id",
-                    "expected_revision",
-                    "scheduled_for",
-                    "timezone",
-                    "title",
-                    "subject",
-                    "waiting_on",
-                    "next_review_at",
-                }
-                for argument in hint["required_arguments"]
+            tuple(hint["required_arguments"])
+            == entrypoint_arguments.get(
+                (hint["source_type"], hint["allowed_action"]),
+                (),
             )
             for hint in hints
         )
@@ -2142,6 +2165,11 @@ def _execute(
                 "hints": hints,
                 "repeated_hints": repeated_hints,
                 "unsupported_count": len(unsupported_hints),
+                "entrypoint_argument_contracts": {
+                    f"{source_type}:{action}": list(arguments)
+                    for (source_type, action), arguments
+                    in entrypoint_arguments.items()
+                },
                 "before": f_before["path"],
                 "after": f_after["path"],
             },
