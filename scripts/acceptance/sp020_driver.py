@@ -2840,6 +2840,11 @@ def _execute(
             item["source_id"]
             for item in refreshed_review.get("pending_inbox", {}).get("items", [])
         ]
+        informational_waiting = [
+            item
+            for item in refreshed_review.get("informational", {}).get("items", [])
+            if item["source_id"] == waiting_cancelled["item"]["id"]
+        ]
         j_side_effects = (
             j_before["value"]["sqlite"] == j_after["value"]["sqlite"]
             and j_event_before == len(_read_json_lines(spy_root / "events.log"))
@@ -2855,7 +2860,10 @@ def _execute(
             actuals={
                 "terminal task reclassified": task["id"] in completed_ids,
                 "waiting history reflected": (
-                    waiting_cancelled["item"]["id"] not in refreshed_ids
+                    len(informational_waiting) == 1
+                    and informational_waiting[0]["status"] == "cancelled"
+                    and informational_waiting[0]["reason_code"]
+                    == "waiting_for.cancelled"
                     and len(waiting_history["items"]) >= 6
                 ),
                 "pending inbox removed": inbox["id"] not in pending_inbox_ids,
