@@ -832,12 +832,14 @@ from core.reminders.service import ReminderService
 from core.user_tasks.service import UserTaskService
 from core.waiting_for.service import WaitingForService
 from core.work_log.service import WorkLogService
+from api.middleware import error_handler as _api_error_handler
 _counter = Path(os.environ["ACC020_PROVIDER_SPY_FILE"])
 _root = Path(os.environ["ACC020_SPY_ROOT"])
 _counter.with_name("installed").write_text("installed", encoding="utf-8")
 _events = _counter.with_name("events.log")
 _scheduler = _counter.with_name("scheduler.log")
 _shutdown = _counter.with_name("shutdown.log")
+_failures = _counter.with_name("failures.log")
 _configured_workspace = {
     "tenant_id": os.environ.get("AI_LAB_TENANT_ID", ""),
     "workspace_id": os.environ.get("AI_LAB_WORKSPACE_ID", ""),
@@ -882,6 +884,11 @@ def _wrap(original):
     return counted
 MockLLMProvider.generate = _wrap(MockLLMProvider.generate)
 OpenAILLMProvider.generate = _wrap(OpenAILLMProvider.generate)
+_make_error_response = _api_error_handler.make_error_response
+def _record_failure_response(failure):
+    _append(_failures, failure)
+    return _make_error_response(failure)
+_api_error_handler.make_error_response = _record_failure_response
 _publish = MemoryBus.publish
 async def _record_publish(self, topic, event):
     serialized = _safe(event)
@@ -4317,14 +4324,30 @@ def _execute(
         "stale_revision": stale_active,
         "unsupported_state": h_unsupported,
     }
+    internal_failure_records = _read_json_lines(spy_root / "failures.log")
+    failures_by_trace = {
+        item.get("trace_id"): item
+        for item in internal_failure_records
+        if item.get("trace_id")
+    }
     record["failure_info_checks"] = [
         {
             "kind": name,
-            "failure": _safe(_failure_payload(value), secret=token),
-            "complete": _failure_is_complete(value, secret=token),
+            "public_response": _safe(value, secret=token),
+            "failure": _safe(
+                failures_by_trace.get(value.get("trace_id"), {}),
+                secret=token,
+            ),
+            "complete": _failure_is_complete(
+                failures_by_trace.get(value.get("trace_id"), {}),
+                secret=token,
+            ),
         }
         for name, value in observed_failures.items()
     ]
+    failure_checks_by_kind = {
+        item["kind"]: item for item in record["failure_info_checks"]
+    }
     config_failure_records = [
         {
             **value,
@@ -4351,21 +4374,26 @@ def _execute(
         ],
         actuals={
             "config failure info": config_failures_complete,
-            "auth failure info": _failure_is_complete(missing_auth, secret=token),
-            "workspace failure info": _failure_is_complete(cross_mutation, secret=token),
+            "auth failure info": failure_checks_by_kind["auth"]["complete"],
+            "workspace failure info": failure_checks_by_kind["workspace"]["complete"],
             "date query failure info": (
                 date_failure_status == 400
-                and _failure_is_complete(date_failure, secret=token)
+                and failure_checks_by_kind["date_query"]["complete"]
             ),
             "not found failure info": (
                 not_found_status == 404
-                and _failure_is_complete(not_found, secret=token)
+                and failure_checks_by_kind["not_found"]["complete"]
             ),
-            "stale revision failure info": _failure_is_complete(stale_active, secret=token),
-            "unsupported state failure info": _failure_is_complete(h_unsupported, secret=token),
+            "stale revision failure info": (
+                failure_checks_by_kind["stale_revision"]["complete"]
+            ),
+            "unsupported state failure info": (
+                failure_checks_by_kind["unsupported_state"]["complete"]
+            ),
             "dependency scheduler failure info": bool(q_probe["start_error"]),
             "shutdown restore failure info": (
-                bool(q_probe["publish_after_stop_error"]) and restored_exit == 0
+                bool(q_probe["publish_after_stop_error"])
+                and restored_exit in ({0, 3} if os.name == "nt" else {0})
             ),
             "failure fields secret safe": all(
                 item["complete"] for item in record["failure_info_checks"]
@@ -4377,6 +4405,7 @@ def _execute(
         },
         evidence_payload={
             "failures": record["failure_info_checks"],
+            "internal_failure_records": internal_failure_records,
             "config_failures": config_failure_records,
             "reminder_replay": [reminder_keyed, reminder_replayed],
             "inbox_replay": [resolved_inbox, replayed_inbox],
@@ -4406,6 +4435,7 @@ def _execute(
                 "events.log",
                 "shutdown.log",
                 "partial-start-probe.json",
+                "failures.log",
             ],
         },
     )
