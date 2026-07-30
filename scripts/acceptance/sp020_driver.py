@@ -1876,6 +1876,16 @@ def _workspace_isolation_assessment(model: dict[str, Any]) -> dict[str, bool]:
     }
 
 
+def _source_event_records(
+    records: list[dict[str, Any]],
+    *,
+    probe_start: int,
+) -> list[dict[str, Any]]:
+    """Exclude independent Q-probe events from Scenario N source evidence."""
+
+    return records[:probe_start]
+
+
 def _execute(
     args: argparse.Namespace,
     record: dict[str, Any],
@@ -4365,7 +4375,10 @@ def _execute(
     )
 
     n_started = datetime.now(UTC).isoformat()
-    event_records = _read_json_lines(spy_root / "events.log")
+    event_records = _source_event_records(
+        _read_json_lines(spy_root / "events.log"),
+        probe_start=q_before_events,
+    )
     record["event_bus"] = event_records
     event_fields = {"topic", "event_type", "payload", "workspace", "trace_id", "timestamp"}
     business_events = [

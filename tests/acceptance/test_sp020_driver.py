@@ -561,6 +561,16 @@ def test_k_title_leak_fails_even_when_id_is_hidden():
     assert driver._workspace_isolation_assessment(model)["ceo invisible"] is False
 
 
+def test_scenario_n_excludes_independent_q_probe_workspace_events():
+    source = [{"workspace": {"workspace_id": "acc020-workspace"}}]
+    q_probe = [{"workspace": {"workspace_id": "q-probe"}}]
+    selected = driver._source_event_records(
+        source + q_probe,
+        probe_start=len(source),
+    )
+    assert selected == source
+
+
 def test_failure_info_with_token_cannot_pass_scenario_v():
     failure = _complete_failure()
     failure["details"] = {"message": "Bearer acc020-secret-token"}
