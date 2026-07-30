@@ -3617,6 +3617,26 @@ def _execute(
             source_state,
             secret=token,
         )
+        v_http_start = len(record["http_operations"])
+        date_failure_status, date_failure = _http(
+            args,
+            record,
+            "GET",
+            "/daily-review?date=invalid",
+            token=token,
+            headers=workspace_headers,
+            expected=(400,),
+        )
+        not_found_status, not_found = _http(
+            args,
+            record,
+            "GET",
+            "/tasks/ut_missing",
+            token=token,
+            headers=workspace_headers,
+            expected=(404,),
+        )
+        v_http_operations = record["http_operations"][v_http_start:]
         _write_manifest(manifest_path, record)
     finally:
         exit_code = _stop_api(process, stdout, stderr)
@@ -4289,25 +4309,6 @@ def _execute(
     )
 
     v_started = datetime.now(UTC).isoformat()
-    v_http_start = len(record["http_operations"])
-    date_failure_status, date_failure = _http(
-        args,
-        record,
-        "GET",
-        "/daily-review?date=invalid",
-        token=token,
-        headers=workspace_headers,
-        expected=(400,),
-    )
-    not_found_status, not_found = _http(
-        args,
-        record,
-        "GET",
-        "/tasks/ut_missing",
-        token=token,
-        headers=workspace_headers,
-        expected=(404,),
-    )
     observed_failures = {
         "auth": missing_auth,
         "workspace": cross_mutation,
@@ -4383,20 +4384,30 @@ def _execute(
         },
         evidence_dir=evidence,
         secret=token,
-        facts=_scenario_facts(
-            record,
-            http_start=v_http_start,
-            command_start=len(record["commands"]),
-            response_facts={
+        facts={
+            "exit_codes": [],
+            "http_statuses": [
+                {
+                    "method": item["method"],
+                    "path": item["path"],
+                    "status": item["status"],
+                }
+                for item in v_http_operations
+            ],
+            "response_facts": {
                 "date_status": date_failure_status,
                 "not_found_status": not_found_status,
             },
-            object_ids=[reminder["id"], inbox["id"], target_id],
-            workspace=record["workspace"],
-            revision_status=record["revisions"],
-            database_evidence=[source_sqlite["path"], restored_sqlite["path"]],
-            spy_evidence=["events.log", "shutdown.log", "partial-start-probe.json"],
-        ),
+            "object_ids": [reminder["id"], inbox["id"], target_id],
+            "workspace": record["workspace"],
+            "revision_status": record["revisions"],
+            "database_evidence": [source_sqlite["path"], restored_sqlite["path"]],
+            "spy_evidence": [
+                "events.log",
+                "shutdown.log",
+                "partial-start-probe.json",
+            ],
+        },
     )
     calls = len(counter.read_text(encoding="utf-8").splitlines())
     record["provider_spy_call_count"] = calls
