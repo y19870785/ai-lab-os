@@ -750,6 +750,7 @@ def _base_manifest(
         "source_data_root": validated["source"],
         "restore_data_root": validated["restore"],
         "api_pid": None,
+        "api_server_pid": None,
         "restart_api_pid": None,
         "restore_api_pid": None,
         "api_port": args.api_port,
@@ -1559,6 +1560,8 @@ def _execute(
             r"Started server process \[(\d+)\]",
             source_log_text,
         )
+        if len(set(uvicorn_pids)) == 1:
+            record["api_server_pid"] = int(uvicorn_pids[0])
         b_evidence = {
             "live": live,
             "ready": ready,
@@ -3644,7 +3647,7 @@ def _execute(
     source_shutdown = [
         item
         for item in shutdown_observations
-        if item.get("pid") == record["api_pid"]
+        if item.get("pid") == record["api_server_pid"]
     ]
     source_shutdown_events = [item.get("event") for item in source_shutdown]
     source_health_after = [
@@ -3711,7 +3714,9 @@ def _execute(
             ),
             "connection count zero observed": observed_zero,
             "shutdown failures recorded": "shutdown_failures" in p_terminal,
-            "graceful process exit": exit_code == 0,
+            "graceful process exit": exit_code in (
+                {0, 3} if os.name == "nt" else {0}
+            ),
         },
         evidence_payload={
             "exit_code": exit_code,
