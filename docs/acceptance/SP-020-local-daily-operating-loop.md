@@ -31,6 +31,27 @@ PASS。非 prepare 模式必须实际启动 Uvicorn、执行入口与 A～V，�
 `REHEARSAL / NOT_FORMAL_ACCEPTANCE`；它不冻结 Implementation Head，也不改变本文件
 任何场景状态。
 
+前次在 Head `bd858807262aa1b89cdb80644895afa970edcf64`、Driver SHA-256
+`0782c6c1d217ad5e6bac78e93cc47e3925d17c3c79fabff0135836c4d072a36c`
+上的运行正式分类为：
+
+```text
+INVALID_ACCEPTANCE_HARNESS /
+DISCARDED /
+INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE
+```
+
+该流程确实执行了入口，但 Driver 没有为 A～V 建立足以支持场景 PASS 的结构化断言与
+逐项证据，因此原“22/22 PASS”结论无效。它不是产品失败，不占用本轮有效 Replacement
+Rehearsal 名额，也不改变 ACC-020 A～V 的
+`PLANNING_BASELINE / NOT_EXECUTED` 状态。
+
+修订后的 Driver 禁止使用描述性 `_pass()` 直接完成场景。每个场景必须记录具名
+`checks`；每项包含 `expected`、`actual`、`passed` 与真实 `evidence_path`，且只有所有
+必需检查通过时场景才能 PASS。场景证据同时记录起止时间、真实入口、退出码或 HTTP
+状态、安全过滤后的响应事实、对象 ID、Workspace、revision/status，以及 SQLite 或
+spy 证据。
+
 ## ACC-020-A — Local Profile 启动与配置错误
 
 验证显式 absolute `AI_LAB_DATA_DIR`、`AI_LAB_SQLITE_DIR`、IANA timezone、Provider

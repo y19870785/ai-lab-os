@@ -164,6 +164,19 @@ git diff --check
 `docs/acceptance/SP-020-local-daily-operating-loop.md`。所有场景当前均为
 `PLANNING_BASELINE / NOT_EXECUTED`。Planning merge 不等于执行 ACC-020。
 
+前次 Head `bd858807262aa1b89cdb80644895afa970edcf64` 上使用 Driver SHA-256
+`0782c6c1d217ad5e6bac78e93cc47e3925d17c3c79fabff0135836c4d072a36c`
+执行的 rehearsal 已重新分类为
+`INVALID_ACCEPTANCE_HARNESS / DISCARDED /
+INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE`。执行过程本身不构成产品失败，但当时 Driver
+对 A～V 的场景断言和证据覆盖不足，不能支持“22/22 PASS”。ACC-020 仍未执行，
+Approved Implementation Head 仍未冻结。
+
+修订后的 Driver 只能通过完整结构化 checks 判定场景；单独调用描述性 PASS helper
+不能绕过断言。每项证据必须落到真实日志、JSON、SQLite 查询结果或快照，并覆盖安全
+响应事实、Workspace、revision/status、EventBus、Scheduler、shutdown、restart 与
+source/restore 逐对象比较。
+
 ## 发布边界
 
 ```text

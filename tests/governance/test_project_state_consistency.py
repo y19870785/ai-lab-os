@@ -1686,6 +1686,30 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
         and entry["saga_contract"] == "InboxResolutionClaim"
         for entry in inbox_actions.values()
     )
+    reminder_reschedule = next(
+        entry
+        for entry in entrypoint_audit["entries"]
+        if entry["source_type"] == "reminder"
+        and entry["allowed_action"] == "reschedule"
+    )
+    assert reminder_reschedule["required_arguments"] == [
+        "source_id",
+        "expected_revision",
+        "scheduled_for",
+        "timezone",
+    ]
+    assert (
+        reminder_reschedule["idempotency_contract"]
+        == "optional supported; not required"
+    )
+    assert inbox_actions["resolve_to_waiting_for"]["required_arguments"] == [
+        "source_id",
+        "subject",
+        "waiting_on",
+        "next_review_at",
+        "timezone",
+    ]
+    assert "confirmation_time" not in json.dumps(entrypoint_audit)
     readme = (ROOT / "README.md").read_text(encoding="utf-8-sig")
     launcher = (
         ROOT / "scripts/start-local-daily.ps1"
@@ -1773,6 +1797,30 @@ def test_sp020_implementation_is_pending_independent_review() -> None:
         "PHASES_1_TO_3_IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / "
         "PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN |"
     ) in project_health
+
+
+def test_sp020_discarded_rehearsal_and_driver_contract_are_explicit() -> None:
+    acceptance = (
+        ROOT / "docs/acceptance/SP-020-local-daily-operating-loop.md"
+    ).read_text(encoding="utf-8-sig")
+    task = (
+        ROOT / "docs/project/SP-020-IMPLEMENTATION-TASK.md"
+    ).read_text(encoding="utf-8-sig")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8-sig")
+    combined = f"{acceptance}\n{task}\n{changelog}"
+
+    assert "bd858807262aa1b89cdb80644895afa970edcf64" in combined
+    assert "0782c6c1d217ad5e6bac78e93cc47e3925d17c3c79fabff0135836c4d072a36c" in combined
+    assert (
+        "INVALID_ACCEPTANCE_HARNESS /\nDISCARDED /\n"
+        "INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE"
+    ) in acceptance
+    assert "原“22/22 PASS”结论无效" in acceptance
+    assert "它不是产品失败" in acceptance
+    assert "Approved Implementation Head 仍未冻结" in task
+    assert "ACC-020 仍未执行" in task
+    assert "每项包含 `expected`、`actual`、`passed` 与真实 `evidence_path`" in acceptance
+    assert "单独调用描述性 PASS helper\n不能绕过断言" in task
 
 
 def test_docs001_is_reconciled_and_archived() -> None:

@@ -23,9 +23,15 @@
       "existing_api_entrypoint": "PATCH /reminders/{id}",
       "existing_cli_entrypoint": "reminder-reschedule",
       "existing_ceo_assistant_entrypoint": "explicit reminder reschedule intent",
+      "required_arguments": [
+        "source_id",
+        "expected_revision",
+        "scheduled_for",
+        "timezone"
+      ],
       "required_workspace_evidence": "complete WorkspaceKey",
       "revision_contract": "expected revision",
-      "idempotency_contract": "action-specific idempotency key",
+      "idempotency_contract": "optional supported; not required",
       "confirmation_contract": "explicit write intent",
       "saga_contract": "ReminderSchedulerBridge reconciliation",
       "implementation_gap": null
@@ -93,10 +99,17 @@
       "existing_api_entrypoint": "POST /inbox/{id}/resolve/waiting-for",
       "existing_cli_entrypoint": "inbox resolve-waiting-for",
       "existing_ceo_assistant_entrypoint": "persistent capture/confirm",
+      "required_arguments": [
+        "source_id",
+        "subject",
+        "waiting_on",
+        "next_review_at",
+        "timezone"
+      ],
       "required_workspace_evidence": "complete WorkspaceKey",
       "revision_contract": null,
       "idempotency_contract": "durable resolution claim retry",
-      "confirmation_contract": "source_id, subject, waiting_on, expected_by or next_review_at",
+      "confirmation_contract": "source_id, subject, waiting_on, next_review_at, timezone",
       "saga_contract": "InboxResolutionClaim",
       "implementation_gap": null
     },

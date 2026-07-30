@@ -274,6 +274,119 @@ def test_harness_and_product_failures_are_distinct():
     assert driver.HARNESS_FAILURE != driver.PRODUCT_FAILURE
 
 
+def _scenario_facts() -> dict[str, object]:
+    return {
+        "exit_codes": [0],
+        "http_statuses": [{"method": "GET", "path": "/health", "status": 200}],
+        "response_facts": {"status": "ok"},
+        "object_ids": ["ut_example"],
+        "workspace": {"tenant_id": "tenant-a", "workspace_id": "workspace-a"},
+        "revision_status": [{"id": "ut_example", "revision": 1, "status": "active"}],
+        "database_evidence": ["sqlite-snapshot.json"],
+        "spy_evidence": ["events.log"],
+    }
+
+
+def test_scenario_missing_required_check_cannot_pass(tmp_path):
+    with pytest.raises(driver.ProductAcceptanceError, match="missing required checks"):
+        driver._record_scenario(
+            {},
+            "L",
+            started_at="2026-01-01T00:00:00Z",
+            entrypoints=["provider spy"],
+            checks=[],
+            facts=_scenario_facts(),
+            evidence_dir=tmp_path,
+        )
+
+
+def test_any_failed_check_marks_scenario_fail(tmp_path):
+    record = {"scenarios": {}}
+    checks = [
+        driver._check(
+            "provider spy installed",
+            expected=True,
+            actual=True,
+            evidence_path="provider.json",
+        ),
+        driver._check(
+            "provider calls zero",
+            expected=True,
+            actual=False,
+            evidence_path="provider.json",
+        ),
+    ]
+    with pytest.raises(driver.ProductAcceptanceError, match="failed checks"):
+        driver._record_scenario(
+            record,
+            "L",
+            started_at="2026-01-01T00:00:00Z",
+            entrypoints=["provider spy"],
+            checks=checks,
+            facts=_scenario_facts(),
+            evidence_dir=tmp_path,
+        )
+    assert record["scenarios"]["L"]["result"] == "FAIL"
+
+
+def test_manual_pass_helper_cannot_bypass_assertions():
+    source = DRIVER.read_text(encoding="utf-8")
+    assert not hasattr(driver, "_pass")
+    assert "_pass(" not in source
+
+
+def test_driver_records_real_shutdown_and_partial_start_evidence():
+    source = DRIVER.read_text(encoding="utf-8")
+    assert "connection_counts.append(0)" not in source
+    assert "_partial_start_probe(" in source
+    assert "partial-start-probe.json" in source
+    assert "database_close_after" in source
+
+
+def test_driver_requires_api_cli_and_ceo_scenario_evidence():
+    source = DRIVER.read_text(encoding="utf-8")
+    assert '"/daily-review?date=today"' in source
+    assert '"/daily-review?date=yesterday"' in source
+    assert source.count('"daily-review",') >= 2
+    assert '"CEO Assistant /tasks with Workspace B"' in source
+    assert "k-ceo-isolated" in source
+
+
+def test_driver_requires_event_and_source_restore_comparisons():
+    source = DRIVER.read_text(encoding="utf-8")
+    for field in ("topic", "event_type", "payload", "workspace", "trace_id", "timestamp"):
+        assert field in source
+    for key in (
+        "task",
+        "reminder",
+        "waiting_history",
+        "inbox",
+        "work_log",
+        "agenda",
+        "today",
+        "yesterday",
+        "sqlite",
+    ):
+        assert f'"{key}"' in source
+    assert "failure_info_checks" in source
+    assert "reminder_replayed == reminder_keyed" in source
+    assert "replayed_inbox.get(\"resolved_target_id\") == target_id" in source
+
+
+def test_safe_evidence_redacts_tokens_and_secret_values():
+    secret = "acc020-super-secret"
+    safe = driver._safe(
+        {
+            "authorization": f"Bearer {secret}",
+            "nested": {"api_token": secret, "message": f"value={secret}"},
+        },
+        secret=secret,
+    )
+    serialized = json.dumps(safe)
+    assert secret not in serialized
+    assert serialized.count("[REDACTED]") >= 3
+
+
 def test_nonprepare_mode_dispatches_real_execution(monkeypatch, tmp_path):
     evidence = (tmp_path / "evidence").resolve()
     args = SimpleNamespace(

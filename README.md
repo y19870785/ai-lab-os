@@ -146,6 +146,9 @@ shutdown、background task 与连接数证据。若进程不能退出、仍占�
 服务停止后仍可运行独立 CLI（每次请求使用同一 Profile WorkspaceKey 和新的
 trace ID）：
 
+CLI 的 Workspace 覆盖参数会先去除首尾空白；未提供参数时使用 Profile 默认值，但显式
+传入全空白值会失败关闭，不会回退 Profile 或 `default` workspace。
+
 ```powershell
 & $Python -m cli daily-review --date today
 & $Python -m cli daily-review --date yesterday --json

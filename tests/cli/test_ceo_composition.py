@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from cli.workspace import workspace_from_settings
 from core.errors import FailureException
 from core.system import make_test_settings
 from core.system.admission import WorkAdmissionGate
@@ -143,3 +144,32 @@ async def test_one_shot_ceo_uses_profile_workspace_and_fresh_trace(
         },
     ]
     assert requests[0].workspace_key.trace_id != requests[1].workspace_key.trace_id
+
+
+def test_workspace_overrides_are_trimmed_and_none_uses_profile_defaults(
+    tmp_path,
+) -> None:
+    settings = replace(
+        make_test_settings(tmp_path),
+        workspace_tenant_id="profile-tenant",
+        workspace_id="profile-workspace",
+        workspace_namespace="profile-namespace",
+        workspace_session_id="profile-session",
+        workspace_agent_id="profile-agent",
+    )
+    key = workspace_from_settings(
+        settings,
+        tenant_id="  explicit-tenant  ",
+        workspace_id=None,
+        namespace=" explicit-namespace ",
+        session_id=None,
+        agent_id=" explicit-agent ",
+    )
+    another = workspace_from_settings(settings)
+    assert key.tenant_id == "explicit-tenant"
+    assert key.workspace_id == "profile-workspace"
+    assert key.namespace == "explicit-namespace"
+    assert key.session_id == "profile-session"
+    assert key.agent_id == "explicit-agent"
+    assert key.workspace_id != "default"
+    assert key.trace_id != another.trace_id

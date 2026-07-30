@@ -153,9 +153,13 @@ data directory Quiescent Backup 与隔离恢复，不承诺在线跨 SQLite 一�
 纯确定性 Action Hint 和委托 canonical UserTaskService 的 revision-aware 薄入口。API
 由共享 request-to-WorkspaceKey 适配器统一传递 tenant、workspace、namespace、
 session、agent 与 trace；缺失 header 使用 Profile 默认值，显式空白 header 在访问
-任何 canonical source 前以 validation FailureInfo 拒绝。Phase 0
+任何 canonical source 前以 validation FailureInfo 拒绝。CLI 覆盖值遵循相同的
+fail-closed 边界：`None` 使用 Profile 默认值，非空值先 `strip()`，显式空白值不得
+回退 Profile 或 `default` workspace。Phase 0
 自动化门禁已覆盖 partial-start rollback、重复 shutdown、持续 tick、连接观测和新容器恢复。
-Action Hint 不写数据库、不发布事件、不调用 Provider，也不声明不存在的入口。
+Action Hint 不写数据库、不发布事件、不调用 Provider，也不声明不存在的入口；Reminder
+reschedule 的 idempotency key 是可选保护能力，Inbox Waiting-For Hint 只声明真实入口
+可直接接收的参数。
 
 RFC-029、ADR-063 与 ADR-064 的规划决策保持不变；ACC-020 仍为 Planning Baseline /
 NOT_EXECUTED，正式执行必须等待独立审查冻结 Implementation Head。

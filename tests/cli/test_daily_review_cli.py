@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 def _run(tmp_path, *args: str):
     env = os.environ.copy()
@@ -79,3 +81,26 @@ def test_daily_review_cli_yesterday_human_and_invalid_date(tmp_path):
     invalid = _run(tmp_path, "--date", "tomorrow")
     assert invalid.returncode != 0
     assert "invalid choice" in invalid.stderr
+
+
+@pytest.mark.parametrize(
+    "option",
+    [
+        "--tenant-id",
+        "--workspace-id",
+        "--namespace",
+        "--session-id",
+        "--agent-id",
+    ],
+)
+def test_daily_review_cli_blank_workspace_override_fails_before_storage(
+    tmp_path,
+    option,
+):
+    result = _run(tmp_path, "--date", "today", option, "   ", "--json")
+
+    assert result.returncode != 0
+    assert "workspace.cli_override_invalid" in result.stderr
+    assert "must not be blank" in result.stderr
+    assert result.stdout == ""
+    assert not (tmp_path / "sqlite").exists()

@@ -112,10 +112,9 @@ _DECISIONS: dict[tuple[str, str, str], tuple[_HintSpec, ...]] = {
                 "expected_revision",
                 "scheduled_for",
                 "timezone",
-                "idempotency_key",
             ),
             requires_revision=True,
-            requires_idempotency_key=True,
+            requires_idempotency_key=False,
             entrypoints=(
                 "api:PATCH /reminders/{id}",
                 "cli:reminder-reschedule",
@@ -132,10 +131,9 @@ _DECISIONS: dict[tuple[str, str, str], tuple[_HintSpec, ...]] = {
                     "expected_revision",
                     "scheduled_for",
                     "timezone",
-                    "idempotency_key",
                 ),
                 requires_revision=True,
-                requires_idempotency_key=True,
+                requires_idempotency_key=False,
                 entrypoints=(
                     "api:PATCH /reminders/{id}",
                     "cli:reminder-reschedule",
@@ -166,7 +164,13 @@ _DECISIONS: dict[tuple[str, str, str], tuple[_HintSpec, ...]] = {
         ),
         _inbox(
             "resolve_to_waiting_for",
-            ("source_id", "subject", "waiting_on", "confirmation_time"),
+            (
+                "source_id",
+                "subject",
+                "waiting_on",
+                "next_review_at",
+                "timezone",
+            ),
             "/inbox/{id}/resolve/waiting-for",
             "inbox resolve-waiting-for",
         ),

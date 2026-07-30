@@ -7,6 +7,8 @@
 - 新增正式 `daily-review` CLI、纯确定性 Action Hint，以及带显式 `expected_revision` 的 Review-to-Action UserTask complete/cancel 薄 API。
 - Phase 0 已通过自动化生命周期门禁，覆盖持续 Scheduler tick、一次性 Job、周期 health 快照、partial-start rollback、重复 shutdown、连接释放与新容器恢复。
 - 将 ACC-020 driver 从准备脚手架补全为可执行 Windows harness：prepare-only 保持未测量语义，rehearsal/formal 模式真实启动 Uvicorn、执行 A～V、Provider spy、静止备份与隔离恢复；正式 ACC-020 仍为 `PLANNING_BASELINE / NOT_EXECUTED`，等待独立审查冻结 Implementation Head。
+- 废弃 Head `bd858807262aa1b89cdb80644895afa970edcf64` 上断言覆盖不足的 rehearsal，分类为 `INVALID_ACCEPTANCE_HARNESS / DISCARDED / INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE`；该记录不是产品失败，原“22/22 PASS”无效，ACC-020 仍未执行。
+- 收紧 ACC-020 Driver：A～V 只能由完整结构化 checks 判定，证据分别落到真实命令/HTTP 日志、SQLite 快照、EventBus/Scheduler spy、shutdown/partial-start probe 与 source/restore 逐对象比较。
 - 收紧 Local Daily Profile、完整 WorkspaceKey、Action Hint 三元决策键、terminal stale revision、公共 TaskResponse 与 Scheduler health 公共读取合同。
 - 未新增 Schema、Migration、依赖或 CI；版本保持 `0.34.0`，Tag 与 GitHub Release 不变。
 

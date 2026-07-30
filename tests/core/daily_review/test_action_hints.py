@@ -115,6 +115,38 @@ def test_inbox_hint_uses_real_saga_entrypoints_without_revision():
     assert all(hint.requires_durable_claim for hint in hints)
     assert all(hint.saga_contract == "InboxResolutionClaim" for hint in hints)
     assert all(hint.available_entrypoints for hint in hints)
+    waiting_for = next(
+        hint
+        for hint in hints
+        if hint.allowed_action == "resolve_to_waiting_for"
+    )
+    assert waiting_for.required_arguments == (
+        "source_id",
+        "subject",
+        "waiting_on",
+        "next_review_at",
+        "timezone",
+    )
+    assert "confirmation_time" not in waiting_for.required_arguments
+
+
+@pytest.mark.parametrize("status", ["scheduled", "retrying"])
+def test_reminder_reschedule_hint_keeps_idempotency_optional(status):
+    hint, = build_action_hints(
+        _review(_item("reminder.due_soon", "reminder", status))
+    )
+
+    assert hint.required_arguments == (
+        "source_id",
+        "expected_revision",
+        "scheduled_for",
+        "timezone",
+    )
+    assert hint.requires_revision is True
+    assert hint.requires_idempotency_key is False
+    assert "idempotency_key" not in hint.required_arguments
+    assert "api:PATCH /reminders/{id}" in hint.available_entrypoints
+    assert "cli:reminder-reschedule" in hint.available_entrypoints
 
 
 @pytest.mark.parametrize(

@@ -94,3 +94,51 @@ def test_review_action_preserves_overdue_before_terminal_transition(tmp_path):
         )
         assert response.status_code == 200
         assert response.json()["overdue"] is False
+
+
+def test_reminder_reschedule_hint_executes_without_idempotency_key(tmp_path):
+    settings = make_test_settings(
+        tmp_path,
+        enable_scheduler=True,
+        enable_reminders=True,
+    )
+    with TestClient(create_app(settings)) as client:
+        task = client.post("/tasks", json={"title": "Reschedule from review"}).json()
+        reminder = client.post(
+            f"/tasks/{task['id']}/reminders",
+            json={
+                "remind_at": (
+                    datetime.now(UTC) + timedelta(minutes=10)
+                ).isoformat(),
+                "timezone": "UTC",
+            },
+        ).json()
+        hints = client.get("/daily-review/action-hints?date=today").json()
+        hint = next(
+            item
+            for item in hints
+            if item["source_id"] == reminder["id"]
+            and item["allowed_action"] == "reschedule"
+        )
+        assert hint["required_arguments"] == [
+            "source_id",
+            "expected_revision",
+            "scheduled_for",
+            "timezone",
+        ]
+        assert hint["requires_revision"] is True
+        assert hint["requires_idempotency_key"] is False
+        assert "idempotency_key" not in hint["required_arguments"]
+
+        response = client.patch(
+            f"/reminders/{reminder['id']}",
+            json={
+                "scheduled_for": (
+                    datetime.now(UTC) + timedelta(minutes=20)
+                ).isoformat(),
+                "timezone": "UTC",
+                "revision": reminder["revision"],
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["revision"] > reminder["revision"]
