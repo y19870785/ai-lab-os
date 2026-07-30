@@ -1786,13 +1786,56 @@ def _q_probe_assessment(probe: dict[str, Any]) -> dict[str, bool]:
         "run_count",
         "occurrence_count",
     }
+    def call_matches(
+        item: dict[str, Any],
+        *,
+        lifecycle_before: str,
+        lifecycle_after: str,
+        connection_count: int | None = None,
+    ) -> bool:
+        return (
+            required_call_fields <= set(item)
+            and item.get("exception") is None
+            and item.get("lifecycle_before") == lifecycle_before
+            and item.get("lifecycle_after") == lifecycle_after
+            and item.get("background_tasks") == 0
+            and item.get("job_count") == 1
+            and item.get("run_count") == 1
+            and item.get("occurrence_count") == 1
+            and (
+                connection_count is None
+                or item.get("connection_count") == connection_count
+            )
+        )
+
     scheduler_calls_real = (
         len(scheduler_calls) == 2
-        and all(required_call_fields <= set(item) for item in scheduler_calls)
+        and all(
+            call_matches(
+                item,
+                lifecycle_before="ready",
+                lifecycle_after="ready",
+            )
+            for item in scheduler_calls
+        )
     )
     container_calls_real = (
         len(container_calls) == 2
-        and all(required_call_fields <= set(item) for item in container_calls)
+        and call_matches(
+            container_calls[0],
+            lifecycle_before="ready",
+            lifecycle_after="stopped",
+            connection_count=0,
+        )
+        and call_matches(
+            container_calls[1],
+            lifecycle_before="stopped",
+            lifecycle_after="stopped",
+            connection_count=0,
+        )
+        and probe.get("final_lifecycle") == "stopped"
+        and probe.get("final_background_tasks") == 0
+        and probe.get("final_connection_count") == 0
     )
     nonempty_execution = (
         bool(job.get("job_id"))

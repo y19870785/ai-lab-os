@@ -62,6 +62,21 @@ FALSE_POSITIVE_SCENARIO_ASSERTIONS
 和内容标记。因此当时 A～V 的 PASS 结论没有充分断言支持。它不是产品失败，不改变
 ACC-020 A～V 的机器状态。
 
+Head `f2d7dd3d4c5cf6c999b8cdfd35a76d140e7fbae6`、Driver SHA-256
+`b6546cc3d30e2b3a3e37cef377267caa4714f1891e522e07111cbee9209d0be5`
+对应的运行正式分类为：
+
+```text
+INVALID_ACCEPTANCE_HARNESS /
+DISCARDED /
+SHUTDOWN_CALL_SUCCESS_NOT_ASSERTED
+```
+
+该 Driver 虽记录了两次 Scheduler shutdown 和两次 `SystemContainer.shutdown()` 调用，
+但 Scenario Q 仅验证调用记录存在，没有把每次调用的 exception、前后 lifecycle、
+background task、connection 以及 job/run/occurrence 数量纳入成功判定。因此该次 PASS
+没有充分依据。它不是产品失败，不改变 ACC-020 A～V 的机器状态。
+
 修订后的 Driver 禁止使用描述性 `_pass()` 直接完成场景。每个场景必须记录具名
 `checks`；每项包含 `expected`、`actual`、`passed` 与真实 `evidence_path`，且只有所有
 必需检查通过时场景才能 PASS。场景证据同时记录起止时间、真实入口、退出码或 HTTP

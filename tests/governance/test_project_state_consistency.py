@@ -1828,6 +1828,15 @@ def test_sp020_discarded_rehearsal_and_driver_contract_are_explicit() -> None:
         "INVALID_ACCEPTANCE_HARNESS /\nDISCARDED /\n"
         "FALSE_POSITIVE_SCENARIO_ASSERTIONS"
     ) in acceptance
+    assert "f2d7dd3d4c5cf6c999b8cdfd35a76d140e7fbae6" in combined
+    assert (
+        "b6546cc3d30e2b3a3e37cef377267caa4714f1891e522e07111cbee9209d0be5"
+        in combined
+    )
+    assert (
+        "INVALID_ACCEPTANCE_HARNESS /\nDISCARDED /\n"
+        "SHUTDOWN_CALL_SUCCESS_NOT_ASSERTED"
+    ) in acceptance
     assert "它不是产品失败，不改变\nACC-020 A～V 的机器状态" in acceptance
     assert "每项包含 `expected`、`actual`、`passed` 与真实 `evidence_path`" in acceptance
     assert "单独调用描述性 PASS helper\n不能绕过断言" in task

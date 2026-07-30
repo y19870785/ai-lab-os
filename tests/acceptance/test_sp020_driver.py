@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import importlib.util
 import json
@@ -466,17 +467,26 @@ def test_plain_error_string_cannot_satisfy_scenario_v(kind):
 
 
 def _complete_q_probe() -> dict[str, object]:
-    call = {
+    scheduler_call = {
         "started_at": "2026-01-01T00:00:00Z",
         "finished_at": "2026-01-01T00:00:01Z",
         "exception": None,
         "lifecycle_before": "ready",
-        "lifecycle_after": "stopped",
+        "lifecycle_after": "ready",
         "background_tasks": 0,
-        "connection_count": 0,
+        "connection_count": 7,
         "job_count": 1,
         "run_count": 1,
         "occurrence_count": 1,
+    }
+    first_container_call = {
+        **scheduler_call,
+        "lifecycle_after": "stopped",
+        "connection_count": 0,
+    }
+    second_container_call = {
+        **first_container_call,
+        "lifecycle_before": "stopped",
     }
     persisted = {
         "execution_count": 1,
@@ -492,8 +502,14 @@ def _complete_q_probe() -> dict[str, object]:
             "before_shutdown": persisted,
             "after_shutdown": dict(persisted),
         },
-        "scheduler_shutdown_calls": [dict(call), dict(call)],
-        "container_shutdown_calls": [dict(call), dict(call)],
+        "scheduler_shutdown_calls": [
+            dict(scheduler_call),
+            dict(scheduler_call),
+        ],
+        "container_shutdown_calls": [
+            first_container_call,
+            second_container_call,
+        ],
         "partial_start": {
             "failure": _complete_failure(),
             "restart_failure": _complete_failure(),
@@ -503,6 +519,7 @@ def _complete_q_probe() -> dict[str, object]:
             "background_tasks": 0,
             "connection_count": 0,
         },
+        "final_lifecycle": "stopped",
         "final_background_tasks": 0,
         "final_connection_count": 0,
     }
@@ -536,6 +553,110 @@ def test_q_completed_flags_cannot_replace_observed_calls():
     assessed = driver._q_probe_assessment(probe)
     assert assessed["external repeated shutdown"] is False
     assert assessed["double scheduler shutdown"] is False
+
+
+def test_q_complete_shutdown_call_evidence_passes():
+    assessed = driver._q_probe_assessment(_complete_q_probe())
+    assert assessed["double scheduler shutdown"] is True
+    assert assessed["external repeated shutdown"] is True
+    assert assessed["no duplicate execution"] is True
+
+
+@pytest.mark.parametrize(
+    ("calls_key", "check_name", "index"),
+    (
+        ("scheduler_shutdown_calls", "double scheduler shutdown", 0),
+        ("scheduler_shutdown_calls", "double scheduler shutdown", 1),
+        ("container_shutdown_calls", "external repeated shutdown", 0),
+        ("container_shutdown_calls", "external repeated shutdown", 1),
+    ),
+)
+def test_q_shutdown_exception_fails_corresponding_check(
+    calls_key,
+    check_name,
+    index,
+):
+    probe = _complete_q_probe()
+    probe[calls_key][index]["exception"] = {"code": "shutdown.failed"}
+    assert driver._q_probe_assessment(probe)[check_name] is False
+
+
+@pytest.mark.parametrize(
+    ("index", "field", "value"),
+    (
+        (0, "lifecycle_after", "failed"),
+        (1, "lifecycle_after", "failed"),
+        (1, "lifecycle_before", "ready"),
+    ),
+)
+def test_q_container_shutdown_requires_ready_stopped_stopped(
+    index,
+    field,
+    value,
+):
+    probe = _complete_q_probe()
+    probe["container_shutdown_calls"][index][field] = value
+    assert (
+        driver._q_probe_assessment(probe)["external repeated shutdown"]
+        is False
+    )
+
+
+def test_q_scheduler_shutdown_must_not_change_container_lifecycle():
+    probe = _complete_q_probe()
+    probe["scheduler_shutdown_calls"][0]["lifecycle_after"] = "stopped"
+    assert (
+        driver._q_probe_assessment(probe)["double scheduler shutdown"]
+        is False
+    )
+
+
+@pytest.mark.parametrize(
+    ("calls_key", "check_name", "index", "count_name"),
+    [
+        (calls_key, check_name, index, count_name)
+        for calls_key, check_name in (
+            ("scheduler_shutdown_calls", "double scheduler shutdown"),
+            ("container_shutdown_calls", "external repeated shutdown"),
+        )
+        for index in (0, 1)
+        for count_name in ("job_count", "run_count", "occurrence_count")
+    ],
+)
+def test_q_shutdown_count_change_fails_corresponding_check(
+    calls_key,
+    check_name,
+    index,
+    count_name,
+):
+    probe = _complete_q_probe()
+    probe[calls_key][index][count_name] = 2
+    assert driver._q_probe_assessment(probe)[check_name] is False
+
+
+def test_q_external_shutdown_requires_final_stopped_lifecycle():
+    probe = _complete_q_probe()
+    probe["final_lifecycle"] = "failed"
+    assert (
+        driver._q_probe_assessment(probe)["external repeated shutdown"]
+        is False
+    )
+
+
+def test_q_external_shutdown_requires_final_zero_connections():
+    probe = _complete_q_probe()
+    probe["final_connection_count"] = 1
+    assert (
+        driver._q_probe_assessment(probe)["external repeated shutdown"]
+        is False
+    )
+
+
+def test_q_mutating_probe_fixture_does_not_share_call_records():
+    probe = _complete_q_probe()
+    changed = copy.deepcopy(probe)
+    changed["scheduler_shutdown_calls"][0]["exception"] = {"code": "failed"}
+    assert probe["scheduler_shutdown_calls"][0]["exception"] is None
 
 
 def test_k_title_leak_fails_even_when_id_is_hidden():

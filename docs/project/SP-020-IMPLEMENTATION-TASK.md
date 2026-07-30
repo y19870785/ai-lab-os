@@ -179,6 +179,14 @@ Head `cf0444d27ed47aef8177f5eeea2efe5f3fdd14fb` 上使用 Driver SHA-256
 FALSE_POSITIVE_SCENARIO_ASSERTIONS`。Scenario V、Q 与 K 的实际断言不足以支持 PASS；
 这仍是 acceptance harness 问题，不是产品失败，不改变 ACC-020 A～V 的机器状态。
 
+Head `f2d7dd3d4c5cf6c999b8cdfd35a76d140e7fbae6` 上使用 Driver SHA-256
+`b6546cc3d30e2b3a3e37cef377267caa4714f1891e522e07111cbee9209d0be5`
+执行的 Replacement Rehearsal 已重新分类为
+`INVALID_ACCEPTANCE_HARNESS / DISCARDED /
+SHUTDOWN_CALL_SUCCESS_NOT_ASSERTED`。Scenario Q 没有把两次 Scheduler shutdown 和
+两次 Container shutdown 的逐次异常、lifecycle 与持久数量纳入成功判定。这不是产品
+失败，不改变 ACC-020 A～V 的机器状态，Approved Implementation Head 仍未冻结。
+
 修订后的 Driver 只能通过完整结构化 checks 判定场景；单独调用描述性 PASS helper
 不能绕过断言。每项证据必须落到真实日志、JSON、SQLite 查询结果或快照，并覆盖安全
 响应事实、Workspace、revision/status、EventBus、Scheduler、shutdown、restart 与
