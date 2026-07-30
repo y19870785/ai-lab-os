@@ -1397,6 +1397,9 @@ def _execute(
     manifest_path: Path,
 ) -> None:
     repo = args.repository_root.resolve()
+    repository_path = str(repo)
+    if repository_path not in sys.path:
+        sys.path.insert(0, repository_path)
     source = args.source_data_root.resolve()
     restore = args.restore_data_root.resolve()
     evidence = args.evidence_dir.resolve()
@@ -4394,6 +4397,7 @@ def main() -> int:
     args = parse_args()
     driver = Path(__file__).resolve()
     manifest_path = args.evidence_dir.resolve() / "manifest.json"
+    record: dict[str, Any] = {}
     try:
         validated = validate_harness(args, driver)
         args.evidence_dir.mkdir(parents=True, exist_ok=True)
@@ -4410,7 +4414,7 @@ def main() -> int:
     except ProductAcceptanceError as exc:
         if manifest_path.parent.exists():
             try:
-                current = (
+                current = record or (
                     json.loads(manifest_path.read_text(encoding="utf-8"))
                     if manifest_path.exists()
                     else {}
@@ -4428,7 +4432,7 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001 - harness boundary
         if manifest_path.parent.exists():
             try:
-                current = (
+                current = record or (
                     json.loads(manifest_path.read_text(encoding="utf-8"))
                     if manifest_path.exists()
                     else {}

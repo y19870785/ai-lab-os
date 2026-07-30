@@ -465,6 +465,34 @@ def test_unexpected_driver_exception_is_invalid_harness(monkeypatch, tmp_path):
     assert manifest["status"] == driver.HARNESS_FAILURE
 
 
+def test_execute_adds_repository_root_for_runtime_contract_imports(
+    monkeypatch,
+    tmp_path,
+):
+    repo = (tmp_path / "repo").resolve()
+    repo.mkdir()
+    source = (tmp_path / "source").resolve()
+    restore = (tmp_path / "restore").resolve()
+    evidence = (tmp_path / "evidence").resolve()
+    args = SimpleNamespace(
+        repository_root=repo,
+        source_data_root=source,
+        restore_data_root=restore,
+        evidence_dir=evidence,
+    )
+    monkeypatch.setattr(
+        driver,
+        "_provider_spy",
+        lambda _evidence: (_ for _ in ()).throw(RuntimeError("stop after path")),
+    )
+    monkeypatch.setattr(driver.sys, "path", [
+        value for value in sys.path if value != str(repo)
+    ])
+    with pytest.raises(RuntimeError, match="stop after path"):
+        driver._execute(args, {}, evidence / "manifest.json")
+    assert driver.sys.path[0] == str(repo)
+
+
 def test_driver_uses_existing_work_log_http_status_contract():
     source = DRIVER.read_text(encoding="utf-8")
     assert source.count('"POST",\n            "/work-logs"') == 2
