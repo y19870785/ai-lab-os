@@ -3788,6 +3788,12 @@ def _execute(
     event_records = _read_json_lines(spy_root / "events.log")
     record["event_bus"] = event_records
     event_fields = {"topic", "event_type", "payload", "workspace", "trace_id", "timestamp"}
+    business_events = [
+        item
+        for item in event_records
+        if not item["topic"].startswith("scheduler.")
+        and item["topic"] != "acc020.after-stop"
+    ]
     _finish_scenario(
         record,
         "N",
@@ -3798,17 +3804,22 @@ def _execute(
                 f_event_before == f_event_after
                 and j_event_before == j_event_after
             ),
-            "mutations emit existing events": bool(event_records),
+            "mutations emit existing events": bool(business_events),
             "event workspace trace persisted": all(
                 event_fields <= set(item)
                 and item["workspace"]
-                and item["trace_id"]
                 for item in event_records
+            ) and all(
+                item["trace_id"]
+                and item["workspace"].get("workspace_id")
+                == record["workspace"]["workspace_id"]
+                for item in business_events
             ),
             "publish after stop fails closed": bool(q_probe["publish_after_stop_error"]),
         },
         evidence_payload={
             "events": event_records,
+            "business_events": business_events,
             "read_hint_counts": [f_event_before, f_event_after, j_event_before, j_event_after],
             "publish_after_stop_error": q_probe["publish_after_stop_error"],
         },
