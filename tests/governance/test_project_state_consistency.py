@@ -69,9 +69,9 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     ]
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] == "SP-020"
+    assert state["next_candidate_sp"] is None
 
 
 def test_sp015_release_baseline_is_archived_while_sp019_is_latest_work() -> None:
@@ -160,16 +160,15 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["merged_at"] == "2026-07-21T18:09:03Z"
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_020_planning_baseline_approved_merged_reconciled_"
-        "implementation_not_approved_not_started"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "passed_independent_evidence_review_approved_pending_ready_"
+        "transition_draft_pr_open"
     )
-    assert state["next_candidate_sp"] == "SP-020"
-    assert state["next_candidate_name"] == (
-        "Local Daily Operating Loop & Review-to-Action Closure"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -224,11 +223,11 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
-    assert "> 下一候选方向：本地日常运行循环与复盘到行动闭环" in text["brain"]
+    assert "> 下一候选方向：None" in text["brain"]
     assert f"> SP-015A 状态：{sp015a_status}" in text["brain"]
     assert f"> SP-015R 状态：{sp015r_status}" in text["brain"]
     assert "最近完成的 Product SP：SP-019" in text["brain"]
-    assert "当前 Product SP：None" in text["brain"]
+    assert "当前 Product SP：SP-020" in text["brain"]
     assert "ACC-016 状态：PASSED / FINAL" in text["brain"]
     assert "ACC-017 状态：PASSED / FINAL" in text["brain"]
     assert "Current governance task | None" in text["health"]
@@ -455,17 +454,16 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         "MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED"
     )
 
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
-    assert state["next_candidate_sp"] == "SP-020"
-    assert state["next_candidate_name"] == (
-        "Local Daily Operating Loop & Review-to-Action Closure"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "sp_020_planning_baseline_approved_merged_reconciled_"
-        "implementation_not_approved_not_started"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "passed_independent_evidence_review_approved_pending_ready_"
+        "transition_draft_pr_open"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -584,7 +582,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     )
     required_markers = (
         "SP-017 状态：APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED",
-        "当前 Product SP：None",
+            "当前 Product SP：SP-020",
         "RFC-026 Adopted",
         "ACC-017 状态：PASSED / FINAL",
         (
@@ -621,12 +619,10 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
 
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] == "SP-020"
-    assert state["next_candidate_name"] == (
-        "Local Daily Operating Loop & Review-to-Action Closure"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -880,17 +876,16 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
 
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] == "SP-020"
-    assert state["next_candidate_name"] == (
-        "Local Daily Operating Loop & Review-to-Action Closure"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert state["current_version"] == "0.34.0"
     assert state["version"] == "v0.34.0"
     assert state["development_status"] == (
-        "sp_020_planning_baseline_approved_merged_reconciled_"
-        "implementation_not_approved_not_started"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "passed_independent_evidence_review_approved_pending_ready_"
+        "transition_draft_pr_open"
     )
     assert state["current_work"] is None
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
@@ -1298,9 +1293,9 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     ) in roadmap
     assert (
         "> 最近完成的 Product SP：SP-019\n"
-        "> 当前 Product SP：None\n"
+        "> 当前 Product SP：SP-020\n"
         "> 当前治理任务：None\n"
-        "> 下一候选 Product SP：SP-020"
+        "> 下一候选 Product SP：None"
     ) in brain
     assert (
         "> SP-019 状态：APPROVED / MERGED / POST_MERGE_VERIFIED / "
@@ -1314,19 +1309,18 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert "> Current main:" not in brain
     assert "Latest Merged SP 为 SP-019" in project_status
     assert "Latest Completed SP 为 SP-019" in project_status
-    assert "Current Product SP 为 None" in project_status
+    assert "Current Product SP 为 SP-020" in project_status
     assert "Current Governance Task 为 None" in project_status
-    assert "Next Candidate SP 为 SP-020" in project_status
+    assert "Next Candidate SP 为 None" in project_status
     assert (
         "SP-019 Feature PR #51 已由 Acceptance Evidence Head "
         "`420da28664914fda8ccbecadf90947380ec43473` Squash Merge 为 main "
         "`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`"
     ) in project_status
-    assert "| Current product SP | None |" in project_health
+    assert "| Current product SP | SP-020 |" in project_health
     assert "| Current governance task | None |" in project_health
     assert (
-        "| Next candidate | SP-020 / Planning Baseline approved, merged and "
-        "reconciled |"
+        "| Next candidate | None |"
     ) in project_health
     assert (
         "| SP-019 Phase 0 | UserTask Workspace Query Closure / "
@@ -1348,37 +1342,37 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         "Quality Gate"
     ) in readme
     assert (
-        "GET /daily-review?date=today\n"
-        "GET /daily-review?date=yesterday\n"
-        "GET /brief\n"
+            "GET /daily-review?date=today\n"
+            "GET /daily-review?date=yesterday\n"
+            "GET /daily-review/action-hints?date=today\n"
+            "GET /brief\n"
         "CEO Assistant：今日简报 / 昨日简报"
     ) in readme
     assert (
         "Daily Review 只支持 `today` / `yesterday`，不持久化 Review "
-        "snapshot，不支持任意历史日期，不调用 LLM、不主动推送，且没有 "
-        "Daily Review CLI。"
+        "snapshot，不支持任意历史日期，不调用 LLM、不主动推送；CLI 与 API "
+        "复用同一个服务。"
     ) in readme
     for historical_document in (rfc, adr061, adr062, acceptance):
         assert "SP-020" not in historical_document
 
 
-def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
+def test_sp020_formal_acceptance_evidence_review_approved() -> None:
     state = _load_state()
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
     assert state["latest_merged_sp"] == "SP-019"
     assert state["latest_completed_sp"] == "SP-019"
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
     assert state["current_work"] is None
-    assert state["next_candidate_sp"] == "SP-020"
-    assert state["next_candidate_name"] == (
-        "Local Daily Operating Loop & Review-to-Action Closure"
-    )
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "sp_020_planning_baseline_approved_merged_reconciled_"
-        "implementation_not_approved_not_started"
+        "sp_020_implementation_approved_head_frozen_formal_acceptance_"
+        "passed_independent_evidence_review_approved_pending_ready_"
+        "transition_draft_pr_open"
     )
     assert state["current_version"] == "0.34.0"
     assert state["version"] == "v0.34.0"
@@ -1386,17 +1380,24 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
 
     assert sp020["status"] == (
-        "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
-        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+        "IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN / "
+        "FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / "
+        "PENDING_READY_TRANSITION / DRAFT_PR_OPEN"
     )
     assert sp020["planning_baseline_defined"] is True
     assert sp020["planning_baseline_approved"] is True
-    assert sp020["approved"] is False
-    assert sp020["implementation_started"] is False
-    assert sp020["implementation_complete"] is False
+    assert sp020["approved"] is True
+    assert sp020["implementation_started"] is True
+    assert sp020["implementation_complete"] is True
     assert sp020["completed"] is False
     assert sp020["reconciled"] is False
     assert sp020["archived"] is False
+    assert sp020["approved_implementation_head"] == (
+        "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+    )
+    assert sp020["acceptance_evidence_head"] == (
+        "7a0944f4ad1deadefe636bf5abc3d30175de0b4d"
+    )
     assert sp020["base_commit"] == (
         "934075ceefe39ede3c624b621b7673d62f6d06dd"
     )
@@ -1415,8 +1416,17 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
     assert sp020["target_version"] == "0.35.0"
     assert sp020["rfc"] == "RFC-029"
     assert sp020["adrs"] == ["ADR-063", "ADR-064"]
-    assert sp020["acceptance"] == "ACC-020 PLANNING_BASELINE / NOT_EXECUTED"
-    assert sp020["phase_0_status"] == "REQUIRED / NOT_STARTED"
+    assert sp020["acceptance"] == "ACC-020 PASSED / FINAL"
+    assert sp020["phase_0_status"] == "PASSED"
+    assert sp020["phase_1_status"] == "IMPLEMENTED"
+    assert sp020["phase_2_status"] == "IMPLEMENTED"
+    assert sp020["phase_3_status"] == "IMPLEMENTED"
+    assert sp020["implementation_base_commit"] == (
+        "1c398ffc3a093ab596dd93fd9f52b5e54bcfb4b2"
+    )
+    assert sp020["implementation_branch"] == (
+        "feat/sp-020-local-daily-operating-loop"
+    )
     assert sp020["implementation_authorization_contract"] == (
         "One explicit Owner authorization covers SP-020 implementation; "
         "Phase 0 is an internal mandatory quality gate and does not require "
@@ -1427,13 +1437,63 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         "split, or new architecture decision"
     )
 
-    assert acc020["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
-    assert acc020["manual_acceptance"] is False
+    assert acc020["status"] == "PASSED / FINAL"
+    assert acc020["manual_acceptance"] is True
+    assert acc020["independent_evidence_review"] == "APPROVED"
+    assert acc020["approved_implementation_head"] == (
+        "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+    )
+    assert acc020["driver_sha256"] == (
+        "99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5"
+    )
+    assert acc020["acceptance_evidence_head"] == (
+        "7a0944f4ad1deadefe636bf5abc3d30175de0b4d"
+    )
     assert acc020["scenarios"] == {
-        letter: "PLANNING_BASELINE / NOT_EXECUTED"
+        letter: "PASSED"
         for letter in "ABCDEFGHIJKLMNOPQRSTUV"
     }
-    assert "has not been executed" in "\n".join(acc020["notes"])
+    assert acc020["notes"] == [
+        (
+            "Formal Run ID: ai-lab-acc020-formal-20260730-175832-"
+            "eda685f89c274e6cb520c0aaa964b3dc"
+        ),
+        "Execution: ONE AND ONLY ONE",
+        (
+            "Frozen Implementation Head: "
+            "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+        ),
+        (
+            "Frozen Driver SHA-256: "
+            "99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5"
+        ),
+        "Provider Calls: 0",
+        "Evidence: 7a0944f4ad1deadefe636bf5abc3d30175de0b4d",
+        "Independent Evidence Review: APPROVED",
+        "Evidence Package: INTERNALLY CONSISTENT / SECRET-SAFE / APPROVED",
+    ]
+
+    evidence_root = (
+        ROOT
+        / "docs/acceptance/evidence/ACC-020"
+        / "ai-lab-acc020-formal-20260730-175832-"
+        "eda685f89c274e6cb520c0aaa964b3dc"
+    )
+    evidence_index = json.loads(
+        (evidence_root / "evidence-index.json").read_text(encoding="utf-8")
+    )
+    assert evidence_index["frozen_implementation_head"] == (
+        "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f"
+    )
+    assert evidence_index["frozen_driver_sha256"] == (
+        "99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5"
+    )
+    assert evidence_index["status"] == "FORMAL_ACCEPTANCE_COMPLETE"
+    assert evidence_index["provider_calls"] == 0
+    assert evidence_index["scenario_results"] == {
+        letter: "PASS"
+        for letter in "ABCDEFGHIJKLMNOPQRSTUV"
+    }
 
     paths = {
         "rfc": ROOT
@@ -1461,7 +1521,10 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
     assert (
         "- 规划后 main Quality Gate：`30441534383` / SUCCESS"
     ) in text["rfc"]
-    assert "- 产品实施：NOT APPROVED / NOT STARTED" in text["rfc"]
+    assert (
+        "- 产品实施：AUTHORIZED / IMPLEMENTED ON DRAFT PR / "
+        "PENDING INDEPENDENT REVIEW"
+    ) in text["rfc"]
     assert "- Status: Accepted" in text["adr063"]
     assert "- Status: Accepted" in text["adr064"]
     assert (
@@ -1480,10 +1543,8 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         "`DailyReviewService` 只读取五个 canonical service，不拥有数据库、EventBus、"
         in text["rfc"]
     )
-    assert (
-        "当前没有正式 `daily-review` CLI；`brief` CLI 只是通过 CEO Assistant 固定请求"
-        in text["rfc"]
-    )
+    assert "当前正式入口：" in text["rfc"]
+    assert "python -m cli daily-review --date today" in text["rfc"]
     assert (
         "`SystemContainer._run_shutdown()` 在同一流程中两次调用\n"
         "  `SchedulerRuntime.shutdown()`"
@@ -1520,6 +1581,33 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
     assert (
         "revision、idempotency、durable claim/Saga 与 confirmation 按动作分别声明"
         in text["adr063"]
+    )
+    assert (
+        "user_task + active + user_task.overdue|user_task.due_soon"
+        in text["rfc"]
+    )
+    assert (
+        "reminder + scheduled|retrying + reminder.due_soon"
+        in text["rfc"]
+    )
+    assert all(
+        action in text["rfc"]
+        for action in (
+            "resolve_to_task",
+            "resolve_to_reminder",
+            "resolve_to_work_log",
+            "resolve_to_waiting_for",
+            "resolve_as_note",
+            "dismiss",
+        )
+    )
+    assert (
+        "header 缺失时使用 Profile 默认值"
+        in text["rfc"]
+    )
+    assert (
+        "显式存在但为空白时，在读取或写入 canonical source 前返回稳定 validation"
+        in text["rfc"]
     )
     assert (
         "| Work Log | `wl_...`（另有只读 legacy） | list/get | create only |"
@@ -1568,17 +1656,16 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         "UserTask update:\n"
         "当前 Service 接受调用方 expected_revision；API PATCH 通过 revision 字段传入。\n\n"
         "UserTask complete/cancel:\n"
-        "当前 Service 会读取最新对象，并使用读取时的 current.revision 执行 repository update；\n"
-        "当前 API 与 Service 均不接受调用方提供的 expected_revision。\n\n"
-        "SP-020 future implementation decision:\n"
-        "Review-to-Action 的 UserTask complete/cancel 必须增加显式 expected_revision，\n"
-        "防止用户依据旧 Daily Review 操作已经变化的对象。"
+        "历史 `/tasks/{id}/complete|cancel` 兼容入口仍允许省略调用方 revision，并由 Service\n"
+        "读取最新对象后使用 current revision。SP-020 新增的 Review-to-Action 薄 API 与\n"
+        "Service 显式接受 `expected_revision`；无论 active 或已处于同一 terminal status，\n"
+        "stale revision 都先于 terminal idempotency 检查而 fail closed。\n\n"
+        "Review-to-Action decision:\n"
+        "UserTask complete/cancel 已增加显式 expected_revision，防止用户依据旧 Daily Review\n"
+        "操作已经变化的对象。"
     )
     assert user_task_revision_contract in text["rfc"]
-    assert (
-        "以上 `complete/cancel expected_revision` 是未来 SP-020 产品实现范围，不是当前能力。"
-        in text["rfc"]
-    )
+    assert "不是当前能力" not in text["rfc"]
     assert (
         "仅当\nAction Hint 声明 `requires_revision=true` 时，缺失或 stale revision 才必须 fail\n"
         "closed；需要 idempotency key、durable claim/Saga 或 confirmation 的动作分别按自身\n"
@@ -1608,7 +1695,9 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         "Planning Status:\n"
         "PLANNING_BASELINE_APPROVED / MERGED / RECONCILED\n\n"
         "Implementation:\n"
-        "NOT APPROVED / NOT STARTED"
+        "IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN /\n"
+        "FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED /\n"
+        "PENDING_READY_TRANSITION / DRAFT_PR_OPEN"
     ) in text["task"]
     assert "Phase 0 未通过不得进入 Phase 1。" in text["task"]
     assert "Version change:\nNOT AUTHORIZED" in text["task"]
@@ -1617,14 +1706,89 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
 
     for letter in "ABCDEFGHIJKLMNOPQRSTUV":
         assert f"## ACC-020-{letter} —" in text["acceptance"]
-    assert text["acceptance"].count(
-        "状态：PLANNING_BASELINE / NOT_EXECUTED"
-    ) == 22
-    assert "状态：PASSED" not in text["acceptance"]
-    assert "Real Provider calls: MUST remain 0" in text["acceptance"]
+    assert text["acceptance"].count("\n状态：PASSED") == 22
+    assert "状态：PLANNING_BASELINE / NOT_EXECUTED" not in text["acceptance"]
+    assert "- 真实 Provider 调用：0" in text["acceptance"]
     assert (
         "任何 Scheduler 重复执行/丢 job、shutdown 非幂等、数据目录静默漂移"
         in text["acceptance"]
+    )
+    assert (
+        "`--prepare-only` 只能生成 `PREPARED_NOT_EXECUTED` 清单"
+        in text["acceptance"]
+    )
+    assert (
+        "requires_revision/requires_idempotency_key/requires_confirmation/"
+        in text["acceptance"]
+    )
+    entrypoint_audit = json.loads(
+        (
+            ROOT / "docs/project/SP-020-ENTRYPOINT-AUDIT.json"
+        ).read_text(encoding="utf-8")
+    )
+    inbox_actions = {
+        entry["allowed_action"]: entry
+        for entry in entrypoint_audit["entries"]
+        if entry["source_type"] == "inbox"
+    }
+    assert set(inbox_actions) == {
+        "resolve_to_task",
+        "resolve_to_reminder",
+        "resolve_to_work_log",
+        "resolve_to_waiting_for",
+        "resolve_as_note",
+        "dismiss",
+    }
+    assert all(
+        "*" not in entry["existing_api_entrypoint"]
+        and "*" not in entry["existing_cli_entrypoint"]
+        and entry["saga_contract"] == "InboxResolutionClaim"
+        for entry in inbox_actions.values()
+    )
+    reminder_reschedule = next(
+        entry
+        for entry in entrypoint_audit["entries"]
+        if entry["source_type"] == "reminder"
+        and entry["allowed_action"] == "reschedule"
+    )
+    assert reminder_reschedule["required_arguments"] == [
+        "source_id",
+        "expected_revision",
+        "scheduled_for",
+        "timezone",
+    ]
+    assert (
+        reminder_reschedule["idempotency_contract"]
+        == "optional supported; not required"
+    )
+    assert inbox_actions["resolve_to_waiting_for"]["required_arguments"] == [
+        "source_id",
+        "subject",
+        "waiting_on",
+        "next_review_at",
+        "timezone",
+    ]
+    assert "confirmation_time" not in json.dumps(entrypoint_audit)
+    readme = (ROOT / "README.md").read_text(encoding="utf-8-sig")
+    launcher = (
+        ROOT / "scripts/start-local-daily.ps1"
+    ).read_text(encoding="utf-8-sig")
+    assert (
+        "Copy-Item .\\config\\local-daily.env.example .\\.env"
+        in readme
+    )
+    assert (
+        "& $Python -m cli profile --require-local-daily"
+        in readme
+    )
+    assert all(
+        contract in launcher
+        for contract in (
+            '$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path',
+            "Set-Location -LiteralPath $ProjectRoot",
+            "& $Python -m cli profile --require-local-daily",
+            "--host 127.0.0.1",
+        )
     )
 
     decision_index = (
@@ -1688,18 +1852,104 @@ def test_sp020_planning_merge_is_reconciled_without_implementation() -> None:
         "run `30387237549` / SUCCESS |"
     ) in project_health
     assert (
-        "| SP-020 | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / "
-        "IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |"
+        "| SP-020 | IMPLEMENTATION_APPROVED / "
+        "APPROVED_IMPLEMENTATION_HEAD_FROZEN / FORMAL_ACCEPTANCE_PASSED / "
+        "INDEPENDENT_EVIDENCE_REVIEW_APPROVED / PENDING_READY_TRANSITION / "
+        "DRAFT_PR_OPEN |"
     ) in project_health
+    assert (
+        "| Local Daily Loop / SP-020 | Implementation complete / "
+        "formal acceptance passed / evidence review approved | RFC-029 "
+        "Adopted；ADR-063、ADR-064 Accepted；ACC-020 PASSED / FINAL；"
+        "Draft PR 等待 Ready 转换 |"
+    ) in project_health
+
+
+def test_sp020_current_acceptance_state_is_consistent_across_documents() -> None:
+    current_status = (
+        "SP-020:\n"
+        "IMPLEMENTATION_APPROVED /\n"
+        "APPROVED_IMPLEMENTATION_HEAD_FROZEN /\n"
+        "FORMAL_ACCEPTANCE_PASSED /\n"
+        "INDEPENDENT_EVIDENCE_REVIEW_APPROVED /\n"
+        "PENDING_READY_TRANSITION /\n"
+        "DRAFT_PR_OPEN\n\n"
+        "ACC-020:\n"
+        "PASSED / FINAL\n\n"
+        "Approved Implementation Head:\n"
+        "1c9b69ee45b4e1545b67ecd841cc217e23d4f38f\n\n"
+        "Acceptance Evidence Head:\n"
+        "7a0944f4ad1deadefe636bf5abc3d30175de0b4d\n\n"
+        "Formal Run:\n"
+        "ai-lab-acc020-formal-20260730-175832-"
+        "eda685f89c274e6cb520c0aaa964b3dc\n\n"
+        "Provider Calls:\n"
+        "0\n\n"
+        "Evidence Review:\n"
+        "APPROVED"
+    )
+    current_documents = (
+        ROOT / "docs/project/PROJECT_BRAIN.md",
+        ROOT / "docs/project/PROJECT_STATUS.md",
+        ROOT / "docs/project/PROJECT_HEALTH.md",
+        ROOT / "docs/acceptance/SP-020-local-daily-operating-loop.md",
+        ROOT / "docs/project/SP-020-IMPLEMENTATION-TASK.md",
+    )
+
+    for path in current_documents:
+        assert current_status in path.read_text(encoding="utf-8-sig")
+
+
+def test_sp020_discarded_rehearsal_and_driver_contract_are_explicit() -> None:
+    acceptance = (
+        ROOT / "docs/acceptance/SP-020-local-daily-operating-loop.md"
+    ).read_text(encoding="utf-8-sig")
+    task = (
+        ROOT / "docs/project/SP-020-IMPLEMENTATION-TASK.md"
+    ).read_text(encoding="utf-8-sig")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8-sig")
+    combined = f"{acceptance}\n{task}\n{changelog}"
+
+    assert "bd858807262aa1b89cdb80644895afa970edcf64" in combined
+    assert "0782c6c1d217ad5e6bac78e93cc47e3925d17c3c79fabff0135836c4d072a36c" in combined
+    assert (
+        "INVALID_ACCEPTANCE_HARNESS /\nDISCARDED /\n"
+        "INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE"
+    ) in acceptance
+    assert "原“22/22 PASS”结论无效" in acceptance
+    assert "它不是产品失败" in acceptance
+    assert "Approved Implementation Head 仍未冻结" in task
+    assert "ACC-020 仍未执行" in task
+    assert "cf0444d27ed47aef8177f5eeea2efe5f3fdd14fb" in combined
+    assert (
+        "5f2a8f51e5d964a7e66b58f800bd26eba70781bca7754a81b38e6664d5c72147"
+        in combined
+    )
+    assert (
+        "INVALID_ACCEPTANCE_HARNESS /\nDISCARDED /\n"
+        "FALSE_POSITIVE_SCENARIO_ASSERTIONS"
+    ) in acceptance
+    assert "f2d7dd3d4c5cf6c999b8cdfd35a76d140e7fbae6" in combined
+    assert (
+        "b6546cc3d30e2b3a3e37cef377267caa4714f1891e522e07111cbee9209d0be5"
+        in combined
+    )
+    assert (
+        "INVALID_ACCEPTANCE_HARNESS /\nDISCARDED /\n"
+        "SHUTDOWN_CALL_SUCCESS_NOT_ASSERTED"
+    ) in acceptance
+    assert "它不是产品失败，不改变\nACC-020 A～V 的机器状态" in acceptance
+    assert "每项包含 `expected`、`actual`、`passed` 与真实 `evidence_path`" in acceptance
+    assert "单独调用描述性 PASS helper\n不能绕过断言" in task
 
 
 def test_docs001_is_reconciled_and_archived() -> None:
     state = _load_state()
     docs001 = state["governance_tasks"]["DOCS-001"]
 
-    assert state["current_sp"] is None
+    assert state["current_sp"] == "SP-020"
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] == "SP-020"
+    assert state["next_candidate_sp"] is None
     assert docs001 == {
         "name": (
             "Repository Markdown Chinese Standardization and "
@@ -1725,11 +1975,6 @@ def test_docs001_is_reconciled_and_archived() -> None:
         "release_changed": False,
     }
 
-    sp020 = state["sp_records"]["SP-020"]
-    acc020 = state["acceptance_records"]["ACC-020"]
-    assert sp020["approved"] is False
-    assert sp020["implementation_started"] is False
-    assert acc020["status"] == "PLANNING_BASELINE / NOT_EXECUTED"
     assert state["current_version"] == "0.34.0"
     assert state["release_status"]["authorized_tag"] == "v0.34.0"
 
@@ -1748,7 +1993,8 @@ def test_docs001_is_reconciled_and_archived() -> None:
     )
     assert "176 个 Git 跟踪 Markdown 文件" in current_governance_docs
     assert "30462290819" in current_governance_docs
-    assert "PENDING_INDEPENDENT_REVIEW" not in current_governance_docs
-    assert "DRAFT_PR_OPEN" not in current_governance_docs
+    assert "INDEPENDENT_EVIDENCE_REVIEW_APPROVED" in current_governance_docs
+    assert "ACC-020 | PASSED / FINAL" in current_governance_docs
+    assert "DRAFT_PR_OPEN" in current_governance_docs
     assert "Current Governance Task: DOCS-001" not in current_governance_docs
     assert "当前治理任务：DOCS-001" not in current_governance_docs

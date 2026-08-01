@@ -1,0 +1,764 @@
+{
+  "formal_run_id": "ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc",
+  "source_manifest_before_restore": [
+    {
+      "path": "sqlite/decision.db",
+      "size": 20480,
+      "sha256": "391e7d7ccc83194d688dcca92b833fd58d15e99ef149163506338aa296a0db44"
+    },
+    {
+      "path": "sqlite/decision.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/decision.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/episodic.db",
+      "size": 24576,
+      "sha256": "924a7a647c6f50270c9d5c9f3aa2545064099b0523f08ec85463d090dda0d926"
+    },
+    {
+      "path": "sqlite/episodic.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/episodic.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/followups.db",
+      "size": 40960,
+      "sha256": "bf5e527ac4219d9c306605b439ee6aa8dda9c3f2bcca02d1d5d13686aff8813c"
+    },
+    {
+      "path": "sqlite/followups.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/followups.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/inbox.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/inbox.db-shm",
+      "size": 32768,
+      "sha256": "f987e3873763b0c735b425729e8aa41f429c1a9767b24e5b86be5fb78620bf58"
+    },
+    {
+      "path": "sqlite/inbox.db-wal",
+      "size": 156592,
+      "sha256": "e6d2689ccb83b7d9c5f391fad25470c48259842147eeb98ec3beb60208dc3914"
+    },
+    {
+      "path": "sqlite/reminders.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/reminders.db-shm",
+      "size": 32768,
+      "sha256": "f09d3d65c711a0c9e02e736cac60116820b567988c5c2b990bffe4a4f4b76da8"
+    },
+    {
+      "path": "sqlite/reminders.db-wal",
+      "size": 156592,
+      "sha256": "0ca505b410dec41e3738d6925f2f640a56851eb010e63bb5edfaf274b1254405"
+    },
+    {
+      "path": "sqlite/scheduler.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/scheduler.db-shm",
+      "size": 32768,
+      "sha256": "8a7d41bdd575c8a179fe3556dab092165f8efdd9e10782467d98cc50415cf7d9"
+    },
+    {
+      "path": "sqlite/scheduler.db-wal",
+      "size": 123632,
+      "sha256": "9cf8fe0b00135d33c39b29bab8a1ce834eaa06237217ff9394d7d950442be7ad"
+    },
+    {
+      "path": "sqlite/semantic.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/semantic.db-shm",
+      "size": 32768,
+      "sha256": "57b24cd3b142e9ec74d775f1f1ae57f6e3015f30cadc1661b4947a3389ba6679"
+    },
+    {
+      "path": "sqlite/semantic.db-wal",
+      "size": 28872,
+      "sha256": "e6d306ba02451cf760d5f686769d32b8782a779df44a7f06addc1543432cdc44"
+    },
+    {
+      "path": "sqlite/tasks.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/tasks.db-shm",
+      "size": 32768,
+      "sha256": "7f4274912d67240c29b08081217a8f1f213ae89693bc75218c1983894924f48d"
+    },
+    {
+      "path": "sqlite/tasks.db-wal",
+      "size": 144232,
+      "sha256": "dc38b8f37f256393622c9be30c7f8b7dc39807b1eaa75242594a6edcd4f446b8"
+    }
+  ],
+  "source_manifest_after_restore": [
+    {
+      "path": "sqlite/decision.db",
+      "size": 20480,
+      "sha256": "391e7d7ccc83194d688dcca92b833fd58d15e99ef149163506338aa296a0db44"
+    },
+    {
+      "path": "sqlite/decision.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/decision.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/episodic.db",
+      "size": 24576,
+      "sha256": "924a7a647c6f50270c9d5c9f3aa2545064099b0523f08ec85463d090dda0d926"
+    },
+    {
+      "path": "sqlite/episodic.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/episodic.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/followups.db",
+      "size": 40960,
+      "sha256": "bf5e527ac4219d9c306605b439ee6aa8dda9c3f2bcca02d1d5d13686aff8813c"
+    },
+    {
+      "path": "sqlite/followups.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/followups.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/inbox.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/inbox.db-shm",
+      "size": 32768,
+      "sha256": "f987e3873763b0c735b425729e8aa41f429c1a9767b24e5b86be5fb78620bf58"
+    },
+    {
+      "path": "sqlite/inbox.db-wal",
+      "size": 156592,
+      "sha256": "e6d2689ccb83b7d9c5f391fad25470c48259842147eeb98ec3beb60208dc3914"
+    },
+    {
+      "path": "sqlite/reminders.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/reminders.db-shm",
+      "size": 32768,
+      "sha256": "f09d3d65c711a0c9e02e736cac60116820b567988c5c2b990bffe4a4f4b76da8"
+    },
+    {
+      "path": "sqlite/reminders.db-wal",
+      "size": 156592,
+      "sha256": "0ca505b410dec41e3738d6925f2f640a56851eb010e63bb5edfaf274b1254405"
+    },
+    {
+      "path": "sqlite/scheduler.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/scheduler.db-shm",
+      "size": 32768,
+      "sha256": "8a7d41bdd575c8a179fe3556dab092165f8efdd9e10782467d98cc50415cf7d9"
+    },
+    {
+      "path": "sqlite/scheduler.db-wal",
+      "size": 123632,
+      "sha256": "9cf8fe0b00135d33c39b29bab8a1ce834eaa06237217ff9394d7d950442be7ad"
+    },
+    {
+      "path": "sqlite/semantic.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/semantic.db-shm",
+      "size": 32768,
+      "sha256": "57b24cd3b142e9ec74d775f1f1ae57f6e3015f30cadc1661b4947a3389ba6679"
+    },
+    {
+      "path": "sqlite/semantic.db-wal",
+      "size": 28872,
+      "sha256": "e6d306ba02451cf760d5f686769d32b8782a779df44a7f06addc1543432cdc44"
+    },
+    {
+      "path": "sqlite/tasks.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/tasks.db-shm",
+      "size": 32768,
+      "sha256": "7f4274912d67240c29b08081217a8f1f213ae89693bc75218c1983894924f48d"
+    },
+    {
+      "path": "sqlite/tasks.db-wal",
+      "size": 144232,
+      "sha256": "dc38b8f37f256393622c9be30c7f8b7dc39807b1eaa75242594a6edcd4f446b8"
+    }
+  ],
+  "restore_manifest": [
+    {
+      "path": "sqlite/decision.db",
+      "size": 20480,
+      "sha256": "391e7d7ccc83194d688dcca92b833fd58d15e99ef149163506338aa296a0db44"
+    },
+    {
+      "path": "sqlite/decision.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/decision.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/episodic.db",
+      "size": 24576,
+      "sha256": "924a7a647c6f50270c9d5c9f3aa2545064099b0523f08ec85463d090dda0d926"
+    },
+    {
+      "path": "sqlite/episodic.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/episodic.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/followups.db",
+      "size": 40960,
+      "sha256": "bf5e527ac4219d9c306605b439ee6aa8dda9c3f2bcca02d1d5d13686aff8813c"
+    },
+    {
+      "path": "sqlite/followups.db-shm",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "sqlite/followups.db-wal",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sqlite/inbox.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/inbox.db-shm",
+      "size": 32768,
+      "sha256": "f987e3873763b0c735b425729e8aa41f429c1a9767b24e5b86be5fb78620bf58"
+    },
+    {
+      "path": "sqlite/inbox.db-wal",
+      "size": 156592,
+      "sha256": "e6d2689ccb83b7d9c5f391fad25470c48259842147eeb98ec3beb60208dc3914"
+    },
+    {
+      "path": "sqlite/reminders.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/reminders.db-shm",
+      "size": 32768,
+      "sha256": "f09d3d65c711a0c9e02e736cac60116820b567988c5c2b990bffe4a4f4b76da8"
+    },
+    {
+      "path": "sqlite/reminders.db-wal",
+      "size": 156592,
+      "sha256": "0ca505b410dec41e3738d6925f2f640a56851eb010e63bb5edfaf274b1254405"
+    },
+    {
+      "path": "sqlite/scheduler.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/scheduler.db-shm",
+      "size": 32768,
+      "sha256": "8a7d41bdd575c8a179fe3556dab092165f8efdd9e10782467d98cc50415cf7d9"
+    },
+    {
+      "path": "sqlite/scheduler.db-wal",
+      "size": 123632,
+      "sha256": "9cf8fe0b00135d33c39b29bab8a1ce834eaa06237217ff9394d7d950442be7ad"
+    },
+    {
+      "path": "sqlite/semantic.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/semantic.db-shm",
+      "size": 32768,
+      "sha256": "57b24cd3b142e9ec74d775f1f1ae57f6e3015f30cadc1661b4947a3389ba6679"
+    },
+    {
+      "path": "sqlite/semantic.db-wal",
+      "size": 28872,
+      "sha256": "e6d306ba02451cf760d5f686769d32b8782a779df44a7f06addc1543432cdc44"
+    },
+    {
+      "path": "sqlite/tasks.db",
+      "size": 4096,
+      "sha256": "42f67cde08aaa4db17432058fdd3521a7199a1dfd4afe740ca486d6b49226302"
+    },
+    {
+      "path": "sqlite/tasks.db-shm",
+      "size": 32768,
+      "sha256": "7f4274912d67240c29b08081217a8f1f213ae89693bc75218c1983894924f48d"
+    },
+    {
+      "path": "sqlite/tasks.db-wal",
+      "size": 144232,
+      "sha256": "dc38b8f37f256393622c9be30c7f8b7dc39807b1eaa75242594a6edcd4f446b8"
+    }
+  ],
+  "source_restore_comparison": {
+    "task": true,
+    "reminder": true,
+    "waiting": true,
+    "waiting_history": true,
+    "inbox": true,
+    "work_log": true,
+    "agenda": true,
+    "today": true,
+    "yesterday": true,
+    "sqlite": true
+  },
+  "scenario_s": {
+    "result": "PASS",
+    "started_at": "2026-07-30T09:58:48.269750+00:00",
+    "ended_at": "2026-07-30T09:58:48.306815+00:00",
+    "entrypoints": [
+      "static filesystem copy after P/Q"
+    ],
+    "exit_codes": [
+      3,
+      3
+    ],
+    "http_statuses": [],
+    "response_facts": {
+      "file_count": 24
+    },
+    "object_ids": [
+      "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+      "inbox_3af83c69af35495ea7877a98ad00288b",
+      "wf_a231f325c07945c98421c57081cdbbc8",
+      "wl_c818cd5ef9e04dc7957a52aa13665d37",
+      "ut_f2fe45a3186b4c10af23250db7b655cb",
+      "rem_b8c8bf6845b34595a95ff463a168edd0"
+    ],
+    "workspace": {
+      "tenant_id": "acc020-tenant",
+      "workspace_id": "acc020-workspace",
+      "namespace": "daily",
+      "session_id": "acc020-session",
+      "agent_id": "acc020-driver"
+    },
+    "revision_status": [
+      {
+        "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "before": 1,
+        "after": 2
+      }
+    ],
+    "database_evidence": [
+      "sqlite/decision.db",
+      "sqlite/decision.db-shm",
+      "sqlite/decision.db-wal",
+      "sqlite/episodic.db",
+      "sqlite/episodic.db-shm",
+      "sqlite/episodic.db-wal",
+      "sqlite/followups.db",
+      "sqlite/followups.db-shm",
+      "sqlite/followups.db-wal",
+      "sqlite/inbox.db",
+      "sqlite/inbox.db-shm",
+      "sqlite/inbox.db-wal",
+      "sqlite/reminders.db",
+      "sqlite/reminders.db-shm",
+      "sqlite/reminders.db-wal",
+      "sqlite/scheduler.db",
+      "sqlite/scheduler.db-shm",
+      "sqlite/scheduler.db-wal",
+      "sqlite/semantic.db",
+      "sqlite/semantic.db-shm",
+      "sqlite/semantic.db-wal",
+      "sqlite/tasks.db",
+      "sqlite/tasks.db-shm",
+      "sqlite/tasks.db-wal"
+    ],
+    "spy_evidence": [
+      "shutdown.log"
+    ],
+    "checks": [
+      {
+        "name": "complete file inventory",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-S-evidence.json"
+      },
+      {
+        "name": "no product process during copy",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-S-evidence.json"
+      },
+      {
+        "name": "shutdown gates passed before copy",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-S-evidence.json"
+      },
+      {
+        "name": "size and sha256",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-S-evidence.json"
+      }
+    ],
+    "evidence_paths": [
+      "scenario-S-evidence.json",
+      "scenario-S.json"
+    ]
+  },
+  "scenario_t": {
+    "result": "PASS",
+    "started_at": "2026-07-30T09:58:48.307814+00:00",
+    "ended_at": "2026-07-30T09:58:49.538116+00:00",
+    "entrypoints": [
+      "isolated absolute restore profile",
+      "filesystem manifests"
+    ],
+    "exit_codes": [
+      3
+    ],
+    "http_statuses": [],
+    "response_facts": {
+      "restore_root": "<RESTORE_ROOT>"
+    },
+    "object_ids": [
+      "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+      "inbox_3af83c69af35495ea7877a98ad00288b",
+      "wf_a231f325c07945c98421c57081cdbbc8",
+      "wl_c818cd5ef9e04dc7957a52aa13665d37",
+      "ut_f2fe45a3186b4c10af23250db7b655cb",
+      "rem_b8c8bf6845b34595a95ff463a168edd0",
+      "wl_c10df67044ee4bb39d45cceacd163003"
+    ],
+    "workspace": {
+      "tenant_id": "acc020-tenant",
+      "workspace_id": "acc020-workspace",
+      "namespace": "daily",
+      "session_id": "acc020-session",
+      "agent_id": "acc020-driver"
+    },
+    "revision_status": [
+      {
+        "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "before": 1,
+        "after": 2
+      }
+    ],
+    "database_evidence": [
+      "sqlite/decision.db",
+      "sqlite/decision.db-shm",
+      "sqlite/decision.db-wal",
+      "sqlite/episodic.db",
+      "sqlite/episodic.db-shm",
+      "sqlite/episodic.db-wal",
+      "sqlite/followups.db",
+      "sqlite/followups.db-shm",
+      "sqlite/followups.db-wal",
+      "sqlite/inbox.db",
+      "sqlite/inbox.db-shm",
+      "sqlite/inbox.db-wal",
+      "sqlite/reminders.db",
+      "sqlite/reminders.db-shm",
+      "sqlite/reminders.db-wal",
+      "sqlite/scheduler.db",
+      "sqlite/scheduler.db-shm",
+      "sqlite/scheduler.db-wal",
+      "sqlite/semantic.db",
+      "sqlite/semantic.db-shm",
+      "sqlite/semantic.db-wal",
+      "sqlite/tasks.db",
+      "sqlite/tasks.db-shm",
+      "sqlite/tasks.db-wal"
+    ],
+    "spy_evidence": [
+      "shutdown.log"
+    ],
+    "checks": [
+      {
+        "name": "checkout data not accessed",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-T-evidence.json"
+      },
+      {
+        "name": "independent absolute profile",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-T-evidence.json"
+      },
+      {
+        "name": "source hashes unchanged",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-T-evidence.json"
+      },
+      {
+        "name": "source root not accessed",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-T-evidence.json"
+      }
+    ],
+    "evidence_paths": [
+      "scenario-T-evidence.json",
+      "scenario-T.json"
+    ]
+  },
+  "scenario_u": {
+    "result": "PASS",
+    "started_at": "2026-07-30T09:58:49.002070+00:00",
+    "ended_at": "2026-07-30T09:58:49.541117+00:00",
+    "entrypoints": [
+      "restore API",
+      "SQLite",
+      "post-restore Work Log append"
+    ],
+    "exit_codes": [],
+    "http_statuses": [
+      {
+        "method": "GET",
+        "path": "/tasks/ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/events",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/inbox/inbox_3af83c69af35495ea7877a98ad00288b",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/work-logs/wl_c818cd5ef9e04dc7957a52aa13665d37",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/agenda",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/daily-review?date=today",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/daily-review?date=yesterday",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/work-logs",
+        "status": 200
+      }
+    ],
+    "response_facts": {
+      "comparison": {
+        "task": true,
+        "reminder": true,
+        "waiting": true,
+        "waiting_history": true,
+        "inbox": true,
+        "work_log": true,
+        "agenda": true,
+        "today": true,
+        "yesterday": true,
+        "sqlite": true
+      },
+      "appended_id": "wl_c10df67044ee4bb39d45cceacd163003"
+    },
+    "object_ids": [
+      "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+      "inbox_3af83c69af35495ea7877a98ad00288b",
+      "wf_a231f325c07945c98421c57081cdbbc8",
+      "wl_c818cd5ef9e04dc7957a52aa13665d37",
+      "ut_f2fe45a3186b4c10af23250db7b655cb",
+      "rem_b8c8bf6845b34595a95ff463a168edd0",
+      "wl_c10df67044ee4bb39d45cceacd163003"
+    ],
+    "workspace": {
+      "tenant_id": "acc020-tenant",
+      "workspace_id": "acc020-workspace",
+      "namespace": "daily",
+      "session_id": "acc020-session",
+      "agent_id": "acc020-driver"
+    },
+    "revision_status": [
+      {
+        "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "before": 1,
+        "after": 2
+      }
+    ],
+    "database_evidence": [
+      "source-state-sqlite.json",
+      "restore-state-sqlite.json"
+    ],
+    "spy_evidence": [
+      "shutdown.log"
+    ],
+    "checks": [
+      {
+        "name": "agenda equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "canonical ids equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "claims saga equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "history equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "jobs runs equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "restore append leaves source unchanged",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "revision status equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "today review equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      },
+      {
+        "name": "yesterday review equal",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-U-evidence.json"
+      }
+    ],
+    "evidence_paths": [
+      "scenario-U-evidence.json",
+      "scenario-U.json"
+    ]
+  }
+}

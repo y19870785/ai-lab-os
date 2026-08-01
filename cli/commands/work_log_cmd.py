@@ -6,26 +6,31 @@ import argparse
 import json
 
 from cli.runtime import execute_work_log_operation
+from cli.workspace import workspace_from_settings
+from core.system import load_system_settings
 from core.work_log import (
     WorkLogSource,
     WorkLogStatus,
 )
-from core.workspace.models import WorkspaceKey
 
 
 def _add_workspace(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--tenant-id", default="default")
-    parser.add_argument("--workspace-id", default="default")
-    parser.add_argument("--namespace", default="default")
+    parser.add_argument("--tenant-id")
+    parser.add_argument("--workspace-id")
+    parser.add_argument("--namespace")
+    parser.add_argument("--session-id")
+    parser.add_argument("--agent-id")
     parser.add_argument("--json", action="store_true")
 
 
-def _workspace(options) -> WorkspaceKey:
-    return WorkspaceKey(
+def _workspace(options):
+    return workspace_from_settings(
+        load_system_settings(),
         tenant_id=options.tenant_id,
         workspace_id=options.workspace_id,
         namespace=options.namespace,
-        trace_id="cli",
+        session_id=options.session_id,
+        agent_id=options.agent_id,
     )
 
 

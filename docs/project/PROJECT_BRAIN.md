@@ -2,14 +2,45 @@
 
 > 产品版本：v0.34.0
 > 最近完成的 Product SP：SP-019
-> 当前 Product SP：None
+> 当前 Product SP：SP-020
 > 当前治理任务：None
-> 下一候选 Product SP：SP-020
-> 下一候选方向：本地日常运行循环与复盘到行动闭环
-> SP-020 状态：PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
-> ACC-020 状态：PLANNING_BASELINE / NOT_EXECUTED
+> 下一候选 Product SP：None
+> 下一候选方向：None
+> SP-020 状态：IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN / FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / PENDING_READY_TRANSITION / DRAFT_PR_OPEN
+> ACC-020 状态：PASSED / FINAL
+> SP-020 已批准实现 Head：`1c9b69ee45b4e1545b67ecd841cc217e23d4f38f`
+> ACC-020 验收证据 Head：`7a0944f4ad1deadefe636bf5abc3d30175de0b4d`
+> ACC-020 正式运行：`ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc` / Provider Calls `0` / Evidence Review `APPROVED`
 > SP-020 设计：RFC-029 Adopted；ADR-063 与 ADR-064 Accepted
 > SP-020 规划合并：PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
+
+```text
+SP-020:
+IMPLEMENTATION_APPROVED /
+APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_PASSED /
+INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION /
+DRAFT_PR_OPEN
+
+ACC-020:
+PASSED / FINAL
+
+Approved Implementation Head:
+1c9b69ee45b4e1545b67ecd841cc217e23d4f38f
+
+Acceptance Evidence Head:
+7a0944f4ad1deadefe636bf5abc3d30175de0b4d
+
+Formal Run:
+ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc
+
+Provider Calls:
+0
+
+Evidence Review:
+APPROVED
+```
 > SP-016 状态：APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
 > ACC-016 状态：PASSED / FINAL
 > SP-017 状态：APPROVED / MERGED / ACCEPTED / RECONCILED / ARCHIVED
@@ -104,7 +135,7 @@ Mock Provider: only explicit mock/test profiles
   证明幂等、partial-start rollback、连接释放与 restart recovery，不能只依赖代码推断。
 - 备份默认只承诺优雅停机后的完整 data directory 复制与隔离恢复，不承诺在线跨库
   一致快照。
-- 以上均为 Planning Baseline；Implementation 未批准，ACC-020 未执行。
+- Implementation 已获授权，Phase 0 已通过，Phase 1～3 已实现并完成自动化验证；ACC-020 未执行。
 
 ### 数据与 Workspace 边界
 
@@ -226,4 +257,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 None，Current Governance Task 为 None，Next Candidate SP 为 SP-020。DOCS-001 已通过独立审查、合并、main Quality Gate、对账并封存。SP-020 Planning Baseline 已通过独立审查并合并、对账；Implementation 仍为 `NOT_APPROVED / NOT_STARTED`，ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。
+SP-016、SP-017、SP-018 与 SP-019 均已完成人工验收并封存；ACC-016、ACC-017、ACC-018、ACC-019 均为 PASSED / FINAL。Current Product SP 为 SP-020，Current Governance Task 为 None，Next Candidate SP 为 None。DOCS-001 已通过独立审查、合并、main Quality Gate、对账并封存。SP-020 Planning Baseline 已通过独立审查并合并、对账；Implementation 已完成并冻结批准实现 Head，正式 ACC-020 与独立证据复核均已通过，当前等待 Ready 转换。SP-020 尚未合并、完成、对账或封存。当前产品版本仍为 `0.34.0`，Tag 与 Release 未改变。

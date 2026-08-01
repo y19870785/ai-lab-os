@@ -1,0 +1,61 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:49.547117+00:00",
+  "ended_at": "2026-07-30T09:58:49.548117+00:00",
+  "entrypoints": [
+    "provider spy across startup/read/hint/mutation/restart/restore"
+  ],
+  "exit_codes": [
+    3,
+    3,
+    3
+  ],
+  "http_statuses": [],
+  "response_facts": {
+    "provider_calls": 0
+  },
+  "object_ids": [
+    "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+    "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "wf_a231f325c07945c98421c57081cdbbc8",
+    "wl_c818cd5ef9e04dc7957a52aa13665d37",
+    "ut_f2fe45a3186b4c10af23250db7b655cb",
+    "rem_b8c8bf6845b34595a95ff463a168edd0",
+    "wl_c10df67044ee4bb39d45cceacd163003"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "before": 1,
+      "after": 2
+    }
+  ],
+  "database_evidence": [],
+  "spy_evidence": [
+    "calls.log"
+  ],
+  "checks": [
+    {
+      "name": "provider calls zero",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-L-evidence.json"
+    },
+    {
+      "name": "provider spy installed",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-L-evidence.json"
+    }
+  ]
+}

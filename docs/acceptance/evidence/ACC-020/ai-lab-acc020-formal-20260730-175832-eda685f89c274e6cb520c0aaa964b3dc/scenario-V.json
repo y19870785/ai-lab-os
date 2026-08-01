@@ -1,0 +1,136 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:49.542118+00:00",
+  "ended_at": "2026-07-30T09:58:49.546116+00:00",
+  "entrypoints": [
+    "profile validation subprocesses",
+    "API FailureInfo responses",
+    "Reminder idempotency replay",
+    "Inbox Saga replay"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "GET",
+      "path": "/daily-review?date=invalid",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/ut_missing",
+      "status": 404
+    }
+  ],
+  "response_facts": {
+    "date_status": 400,
+    "not_found_status": 404
+  },
+  "object_ids": [
+    "rem_b8c8bf6845b34595a95ff463a168edd0",
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "wf_inbox_71e2192872dcec03744a672d"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "before": 1,
+      "after": 2
+    }
+  ],
+  "database_evidence": [
+    "source-state-sqlite.json",
+    "restore-state-sqlite.json"
+  ],
+  "spy_evidence": [
+    "events.log",
+    "shutdown.log",
+    "partial-start-probe.json",
+    "failures.log"
+  ],
+  "checks": [
+    {
+      "name": "auth failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "config failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "date query failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "dependency scheduler failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "failure fields secret safe",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "idempotency and saga replay",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "not found failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "shutdown restore failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "stale revision failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "unsupported state failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    },
+    {
+      "name": "workspace failure info",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-V-evidence.json"
+    }
+  ]
+}

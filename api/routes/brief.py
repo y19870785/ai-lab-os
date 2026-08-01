@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends, Request
 
 from api.dependencies import get_runtime
 from api.models import ChatResponse
+from api.workspace import workspace_from_request
 from applications.models import ApplicationRequest
 from applications.runtime import ApplicationRuntime
-from core.workspace.models import WorkspaceKey
 
 router = APIRouter(prefix="/brief", tags=["brief"])
 
@@ -18,12 +18,7 @@ async def get_brief(
     app_req = ApplicationRequest(
         application_name="ceo-assistant",
         user_input="今日简报",
-        workspace_key=WorkspaceKey(
-            tenant_id=getattr(request.state, "tenant_id", "default"),
-            workspace_id=getattr(request.state, "workspace_id", "default"),
-            namespace=getattr(request.state, "namespace", "default"),
-            trace_id=getattr(request.state, "trace_id", ""),
-        ),
+        workspace_key=workspace_from_request(request),
     )
     resp = await runtime.execute(app_req)
     return ChatResponse(

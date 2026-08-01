@@ -1,0 +1,109 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:39.972741+00:00",
+  "ended_at": "2026-07-30T09:58:40.024155+00:00",
+  "entrypoints": [
+    "GET /daily-review?date=today after mutations"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "GET",
+      "path": "/daily-review?date=today",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "review_ids": [
+      "wl_c818cd5ef9e04dc7957a52aa13665d37",
+      "ut_b2a169bd229841c0abc39aaba426a340",
+      "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "ut_08a931fd09b543c587a8af240c8c5df3",
+      "wf_a231f325c07945c98421c57081cdbbc8"
+    ],
+    "completed_ids": [
+      "wl_c818cd5ef9e04dc7957a52aa13665d37",
+      "ut_b2a169bd229841c0abc39aaba426a340",
+      "ut_59ba4e2d290b4fb2b1e42bfe3047db48"
+    ],
+    "pending_inbox_ids": []
+  },
+  "object_ids": [
+    "wl_c818cd5ef9e04dc7957a52aa13665d37",
+    "ut_b2a169bd229841c0abc39aaba426a340",
+    "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+    "ut_08a931fd09b543c587a8af240c8c5df3",
+    "wf_a231f325c07945c98421c57081cdbbc8"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "status": "completed",
+      "revision": 2
+    },
+    {
+      "id": "wf_a231f325c07945c98421c57081cdbbc8",
+      "status": "cancelled",
+      "revision": 6
+    }
+  ],
+  "database_evidence": [
+    "j-before-read.json",
+    "j-after-read.json"
+  ],
+  "spy_evidence": [
+    "events.log",
+    "scheduler.log"
+  ],
+  "checks": [
+    {
+      "name": "no duplicates",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-J-evidence.json"
+    },
+    {
+      "name": "no omissions",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-J-evidence.json"
+    },
+    {
+      "name": "no snapshot or automatic mutation",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-J-evidence.json"
+    },
+    {
+      "name": "pending inbox removed",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-J-evidence.json"
+    },
+    {
+      "name": "terminal task reclassified",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-J-evidence.json"
+    },
+    {
+      "name": "waiting history reflected",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-J-evidence.json"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:38.114504+00:00",
+  "ended_at": "2026-07-30T09:58:39.033426+00:00",
+  "entrypoints": [
+    "GET /daily-review?date=today",
+    "GET /daily-review?date=yesterday",
+    "CLI daily-review --date today --json",
+    "CLI daily-review --date yesterday --json"
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "http_statuses": [
+    {
+      "method": "GET",
+      "path": "/daily-review?date=today",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/daily-review?date=yesterday",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "today_ids": [
+      "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "wf_a231f325c07945c98421c57081cdbbc8",
+      "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+      "wl_c818cd5ef9e04dc7957a52aa13665d37",
+      "inbox_3af83c69af35495ea7877a98ad00288b"
+    ],
+    "yesterday_ids": [
+      "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+      "wf_a231f325c07945c98421c57081cdbbc8",
+      "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+      "inbox_3af83c69af35495ea7877a98ad00288b"
+    ],
+    "source_status": {
+      "work_log": "available",
+      "waiting_for": "available",
+      "reminder": "available",
+      "inbox": "available",
+      "user_task": "available"
+    }
+  },
+  "object_ids": [
+    "inbox_3af83c69af35495ea7877a98ad00288b",
+    "rem_f61b1b1c9cd848b2a5277f13b2ec9526",
+    "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+    "wf_a231f325c07945c98421c57081cdbbc8",
+    "wl_c818cd5ef9e04dc7957a52aa13665d37"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [],
+  "database_evidence": [
+    "c-created-sqlite.json"
+  ],
+  "spy_evidence": [
+    "e-cli-today-stdout.log",
+    "e-cli-yesterday-stdout.log"
+  ],
+  "checks": [
+    {
+      "name": "api today",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    },
+    {
+      "name": "api yesterday",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    },
+    {
+      "name": "canonical sections and pagination match",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    },
+    {
+      "name": "cli today json",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    },
+    {
+      "name": "cli yesterday json",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    },
+    {
+      "name": "date and timezone match",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    },
+    {
+      "name": "only volatile instants differ",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    },
+    {
+      "name": "period and source status match",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-E-evidence.json"
+    }
+  ]
+}

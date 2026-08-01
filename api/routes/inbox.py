@@ -1,5 +1,7 @@
 """Workspace-scoped Unified Inbox API."""
 
+# ruff: noqa: B008
+
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
@@ -9,23 +11,13 @@ from api.models import (
     InboxPageResponse,
     InboxResolveReminderRequest,
     InboxResolveTaskRequest,
-    InboxResolveWorkLogRequest,
     InboxResolveWaitingForRequest,
+    InboxResolveWorkLogRequest,
 )
+from api.workspace import workspace_from_request
 from core.system.container import SystemContainer
-from core.workspace.models import WorkspaceKey
-
 
 router = APIRouter(prefix="/inbox", tags=["inbox"])
-
-
-def _workspace(request: Request) -> WorkspaceKey:
-    return WorkspaceKey(
-        tenant_id=getattr(request.state, "tenant_id", "default"),
-        workspace_id=getattr(request.state, "workspace_id", "default"),
-        namespace=getattr(request.state, "namespace", "default"),
-        trace_id=getattr(request.state, "trace_id", ""),
-    )
 
 
 def _item_response(item) -> InboxItemResponse:
@@ -40,7 +32,7 @@ async def capture_inbox_item(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.inbox_service.capture(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         content=body.content,
         source="api",
         metadata=body.metadata,
@@ -58,7 +50,10 @@ async def list_inbox_items(
     system: SystemContainer = Depends(get_system),
 ):
     page = await system.inbox_service.list(
-        workspace_key=_workspace(request), status=status, limit=limit, offset=offset
+        workspace_key=workspace_from_request(request),
+        status=status,
+        limit=limit,
+        offset=offset,
     )
     return InboxPageResponse(
         items=[_item_response(item) for item in page.items],
@@ -76,7 +71,7 @@ async def get_inbox_item(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.inbox_service.get(
-        workspace_key=_workspace(request), inbox_item_id=item_id
+        workspace_key=workspace_from_request(request), inbox_item_id=item_id
     )
     return _item_response(item)
 
@@ -89,7 +84,9 @@ async def resolve_inbox_to_task(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.inbox_service.resolve_to_task(
-        workspace_key=_workspace(request), inbox_item_id=item_id, **body.model_dump()
+        workspace_key=workspace_from_request(request),
+        inbox_item_id=item_id,
+        **body.model_dump(),
     )
     return _item_response(item)
 
@@ -104,7 +101,9 @@ async def resolve_inbox_to_reminder(
     values = body.model_dump()
     values["timezone_name"] = values.pop("timezone")
     item = await system.inbox_service.resolve_to_reminder(
-        workspace_key=_workspace(request), inbox_item_id=item_id, **values
+        workspace_key=workspace_from_request(request),
+        inbox_item_id=item_id,
+        **values,
     )
     return _item_response(item)
 
@@ -117,7 +116,9 @@ async def resolve_inbox_to_work_log(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.inbox_service.resolve_to_work_log(
-        workspace_key=_workspace(request), inbox_item_id=item_id, **body.model_dump()
+        workspace_key=workspace_from_request(request),
+        inbox_item_id=item_id,
+        **body.model_dump(),
     )
     return _item_response(item)
 
@@ -130,7 +131,7 @@ async def resolve_inbox_to_waiting_for(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.inbox_service.resolve_to_waiting_for(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         inbox_item_id=item_id,
         **body.model_dump(),
     )
@@ -144,7 +145,7 @@ async def resolve_inbox_as_note(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.inbox_service.resolve_as_note(
-        workspace_key=_workspace(request), inbox_item_id=item_id
+        workspace_key=workspace_from_request(request), inbox_item_id=item_id
     )
     return _item_response(item)
 
@@ -156,6 +157,6 @@ async def dismiss_inbox_item(
     system: SystemContainer = Depends(get_system),
 ):
     item = await system.inbox_service.dismiss(
-        workspace_key=_workspace(request), inbox_item_id=item_id
+        workspace_key=workspace_from_request(request), inbox_item_id=item_id
     )
     return _item_response(item)

@@ -1,10 +1,10 @@
 """API lifecycle admission gate tests — exact contract assertions."""
 
-from pathlib import Path
-import tempfile
-import asyncio
 import ast
+import asyncio
 import inspect
+import tempfile
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -69,6 +69,17 @@ class TestApiAdmissionExact:
 
 
 class TestHealthStableStates:
+    def test_readiness_requires_ready_and_accepting_work(self, client):
+        response = client.get("/health/ready")
+        assert response.status_code == 200
+        assert response.json()["status"] == "ready"
+
+        _set(client, SystemLifecycleState.DRAINING)
+        response = client.get("/health/ready")
+        assert response.status_code == 503
+        assert response.json()["status"] == "not_ready"
+        assert response.json()["accepting_work"] is False
+
     def test_health_draining(self, client):
         _set(client, SystemLifecycleState.DRAINING)
         resp = client.get("/health")

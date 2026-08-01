@@ -6,20 +6,11 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_system
 from api.models import WorkLogCreateRequest
+from api.workspace import workspace_from_request
 from core.system.container import SystemContainer
 from core.work_log import WorkLogService, WorkLogSource
-from core.workspace.models import WorkspaceKey
 
 router = APIRouter(prefix="/work-logs", tags=["work-logs"])
-
-
-def _workspace(request: Request) -> WorkspaceKey:
-    return WorkspaceKey(
-        tenant_id=getattr(request.state, "tenant_id", "default"),
-        workspace_id=getattr(request.state, "workspace_id", "default"),
-        namespace=getattr(request.state, "namespace", "default"),
-        trace_id=getattr(request.state, "trace_id", ""),
-    )
 
 
 def _service(
@@ -29,7 +20,7 @@ def _service(
     if service is None:
         WorkLogService.raise_not_configured(
             operation=operation,
-            trace_id=_workspace(request).trace_id,
+            trace_id=workspace_from_request(request).trace_id,
         )
     return service
 
@@ -53,7 +44,7 @@ async def create_work_log(
         subject = compatibility[:500]
         raw_text = compatibility
     record = await _service(system, request, "create").create_from_input(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         subject=subject,
         raw_text=raw_text,
         occurred_at=payload.occurred_at,
@@ -72,7 +63,7 @@ async def create_work_log(
             ),
             "status": "ok",
             "mode": system.settings.provider_mode,
-            "trace_id": _workspace(request).trace_id,
+            "trace_id": workspace_from_request(request).trace_id,
             "latency_ms": 0.0,
             "metadata": record.model_dump(mode="json"),
         }
@@ -94,7 +85,7 @@ async def list_work_logs(
     offset: str | None = Query(default=None),
 ):
     page = await _service(system, request, "list").query_from_input(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         date_from=date_from,
         date_to=date_to,
         target=target,
@@ -115,6 +106,6 @@ async def get_work_log(
     system: Annotated[SystemContainer, Depends(get_system)],
 ):
     record = await _service(system, request, "get").get(
-        workspace_key=_workspace(request), work_log_id=work_log_id
+        workspace_key=workspace_from_request(request), work_log_id=work_log_id
     )
     return record.model_dump(mode="json")

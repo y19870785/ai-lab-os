@@ -1,0 +1,207 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:32.965936+00:00",
+  "ended_at": "2026-07-30T09:58:36.435756+00:00",
+  "entrypoints": [
+    "subprocess:python -m cli profile --require-local-daily"
+  ],
+  "exit_codes": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    0
+  ],
+  "http_statuses": [],
+  "response_facts": {
+    "invalid timezone": {
+      "exit_code": 2,
+      "stderr_path": "profile-negative-1-stderr.log",
+      "failure": {
+        "code": "config.profile_invalid",
+        "category": "validation",
+        "message": "Local Daily Profile configuration is invalid",
+        "component": "profile",
+        "operation": "load",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_profile_495b21e4d10a42c0b37566883954adb9",
+        "cause_type": "",
+        "details": {
+          "cause_type": "ValueError"
+        }
+      }
+    },
+    "invalid provider": {
+      "exit_code": 2,
+      "stderr_path": "profile-negative-2-stderr.log",
+      "failure": {
+        "code": "config.profile_invalid",
+        "category": "validation",
+        "message": "Local Daily Profile configuration is invalid",
+        "component": "profile",
+        "operation": "load",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_profile_74fac0bd01f049ebadc1827542b336a5",
+        "cause_type": "",
+        "details": {
+          "cause_type": "ValueError"
+        }
+      }
+    },
+    "missing auth token": "[REDACTED]",
+    "relative data root": {
+      "exit_code": 2,
+      "stderr_path": "profile-negative-4-stderr.log",
+      "failure": {
+        "code": "config.profile_invalid",
+        "category": "validation",
+        "message": "Local Daily Profile configuration is invalid",
+        "component": "profile",
+        "operation": "load",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_profile_914932fbcc484af680effcea908f60ec",
+        "cause_type": "",
+        "details": {
+          "cause_type": "ValueError"
+        }
+      }
+    },
+    "relative sqlite root": {
+      "exit_code": 2,
+      "stderr_path": "profile-negative-5-stderr.log",
+      "failure": {
+        "code": "config.profile_invalid",
+        "category": "validation",
+        "message": "Local Daily Profile configuration is invalid",
+        "component": "profile",
+        "operation": "load",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_profile_84c4ec069077473d9c9d8afaa95f38ad",
+        "cause_type": "",
+        "details": {
+          "cause_type": "ValueError"
+        }
+      }
+    },
+    "sqlite outside data root": {
+      "exit_code": 2,
+      "stderr_path": "profile-negative-6-stderr.log",
+      "failure": {
+        "code": "config.profile_invalid",
+        "category": "validation",
+        "message": "Local Daily Profile configuration is invalid",
+        "component": "profile",
+        "operation": "load",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_profile_43fd37ced72349b6955a161e20c39d10",
+        "cause_type": "",
+        "details": {
+          "cause_type": "ValueError"
+        }
+      }
+    },
+    "unknown profile": {
+      "exit_code": 2,
+      "stderr_path": "profile-negative-7-stderr.log",
+      "failure": {
+        "code": "config.profile_invalid",
+        "category": "validation",
+        "message": "Local Daily Profile configuration is invalid",
+        "component": "profile",
+        "operation": "load",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "trace_profile_b6c66f9e26e4424e8a1918dcddda28c8",
+        "cause_type": "",
+        "details": {
+          "cause_type": "ValueError"
+        }
+      }
+    }
+  },
+  "object_ids": [],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [],
+  "database_evidence": [],
+  "spy_evidence": [
+    "profile-negative-1-stderr.log",
+    "profile-negative-2-stderr.log",
+    "profile-negative-3-stderr.log",
+    "profile-negative-4-stderr.log",
+    "profile-negative-5-stderr.log",
+    "profile-negative-6-stderr.log",
+    "profile-negative-7-stderr.log"
+  ],
+  "checks": [
+    {
+      "name": "invalid provider",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    },
+    {
+      "name": "invalid timezone",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    },
+    {
+      "name": "missing auth token",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    },
+    {
+      "name": "no checkout data fallback",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    },
+    {
+      "name": "relative data root",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    },
+    {
+      "name": "relative sqlite root",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    },
+    {
+      "name": "sqlite outside data root",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    },
+    {
+      "name": "unknown profile",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-A-evidence.json"
+    }
+  ]
+}

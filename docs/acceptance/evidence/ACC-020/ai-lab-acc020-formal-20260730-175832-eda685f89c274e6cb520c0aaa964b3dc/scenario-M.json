@@ -1,0 +1,148 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:41.586970+00:00",
+  "ended_at": "2026-07-30T09:58:41.841166+00:00",
+  "entrypoints": [
+    "missing canonical Task GET",
+    "Review action missing and stale revision",
+    "unsupported Work Log mutation",
+    "Waiting-For resolution missing confirmation",
+    "Inbox resolution missing required argument",
+    "unsupported Action Hint tuple"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "GET",
+      "path": "/tasks/ut_missing_acc020",
+      "status": 404
+    },
+    {
+      "method": "POST",
+      "path": "/daily-review/actions/user-tasks/ut_7bf340f0b78a4ee7a06e1babf0bbd0be/complete",
+      "status": 400
+    },
+    {
+      "method": "POST",
+      "path": "/daily-review/actions/user-tasks/ut_7bf340f0b78a4ee7a06e1babf0bbd0be/complete",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/work-logs/wl_c818cd5ef9e04dc7957a52aa13665d37/complete",
+      "status": 404
+    },
+    {
+      "method": "POST",
+      "path": "/inbox",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/inbox/inbox_10bb039c0551494b90828a5e05de0356/resolve/task",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "failure_statuses": [
+      404,
+      400,
+      409,
+      404,
+      400
+    ]
+  },
+  "object_ids": [
+    "ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+    "wl_c818cd5ef9e04dc7957a52aa13665d37",
+    "inbox_10bb039c0551494b90828a5e05de0356"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "ut_7bf340f0b78a4ee7a06e1babf0bbd0be",
+      "revision": 1
+    }
+  ],
+  "database_evidence": [
+    "m-before-failures.json",
+    "m-after-core-failures.json",
+    "m-required-before.json",
+    "m-after-failures.json",
+    "i-missing-before.json",
+    "i-missing-after.json"
+  ],
+  "spy_evidence": [
+    "events.log",
+    "scheduler.log"
+  ],
+  "checks": [
+    {
+      "name": "event scheduler revision unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    },
+    {
+      "name": "invalid status reason unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    },
+    {
+      "name": "missing canonical id unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    },
+    {
+      "name": "missing revision unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    },
+    {
+      "name": "required arguments unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    },
+    {
+      "name": "stale revision unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    },
+    {
+      "name": "unsupported work log mutation unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    },
+    {
+      "name": "waiting confirmation unchanged",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-M-evidence.json"
+    }
+  ]
+}

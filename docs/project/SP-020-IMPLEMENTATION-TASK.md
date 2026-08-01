@@ -14,7 +14,7 @@ Planning Branch:
 docs/sp-020-local-daily-operating-loop-planning
 
 Planning PR:
-#53 (Draft)
+#53 (Merged)
 
 Suggested Future Implementation Branch:
 feat/sp-020-local-daily-operating-loop
@@ -23,11 +23,42 @@ Planning Status:
 PLANNING_BASELINE_APPROVED / MERGED / RECONCILED
 
 Implementation:
-NOT APPROVED / NOT STARTED
+IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION / DRAFT_PR_OPEN
 ```
 
-本任务书定义未来授权边界，不是实施授权。任何 Phase 都必须等待 Planning PR 独立审查、
-合并以及 Owner 的新一轮明确授权。
+本任务书定义实施授权边界。Planning PR 已独立审查、合并并对账，Owner 后续已授予
+一次 SP-020 产品实施授权；正式 ACC-020 已在冻结实现与冻结 Driver 上执行一次且仅
+执行一次并报告 A～V 全部通过，独立证据复核结论为 APPROVED。当前 Draft PR 等待 Ready 转换与后续合并门禁。
+
+```text
+SP-020:
+IMPLEMENTATION_APPROVED /
+APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_PASSED /
+INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION /
+DRAFT_PR_OPEN
+
+ACC-020:
+PASSED / FINAL
+
+Approved Implementation Head:
+1c9b69ee45b4e1545b67ecd841cc217e23d4f38f
+
+Acceptance Evidence Head:
+7a0944f4ad1deadefe636bf5abc3d30175de0b4d
+
+Formal Run:
+ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc
+
+Provider Calls:
+0
+
+Evidence Review:
+APPROVED
+```
 
 ## 范围
 
@@ -65,9 +96,9 @@ Work Log edit/complete/delete。
    一致传递。
 6. revision、idempotency、preview/confirm、Inbox durable claim/Saga 必须按动作分别
    声明并遵守，不能被绕过。UserTask update 当前接受调用方 `expected_revision`；
-   complete/cancel 当前只使用 Service 读取到的最新 revision，API 与 Service 不接受
-   调用方 revision。SP-020 未来实现必须为 Review-to-Action 的 UserTask
-   complete/cancel 增加显式 `expected_revision`。
+   历史 tasks complete/cancel 入口仍兼容省略调用方 revision；SP-020 的
+   Review-to-Action UserTask complete/cancel 已增加显式 `expected_revision`，并在
+   terminal idempotency 之前拒绝 stale revision。
 7. Work Log 仍只有 create/get/list。
 8. 默认备份为停机后的完整 data directory 复制；不承诺在线跨库一致快照。
 
@@ -76,7 +107,7 @@ Work Log edit/complete/delete。
 SP-020 产品实施需要一次明确的 Owner 授权。Phase 0 是同一次实施授权内部的强制质量
 门禁；通过 Phase 0 后不需要再次请求 Owner 授权。若 Phase 0 失败、触发停止条件、需要
 改变已批准范围、拆分 Product SP 或引入新的架构决策，必须立即停止并重新请求 Owner
-决策。本 Planning Baseline 尚未授予该实施授权。
+决策。该一次实施授权已在 Planning Baseline 合并对账后由 Owner 明确授予。
 
 ### 阶段 0 — 产品入口与生命周期门禁
 
@@ -161,8 +192,76 @@ git diff --check
 ## ACC-020 验收
 
 正式验收定义见
-`docs/acceptance/SP-020-local-daily-operating-loop.md`。所有场景当前均为
-`PLANNING_BASELINE / NOT_EXECUTED`。Planning merge 不等于执行 ACC-020。
+`docs/acceptance/SP-020-local-daily-operating-loop.md`。ACC-020 已在冻结实现 Head 与
+冻结 Driver 上执行一次且仅执行一次，A～V 报告 22/22 PASS；脱敏证据仍等待独立复核。
+Planning merge、正式执行成功与证据归档均不等于 SP-020 已合并、完成、对账或封存。
+
+前次 Head `bd858807262aa1b89cdb80644895afa970edcf64` 上使用 Driver SHA-256
+`0782c6c1d217ad5e6bac78e93cc47e3925d17c3c79fabff0135836c4d072a36c`
+执行的 rehearsal 已重新分类为
+`INVALID_ACCEPTANCE_HARNESS / DISCARDED /
+INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE`。执行过程本身不构成产品失败，但当时 Driver
+对 A～V 的场景断言和证据覆盖不足，不能支持“22/22 PASS”。ACC-020 仍未执行，
+Approved Implementation Head 仍未冻结。
+
+Head `cf0444d27ed47aef8177f5eeea2efe5f3fdd14fb` 上使用 Driver SHA-256
+`5f2a8f51e5d964a7e66b58f800bd26eba70781bca7754a81b38e6664d5c72147`
+执行的 Replacement Rehearsal 也已重新分类为
+`INVALID_ACCEPTANCE_HARNESS / DISCARDED /
+FALSE_POSITIVE_SCENARIO_ASSERTIONS`。Scenario V、Q 与 K 的实际断言不足以支持 PASS；
+这仍是 acceptance harness 问题，不是产品失败，不改变 ACC-020 A～V 的机器状态。
+
+Head `f2d7dd3d4c5cf6c999b8cdfd35a76d140e7fbae6` 上使用 Driver SHA-256
+`b6546cc3d30e2b3a3e37cef377267caa4714f1891e522e07111cbee9209d0be5`
+执行的 Replacement Rehearsal 已重新分类为
+`INVALID_ACCEPTANCE_HARNESS / DISCARDED /
+SHUTDOWN_CALL_SUCCESS_NOT_ASSERTED`。Scenario Q 没有把两次 Scheduler shutdown 和
+两次 Container shutdown 的逐次异常、lifecycle 与持久数量纳入成功判定。这不是产品
+失败，不改变 ACC-020 A～V 的机器状态，Approved Implementation Head 仍未冻结。
+
+修订后的 Driver 只能通过完整结构化 checks 判定场景；单独调用描述性 PASS helper
+不能绕过断言。每项证据必须落到真实日志、JSON、SQLite 查询结果或快照，并覆盖安全
+响应事实、Workspace、revision/status、EventBus、Scheduler、shutdown、restart 与
+source/restore 逐对象比较。
+
+### 正式 ACC-020 执行
+
+```text
+Formal Run ID:
+ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc
+
+Execution:
+ONE AND ONLY ONE
+
+Approved Implementation Head:
+1c9b69ee45b4e1545b67ecd841cc217e23d4f38f
+
+Frozen Driver SHA-256:
+99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5
+
+Status:
+FORMAL_ACCEPTANCE_COMPLETE
+
+ACC-020:
+A-V / 22 OF 22 PASSED
+
+Provider Calls:
+0
+
+Acceptance Evidence Head:
+7a0944f4ad1deadefe636bf5abc3d30175de0b4d
+
+Review:
+APPROVED
+
+Evidence Package:
+INTERNALLY CONSISTENT / SECRET-SAFE / APPROVED
+```
+
+证据 Commit A 只包含
+`docs/acceptance/evidence/ACC-020/ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc/`。
+当前治理 Commit 不改变冻结产品实现或 Driver，也不得被写成 Approved Implementation
+Head。
 
 ## 发布边界
 
@@ -187,11 +286,14 @@ NOT AUTHORIZED / UNCHANGED
 
 ```text
 SP-020 Planning Baseline:
-DEFINED / PENDING INDEPENDENT REVIEW
+APPROVED / MERGED / RECONCILED
 
 SP-020 Implementation:
-NOT APPROVED / NOT STARTED
+IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION /
+DRAFT_PR_OPEN
 
 ACC-020:
-PLANNING_BASELINE / NOT_EXECUTED
+PASSED / FINAL
 ```

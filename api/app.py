@@ -85,6 +85,13 @@ def create_app(
     )
     api.state.api_security = sec_cfg
     api.state.authenticator = Authenticator(sec_cfg)
+    api.state.workspace_defaults = {
+        "tenant_id": effective_settings.workspace_tenant_id,
+        "workspace_id": effective_settings.workspace_id,
+        "namespace": effective_settings.workspace_namespace,
+        "session_id": effective_settings.workspace_session_id,
+        "agent_id": effective_settings.workspace_agent_id,
+    }
     api.add_middleware(CORSMiddleware, **cors_kwargs)
     api.add_middleware(tracing.TracingMiddleware)
     api.add_middleware(ctx_mw.ContextMiddleware)

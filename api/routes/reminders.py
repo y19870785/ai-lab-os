@@ -11,6 +11,7 @@ from api.models import (
     ReminderResponse,
     ReminderUpdateRequest,
 )
+from api.workspace import workspace_from_request
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.reminders import (
     ReminderInboxPage,
@@ -20,7 +21,6 @@ from core.reminders import (
     ReminderStatusView,
 )
 from core.system.container import SystemContainer
-from core.workspace.models import WorkspaceKey
 
 router = APIRouter(tags=["reminders"])
 
@@ -54,15 +54,6 @@ def _trace(request: Request) -> str:
     return getattr(request.state, "trace_id", "")
 
 
-def _workspace(request: Request) -> WorkspaceKey:
-    return WorkspaceKey(
-        tenant_id=getattr(request.state, "tenant_id", "default"),
-        workspace_id=getattr(request.state, "workspace_id", "default"),
-        namespace=getattr(request.state, "namespace", "default"),
-        trace_id=_trace(request),
-    )
-
-
 @router.get("/reminders", response_model=ReminderInboxPage)
 async def list_reminders(
     request: Request,
@@ -84,7 +75,7 @@ async def list_reminders(
             trace_id=_trace(request),
         ))
     return await system.reminder_inbox.list(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         statuses={status} if status else None,
         time_scope=time_scope,
         view=view,
@@ -112,7 +103,7 @@ async def create_reminder(
 ):
     _, bridge = _services(system)
     reminder = await bridge.create(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         user_task_id=task_id,
         remind_at=body.remind_at,
         timezone_name=body.timezone,
@@ -130,7 +121,7 @@ async def list_task_reminders(
 ):
     service, _ = _services(system)
     reminders = await service.list_for_task(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         task_id=task_id,
         trace_id=_trace(request),
     )
@@ -144,7 +135,7 @@ async def get_reminder(
     system: SystemContainer = Depends(get_system),
 ):
     resolution = await _management(system).resolve(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         reminder_id=reminder_id,
         trace_id=_trace(request),
     )
@@ -158,7 +149,7 @@ async def get_reminder_status(
     system: SystemContainer = Depends(get_system),
 ):
     return await _management(system).status(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         reminder_id=reminder_id,
         trace_id=_trace(request),
     )
@@ -172,7 +163,7 @@ async def reschedule_reminder(
     system: SystemContainer = Depends(get_system),
 ):
     result = await _management(system).reschedule(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         reminder_id=reminder_id,
         remind_at=body.target_time,
         timezone_name=body.timezone,
@@ -190,7 +181,7 @@ async def cancel_reminder(
     system: SystemContainer = Depends(get_system),
 ):
     result = await _management(system).cancel(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         reminder_id=reminder_id,
         trace_id=_trace(request),
     )
@@ -207,7 +198,7 @@ async def list_reminder_occurrences(
     system: SystemContainer = Depends(get_system),
 ):
     await _management(system).status(
-        workspace_key=_workspace(request),
+        workspace_key=workspace_from_request(request),
         reminder_id=reminder_id,
         trace_id=_trace(request),
     )

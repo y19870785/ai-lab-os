@@ -1,0 +1,323 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:41.841674+00:00",
+  "ended_at": "2026-07-30T09:58:45.147582+00:00",
+  "entrypoints": [
+    "PATCH /reminders/{id} optional idempotency",
+    "GET /reminders/{id}/status polling",
+    "GET /health periodic snapshots",
+    "SQLite jobs/job_runs/reminder_occurrences"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/ut_f2fe45a3186b4c10af23250db7b655cb/reminders",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/reminders/rem_b8c8bf6845b34595a95ff463a168edd0/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "reminder_status": {
+      "status": "triggered",
+      "task_id": "ut_f2fe45a3186b4c10af23250db7b655cb",
+      "task_title": "ACC-020 one-shot scheduler task",
+      "task_status": "active",
+      "reminder_id": "rem_b8c8bf6845b34595a95ff463a168edd0",
+      "reminder_status": "triggered",
+      "scheduled_for": "2026-07-30T09:58:43.940140Z",
+      "timezone": "UTC",
+      "scheduler_job_id": "4a6409bfa1774b47a6982712cf84367e",
+      "scheduler_status": "completed",
+      "occurrence_id": "occ_0b4d41cf30ae4100b99556c9d907fa50",
+      "occurrence_status": "triggered",
+      "triggered_at": "2026-07-30T09:58:43.968175Z",
+      "last_failure": null,
+      "retryable": false,
+      "revision": 7
+    },
+    "job_rows": [
+      {
+        "run_id": "d5d751265288",
+        "job_id": "4a6409bfa1774b47a6982712cf84367e",
+        "attempt": 1,
+        "started_at": "2026-07-30T09:58:43.965188+00:00",
+        "finished_at": "2026-07-30T09:58:43.971218+00:00",
+        "status": "success",
+        "claim_token": "[REDACTED]",
+        "failure": null,
+        "trace_id": "acc020-66"
+      },
+      {
+        "id": "4a6409bfa1774b47a6982712cf84367e",
+        "name": "reminder:rem_b8c8bf6845b34595a95ff463a168edd0",
+        "description": "",
+        "version": "1.0.0",
+        "tags": "[\"reminder\"]",
+        "metadata": "{}",
+        "trigger_type": "one_shot",
+        "cron_expression": "",
+        "interval_seconds": 0,
+        "run_at": "2026-07-30T09:58:43.940140+00:00",
+        "event_type": "",
+        "trigger_timezone": "UTC",
+        "next_run_at": null,
+        "workflow_name": "",
+        "workflow_variables": "{}",
+        "status": "completed",
+        "max_retries": 3,
+        "timeout": 300,
+        "max_concurrent": 1,
+        "retry_count": 0,
+        "run_count": 1,
+        "last_run_at": "2026-07-30T09:58:43.971218+00:00",
+        "last_result": "success",
+        "created_at": "2026-07-30T09:58:41.858527+00:00",
+        "action_type": "reminder",
+        "action_payload": "{\"reminder_id\": \"rem_b8c8bf6845b34595a95ff463a168edd0\", \"scheduled_at\": \"2026-07-30T09:58:43.940140+00:00\"}",
+        "trace_id": "acc020-66",
+        "claim_token": "[REDACTED]",
+        "claim_expires_at": null,
+        "last_error": null,
+        "updated_at": "2026-07-30T09:58:43.971218+00:00",
+        "revision": 5
+      }
+    ],
+    "run_rows": [
+      {
+        "run_id": "d5d751265288",
+        "job_id": "4a6409bfa1774b47a6982712cf84367e",
+        "attempt": 1,
+        "started_at": "2026-07-30T09:58:43.965188+00:00",
+        "finished_at": "2026-07-30T09:58:43.971218+00:00",
+        "status": "success",
+        "claim_token": "[REDACTED]",
+        "failure": null,
+        "trace_id": "acc020-66"
+      }
+    ],
+    "occurrence_rows": [
+      {
+        "id": "occ_0b4d41cf30ae4100b99556c9d907fa50",
+        "reminder_id": "rem_b8c8bf6845b34595a95ff463a168edd0",
+        "user_task_id": "ut_f2fe45a3186b4c10af23250db7b655cb",
+        "scheduled_at": "2026-07-30T09:58:43.940140+00:00",
+        "triggered_at": "2026-07-30T09:58:43.968175+00:00",
+        "status": "triggered",
+        "trace_id": "acc020-66",
+        "failure": null,
+        "idempotency_key": "rem_b8c8bf6845b34595a95ff463a168edd0:2026-07-30T09:58:43.940140+00:00",
+        "attempt": 1
+      }
+    ]
+  },
+  "object_ids": [
+    "rem_b8c8bf6845b34595a95ff463a168edd0",
+    "4a6409bfa1774b47a6982712cf84367e",
+    "occ_0b4d41cf30ae4100b99556c9d907fa50"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "rem_b8c8bf6845b34595a95ff463a168edd0",
+      "revision": 7,
+      "status": "triggered"
+    }
+  ],
+  "database_evidence": [
+    "o-scheduler-sqlite.json",
+    "o-idle-sqlite.json"
+  ],
+  "spy_evidence": [
+    "scheduler.log"
+  ],
+  "checks": [
+    {
+      "name": "claim token expiry",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "effectively once",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "health and background tasks",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "idle window",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "job status revision",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "multiple ticks",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "occurrence",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "one shot job",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "real connection count",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "reminder reconciliation",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    },
+    {
+      "name": "run status",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-O-evidence.json"
+    }
+  ]
+}

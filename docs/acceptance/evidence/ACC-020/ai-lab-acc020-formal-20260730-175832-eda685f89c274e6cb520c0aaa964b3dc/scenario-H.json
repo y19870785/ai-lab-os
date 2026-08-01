@@ -1,0 +1,179 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:39.572212+00:00",
+  "ended_at": "2026-07-30T09:58:39.789230+00:00",
+  "entrypoints": [
+    "POST /waiting-for/{id}/follow-ups",
+    "POST /waiting-for/{id}/snooze",
+    "POST /waiting-for/{id}/resolve",
+    "POST /waiting-for/{id}/reopen",
+    "POST /waiting-for/{id}/cancel",
+    "GET /waiting-for/{id}/events"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/follow-ups",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/snooze",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/resolve",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/reopen",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/cancel",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/events",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/follow-ups",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_a231f325c07945c98421c57081cdbbc8/follow-ups",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/waiting-for/wf_6584972a2ccf430fa8cc6e120ab81e61/snooze",
+      "status": 400
+    }
+  ],
+  "response_facts": {
+    "history_types": [
+      "created",
+      "followed_up",
+      "snoozed",
+      "resolved",
+      "reopened",
+      "cancelled"
+    ]
+  },
+  "object_ids": [
+    "wf_a231f325c07945c98421c57081cdbbc8",
+    "wf_6584972a2ccf430fa8cc6e120ab81e61"
+  ],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [
+    {
+      "id": "wf_a231f325c07945c98421c57081cdbbc8",
+      "revisions": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ],
+  "database_evidence": [
+    "h-missing-before.json",
+    "h-missing-after.json"
+  ],
+  "spy_evidence": [
+    "events.log"
+  ],
+  "checks": [
+    {
+      "name": "cancel",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "follow up",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "history event",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "missing argument no write",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "reopen",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "resolve",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "revision progression",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "snooze",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "stale revision",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    },
+    {
+      "name": "unsupported state",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-H-evidence.json"
+    }
+  ]
+}

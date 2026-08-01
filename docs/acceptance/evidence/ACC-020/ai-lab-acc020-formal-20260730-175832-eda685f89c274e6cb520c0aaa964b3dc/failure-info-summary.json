@@ -1,0 +1,438 @@
+{
+  "formal_run_id": "ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc",
+  "failure_info_checks": [
+    {
+      "kind": "auth",
+      "public_response": {
+        "status": "error",
+        "code": "api.auth.missing",
+        "message": "Authentication required",
+        "component": "api.auth",
+        "retryable": false,
+        "trace_id": "acc020-7",
+        "details": {}
+      },
+      "failure": {
+        "code": "api.auth.missing",
+        "category": "unauthenticated",
+        "message": "Authentication required",
+        "component": "api.auth",
+        "operation": "validate_bearer",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "acc020-7",
+        "cause_type": "",
+        "details": {}
+      },
+      "complete": true
+    },
+    {
+      "kind": "workspace",
+      "public_response": {
+        "status": "error",
+        "code": "user_tasks.get.not_found",
+        "message": "UserTask get failed",
+        "component": "user_tasks",
+        "retryable": false,
+        "trace_id": "acc020-32",
+        "details": {}
+      },
+      "failure": {
+        "code": "user_tasks.get.not_found",
+        "category": "not_found",
+        "message": "UserTask get failed",
+        "component": "user_tasks",
+        "operation": "get",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "acc020-32",
+        "cause_type": "UserTaskNotFoundError",
+        "details": {}
+      },
+      "complete": true
+    },
+    {
+      "kind": "date_query",
+      "public_response": {
+        "status": "error",
+        "code": "daily_review.date_invalid",
+        "message": "Daily Review date is invalid",
+        "component": "daily_review",
+        "retryable": false,
+        "trace_id": "acc020-96",
+        "details": {}
+      },
+      "failure": {
+        "code": "daily_review.date_invalid",
+        "category": "validation",
+        "message": "Daily Review date is invalid",
+        "component": "daily_review",
+        "operation": "get",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "acc020-96",
+        "cause_type": "ValueError",
+        "details": {}
+      },
+      "complete": true
+    },
+    {
+      "kind": "not_found",
+      "public_response": {
+        "status": "error",
+        "code": "user_tasks.get.not_found",
+        "message": "UserTask get failed",
+        "component": "user_tasks",
+        "retryable": false,
+        "trace_id": "acc020-97",
+        "details": {}
+      },
+      "failure": {
+        "code": "user_tasks.get.not_found",
+        "category": "not_found",
+        "message": "UserTask get failed",
+        "component": "user_tasks",
+        "operation": "get",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "acc020-97",
+        "cause_type": "UserTaskNotFoundError",
+        "details": {}
+      },
+      "complete": true
+    },
+    {
+      "kind": "stale_revision",
+      "public_response": {
+        "status": "error",
+        "code": "user_tasks.completed.conflict",
+        "message": "UserTask completed failed",
+        "component": "user_tasks",
+        "retryable": false,
+        "trace_id": "acc020-28",
+        "details": {}
+      },
+      "failure": {
+        "code": "user_tasks.completed.conflict",
+        "category": "conflict",
+        "message": "UserTask completed failed",
+        "component": "user_tasks",
+        "operation": "completed",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "acc020-28",
+        "cause_type": "UserTaskConflictError",
+        "details": {}
+      },
+      "complete": true
+    },
+    {
+      "kind": "unsupported_state",
+      "public_response": {
+        "status": "error",
+        "code": "waiting_for.follow_up.conflict",
+        "message": "Waiting-For state or revision conflict",
+        "component": "waiting_for",
+        "retryable": false,
+        "trace_id": "acc020-40",
+        "details": {}
+      },
+      "failure": {
+        "code": "waiting_for.follow_up.conflict",
+        "category": "conflict",
+        "message": "Waiting-For state or revision conflict",
+        "component": "waiting_for",
+        "operation": "follow_up",
+        "retryable": false,
+        "severity": "error",
+        "trace_id": "acc020-40",
+        "cause_type": "ValueError",
+        "details": {}
+      },
+      "complete": true
+    }
+  ],
+  "partial_start_failure": {
+    "failure": {
+      "code": "system.start.dependency_failed",
+      "category": "dependency_failure",
+      "message": "Injected Scheduler initialization failure",
+      "component": "system_container",
+      "operation": "start",
+      "retryable": false,
+      "severity": "error",
+      "trace_id": "trace_acc020_q_dependency",
+      "cause_type": "SystemInitializationError",
+      "details": {
+        "probe": "acc020"
+      }
+    },
+    "injected_failure": {
+      "code": "scheduler.initialize.injected_failure",
+      "category": "dependency_failure",
+      "message": "Injected Scheduler initialization failure",
+      "component": "scheduler_runtime",
+      "operation": "initialize",
+      "retryable": false,
+      "severity": "error",
+      "trace_id": "trace_acc020_q_dependency",
+      "cause_type": "",
+      "details": {
+        "probe": "acc020"
+      }
+    },
+    "restart_failure": {
+      "code": "system.restart.failed_container",
+      "category": "dependency_failure",
+      "message": "Failed SystemContainer cannot be restarted",
+      "component": "system_container",
+      "operation": "restart",
+      "retryable": false,
+      "severity": "error",
+      "trace_id": "trace_acc020_q_restart",
+      "cause_type": "SystemInitializationError",
+      "details": {
+        "probe": "acc020"
+      }
+    },
+    "lifecycle": "failed",
+    "event_bus_stopped": true,
+    "background_tasks": 0,
+    "connection_count": 0,
+    "rollback_order": [
+      "container_shutdown_before",
+      "scheduler_shutdown_before",
+      "scheduler_shutdown_after",
+      "scheduler_shutdown_before",
+      "scheduler_shutdown_after",
+      "service_close_before",
+      "service_close_after",
+      "service_close_before",
+      "service_close_after",
+      "service_close_before",
+      "service_close_after",
+      "service_close_before",
+      "service_close_after",
+      "service_close_before",
+      "service_close_after",
+      "event_bus_stop_before",
+      "event_bus_stop_after",
+      "database_close_before",
+      "database_close_after",
+      "container_shutdown_after",
+      "container_shutdown_before",
+      "container_shutdown_after",
+      "container_shutdown_before",
+      "container_shutdown_after"
+    ],
+    "rollback_order_valid": true
+  },
+  "publish_after_stop_error": {
+    "code": "event_bus.publish.stopped",
+    "category": "dependency_failure",
+    "message": "Bus is not running",
+    "component": "event_bus",
+    "operation": "publish",
+    "retryable": false,
+    "severity": "error",
+    "trace_id": "trace_acc020_q_publish",
+    "cause_type": "RuntimeError",
+    "details": {
+      "probe": "acc020"
+    }
+  },
+  "draining_error": {
+    "code": "system.draining",
+    "category": "unavailable",
+    "message": "AI-Lab system is not accepting new work",
+    "component": "system.lifecycle",
+    "operation": "admit_request",
+    "retryable": true,
+    "severity": "error",
+    "trace_id": "trace_acc020_q_draining",
+    "cause_type": "",
+    "details": {}
+  },
+  "shutdown_failure": {
+    "failure": {
+      "code": "system.shutdown.component_failed",
+      "category": "dependency_failure",
+      "message": "Injected component shutdown failure",
+      "component": "waiting_for_service",
+      "operation": "shutdown",
+      "retryable": false,
+      "severity": "error",
+      "trace_id": "trace_acc020_v_shutdown",
+      "cause_type": "",
+      "details": {
+        "probe": "acc020"
+      }
+    },
+    "shutdown_failures": [
+      "waiting_for_service"
+    ],
+    "lifecycle": "failed",
+    "event_bus_stopped": true,
+    "background_tasks": 0,
+    "connection_count": 0
+  },
+  "restore_failure": {
+    "failure": {
+      "code": "restore.data_invalid",
+      "category": "dependency_failure",
+      "message": "UserTask initialize failed",
+      "component": "restore",
+      "operation": "open",
+      "retryable": false,
+      "severity": "error",
+      "trace_id": "trace_acc020_v_restore",
+      "cause_type": "SystemInitializationError",
+      "details": {
+        "probe": "acc020"
+      }
+    },
+    "exit_code": 2,
+    "lifecycle": "failed",
+    "connection_count": 0
+  },
+  "scenario_v": {
+    "result": "PASS",
+    "started_at": "2026-07-30T09:58:49.542118+00:00",
+    "ended_at": "2026-07-30T09:58:49.546116+00:00",
+    "entrypoints": [
+      "profile validation subprocesses",
+      "API FailureInfo responses",
+      "Reminder idempotency replay",
+      "Inbox Saga replay"
+    ],
+    "exit_codes": [],
+    "http_statuses": [
+      {
+        "method": "GET",
+        "path": "/daily-review?date=invalid",
+        "status": 400
+      },
+      {
+        "method": "GET",
+        "path": "/tasks/ut_missing",
+        "status": 404
+      }
+    ],
+    "response_facts": {
+      "date_status": 400,
+      "not_found_status": 404
+    },
+    "object_ids": [
+      "rem_b8c8bf6845b34595a95ff463a168edd0",
+      "inbox_3af83c69af35495ea7877a98ad00288b",
+      "wf_inbox_71e2192872dcec03744a672d"
+    ],
+    "workspace": {
+      "tenant_id": "acc020-tenant",
+      "workspace_id": "acc020-workspace",
+      "namespace": "daily",
+      "session_id": "acc020-session",
+      "agent_id": "acc020-driver"
+    },
+    "revision_status": [
+      {
+        "id": "ut_59ba4e2d290b4fb2b1e42bfe3047db48",
+        "before": 1,
+        "after": 2
+      }
+    ],
+    "database_evidence": [
+      "source-state-sqlite.json",
+      "restore-state-sqlite.json"
+    ],
+    "spy_evidence": [
+      "events.log",
+      "shutdown.log",
+      "partial-start-probe.json",
+      "failures.log"
+    ],
+    "checks": [
+      {
+        "name": "auth failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "config failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "date query failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "dependency scheduler failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "failure fields secret safe",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "idempotency and saga replay",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "not found failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "shutdown restore failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "stale revision failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "unsupported state failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      },
+      {
+        "name": "workspace failure info",
+        "expected": true,
+        "actual": true,
+        "passed": true,
+        "evidence_path": "scenario-V-evidence.json"
+      }
+    ],
+    "evidence_paths": [
+      "scenario-V-evidence.json",
+      "scenario-V.json"
+    ]
+  }
+}

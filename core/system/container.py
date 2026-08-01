@@ -97,6 +97,7 @@ class SystemContainer:
     _lifecycle: LifecycleStateMachine = field(repr=False)
     _shutdown_task: asyncio.Task | None = field(default=None, init=False, repr=False)
     shutdown_failures: list[str] = field(default_factory=list, init=False, repr=False)
+    _startup_failed: bool = field(default=False, init=False, repr=False)
     _tool_instances: list[ToolProtocol] = field(default_factory=list, init=False, repr=False)
 
     async def start(self) -> None:
@@ -187,6 +188,7 @@ class SystemContainer:
             logger.info("system.ready")
         except Exception as exc:
             logger.exception("system.initialization.failed")
+            self._startup_failed = True
             await self.shutdown()
             raise SystemInitializationError(str(exc)) from exc
 
@@ -251,7 +253,11 @@ class SystemContainer:
         await close_component("event_bus", self.event_bus.stop)
         await close_component("database_manager", self.database_manager.close_all)
 
-        final_state = SystemLifecycleState.FAILED if self.shutdown_failures else SystemLifecycleState.STOPPED
+        final_state = (
+            SystemLifecycleState.FAILED
+            if self.shutdown_failures or self._startup_failed
+            else SystemLifecycleState.STOPPED
+        )
         await self._lifecycle.transition(final_state)
         logger.info("system.lifecycle.transition", extra={"from_state": "draining", "to_state": final_state.value})
         logger.info("system.shutdown.completed")
@@ -273,6 +279,8 @@ class SystemContainer:
                 "accepting_work": False,
                 "provider_mode": self.settings.provider_mode,
                 "components": {},
+                "background_tasks": 0,
+                "database_connections": self.database_manager.connection_count,
                 "shutdown_failures": list(self.shutdown_failures),
             }
 
@@ -450,6 +458,8 @@ class SystemContainer:
             "shutdown_failures": list(self.shutdown_failures),
             "provider_mode": self.settings.provider_mode,
             "components": components,
+            "background_tasks": int(scheduler_health.get("running_jobs", 0)),
+            "database_connections": self.database_manager.connection_count,
         }
 
     @property

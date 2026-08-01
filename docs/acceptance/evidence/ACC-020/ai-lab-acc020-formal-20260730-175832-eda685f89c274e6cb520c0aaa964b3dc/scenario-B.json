@@ -1,0 +1,341 @@
+{
+  "result": "PASS",
+  "started_at": "2026-07-30T09:58:36.437756+00:00",
+  "ended_at": "2026-07-30T09:58:37.895501+00:00",
+  "entrypoints": [
+    "GET /health/live",
+    "GET /health/ready",
+    "GET /health",
+    "GET /agenda"
+  ],
+  "exit_codes": [],
+  "http_statuses": [
+    {
+      "method": "GET",
+      "path": "/health/live",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "path": "/health/live",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health/ready",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health/live",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health/ready",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/agenda",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/agenda",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/agenda",
+      "status": 200
+    }
+  ],
+  "response_facts": {
+    "live": {
+      "status": "alive"
+    },
+    "ready": {
+      "status": "ready",
+      "lifecycle": "ready",
+      "accepting_work": true,
+      "components": {
+        "event_bus": {
+          "status": "healthy"
+        },
+        "provider": {
+          "status": "healthy",
+          "mode": "mock",
+          "readiness": "ready"
+        },
+        "database": {
+          "status": "healthy",
+          "connections": 7,
+          "failed_connections": 0,
+          "failures": []
+        },
+        "memory": {
+          "status": "healthy",
+          "registered_stores": 4,
+          "last_error": null
+        },
+        "work_log": {
+          "status": "healthy"
+        },
+        "knowledge": {
+          "status": "disabled"
+        },
+        "tools": {
+          "status": "healthy",
+          "registered": 2,
+          "initialized": 2
+        },
+        "agent": {
+          "status": "healthy",
+          "lifecycle": "ready"
+        },
+        "workflow": {
+          "status": "healthy"
+        },
+        "scheduler": {
+          "status": "healthy",
+          "running": true,
+          "active_jobs": 0,
+          "running_jobs": 0,
+          "consecutive_failures": 0,
+          "last_tick_at": "2026-07-30T09:58:37.751461+00:00",
+          "last_successful_tick_at": "2026-07-30T09:58:37.751461+00:00",
+          "last_error": null,
+          "observability_error": null
+        },
+        "task": {
+          "status": "healthy"
+        },
+        "user_tasks": {
+          "status": "healthy"
+        },
+        "inbox": {
+          "status": "healthy"
+        },
+        "waiting_for": {
+          "status": "healthy"
+        },
+        "reminders": {
+          "status": "healthy",
+          "store": {
+            "status": "healthy"
+          },
+          "bridge": {
+            "status": "healthy"
+          }
+        },
+        "coordination": {
+          "status": "disabled"
+        },
+        "applications": {
+          "status": "healthy",
+          "registered": 1
+        }
+      }
+    },
+    "health": {
+      "status": "healthy",
+      "lifecycle": "ready",
+      "accepting_work": true,
+      "shutdown_failures": [],
+      "provider_mode": "mock",
+      "components": {
+        "event_bus": {
+          "status": "healthy"
+        },
+        "provider": {
+          "status": "healthy",
+          "mode": "mock",
+          "readiness": "ready"
+        },
+        "database": {
+          "status": "healthy",
+          "connections": 7,
+          "failed_connections": 0,
+          "failures": []
+        },
+        "memory": {
+          "status": "healthy",
+          "registered_stores": 4,
+          "last_error": null
+        },
+        "work_log": {
+          "status": "healthy"
+        },
+        "knowledge": {
+          "status": "disabled"
+        },
+        "tools": {
+          "status": "healthy",
+          "registered": 2,
+          "initialized": 2
+        },
+        "agent": {
+          "status": "healthy",
+          "lifecycle": "ready"
+        },
+        "workflow": {
+          "status": "healthy"
+        },
+        "scheduler": {
+          "status": "healthy",
+          "running": true,
+          "active_jobs": 0,
+          "running_jobs": 0,
+          "consecutive_failures": 0,
+          "last_tick_at": "2026-07-30T09:58:37.751461+00:00",
+          "last_successful_tick_at": "2026-07-30T09:58:37.751461+00:00",
+          "last_error": null,
+          "observability_error": null
+        },
+        "task": {
+          "status": "healthy"
+        },
+        "user_tasks": {
+          "status": "healthy"
+        },
+        "inbox": {
+          "status": "healthy"
+        },
+        "waiting_for": {
+          "status": "healthy"
+        },
+        "reminders": {
+          "status": "healthy",
+          "store": {
+            "status": "healthy"
+          },
+          "bridge": {
+            "status": "healthy"
+          }
+        },
+        "coordination": {
+          "status": "disabled"
+        },
+        "applications": {
+          "status": "healthy",
+          "registered": 1
+        }
+      },
+      "background_tasks": 0,
+      "database_connections": 7,
+      "uptime_seconds": 0,
+      "version": "0.34.0"
+    },
+    "missing_auth": {
+      "status": "error",
+      "code": "api.auth.missing",
+      "message": "Authentication required",
+      "component": "api.auth",
+      "retryable": false,
+      "trace_id": "acc020-7",
+      "details": {}
+    },
+    "wrong_auth": {
+      "status": "error",
+      "code": "api.auth.invalid_token",
+      "message": "Invalid authentication token",
+      "component": "api.auth",
+      "retryable": false,
+      "trace_id": "acc020-8",
+      "details": {}
+    },
+    "authorized_agenda": {
+      "items": [],
+      "count": 0,
+      "limit": 50,
+      "offset": 0,
+      "has_more": false,
+      "timezone": "Asia/Shanghai",
+      "generated_at": "2026-07-30T09:58:37.789208Z",
+      "view": "today",
+      "window_start": "2026-07-29T16:00:00Z",
+      "window_end": "2026-07-30T16:00:00Z"
+    },
+    "launcher_pid": 32764,
+    "uvicorn_pids": [
+      "14636"
+    ]
+  },
+  "object_ids": [],
+  "workspace": {
+    "tenant_id": "acc020-tenant",
+    "workspace_id": "acc020-workspace",
+    "namespace": "daily",
+    "session_id": "acc020-session",
+    "agent_id": "acc020-driver"
+  },
+  "revision_status": [],
+  "database_evidence": [],
+  "spy_evidence": [
+    "source-api-stderr.log"
+  ],
+  "checks": [
+    {
+      "name": "accepting work",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    },
+    {
+      "name": "auth rejection",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    },
+    {
+      "name": "component health",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    },
+    {
+      "name": "health live",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    },
+    {
+      "name": "health ready",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    },
+    {
+      "name": "lifecycle ready",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    },
+    {
+      "name": "provider mode",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    },
+    {
+      "name": "single uvicorn container pid",
+      "expected": true,
+      "actual": true,
+      "passed": true,
+      "evidence_path": "scenario-B-evidence.json"
+    }
+  ]
+}

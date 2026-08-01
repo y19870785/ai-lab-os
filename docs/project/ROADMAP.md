@@ -1,8 +1,8 @@
 # AI-Lab 路线图
 
-**Last Updated:** 2026-07-29
+**Last Updated:** 2026-08-01
 **Current Version:** v0.34.0 Alpha / Release Authorized
-**Current SP:** None
+**Current SP:** SP-020
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -54,8 +54,7 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 ## v0.35.0 候选方向
 
-SP-016、SP-017、SP-018 与 SP-019 已完成人工验收并封存。SP-020 已命名并建立
-Planning Baseline，但尚未批准 Implementation，也未启动：
+SP-016、SP-017、SP-018 与 SP-019 已完成人工验收并封存。SP-020 已完成实施、正式验收与独立证据复核，Draft PR 等待 Ready 转换：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
@@ -63,9 +62,9 @@ Planning Baseline，但尚未批准 Implementation，也未启动：
 | SP-017 | 跟进交互与捕获闭环——确定性 Waiting-For 交互、Inbox 捕获确认和持久化 Inbox-to-Waiting-For 转换 | COMPLETED / ARCHIVED |
 | SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
 | SP-019 | Daily Review Read Model & Deterministic Follow-up View | APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
-| SP-020 | Local Daily Operating Loop & Review-to-Action Closure | PLANNING_BASELINE_APPROVED / MERGED / RECONCILED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| SP-020 | Local Daily Operating Loop & Review-to-Action Closure | IMPLEMENTATION_APPROVED / FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / PENDING_READY_TRANSITION / DRAFT_PR_OPEN |
 
-ACC-016、ACC-017、ACC-018 与 ACC-019 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted；UserTask Workspace Query Closure Phase 0 与 Daily Review 均已合并、验证并封存。SP-020 Planning Baseline 已通过独立审查并由 PR #53 合并，RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Implementation 仍未授权，ACC-020 为 PLANNING_BASELINE / NOT_EXECUTED。候选不代表产品实现批准、排期或启动。
+ACC-016、ACC-017、ACC-018、ACC-019 与 ACC-020 均为 PASSED / FINAL。SP-018 的 RFC-027 为 Adopted，ADR-058～ADR-060 为 Accepted。SP-019 的 RFC-028 为 Adopted，ADR-061、ADR-062 为 Accepted；UserTask Workspace Query Closure Phase 0 与 Daily Review 均已合并、验证并封存。SP-020 Planning Baseline 已通过独立审查并由 PR #53 合并，RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Implementation 已完成，正式验收与独立证据复核已通过，但 PR #57 仍为 Draft 且尚未合并。候选不代表排期或启动。
 
 ## 后续候选版本
 
