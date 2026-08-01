@@ -64,7 +64,7 @@ SP-016、SP-017、SP-018、SP-019 与 SP-020 已完成验收并封存。当前�
 | SP-019 | Daily Review Read Model & Deterministic Follow-up View | APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-020 | Local Daily Operating Loop & Review-to-Action Closure | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED |
 
-ACC-016、ACC-017、ACC-018、ACC-019 与 ACC-020 均为 PASSED / FINAL。SP-020 的 RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。版本仍为 `0.34.0`，Tag `v0.34.0` 与 GitHub Pre-release 未改变。候选不代表排期或启动。
+ACC-016、ACC-017、ACC-018、ACC-019 与 ACC-020 均为 PASSED / FINAL。SP-020 的 RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，SP-020A 对账载体为 PR #58，并完成治理对账与封存。版本仍为 `0.34.0`，Tag `v0.34.0` 与 GitHub Pre-release 未改变。候选不代表排期或启动。
 
 ## 后续候选版本
 

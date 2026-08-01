@@ -29,6 +29,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通�
 | ACC-020 | PASSED / FINAL |
 | SP-020 planning merge | PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / run `30441534383` / SUCCESS |
 | SP-020 feature merge | PR #57 / `9ea4b72241bd855319231c09fa6b80c112a14305` / run `30687851816` / SUCCESS |
+| SP-020 reconciliation | SP-020A / PR #58 |
 | SP-019 Phase 0 | UserTask Workspace Query Closure / ACCEPTED |
 | SP-019 Daily Review | MERGED / VERIFIED / ACCEPTED / ARCHIVED |
 | Latest completed SP | SP-020 / ACC-020 PASSED / FINAL / reconciled / archived |
@@ -67,6 +68,9 @@ Feature Merge Commit:
 
 Main Quality Gate:
 30687851816 / SUCCESS
+
+Reconciliation PR:
+58
 ```
 
 当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在本页维护自指的 `Current main` 镜像。

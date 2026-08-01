@@ -72,6 +72,9 @@ Feature Merge Commit:
 
 Main Quality Gate:
 30687851816 / SUCCESS
+
+Reconciliation PR:
+58
 ```
 
 根目录 `project_state.json` 是唯一机器可读仓库治理状态与稳定发布授权源；本页是便于人工阅读的摘要。当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在治理文件中维护自指的 current-main 镜像；运行时产品版本仍只来自 `pyproject.toml`。
@@ -118,4 +121,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP、Current Governance Task 与 Next Candidate SP 均为 None。SP-020 Feature PR #57 已 Squash Merge 至 main `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 为 SUCCESS；ACC-020 A～V、独立证据复核、治理对账与封存均已完成。当前产品版本仍为 `0.34.0`，Tag `v0.34.0` 与 GitHub Pre-release 未改变。SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP、Current Governance Task 与 Next Candidate SP 均为 None。SP-020 Feature PR #57 已 Squash Merge 至 main `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 为 SUCCESS；SP-020A 对账载体为 PR #58。ACC-020 A～V、独立证据复核、治理对账与封存均已完成。当前产品版本仍为 `0.34.0`，Tag `v0.34.0` 与 GitHub Pre-release 未改变。SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

@@ -14,6 +14,7 @@
 > SP-020 设计：RFC-029 Adopted；ADR-063 与 ADR-064 Accepted
 > SP-020 规划合并：PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
 > SP-020 功能合并：PR #57 / `9ea4b72241bd855319231c09fa6b80c112a14305` / main Quality Gate `30687851816` / SUCCESS
+> SP-020 对账：SP-020A / PR #58
 
 ```text
 SP-020:
@@ -48,6 +49,9 @@ Feature Merge Commit:
 
 Main Quality Gate:
 30687851816 / SUCCESS
+
+Reconciliation PR:
+58
 ```
 > SP-016 状态：APPROVED / MERGED / AUTOMATED_VERIFICATION_PASSED / MANUAL_ACCEPTANCE_PASSED / COMPLETED / ARCHIVED
 > ACC-016 状态：PASSED / FINAL

@@ -10,6 +10,7 @@
 - 正式 ACC-020 在冻结实现 Head `1c9b69ee45b4e1545b67ecd841cc217e23d4f38f` 与冻结 Driver SHA-256 `99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5` 上执行一次且仅执行一次；A～V 报告 22/22 PASS，Provider calls 为 0，独立证据复核已批准，ACC-020 为 `PASSED / FINAL`。
 - 脱敏正式证据由 Commit `7a0944f4ad1deadefe636bf5abc3d30175de0b4d` 归档；不包含原始数据库、WAL/SHM、token、Authorization header、原始日志或真实业务数据。
 - SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 的 Ruff 与 pytest (non-real) 均为 SUCCESS；SP-020 随后完成治理对账与封存。
+- SP-020A 通过 Draft PR #58 记录上述合并后稳定治理事实；该 PR 不记录自身尚未发生的 merge commit、合并时间或 post-reconciliation Quality Gate。
 - 废弃 Head `bd858807262aa1b89cdb80644895afa970edcf64` 上断言覆盖不足的 rehearsal，分类为 `INVALID_ACCEPTANCE_HARNESS / DISCARDED / INSUFFICIENT_SCENARIO_ASSERTION_COVERAGE`；该记录不是产品失败，原“22/22 PASS”无效，当时 ACC-020 仍未执行。
 - 收紧 ACC-020 Driver：A～V 只能由完整结构化 checks 判定，证据分别落到真实命令/HTTP 日志、SQLite 快照、EventBus/Scheduler spy、shutdown/partial-start probe 与 source/restore 逐对象比较。
 - 收紧 Local Daily Profile、完整 WorkspaceKey、Action Hint 三元决策键、terminal stale revision、公共 TaskResponse 与 Scheduler health 公共读取合同。

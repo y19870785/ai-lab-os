@@ -404,6 +404,7 @@
       "main_quality_gate": "PASSED",
       "main_quality_gate_run": 30687851816,
       "post_merge_verification": "PASSED",
+      "reconciliation_pr": 58,
       "base_commit": "934075ceefe39ede3c624b621b7673d62f6d06dd",
       "branch": "docs/sp-020-local-daily-operating-loop-planning",
       "planning_pr": 53,

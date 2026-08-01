@@ -1402,6 +1402,12 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert sp020["main_quality_gate"] == "PASSED"
     assert sp020["main_quality_gate_run"] == 30687851816
     assert sp020["post_merge_verification"] == "PASSED"
+    assert sp020["reconciliation_pr"] == 58
+    assert {
+        "reconciliation_merge_commit",
+        "reconciled_at",
+        "post_reconciliation_quality_gate_run",
+    }.isdisjoint(sp020)
     assert sp020["base_commit"] == (
         "934075ceefe39ede3c624b621b7673d62f6d06dd"
     )
@@ -1897,7 +1903,9 @@ def test_sp020_current_acceptance_state_is_consistent_across_documents() -> None
         "Feature Merge Commit:\n"
         "9ea4b72241bd855319231c09fa6b80c112a14305\n\n"
         "Main Quality Gate:\n"
-        "30687851816 / SUCCESS"
+        "30687851816 / SUCCESS\n\n"
+        "Reconciliation PR:\n"
+        "58"
     )
     current_documents = (
         ROOT / "docs/project/PROJECT_BRAIN.md",
