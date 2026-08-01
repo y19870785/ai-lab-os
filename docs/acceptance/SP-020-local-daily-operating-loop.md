@@ -1,18 +1,48 @@
 # ACC-020 本地日常运行闭环与 Review-to-Action 验收
 
 - 产品 SP：SP-020
-- 验收状态：EXECUTED / A-V PASSED / PENDING_INDEPENDENT_EVIDENCE_REVIEW
+- 验收状态：PASSED / FINAL
 - 人工验收：true
 - 规划基线：`934075ceefe39ede3c624b621b7673d62f6d06dd`
 - 已批准实现 Head：`1c9b69ee45b4e1545b67ecd841cc217e23d4f38f`
 - 冻结 Driver SHA-256：`99695ac3f7544eebf5058db89b2b7d39eece6aec2e042e8f5f90273a7fcae3c5`
 - 验收证据 Head：`7a0944f4ad1deadefe636bf5abc3d30175de0b4d`
+- 独立证据复核：APPROVED
+- 正式运行：`ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc`
 - Provider 模式：explicit mock
 - 真实 Provider 调用：0
 
 ACC-020 已在冻结实现与冻结 Driver 上执行一次且仅执行一次，A～V 由 Driver 报告为
-22/22 PASS。该结果及脱敏证据包仍等待独立证据复核；Draft PR、正式执行成功或证据
+22/22 PASS，独立证据复核结论为 APPROVED，验收状态为 PASSED / FINAL；Draft PR、正式执行成功或证据
 归档均不得被解释为 SP-020 已合并、完成、对账或封存。
+
+```text
+SP-020:
+IMPLEMENTATION_APPROVED /
+APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_PASSED /
+INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION /
+DRAFT_PR_OPEN
+
+ACC-020:
+PASSED / FINAL
+
+Approved Implementation Head:
+1c9b69ee45b4e1545b67ecd841cc217e23d4f38f
+
+Acceptance Evidence Head:
+7a0944f4ad1deadefe636bf5abc3d30175de0b4d
+
+Formal Run:
+ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc
+
+Provider Calls:
+0
+
+Evidence Review:
+APPROVED
+```
 
 ## 验收冻结与证据规则
 
@@ -124,7 +154,10 @@ Acceptance Evidence Head:
 7a0944f4ad1deadefe636bf5abc3d30175de0b4d
 
 Review:
-PENDING_INDEPENDENT_EVIDENCE_REVIEW
+APPROVED
+
+Evidence Package:
+INTERNALLY CONSISTENT / SECRET-SAFE / APPROVED
 ```
 
 脱敏证据位于
@@ -362,7 +395,7 @@ SP-020 产品实施只需要一次明确 Owner 授权；Phase 0 是该授权内�
 
 ```text
 ACC-020:
-EXECUTED / A-V PASSED / PENDING_INDEPENDENT_EVIDENCE_REVIEW
+PASSED / FINAL
 
 manual_acceptance:
 true
@@ -373,8 +406,8 @@ PASSED
 SP-020:
 IMPLEMENTATION_APPROVED /
 APPROVED_IMPLEMENTATION_HEAD_FROZEN /
-FORMAL_ACCEPTANCE_EXECUTED /
-ACC_020_PASSED /
-PENDING_INDEPENDENT_EVIDENCE_REVIEW /
+FORMAL_ACCEPTANCE_PASSED /
+INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION /
 DRAFT_PR_OPEN
 ```

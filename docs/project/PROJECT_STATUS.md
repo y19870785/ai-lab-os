@@ -1,6 +1,6 @@
 # AI-Lab 项目状态
 
-**日期：** 2026-07-30
+**日期：** 2026-08-01
 **源码版本：** v0.34.0 Alpha / Release Authorized
 **已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
@@ -34,10 +34,38 @@
 | RFC-028 | Adopted |
 | ADR-061 / ADR-062 | Accepted |
 | ACC-019 | PASSED / FINAL（A～M 全部通过） |
-| SP-020 | IMPLEMENTATION_AUTHORIZED / PHASE_0_PASSED / PHASES_1_TO_3_IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN |
+| SP-020 | IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN / FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / PENDING_READY_TRANSITION / DRAFT_PR_OPEN |
 | RFC-029 | Adopted |
 | ADR-063 / ADR-064 | Accepted |
-| ACC-020 | PLANNING_BASELINE / NOT_EXECUTED（A～V 均未执行） |
+| ACC-020 | PASSED / FINAL（A～V 全部通过；独立证据复核 APPROVED） |
+
+```text
+SP-020:
+IMPLEMENTATION_APPROVED /
+APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_PASSED /
+INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION /
+DRAFT_PR_OPEN
+
+ACC-020:
+PASSED / FINAL
+
+Approved Implementation Head:
+1c9b69ee45b4e1545b67ecd841cc217e23d4f38f
+
+Acceptance Evidence Head:
+7a0944f4ad1deadefe636bf5abc3d30175de0b4d
+
+Formal Run:
+ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc
+
+Provider Calls:
+0
+
+Evidence Review:
+APPROVED
+```
 
 根目录 `project_state.json` 是唯一机器可读仓库治理状态与稳定发布授权源；本页是便于人工阅读的摘要。当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在治理文件中维护自指的 current-main 镜像；运行时产品版本仍只来自 `pyproject.toml`。
 
@@ -83,4 +111,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 
-Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 SP-020，Current Governance Task 为 None，Next Candidate SP 为 None。DOCS-001 已独立审查通过、合并、完成 main Quality Gate、对账并封存。SP-020 Planning Baseline 已通过独立审查，并由 PR #53 Squash Merge 至 main `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`；main Quality Gate `30441534383` 为 SUCCESS。Implementation 已获授权，Phase 0 已通过，Phase 1～3 已实现并等待独立审查；ACC-020 为 `PLANNING_BASELINE / NOT_EXECUTED`。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。
+Latest Merged SP 为 SP-019，Latest Completed SP 为 SP-019，Current Product SP 为 SP-020，Current Governance Task 为 None，Next Candidate SP 为 None。DOCS-001 已独立审查通过、合并、完成 main Quality Gate、对账并封存。SP-020 Planning Baseline 已通过独立审查，并由 PR #53 Squash Merge 至 main `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625`；main Quality Gate `30441534383` 为 SUCCESS。Implementation 已完成并冻结批准实现 Head；正式 ACC-020 A～V 与独立证据复核均已通过，当前 Draft PR 等待 Ready 转换，尚未合并、完成、对账或封存。当前产品版本仍为 `0.34.0`，未进行版本、Tag 或 Release 变更。

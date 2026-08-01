@@ -1,11 +1,11 @@
 # AI-Lab 项目健康状态
 
-**最近更新：** 2026-07-30
+**最近更新：** 2026-08-01
 **当前源码版本：** v0.34.0 Alpha / Release Authorized
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前 Product SP 为 SP-020，没有 Governance Task。SP-020 Implementation 已获授权，Phase 0 已通过，Phase 1～3 已实现并等待独立审查；ACC-020 尚未执行。这些能力不等同于生产级多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Review 已 MERGED / VERIFIED / ACCEPTED / ARCHIVED，ACC-019 A～M 与 post-merge verification 均已通过。当前 Product SP 为 SP-020，没有 Governance Task。SP-020 Implementation 已完成并冻结批准实现 Head；正式 ACC-020 A～V 与独立证据复核均已通过，Draft PR 当前等待 Ready 转换，尚未合并、完成、对账或封存。这些能力不等同于生产级多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -25,13 +25,41 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | DOCS-001 merge | PR #55 / `2d04f1b8574fde43b1d64a53d1ad22573073a4ef` / `2026-07-29T14:43:26Z` |
 | DOCS-001 main Quality Gate | run `30462290819` / SUCCESS |
 | Next candidate | None |
-| SP-020 | IMPLEMENTATION_AUTHORIZED / PHASE_0_PASSED / PHASES_1_TO_3_IMPLEMENTED / AUTOMATED_VERIFICATION_PASSED / PENDING_INDEPENDENT_REVIEW / DRAFT_PR_OPEN |
-| ACC-020 | PLANNING_BASELINE / NOT_EXECUTED |
+| SP-020 | IMPLEMENTATION_APPROVED / APPROVED_IMPLEMENTATION_HEAD_FROZEN / FORMAL_ACCEPTANCE_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / PENDING_READY_TRANSITION / DRAFT_PR_OPEN |
+| ACC-020 | PASSED / FINAL |
 | SP-020 planning merge | PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / run `30441534383` / SUCCESS |
 | SP-019 Phase 0 | UserTask Workspace Query Closure / ACCEPTED |
 | SP-019 Daily Review | MERGED / VERIFIED / ACCEPTED / ARCHIVED |
 | Latest completed SP | SP-019 / manual acceptance passed / post-merge verified / archived |
 | Release stage | Alpha / RELEASE_AUTHORIZED；Authorized Tag v0.34.0 / GitHub Pre-release |
+
+```text
+SP-020:
+IMPLEMENTATION_APPROVED /
+APPROVED_IMPLEMENTATION_HEAD_FROZEN /
+FORMAL_ACCEPTANCE_PASSED /
+INDEPENDENT_EVIDENCE_REVIEW_APPROVED /
+PENDING_READY_TRANSITION /
+DRAFT_PR_OPEN
+
+ACC-020:
+PASSED / FINAL
+
+Approved Implementation Head:
+1c9b69ee45b4e1545b67ecd841cc217e23d4f38f
+
+Acceptance Evidence Head:
+7a0944f4ad1deadefe636bf5abc3d30175de0b4d
+
+Formal Run:
+ai-lab-acc020-formal-20260730-175832-eda685f89c274e6cb520c0aaa964b3dc
+
+Provider Calls:
+0
+
+Evidence Review:
+APPROVED
+```
 
 当前 GitHub main HEAD、Pull Request 状态和最新 Workflow run 是通过 Git/GitHub 实时查询的外部事实，不在本页维护自指的 `Current main` 镜像。
 
@@ -49,7 +77,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-019 Daily Re
 | SP-017 interaction closure | Integrated / Verified / Archived | ACC-017 A～O PASSED / FINAL；RFC-026 Adopted；ADR-056、ADR-057 Accepted |
 | Work Log / SP-018 | Integrated / Verified / Archived | RFC-027 Adopted；ADR-058～060 Accepted；ACC-018 A～O PASSED / FINAL |
 | Daily Review / SP-019 | Integrated / Verified / Manual acceptance passed | RFC-028 Adopted；ADR-061、ADR-062 Accepted；ACC-019 A～M PASSED / FINAL；SP-019 archived |
-| Local Daily Loop / SP-020 | Implementation authorized / automated verification passed | RFC-029 Adopted；ADR-063、ADR-064 Accepted；Phase 0 PASSED；Phase 1～3 implemented；ACC-020 NOT_EXECUTED |
+| Local Daily Loop / SP-020 | Implementation complete / formal acceptance passed / evidence review approved | RFC-029 Adopted；ADR-063、ADR-064 Accepted；ACC-020 PASSED / FINAL；Draft PR 等待 Ready 转换 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

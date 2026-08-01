@@ -2,8 +2,8 @@
 
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
-> SP-020 已获产品实施授权；Phase 0 已通过，Phase 1～3 已实现并通过自动化验证。
-> 当前 Draft PR 等待独立审查，ACC-020 尚未执行，版本、Tag 与 Release 不变。
+> SP-020 已完成实施并冻结批准实现 Head；正式 ACC-020 A～V 与独立证据复核均已通过。
+> 当前 Draft PR 等待 Ready 转换，尚未合并；版本、Tag 与 Release 不变。
 
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
