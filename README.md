@@ -2,8 +2,8 @@
 
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
-> SP-020 已完成实施并冻结批准实现 Head；正式 ACC-020 A～V 与独立证据复核均已通过。
-> 当前 Draft PR 等待 Ready 转换，尚未合并；版本、Tag 与 Release 不变。
+> SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
+> 当前没有 Product SP 或 Governance Task；版本、Tag 与 GitHub Pre-release 均未改变。
 
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
@@ -210,9 +210,9 @@ Governance
 - Knowledge 真实主链路、Web UI、Docker 受控 build/run 与长期稳定性尚未完成正式验证。
 - 普通 GitHub Quality Gate 显式排除 `tests/real`；真实 Provider 结果不能由普通门禁推导。
 - CI-002 与 QUALITY-001 等已确认技术债记录在 `project_state.json`。
-- SP-020 的实现已补齐正式 Daily Review CLI、Local Daily Profile、确定性 Action Hint
-  与 Review-to-Action UserTask revision 边界；restart/静止备份/隔离恢复的正式 ACC-020
-  仍须等待独立审查冻结 Head 后执行。
+- SP-020 已补齐正式 Daily Review CLI、Local Daily Profile、确定性 Action Hint
+  与 Review-to-Action UserTask revision 边界；restart、静止备份与隔离恢复已由正式
+  ACC-020 验证，验收与独立证据复核均为 `PASSED / FINAL`。
 
 ## 开发与测试
 
