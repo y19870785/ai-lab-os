@@ -135,18 +135,16 @@ flowchart TD
 
 当前默认状态：Knowledge、Scheduler、Coordination 为 `disabled`；仅在明确配置后启用。Mock Provider 只能在显式 `mock/test` 模式创建。完整说明见 `docs/architecture/SYSTEM_COMPOSITION.md`。
 
-### SP-020 本地日常运行闭环（实现中）
+### SP-020 本地日常运行闭环（已验收并封存）
 
-RFC-029 规划一个 Windows Local Daily Profile：使用稳定绝对 data/sqlite root、显式
-IANA timezone、Provider mode、feature flags、localhost bind 与 API auth。当前
-`load_system_settings()` 仍会以 working directory 推导 `.env` 和默认 data root，
-因此不同目录启动可能连接不同数据；本段不声明 Profile 已实现。
+RFC-029 定义 Windows Local Daily Profile：使用稳定绝对 data/sqlite root、显式
+IANA timezone、Provider mode、feature flags、localhost bind 与 API auth。
 
-Daily Review CLI 将来只能直接复用现有无数据库、无事件、无 LLM、无写入的
+Daily Review CLI 直接复用现有无数据库、无事件、无 LLM、无写入的
 `DailyReviewService`。Action Hint 只能作为由 `source_type + status + reason_code`
 确定的纯 presentation，并将明确动作委托现有 canonical domain services。
 
-生命周期 Phase 0 必须证明 partial-start rollback、重复 shutdown（包括当前同一流程的
+生命周期 Phase 0 已证明 partial-start rollback、重复 shutdown（包括当前同一流程的
 两次 Scheduler shutdown 调用）、连接释放和新进程恢复。备份只规划优雅停机后的完整
 data directory Quiescent Backup 与隔离恢复，不承诺在线跨 SQLite 一致快照。上述内容
 实现分支已提供严格 Local Daily Profile、共享 Composition Root 的 Daily Review CLI、
@@ -161,8 +159,11 @@ Action Hint 不写数据库、不发布事件、不调用 Provider，也不声�
 reschedule 的 idempotency key 是可选保护能力，Inbox Waiting-For Hint 只声明真实入口
 可直接接收的参数。
 
-RFC-029、ADR-063 与 ADR-064 的规划决策保持不变；ACC-020 仍为 Planning Baseline /
-NOT_EXECUTED，正式执行必须等待独立审查冻结 Implementation Head。
+RFC-029、ADR-063 与 ADR-064 的决策保持不变；ACC-020 A～V 已在冻结实现 Head 上正式
+执行一次且仅执行一次，独立证据复核通过，状态为 `PASSED / FINAL`。SP-020 已由 PR #57
+Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate
+`30687851816` 为 SUCCESS，并完成治理对账与封存。这不等于 production-ready：External
+Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
 
 | 组件 | 当前状态 | 边界 |
 |---|---|---|
