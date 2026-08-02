@@ -1,7 +1,7 @@
 # REL-035 — v0.35.0 Alpha 发布收口实施任务书
 
-> 本文件是未来 REL-035 正式实施的唯一授权边界；当前不构成实施、合并、Tag 或
-> GitHub Release 授权。
+> 本文件是 REL-035 正式实施和发布收口的唯一授权边界。Implementation 已获授权并完成
+> Release Candidate 验证；本文件不授权 Ready、Merge、Tag 或 GitHub Release。
 
 ## 1. 任务身份
 
@@ -18,17 +18,27 @@ Target Version:
 Target Release Name:
 v0.35.0 Alpha — Local Daily Operating Loop
 
-Future Implementation Base:
-Planning PR merge 后最新 main，由 Owner 重新冻结
+Implementation Base:
+e596c3331ed86dbba3aeded3ccd61517d1901559
 
-Future Branch:
+Implementation Branch:
 chore/rel-035-v035-alpha-release-consolidation
 
-Future PR Title:
+Release PR:
+#60
+
+PR Title:
 chore(release): consolidate v0.35.0 alpha release
 
 Implementation Status:
-NOT APPROVED / NOT STARTED
+IMPLEMENTATION_APPROVED /
+IMPLEMENTATION_IN_PROGRESS /
+RELEASE_CANDIDATE_VALIDATED /
+DRAFT_PR_OPEN /
+PENDING_INDEPENDENT_REVIEW
+
+Source Version:
+0.35.0
 
 Tag Authorization:
 NOT GRANTED
@@ -56,7 +66,7 @@ git tag --list "v0.34.0" "v0.35.0"
 
 并实时核验：
 
-- HEAD 精确等于 Owner 新冻结的 Future Implementation Base；
+- HEAD 精确等于 Owner 新冻结的 Implementation Base；
 - 工作区干净；
 - 没有未审查 Product/Governance PR；
 - `v0.34.0` Tag 与 GitHub Pre-release 存在且事实一致；
@@ -252,10 +262,20 @@ Fix SP；或任何独立授权缺失。
 
 ```text
 Implementation:
-NOT APPROVED / NOT STARTED
+IMPLEMENTATION_APPROVED /
+IMPLEMENTATION_IN_PROGRESS /
+RELEASE_CANDIDATE_VALIDATED /
+DRAFT_PR_OPEN /
+PENDING_INDEPENDENT_REVIEW
 
 Source Version:
-0.34.0 / UNCHANGED
+0.35.0
+
+Ready:
+NOT AUTHORIZED
+
+Merge:
+NOT AUTHORIZED
 
 Tag v0.35.0:
 NOT AUTHORIZED / NOT CREATED

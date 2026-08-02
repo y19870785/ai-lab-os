@@ -1,9 +1,14 @@
 # REL-035 — v0.35.0 Alpha 发布收口规划
 
-> Task Type：`RELEASE_GOVERNANCE`
-> Planning Base：`5456ed2406fa54443a02b436e2684bf90698afea`
-> 当前源码版本：`0.34.0`（本规划不修改版本）
-> 当前状态：`PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED`
+> 任务类型（Task Type）：`RELEASE_GOVERNANCE`
+> 历史规划 Base（Planning Base）：`5456ed2406fa54443a02b436e2684bf90698afea`
+> 历史规划基线状态（Planning Baseline Original State）：`PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED`
+> 规划合并提交（Planning Merge Commit）：`e596c3331ed86dbba3aeded3ccd61517d1901559`
+> 实施 Base（Implementation Base）：`e596c3331ed86dbba3aeded3ccd61517d1901559`
+> 当前源码版本（Current Source Version）：`0.35.0`
+> 当前状态（Current State）：`IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS / SOURCE_VERSION_UPDATED / RELEASE_DOCUMENTATION_UPDATED / RELEASE_CANDIDATE_VALIDATED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW`
+> Tag `v0.35.0`：`NOT_AUTHORIZED / NOT_CREATED`
+> GitHub Release `v0.35.0`：`NOT_AUTHORIZED / NOT_CREATED`
 
 ## 1. 版本定义
 
@@ -68,7 +73,7 @@ Review，获得确定性 Action Hints，执行明确的 Review-to-Action 操作�
 `waiting_for_items` 与 `waiting_for_events` 使用 `CREATE TABLE IF NOT EXISTS`
 初始化，相关索引使用 `CREATE INDEX IF NOT EXISTS` 初始化。
 
-使用现有 v0.34.0 data directory 启动未来 v0.35.0 时，已有 UserTask、Reminder、
+使用现有 v0.34.0 data directory 启动 v0.35.0 Release Candidate 时，已有 UserTask、Reminder、
 Inbox 和 Work Log 数据保持原样。若 `followups.db` 不存在，当前代码按需创建该文件、
 表与索引；这是增量初始化，不是破坏性迁移。
 
@@ -115,7 +120,7 @@ flags、token 或 WorkspaceKey。
 
 ## 6. Release Notes 结构
 
-未来正式 Release Notes 必须至少包含：
+正式 Release Notes 必须至少包含：
 
 1. Release identity：版本、名称、Alpha/Pre-release 与无二进制附件；
 2. Highlights：Local Daily Operating Loop 的用户价值；
@@ -132,8 +137,8 @@ Release Notes 不得宣称未验收能力、production-ready、在线跨库一�
 
 ## 7. 正式实施范围
 
-Planning PR 合并并经 Owner 独立授权后，唯一实施边界为
-`REL-035-IMPLEMENTATION-TASK.md`。未来实施只允许：
+Planning PR 已合并且 Owner 已独立授权 Implementation；唯一实施边界为
+`REL-035-IMPLEMENTATION-TASK.md`。实施只允许：
 
 - 将 `pyproject.toml` 与机器可读当前版本从 `0.34.0` 提升到 `0.35.0`；
 - 生成正式 v0.35.0 Release Notes；
@@ -162,8 +167,8 @@ Planning PR 合并并经 Owner 独立授权后，唯一实施边界为
 | Diff hygiene | `git diff --check` 与变更清单 | 只含授权实施文件，无运行数据/秘密 |
 | Post-merge | main Quality Gate + reconciliation | 成功后才能冻结 Release Head |
 
-本 Planning PR 只验证规划状态，必须保持 `0.34.0`，不执行正式 release-candidate
-升级 smoke，也不重跑 ACC-020 A～V。
+历史 Planning PR 只验证规划状态并保持 `0.34.0`。当前实施已将源码版本提升至
+`0.35.0`，完成 Release Candidate 验证；没有重跑 ACC-020 A～V。
 
 ## 9. 发布状态机
 
@@ -202,13 +207,14 @@ GitHub Release Authorization 是五个独立治理事件，不得合并或相互
 ## 10. 授权顺序
 
 1. Planning PR 独立审查与合并；
-2. Owner 冻结最新 main 为 Future Implementation Base，并明确授权实施；
+2. Owner 冻结最新 main 为 Implementation Base，并明确授权实施；
 3. Release PR 独立审查与合并，main Quality Gate 通过；
 4. Post-Merge Reconciliation 完成并冻结 Release Head；
 5. Owner 单独授权创建 `v0.35.0` Tag，校验 Tag 精确指向 frozen head；
 6. Owner 单独授权发布 GitHub Pre-release，再校验发布事实。
 
-当前只达到第 1 步之前的 Planning Baseline；后续所有授权均为 `NOT GRANTED`。
+当前已完成第 1、2 步，并在第 3 步保持 Release PR #60 为 Draft、等待独立复审。
+Release PR Merge、Tag Authorization 与 GitHub Release Authorization 均为 `NOT GRANTED`。
 
 ## 11. 停止条件
 
@@ -234,22 +240,45 @@ Product Fix SP。
 - 数据：始终保留升级前完整 data directory 备份；恢复必须写入隔离目录并验证，禁止覆盖唯一副本；
 - 任何回滚都不得自动恢复到“不受支持但看似能跑”的旧配置。
 
-## 13. 当前结论
+## 13. 历史规划基线与当前结论
+
+Planning Baseline Original State：
 
 ```text
 REL-035:
 PLANNING_BASELINE_DEFINED /
 IMPLEMENTATION_NOT_APPROVED /
 NOT_STARTED
+```
+
+Current Implementation State：
+
+```text
+Planning Merge Commit:
+e596c3331ed86dbba3aeded3ccd61517d1901559
+
+Implementation Base:
+e596c3331ed86dbba3aeded3ccd61517d1901559
+
+Current Source Version:
+0.35.0
+
+REL-035:
+IMPLEMENTATION_APPROVED /
+IMPLEMENTATION_IN_PROGRESS /
+SOURCE_VERSION_UPDATED /
+RELEASE_DOCUMENTATION_UPDATED /
+RELEASE_CANDIDATE_VALIDATED /
+DRAFT_PR_OPEN /
+PENDING_INDEPENDENT_REVIEW
 
 v0.35.0:
-ALPHA_RELEASE_CONSOLIDATION_PLANNED /
-SOURCE_VERSION_UNCHANGED /
+RELEASE_CANDIDATE_VALIDATED /
 NOT_PUBLISHED
 
 Tag v0.35.0:
-NOT_CREATED / NOT_AUTHORIZED
+NOT_AUTHORIZED / NOT_CREATED
 
 GitHub Release v0.35.0:
-NOT_CREATED / NOT_AUTHORIZED
+NOT_AUTHORIZED / NOT_CREATED
 ```

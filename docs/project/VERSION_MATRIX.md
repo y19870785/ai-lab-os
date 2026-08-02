@@ -1,14 +1,13 @@
 # 版本兼容性矩阵
 
-**Source Version:** `0.34.0` Alpha
-**Authorization:** Release Authorized
-**Previous Tag:** `v0.33.0`
-**Authorized publication:** Tag `v0.34.0` / GitHub Pre-release
-**Planned publication:** `v0.35.0 Alpha — Local Daily Operating Loop` / NOT AUTHORIZED / NOT PUBLISHED
+**源码版本：** `0.35.0` Alpha Release Candidate
+**授权状态：** Implementation Approved / Publication Not Authorized
+**上一已发布 Tag：** `v0.34.0`
+**候选发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / NOT AUTHORIZED / NOT PUBLISHED
 
 ## 当前能力基线
 
-| 能力 | 治理合同 | v0.34.0 源码状态 |
+| 能力 | 治理合同 | v0.35.0 源码状态 |
 |---|---|---|
 | Canonical UserTask | SP-004 | Integrated / Verified |
 | Reminder / Scheduler Bridge | SP-005、SP-009～SP-011 | Integrated / Verified / Disabled by default |
@@ -19,10 +18,10 @@
 | Unified Inbox / Capture-to-Action | RFC-024 / ADR-052～053 | Integrated / Verified / ACC-014 passed |
 | Chinese numeral reminder hours | SP-014B | Integrated / Verified within documented deterministic scope |
 
-## v0.35.0 规划能力基线
+## v0.35.0 Release Candidate 能力基线
 
-本节记录已进入 main 且通过验收、计划由 v0.35.0 汇总发布的能力，不表示当前源码版本
-已提升，也不表示 Tag/Release 已获授权。
+本节记录已进入 main 且通过验收、由 v0.35.0 Release Candidate 汇总的能力；
+源码版本已提升，但不表示 Tag/Release 已获授权或发布。
 
 | 能力 | 治理合同 | 当前 main 状态 |
 |---|---|---|

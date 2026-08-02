@@ -1,17 +1,17 @@
 # Markdown 文档治理清单
 
-> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；DOCS-001 新增 3 份治理文档，REL-035 Planning Baseline 新增 2 份发布治理文档。标题、表格、乱码、长篇叙述和链接由治理测试动态扫描，当前没有排除项或未解决问题。
+> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；DOCS-001 新增 3 份治理文档，REL-035 Planning Baseline 新增 2 份发布治理文档，REL-035 Implementation 新增 1 份版本化 Release Notes。标题、表格、乱码、长篇叙述和链接由治理测试动态扫描，当前没有排除项或未解决问题。
 
 ## 汇总
 
-- Git 跟踪 Markdown：178
-- 仓库自有且纳入范围：178
+- Git 跟踪 Markdown：179
+- 仓库自有且纳入范围：179
 - 排除：0
 - 初始中文：93
 - 初始中英混合：41
 - 初始英文为主：39
 - 已审计并标准化的既有文档：173
-- 新增中文治理文档：5
+- 新增中文治理文档：6
 - 有效标题：每份文档恰好一个中文一级标题，其他普通标题均含中文
 - Markdown 表格：解释性表头与长篇单元格均由治理测试检查
 - 已修复乱码：1 个文件（`CHANGELOG.md` 历史段落）
@@ -160,6 +160,7 @@
 | `docs/project/VERSION_MATRIX.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/release/v0.30.0.md` | Release | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/releases/v0.34.0-alpha.md` | Release | 是 | 中文 | 是 | 事实对账 | — | 完成 |
+| `docs/releases/v0.35.0-alpha.md` | Release | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/review/CURRENT_RISKS.md` | Other | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/review/GPT56_REVIEW_HANDOFF.md` | Other | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/review/READING_ORDER.md` | Other | 是 | 中文 | 是 | 事实对账 | — | 完成 |

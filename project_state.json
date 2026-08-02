@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "project": "AI-Lab OS",
-  "version": "v0.34.0",
-  "current_version": "0.34.0",
+  "version": "v0.35.0",
+  "current_version": "0.35.0",
   "git_branch": "main",
   "verified_release_baseline": {
     "commit": "22f88d1da962fb436c48c19e5343fad8bf62f5f6",
@@ -42,14 +42,16 @@
       "name": "v0.35.0 Alpha Release Consolidation",
       "type": "RELEASE_GOVERNANCE",
       "base_commit": "5456ed2406fa54443a02b436e2684bf90698afea",
-      "branch": "docs/rel-035-v035-alpha-release-planning",
-      "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "planning_merge_commit": "e596c3331ed86dbba3aeded3ccd61517d1901559",
+      "implementation_base_commit": "e596c3331ed86dbba3aeded3ccd61517d1901559",
+      "branch": "chore/rel-035-v035-alpha-release-consolidation",
+      "status": "IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS / SOURCE_VERSION_UPDATED / RELEASE_DOCUMENTATION_UPDATED / RELEASE_CANDIDATE_VALIDATED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW",
       "target_version": "0.35.0",
       "target_release_name": "v0.35.0 Alpha — Local Daily Operating Loop",
       "release_type": "prerelease",
       "binary_assets": "none",
-      "implementation_approved": false,
-      "version_changed": false,
+      "implementation_approved": true,
+      "version_changed": true,
       "tag_authorized": false,
       "tag_created": false,
       "github_release_authorized": false,
@@ -670,20 +672,24 @@
     }
   ],
   "release_status": {
-    "current_version": "0.34.0",
+    "current_version": "0.35.0",
     "release_stage": "alpha",
-    "release_authorization": "APPROVED",
+    "release_authorization": "NOT_AUTHORIZED",
     "publication_authority": "GitHub Tags and GitHub Releases",
-    "authorized_tag": "v0.34.0",
+    "last_authorized_tag": "v0.34.0",
     "github_release_type": "prerelease",
     "maturity": "Alpha / local-first / single-user-oriented",
     "binary_assets": "not published",
     "planned_releases": {
       "v0.35.0": {
         "name": "v0.35.0 Alpha — Local Daily Operating Loop",
-        "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_PUBLISHED",
+        "status": "RELEASE_CANDIDATE_VALIDATED / NOT_PUBLISHED",
         "release_type": "prerelease",
-        "binary_assets": "none"
+        "binary_assets": "none",
+        "tag_authorized": false,
+        "tag_created": false,
+        "github_release_authorized": false,
+        "github_release_published": false
       }
     }
   }

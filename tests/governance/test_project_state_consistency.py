@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -24,7 +25,7 @@ def test_runtime_and_governance_versions_are_consistent() -> None:
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     runtime_version = pyproject["project"]["version"]
 
-    assert runtime_version == "0.34.0"
+    assert runtime_version == "0.35.0"
     assert state["current_version"] == runtime_version
     assert state["version"] == f"v{runtime_version}"
     assert state["release_status"]["current_version"] == runtime_version
@@ -35,7 +36,7 @@ def test_human_facing_current_state_markers_match_project_state() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8-sig")
     brain = (ROOT / "docs/project/PROJECT_BRAIN.md").read_text(encoding="utf-8-sig")
 
-    assert f"v{state['current_version']} Alpha / Release Authorized" in readme
+    assert f"v{state['current_version']} Alpha / Release Candidate" in readme
     assert f"产品版本：{state['version']}" in brain
     assert f"最近完成的 Product SP：{state['latest_completed_sp']}" in brain
     assert f"当前 Product SP：{state['current_sp']}" in brain
@@ -71,6 +72,7 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] == "REL-035"
+    assert state["git_branch"] == "main"
     assert state["next_candidate_sp"] is None
 
 
@@ -230,8 +232,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert "ACC-016 状态：PASSED / FINAL" in text["brain"]
     assert "ACC-017 状态：PASSED / FINAL" in text["brain"]
     assert "Current governance task | REL-035" in text["health"]
-    assert "Alpha / RELEASE_AUTHORIZED" in text["health"]
-    assert "**Authorization:** Release Authorized" in text["version_matrix"]
+    assert "Alpha / RELEASE_CANDIDATE" in text["health"]
+    assert "**授权状态：** Implementation Approved" in text["version_matrix"]
     assert (
         "SP-015、SP-015A 与 SP-015R 已封存；SP-016 当时仍仅为候选"
         in text["release_checklist"]
@@ -270,11 +272,11 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     ) in text["release_checklist"]
     assert "最终发布提交已准备" in text["release_checklist"]
     assert "- [ ] SP-015R merged" not in text["release_checklist"]
-    assert "授权 Tag 为 `v0.34.0`" in text["readme"]
+    assert "上一已发布版本为 `v0.34.0`" in text["readme"]
     assert "Pre-release" in text["readme"]
     assert "GitHub Tags and GitHub Releases" in text["readme"]
-    assert "授权 Tag：`v0.34.0`" in text["status"]
-    assert "GitHub Release 类型：Pre-release" in text["status"]
+    assert "上一已发布 Tag：`v0.34.0`" in text["status"]
+    assert "目标类型为 Pre-release" in text["status"]
     assert "GitHub Tags and GitHub Releases" in text["status"]
     assert "Authorized Tag：`v0.34.0`" in text["release_notes"]
     assert "GitHub Release Type：Pre-release" in text["release_notes"]
@@ -375,11 +377,11 @@ def test_release_authorization_is_stable_and_github_is_authoritative() -> None:
     )
 
     assert release == {
-        "current_version": "0.34.0",
+        "current_version": "0.35.0",
         "release_stage": "alpha",
-        "release_authorization": "APPROVED",
+        "release_authorization": "NOT_AUTHORIZED",
         "publication_authority": "GitHub Tags and GitHub Releases",
-        "authorized_tag": "v0.34.0",
+        "last_authorized_tag": "v0.34.0",
         "github_release_type": "prerelease",
         "maturity": "Alpha / local-first / single-user-oriented",
         "binary_assets": "not published",
@@ -387,11 +389,14 @@ def test_release_authorization_is_stable_and_github_is_authoritative() -> None:
             "v0.35.0": {
                 "name": "v0.35.0 Alpha — Local Daily Operating Loop",
                 "status": (
-                    "PLANNING_BASELINE_DEFINED / "
-                    "IMPLEMENTATION_NOT_APPROVED / NOT_PUBLISHED"
+                    "RELEASE_CANDIDATE_VALIDATED / NOT_PUBLISHED"
                 ),
                 "release_type": "prerelease",
                 "binary_assets": "none",
+                "tag_authorized": False,
+                "tag_created": False,
+                "github_release_authorized": False,
+                "github_release_published": False,
             }
         },
     }
@@ -889,15 +894,15 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["current_governance_task"] == "REL-035"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
-    assert state["current_version"] == "0.34.0"
-    assert state["version"] == "v0.34.0"
+    assert state["current_version"] == "0.35.0"
+    assert state["version"] == "v0.35.0"
     assert state["development_status"] == (
         "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_"
         "reconciled_archived"
     )
     assert state["current_work"] is None
-    assert state["release_status"]["authorized_tag"] == "v0.34.0"
-    assert state["release_status"]["current_version"] == "0.34.0"
+    assert state["release_status"]["last_authorized_tag"] == "v0.34.0"
+    assert state["release_status"]["current_version"] == "0.35.0"
     assert "SP-020" in state["sp_records"]
     assert sp019 == {
         "name": "Daily Review Read Model & Deterministic Follow-up View",
@@ -1382,10 +1387,10 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
         "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_"
         "reconciled_archived"
     )
-    assert state["current_version"] == "0.34.0"
-    assert state["version"] == "v0.34.0"
-    assert state["release_status"]["current_version"] == "0.34.0"
-    assert state["release_status"]["authorized_tag"] == "v0.34.0"
+    assert state["current_version"] == "0.35.0"
+    assert state["version"] == "v0.35.0"
+    assert state["release_status"]["current_version"] == "0.35.0"
+    assert state["release_status"]["last_authorized_tag"] == "v0.34.0"
 
     assert sp020["status"] == (
         "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / "
@@ -2009,8 +2014,8 @@ def test_docs001_is_reconciled_and_archived() -> None:
         "release_changed": False,
     }
 
-    assert state["current_version"] == "0.34.0"
-    assert state["release_status"]["authorized_tag"] == "v0.34.0"
+    assert state["current_version"] == "0.35.0"
+    assert state["release_status"]["last_authorized_tag"] == "v0.34.0"
 
     current_governance_docs = "\n".join(
         (
@@ -2029,12 +2034,12 @@ def test_docs001_is_reconciled_and_archived() -> None:
     assert "30462290819" in current_governance_docs
     assert "INDEPENDENT_EVIDENCE_REVIEW_APPROVED" in current_governance_docs
     assert "ACC-020 | PASSED / FINAL" in current_governance_docs
-    assert "DRAFT_PR_OPEN" not in current_governance_docs
+    assert "DRAFT_PR_OPEN" in current_governance_docs
     assert "Current Governance Task: DOCS-001" not in current_governance_docs
     assert "当前治理任务：DOCS-001" not in current_governance_docs
 
 
-def test_rel035_release_planning_state_and_boundaries_are_locked() -> None:
+def test_rel035_release_candidate_state_and_boundaries_are_locked() -> None:
     state = _load_state()
     pyproject = tomllib.loads(
         (ROOT / "pyproject.toml").read_text(encoding="utf-8")
@@ -2043,22 +2048,27 @@ def test_rel035_release_planning_state_and_boundaries_are_locked() -> None:
     planned_release = state["release_status"]["planned_releases"]["v0.35.0"]
 
     assert state["current_governance_task"] == "REL-035"
+    assert state["git_branch"] == "main"
     assert state["current_sp"] is None
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["next_candidate_sp"] is None
-    assert state["current_version"] == "0.34.0"
-    assert state["version"] == "v0.34.0"
-    assert pyproject["project"]["version"] == "0.34.0"
+    assert state["current_version"] == "0.35.0"
+    assert state["version"] == "v0.35.0"
+    assert pyproject["project"]["version"] == "0.35.0"
 
     assert rel035 == {
         "name": "v0.35.0 Alpha Release Consolidation",
         "type": "RELEASE_GOVERNANCE",
         "base_commit": "5456ed2406fa54443a02b436e2684bf90698afea",
-        "branch": "docs/rel-035-v035-alpha-release-planning",
+        "planning_merge_commit": "e596c3331ed86dbba3aeded3ccd61517d1901559",
+        "implementation_base_commit": "e596c3331ed86dbba3aeded3ccd61517d1901559",
+        "branch": "chore/rel-035-v035-alpha-release-consolidation",
         "status": (
-            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
-            "NOT_STARTED"
+            "IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS / "
+            "SOURCE_VERSION_UPDATED / RELEASE_DOCUMENTATION_UPDATED / "
+            "RELEASE_CANDIDATE_VALIDATED / DRAFT_PR_OPEN / "
+            "PENDING_INDEPENDENT_REVIEW"
         ),
         "target_version": "0.35.0",
         "target_release_name": (
@@ -2066,8 +2076,8 @@ def test_rel035_release_planning_state_and_boundaries_are_locked() -> None:
         ),
         "release_type": "prerelease",
         "binary_assets": "none",
-        "implementation_approved": False,
-        "version_changed": False,
+        "implementation_approved": True,
+        "version_changed": True,
         "tag_authorized": False,
         "tag_created": False,
         "github_release_authorized": False,
@@ -2076,22 +2086,58 @@ def test_rel035_release_planning_state_and_boundaries_are_locked() -> None:
     assert planned_release == {
         "name": "v0.35.0 Alpha — Local Daily Operating Loop",
         "status": (
-            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
-            "NOT_PUBLISHED"
+            "RELEASE_CANDIDATE_VALIDATED / NOT_PUBLISHED"
         ),
         "release_type": "prerelease",
         "binary_assets": "none",
+        "tag_authorized": False,
+        "tag_created": False,
+        "github_release_authorized": False,
+        "github_release_published": False,
     }
-    assert state["release_status"]["current_version"] == "0.34.0"
-    assert state["release_status"]["authorized_tag"] == "v0.34.0"
+    assert state["release_status"]["current_version"] == "0.35.0"
+    assert state["release_status"]["last_authorized_tag"] == "v0.34.0"
 
     plan_path = ROOT / "docs/project/REL-035-V035-ALPHA-RELEASE-PLAN.md"
     task_path = ROOT / "docs/project/REL-035-IMPLEMENTATION-TASK.md"
+    release_notes_path = ROOT / "docs/releases/v0.35.0-alpha.md"
     assert plan_path.is_file()
     assert task_path.is_file()
+    assert release_notes_path.is_file()
     plan = plan_path.read_text(encoding="utf-8")
     task = task_path.read_text(encoding="utf-8")
+    release_notes = release_notes_path.read_text(encoding="utf-8")
     combined = f"{plan}\n{task}"
+
+    planning_original_state = (
+        "Planning Baseline Original State：\n\n"
+        "```text\n"
+        "REL-035:\n"
+        "PLANNING_BASELINE_DEFINED /\n"
+        "IMPLEMENTATION_NOT_APPROVED /\n"
+        "NOT_STARTED\n"
+        "```"
+    )
+    current_implementation_state = (
+        "Current Implementation State：\n\n"
+        "```text\n"
+        "Planning Merge Commit:\n"
+        "e596c3331ed86dbba3aeded3ccd61517d1901559\n\n"
+        "Implementation Base:\n"
+        "e596c3331ed86dbba3aeded3ccd61517d1901559\n\n"
+        "Current Source Version:\n"
+        "0.35.0\n\n"
+        "REL-035:\n"
+        "IMPLEMENTATION_APPROVED /\n"
+        "IMPLEMENTATION_IN_PROGRESS /\n"
+        "SOURCE_VERSION_UPDATED /\n"
+        "RELEASE_DOCUMENTATION_UPDATED /\n"
+        "RELEASE_CANDIDATE_VALIDATED /\n"
+        "DRAFT_PR_OPEN /\n"
+        "PENDING_INDEPENDENT_REVIEW"
+    )
+    assert planning_original_state in plan
+    assert current_implementation_state in plan
 
     required_plan_markers = (
         "v0.35.0 Alpha — Local Daily Operating Loop",
@@ -2104,11 +2150,32 @@ def test_rel035_release_planning_state_and_boundaries_are_locked() -> None:
         "waiting_for_events",
         "CREATE TABLE IF NOT EXISTS",
         "CREATE INDEX IF NOT EXISTS",
-        "PLANNING_BASELINE_DEFINED",
-        "IMPLEMENTATION_NOT_APPROVED",
         "NOT_PUBLISHED",
     )
     assert all(marker in plan for marker in required_plan_markers)
+    assert all(
+        marker in release_notes
+        for marker in (
+            "Release Candidate",
+            "No destructive database migration is required.",
+            "NOT_AUTHORIZED / NOT_CREATED",
+            "e596c3331ed86dbba3aeded3ccd61517d1901559",
+        )
+    )
+    release_evidence = (
+        "Governance + Version | `37 passed`",
+        "pytest non-real | `1708 passed / 27 warnings`",
+        "Full pytest | `1708 passed / 5 skipped / 27 warnings`",
+        "AI_LAB_SQLITE_DIR` 位于 `AI_LAB_DATA_DIR` 外",
+        "AI_LAB_TIMEZONE=Invalid/REL035",
+        "缺失 `AI_LAB_PROVIDER_MODE`",
+        "缺失 `AI_LAB_ENABLE_DAILY_REVIEW`",
+        "Unexpected Files Created: NO",
+        "Provider Calls: 0",
+        "Release PR Merge: PENDING",
+        "Release Head: NOT FROZEN",
+    )
+    assert all(marker in release_notes for marker in release_evidence)
 
     required_config = (
         "AI_LAB_DATA_DIR",
@@ -2131,8 +2198,33 @@ def test_rel035_release_planning_state_and_boundaries_are_locked() -> None:
     )
     assert all(marker in combined for marker in required_authorization_events)
     assert "chore/rel-035-v035-alpha-release-consolidation" in task
-    assert "NOT APPROVED / NOT STARTED" in task
+    assert "Release PR:\n#60" in task
+    assert "Source Version:\n0.35.0" in task
+    assert (
+        "Implementation Status:\n"
+        "IMPLEMENTATION_APPROVED /\n"
+        "IMPLEMENTATION_IN_PROGRESS /\n"
+        "RELEASE_CANDIDATE_VALIDATED /\n"
+        "DRAFT_PR_OPEN /\n"
+        "PENDING_INDEPENDENT_REVIEW"
+    ) in task
     assert "不得重新执行正式 ACC-020 A～V" in task
+
+    tracked_markdown = subprocess.run(
+        ["git", "ls-files", "*.md", "*.markdown"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.splitlines()
+    inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
+        encoding="utf-8-sig"
+    )
+    assert len(tracked_markdown) == 179
+    assert "- Git 跟踪 Markdown：179" in inventory
+    assert "- 仓库自有且纳入范围：179" in inventory
+    assert "- 新增中文治理文档：6" in inventory
 
     limitations = (
         ROOT / "docs/project/KNOWN_LIMITATIONS.md"
