@@ -3,7 +3,7 @@
 > 产品版本：v0.35.0
 > 最近完成的 Product SP：SP-020
 > 当前 Product SP：None
-> 当前治理任务：REL-035
+> 当前治理任务：None
 > 下一候选 Product SP：None
 > 下一候选方向：None
 > SP-020 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED
@@ -15,8 +15,8 @@
 > SP-020 规划合并：PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
 > SP-020 功能合并：PR #57 / `9ea4b72241bd855319231c09fa6b80c112a14305` / main Quality Gate `30687851816` / SUCCESS
 > SP-020 对账：SP-020A / PR #58
-> REL-035 状态：IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS / SOURCE_VERSION_UPDATED / RELEASE_DOCUMENTATION_UPDATED / RELEASE_CANDIDATE_VALIDATED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW
-> v0.35.0 Release Candidate：Local Daily Operating Loop / RELEASE_CANDIDATE_VALIDATED / GitHub Pre-release / Binary Assets None / NOT_PUBLISHED
+> REL-035 状态：FINAL_RECONCILED / ARCHIVED
+> v0.35.0：Local Daily Operating Loop / PRE_RELEASE_PUBLISHED / REMOTE_VERIFIED / Binary Assets None
 
 ```text
 SP-020:
@@ -68,7 +68,7 @@ Reconciliation PR:
 > SP-019 设计：RFC-028 Adopted；ADR-061 与 ADR-062 Accepted
 > SP-019 规划合并基线：`e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / Quality Gate run `30205853257` / SUCCESS
 > SP-019 功能合并：`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / Quality Gate run `30382312419` / SUCCESS
-> 发布阶段：v0.35.0 Alpha / RELEASE_CANDIDATE / NOT_PUBLISHED
+> 发布阶段：v0.35.0 Alpha / PRE_RELEASE_PUBLISHED
 > 已验证发布基线：`22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 > SP-015 Base Commit：`57444274abd4e568a6af72b218d50290de563654`
 > SP-015 分支：`chore/sp-015-release-governance-consolidation`
@@ -76,7 +76,8 @@ Reconciliation PR:
 > SP-015A 状态：APPROVED / MERGED / RECONCILED / ARCHIVED
 > SP-015R 状态：APPROVED / MERGED / RECONCILED / ARCHIVED
 > Previous Authorized Tag: v0.34.0
-> v0.35.0 Tag / GitHub Release: NOT_AUTHORIZED / NOT_CREATED
+> v0.35.0 Tag：ANNOTATED / REMOTE_VERIFIED
+> v0.35.0 GitHub Release：PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED / Assets 0
 
 `Verified Release Baseline` 是最终发布提交之前经独立 main Quality Gate 验证的历史基线，不声明等于包含本文件的当前提交。当前 HEAD、Tag 与 GitHub Release 的存在性、目标、URL 和时间通过 Git/GitHub 查询；仓库根目录 [project_state.json](../../project_state.json) 记录稳定的项目与发布授权状态。
 
@@ -113,7 +114,7 @@ DOCS-001 已通过独立审查。Approved Head
 该任务确立了 176 个 Git 跟踪 Markdown 文件的中文治理基线，以及
 `DOCUMENTATION_POLICY.md`、`MARKDOWN_INVENTORY.md`、
 `TERMINOLOGY_GLOSSARY.md` 与自动化 Markdown 治理门禁。DOCS-001 已完成
-合并后对账并封存。当前 Governance Task 是 REL-035；DOCS-001 没有修改产品代码、
+合并后对账并封存。当前 Governance Task 是 None；DOCS-001 没有修改产品代码、
 产品版本、Tag 或 Release，也没有授权或启动 SP-020 产品实施。
 
 ## 永久架构事实
@@ -261,13 +262,15 @@ tests/real: explicitly excluded
 
 SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已授权 Tag `v0.34.0` 和 GitHub Pre-release。Tag 是否存在及其目标、Release 发布状态、URL 与时间均以 GitHub Tags and GitHub Releases 为权威来源，仓库不维护这些外部事实的实时布尔镜像。
 
-## v0.35.0 Alpha / Release Candidate 已验证
+## v0.35.0 Alpha / GitHub Pre-release 已发布
 
 REL-035 将 SP-016～SP-020 已验收能力定义为 `v0.35.0 Alpha — Local Daily
 Operating Loop`，并建立数据兼容、配置升级、Release Notes、验证矩阵和独立授权状态机。
-当前源码版本已提升为 `0.35.0`；Implementation 已正式授权并执行，`v0.35.0` Tag 与 GitHub
-Release 仍未授权、未创建。正式规划与唯一实施边界分别见
-`REL-035-V035-ALPHA-RELEASE-PLAN.md` 和 `REL-035-IMPLEMENTATION-TASK.md`。
+当前源码版本为 `0.35.0`；annotated Tag `v0.35.0` 已远端验证并指向 Release Head
+`60fc299c4f4fd1ba22fc4a00d1490f3b2b893503`，GitHub Pre-release ID `363770731` 已发布，
+assets 为 `0`。REL-035 已最终对账并封存；规划、实施与最终对账分别见
+`REL-035-V035-ALPHA-RELEASE-PLAN.md`、`REL-035-IMPLEMENTATION-TASK.md` 和
+`REL-035-FINAL-RECONCILIATION.md`。
 
 ## 当前技术债与限制
 
@@ -279,4 +282,4 @@ Release 仍未授权、未创建。正式规划与唯一实施边界分别见
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Next Candidate SP 均为 None，Current Governance Task 为 REL-035。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本为 `0.35.0` Release Candidate，Tag 与 GitHub Pre-release 未授权、未创建；SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP、Next Candidate SP 与 Current Governance Task 均为 None。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

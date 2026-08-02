@@ -1,11 +1,11 @@
 # AI-Lab 项目健康状态
 
 **最近更新：** 2026-08-02
-**当前源码版本：** v0.35.0 Alpha / Release Candidate / Not Published
+**当前源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。当前没有 Product SP 或下一候选 SP；Governance Task REL-035 已获 Implementation 授权，正在验证 v0.35.0 Release Candidate。这些能力不等同于 production-ready 或完整多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。`v0.35.0` GitHub Pre-release 已发布并远端验证，REL-035 已最终对账并封存。当前没有 Product SP、下一候选 SP 或 Governance Task；这些能力不等同于 production-ready 或完整多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -20,7 +20,8 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通�
 | SP-019 reconciliation merge main | `934075ceefe39ede3c624b621b7673d62f6d06dd` / run `30387237549` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
 | Current product SP | None |
-| Current governance task | REL-035 / IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS / RELEASE_CANDIDATE_VALIDATED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW |
+| Current governance task | None |
+| REL-035 | FINAL_RECONCILED / ARCHIVED |
 | DOCS-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / RECONCILED / ARCHIVED |
 | DOCS-001 merge | PR #55 / `2d04f1b8574fde43b1d64a53d1ad22573073a4ef` / `2026-07-29T14:43:26Z` |
 | DOCS-001 main Quality Gate | run `30462290819` / SUCCESS |
@@ -33,8 +34,8 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通�
 | SP-019 Phase 0 | UserTask Workspace Query Closure / ACCEPTED |
 | SP-019 Daily Review | MERGED / VERIFIED / ACCEPTED / ARCHIVED |
 | Latest completed SP | SP-020 / ACC-020 PASSED / FINAL / reconciled / archived |
-| Release stage | v0.35.0 Alpha / RELEASE_CANDIDATE / NOT_PUBLISHED |
-| v0.35.0 publication | Local Daily Operating Loop / Tag and Release NOT_AUTHORIZED / NOT_CREATED |
+| Release stage | v0.35.0 Alpha / PRE_RELEASE_PUBLISHED |
+| v0.35.0 publication | Local Daily Operating Loop / PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED / Assets 0 |
 
 ```text
 SP-020:

@@ -1,6 +1,11 @@
 # AI-Lab 已知限制
 
-> 当前源码版本：`v0.35.0` Alpha Release Candidate | 更新日期：2026-08-02
+> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-02
+
+`v0.35.0` 的发布不改变以下产品限制；REL-035 已最终对账并封存，当前 Governance Task
+为 None，下一 Product SP 尚未批准。
+该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
+general availability。
 
 ## 产品与数据边界
 

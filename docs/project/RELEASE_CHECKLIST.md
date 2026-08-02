@@ -1,6 +1,6 @@
 # Alpha 发布检查清单
 
-## v0.35.0 Alpha 发布候选版——Local Daily Operating Loop
+## v0.35.0 Alpha 已发布 Pre-release——Local Daily Operating Loop
 
 ### 规划基线
 
@@ -12,21 +12,22 @@
 - [x] Planning PR 已通过独立审查并合并
 - [x] Owner 已冻结 main `e596c3331ed86dbba3aeded3ccd61517d1901559` 并授权 Implementation
 - [x] 源码版本与发布文档已更新为 `0.35.0`
-- [x] Tag 与 GitHub Release 均未授权、未创建
+- [x] Implementation 阶段开始时 Tag 与 GitHub Release 均未授权、未创建
 
 ### Release Candidate 与发布门禁
 
 - [x] v0.34.0 数据兼容与 Local Daily Profile 升级验证通过
 - [x] Governance、Version、non-real、full pytest、Ruff 与 smoke 通过
 - [x] wheel/sdist 构建、metadata 与全新安装验证通过
-- [ ] Release PR 已批准、合并且 main Quality Gate 通过
-- [ ] Post-Merge Reconciliation 完成且 Release Head 已冻结
-- [ ] Owner 已单独授权并验证 `v0.35.0` Tag
-- [ ] Owner 已单独授权并验证 GitHub Pre-release
-- [ ] Final Publication Report 已完成，REL-035 已对账并封存
+- [x] Release PR #60 已批准并合并，main Quality Gate `30744879482` 通过
+- [x] Post-Merge Reconciliation 完成，Release Head `60fc299c...` 已冻结
+- [x] Owner 已单独授权并远端验证 `v0.35.0` annotated Tag
+- [x] Owner 已单独授权并远端验证 GitHub Pre-release `363770731`
+- [x] Final Publication Report 已完成，REL-035 已最终对账并封存
 
-未勾选项目不得由 Planning PR 推导为完成。Planning PR Approval、Implementation
-Approval、Release PR Merge、Tag Authorization 与 GitHub Release Authorization 必须独立。
+上述项目均由各自独立证据完成，不由 Planning PR 推导。Planning PR Approval、
+Implementation Approval、Release PR Merge、Tag Authorization 与 GitHub Release
+Authorization 始终是独立治理事件。
 
 ## v0.34.0 历史发布清单
 

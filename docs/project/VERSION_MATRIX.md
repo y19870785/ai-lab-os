@@ -1,9 +1,9 @@
 # 版本兼容性矩阵
 
-**源码版本：** `0.35.0` Alpha Release Candidate
-**授权状态：** Implementation Approved / Publication Not Authorized
-**上一已发布 Tag：** `v0.34.0`
-**候选发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / NOT AUTHORIZED / NOT PUBLISHED
+**源码版本：** `0.35.0` Alpha / GitHub Pre-release Published
+**治理状态：** REL-035 / FINAL_RECONCILED / ARCHIVED
+**已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
+**当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
 
 ## 当前能力基线
 
@@ -18,10 +18,10 @@
 | Unified Inbox / Capture-to-Action | RFC-024 / ADR-052～053 | Integrated / Verified / ACC-014 passed |
 | Chinese numeral reminder hours | SP-014B | Integrated / Verified within documented deterministic scope |
 
-## v0.35.0 Release Candidate 能力基线
+## v0.35.0 已发布 Pre-release 能力基线
 
-本节记录已进入 main 且通过验收、由 v0.35.0 Release Candidate 汇总的能力；
-源码版本已提升，但不表示 Tag/Release 已获授权或发布。
+本节记录已进入 main 且通过验收、由 v0.35.0 GitHub Pre-release 汇总的能力；
+annotated Tag 与 Release 已远端验证，但 Alpha 成熟度和已知限制保持不变。
 
 | 能力 | 治理合同 | 当前 main 状态 |
 |---|---|---|
