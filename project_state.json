@@ -485,7 +485,7 @@
       "archived": false,
       "base_commit": "5f91d9da224daa9fbb2e68f7a3ba685411e93904",
       "branch": "docs/sp-021-conversational-work-interaction-planning",
-      "planning_pr": null,
+      "planning_pr": 62,
       "target_version": "0.36.0",
       "rfc": "RFC-030 PROPOSED",
       "adrs": ["ADR-065 PROPOSED", "ADR-066 PROPOSED"],
