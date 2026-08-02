@@ -1,7 +1,7 @@
 # REL-035 — v0.35.0 Alpha 发布收口实施任务书
 
-> 本文件是 REL-035 正式实施和发布收口的唯一授权边界。Implementation 已获授权并完成
-> Release Candidate 验证；本文件不授权 Ready、Merge、Tag 或 GitHub Release。
+> 本文件是 REL-035 正式实施和发布收口的历史授权边界。Implementation、Release PR、
+> Tag 与 GitHub Pre-release 已按独立授权完成；最终事实见 `REL-035-FINAL-RECONCILIATION.md`。
 
 ## 1. 任务身份
 
@@ -31,20 +31,17 @@ PR Title:
 chore(release): consolidate v0.35.0 alpha release
 
 Implementation Status:
-IMPLEMENTATION_APPROVED /
-IMPLEMENTATION_IN_PROGRESS /
-RELEASE_CANDIDATE_VALIDATED /
-DRAFT_PR_OPEN /
-PENDING_INDEPENDENT_REVIEW
+FINAL_RECONCILED /
+ARCHIVED
 
 Source Version:
 0.35.0
 
 Tag Authorization:
-NOT GRANTED
+GRANTED / TAG_REMOTE_VERIFIED
 
 GitHub Release Authorization:
-NOT GRANTED
+GRANTED / PRE_RELEASE_PUBLISHED
 ```
 
 ## 2. 启动授权与基线
@@ -262,24 +259,21 @@ Fix SP；或任何独立授权缺失。
 
 ```text
 Implementation:
-IMPLEMENTATION_APPROVED /
-IMPLEMENTATION_IN_PROGRESS /
-RELEASE_CANDIDATE_VALIDATED /
-DRAFT_PR_OPEN /
-PENDING_INDEPENDENT_REVIEW
+FINAL_RECONCILED /
+ARCHIVED
 
 Source Version:
 0.35.0
 
 Ready:
-NOT AUTHORIZED
+HISTORICAL RELEASE PR APPROVED
 
 Merge:
-NOT AUTHORIZED
+MERGED / 60fc299c4f4fd1ba22fc4a00d1490f3b2b893503
 
 Tag v0.35.0:
-NOT AUTHORIZED / NOT CREATED
+ANNOTATED / REMOTE_VERIFIED
 
 GitHub Release v0.35.0:
-NOT AUTHORIZED / NOT CREATED
+PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED
 ```

@@ -10,12 +10,14 @@ SP-018 新增唯一 `core/work_log/WorkLogService` 与 `SQLiteWorkLogRepository`
 
 SP-017 已完成验收并封存。正式链路为 `CEO Assistant capture -> InboxService.resolve_to_waiting_for() -> WaitingForService.create()`，复用 `inbox_resolution_claims` 的 `CLAIMED -> TARGET_CREATED -> COMPLETED`，不新增 Saga 表或 Waiting-For lifecycle Schema；自然语言写入必须先捕获并通过 Inbox ID 确认，后续 mutation 必须使用 canonical `wf_...` ID。
 
-REL-035 已验证 `v0.35.0 Alpha — Local Daily Operating Loop` Release Candidate，
+REL-035 已发布 `v0.35.0 Alpha — Local Daily Operating Loop` GitHub Pre-release，
 不改变上述运行时架构。升级不需要破坏性 Migration、既有表重写、legacy import 或
 dual-write；缺失 `followups.db` 时，Waiting-For 表与索引按 `IF NOT EXISTS` 增量初始化。
 旧 `.env` 不能直接视为 Local Daily Profile 合格配置，必须显式提供稳定绝对 data/sqlite
 路径、IANA timezone、Provider、feature flags、API token 与完整 WorkspaceKey。当前源码
-版本已提升为 `0.35.0`；REL-035 Implementation 已授权，Tag 与 GitHub Pre-release 仍未授权。
+版本为 `0.35.0`；annotated Tag `v0.35.0` 指向冻结 Release Head
+`60fc299c4f4fd1ba22fc4a00d1490f3b2b893503`，GitHub Pre-release 已远端验证且无二进制附件。
+REL-035 已最终对账并封存，但 Alpha、local-first、single-user-oriented 边界保持不变。
 
 SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
 
@@ -385,7 +387,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 > Accepted scope 绑定当前 `asyncio.Task` 身份：同一 Task 的下游调用可继续，普通 detached child 不继承 bypass；仅 Scheduler 可通过 `spawn_accepted_task()` 显式延续已经接受的 Job。FastAPI Runtime dependency 仍先经过 `get_system()`，Runtime 在真实执行点再次检查以关闭竞态窗口。
 
-> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。当前源码版本为 `0.35.0` Alpha Release Candidate；v0.35.0 Tag 和 GitHub Release 尚未授权或创建。
+> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。当前源码版本为 `0.35.0` Alpha；v0.35.0 annotated Tag 与 GitHub Pre-release 已远端验证。发布不改变这些架构限制，也不表示 production-ready。
 
 ## SP-009 自然语言提醒闭环
 

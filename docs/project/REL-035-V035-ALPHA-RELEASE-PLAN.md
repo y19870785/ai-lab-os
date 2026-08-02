@@ -6,9 +6,9 @@
 > 规划合并提交（Planning Merge Commit）：`e596c3331ed86dbba3aeded3ccd61517d1901559`
 > 实施 Base（Implementation Base）：`e596c3331ed86dbba3aeded3ccd61517d1901559`
 > 当前源码版本（Current Source Version）：`0.35.0`
-> 当前状态（Current State）：`IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS / SOURCE_VERSION_UPDATED / RELEASE_DOCUMENTATION_UPDATED / RELEASE_CANDIDATE_VALIDATED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW`
-> Tag `v0.35.0`：`NOT_AUTHORIZED / NOT_CREATED`
-> GitHub Release `v0.35.0`：`NOT_AUTHORIZED / NOT_CREATED`
+> 当前状态（Current State）：`FINAL_RECONCILED / ARCHIVED`
+> Tag `v0.35.0`：`ANNOTATED / REMOTE_VERIFIED`
+> GitHub Release `v0.35.0`：`PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED`
 
 ## 1. 版本定义
 
@@ -213,8 +213,9 @@ GitHub Release Authorization 是五个独立治理事件，不得合并或相互
 5. Owner 单独授权创建 `v0.35.0` Tag，校验 Tag 精确指向 frozen head；
 6. Owner 单独授权发布 GitHub Pre-release，再校验发布事实。
 
-当前已完成第 1、2 步，并在第 3 步保持 Release PR #60 为 Draft、等待独立复审。
-Release PR Merge、Tag Authorization 与 GitHub Release Authorization 均为 `NOT GRANTED`。
+第 1～6 步均已按独立授权事件完成。Release PR #60 已合并，main Quality Gate 成功，
+Release Head 已冻结，annotated Tag 与 GitHub Pre-release 均已远端验证。本规划的历史授权
+顺序不因发布完成而改变。
 
 ## 11. 停止条件
 
@@ -264,21 +265,15 @@ Current Source Version:
 0.35.0
 
 REL-035:
-IMPLEMENTATION_APPROVED /
-IMPLEMENTATION_IN_PROGRESS /
-SOURCE_VERSION_UPDATED /
-RELEASE_DOCUMENTATION_UPDATED /
-RELEASE_CANDIDATE_VALIDATED /
-DRAFT_PR_OPEN /
-PENDING_INDEPENDENT_REVIEW
+FINAL_RECONCILED /
+ARCHIVED
 
 v0.35.0:
-RELEASE_CANDIDATE_VALIDATED /
-NOT_PUBLISHED
+PRE_RELEASE_PUBLISHED
 
 Tag v0.35.0:
-NOT_AUTHORIZED / NOT_CREATED
+ANNOTATED / REMOTE_VERIFIED
 
 GitHub Release v0.35.0:
-NOT_AUTHORIZED / NOT_CREATED
+PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED
 ```
