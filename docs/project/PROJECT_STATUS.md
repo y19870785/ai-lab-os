@@ -1,6 +1,6 @@
 # AI-Lab 项目状态
 
-**日期：** 2026-08-01
+**日期：** 2026-08-02
 **源码版本：** v0.34.0 Alpha / Release Authorized
 **已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
@@ -11,7 +11,7 @@
 | 最近合并的 SP | SP-020 |
 | 最近完成的 SP | SP-020 |
 | 当前 Product SP | None |
-| 当前治理任务 | None |
+| 当前治理任务 | REL-035 |
 | 下一候选 SP | None |
 | DOCS-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / RECONCILED / ARCHIVED |
 | SP-014 | APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
@@ -38,6 +38,7 @@
 | RFC-029 | Adopted |
 | ADR-063 / ADR-064 | Accepted |
 | ACC-020 | PASSED / FINAL（A～V 全部通过；独立证据复核 APPROVED） |
+| REL-035 | PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 
 ```text
 SP-020:
@@ -86,7 +87,12 @@ v0.34.0 Alpha 之上的 v0.35 开发线已合并 canonical Work Log 与 Daily Re
 SP-020 已建立 Planning Baseline，方向为 Windows Local Daily Profile、直接复用现有
 `DailyReviewService` 的正式 CLI、纯确定性 Action Hint、canonical
 Review-to-Action 委托，以及 restart / Quiescent Backup / isolated restore 验收。
-Implementation、正式验收、独立证据复核、功能合并、main Quality Gate 与治理对账均已完成；Current Product SP 与 Current Governance Task 均为 None。
+Implementation、正式验收、独立证据复核、功能合并、main Quality Gate 与治理对账均已完成；Current Product SP 为 None，Current Governance Task 为 REL-035。
+
+REL-035 当前只定义 `v0.35.0 Alpha — Local Daily Operating Loop` 的发布收口规划、
+v0.34.0 数据兼容、Local Daily 配置升级、验证矩阵和独立授权状态机。源码版本仍为
+`0.34.0`，Implementation 未批准、未开始，`v0.35.0` Tag 与 GitHub Release 均未授权、
+未创建；本状态不等于 Release Candidate 或已发布版本。
 
 DOCS-001 已通过独立审查。Approved Head
 `d7a6662dddaac87b41562e2348f69e04112b2be4` 由 PR #55 Squash Merge 为
@@ -120,5 +126,6 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - GitHub Release 类型：Pre-release
 - 二进制附件：不发布 wheel 或 sdist，仅使用 GitHub 自动源码归档
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
+- v0.35.0：ALPHA_RELEASE_CONSOLIDATION_PLANNED / IMPLEMENTATION_NOT_APPROVED / NOT_PUBLISHED
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP、Current Governance Task 与 Next Candidate SP 均为 None。SP-020 Feature PR #57 已 Squash Merge 至 main `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 为 SUCCESS；SP-020A 对账载体为 PR #58。ACC-020 A～V、独立证据复核、治理对账与封存均已完成。当前产品版本仍为 `0.34.0`，Tag `v0.34.0` 与 GitHub Pre-release 未改变。SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Next Candidate SP 均为 None，Current Governance Task 为 REL-035。SP-020 Feature PR #57 已 Squash Merge 至 main `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 为 SUCCESS；SP-020A 对账载体为 PR #58。ACC-020 A～V、独立证据复核、治理对账与封存均已完成。当前产品版本仍为 `0.34.0`，Tag `v0.34.0` 与 GitHub Pre-release 未改变。SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

@@ -1,19 +1,19 @@
 # Markdown 文档治理清单
 
-> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；本任务新增的 3 份治理文档单独计入最终总数。2026-07-29 独立审查修订后重新执行了标题、表格、乱码、长篇叙述和链接扫描，当前没有排除项或未解决问题。
+> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；DOCS-001 新增 3 份治理文档，REL-035 Planning Baseline 新增 2 份发布治理文档。标题、表格、乱码、长篇叙述和链接由治理测试动态扫描，当前没有排除项或未解决问题。
 
 ## 汇总
 
-- Git 跟踪 Markdown：176
-- 仓库自有且纳入范围：176
+- Git 跟踪 Markdown：178
+- 仓库自有且纳入范围：178
 - 排除：0
 - 初始中文：93
 - 初始中英混合：41
 - 初始英文为主：39
 - 已审计并标准化的既有文档：173
-- 新增中文治理文档：3
-- 有效标题：1640（每份文档恰好一个中文一级标题，其他普通标题均含中文）
-- Markdown 表格：163（共 1325 行数据，解释性表头与长篇单元格均已检查）
+- 新增中文治理文档：5
+- 有效标题：每份文档恰好一个中文一级标题，其他普通标题均含中文
+- Markdown 表格：解释性表头与长篇单元格均由治理测试检查
 - 已修复乱码：1 个文件（`CHANGELOG.md` 历史段落）
 - 自动化语言治理回归：7 项通过
 - 保留的技术英文：API、CLI、HTTP、ID、RFC、ADR、SP、ACC、UTC、JSON，以及代码符号、路径和机器状态值
@@ -146,6 +146,8 @@
 | `docs/project/PROJECT_STATUS.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/project/PROJECT_STRUCTURE.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/project/PUBLIC_API_INVENTORY.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
+| `docs/project/REL-035-IMPLEMENTATION-TASK.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
+| `docs/project/REL-035-V035-ALPHA-RELEASE-PLAN.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/project/RELEASE_CHECKLIST.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/project/RELEASE_NOTES.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/project/REPOSITORY_MAP.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |

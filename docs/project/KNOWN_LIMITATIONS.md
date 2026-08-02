@@ -1,6 +1,6 @@
 # AI-Lab 已知限制
 
-> 当前源码版本：`v0.34.0` Alpha | 更新日期：2026-07-29
+> 当前源码版本：`v0.34.0` Alpha | 更新日期：2026-08-02
 
 ## 产品与数据边界
 
@@ -13,9 +13,10 @@
 | Knowledge 产品闭环未完成 | Reindex、Chunk Persistence、Citation 与真实主链路仍缺失 |
 | Coordination 默认关闭 | 独立能力存在，但未接入 CEO Assistant 主链路 |
 | 无 Web UI | 当前主要入口是 API、CLI 与 CEO Assistant |
-| Daily Review 没有正式 CLI | API、CEO Assistant 与 `/brief` 已共享唯一只读服务，但当前 CLI `brief` 仍是固定的 CEO Assistant “今日简报”请求 |
-| 本地日常运行 Profile 尚未实现 | 默认 data root 仍随 working directory 推导；Reminder 与 Scheduler 默认关闭，尚无已验收的 Windows Local Daily Profile |
-| Action Hint 尚未实现 | Daily Review Presenter 当前只展示 canonical facts/IDs，不展示或执行动作 |
+| Daily Review 查询范围有限 | 正式 CLI、API 与 CEO Assistant 已复用唯一只读服务，但 review date 只支持 `today` / `yesterday`，不是任意日期分析引擎 |
+| Local Daily Profile 不是部署平台 | Windows Local Daily Profile 已实现并通过 ACC-020；它要求显式绝对路径和完整配置，不等于 Docker/服务管理/生产部署认证 |
+| Action Hint 是确定性子集 | Action Hints 已实现并通过 ACC-020；只基于 canonical facts/IDs，不使用 LLM 自动选工具或猜测写入意图 |
+| 非 Local Daily Profile 的默认路径不稳定 | 默认 data root 仍随 working directory 推导；正式 Local Daily Profile 已验收并要求源码 checkout 外的稳定绝对路径 |
 | 在线跨库备份不受支持 | 多个 SQLite 文件与可选 Chroma 只规划停机后的完整 data directory 备份，不承诺在线一致快照 |
 
 ## 安全边界
@@ -31,8 +32,8 @@
 
 | 限制 | 当前事实 |
 |---|---|
-| 长时间运行验证有限 | lifecycle、Scheduler、Reminder/Inbox Saga、资源回收、重启和隔离恢复仍缺完整正式基线 |
-| Scheduler shutdown 需正式幂等门禁 | 当前 `SystemContainer` 的同一关闭流程会两次调用 Scheduler shutdown；实现可重复调用，但尚未经过 SP-020 进程级正式验收 |
+| 长时间运行验证仍有限 | ACC-020 已验收受控持续运行、shutdown、restart、静止备份和隔离恢复；这不等于长期压力、高并发或高可用基线 |
+| Scheduler shutdown 仅覆盖当前受控边界 | 当前 `SystemContainer` 的同一关闭流程会两次调用 Scheduler shutdown；重复 shutdown、partial-start rollback 与 restart recovery 已通过 SP-020/ACC-020，多进程协调和高可用仍不在范围内 |
 | Docker 未正式验证 | 配置存在，但没有当前版本受控 build + run 记录 |
 | SQLite 并发上限 | 单机持久化不等于高并发或分布式一致性 |
 | Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂看到 `running`，唯一重跑通过；未在 SP-014B 或 SP-015 修改 Scheduler |

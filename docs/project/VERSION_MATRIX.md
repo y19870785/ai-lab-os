@@ -4,6 +4,7 @@
 **Authorization:** Release Authorized
 **Previous Tag:** `v0.33.0`
 **Authorized publication:** Tag `v0.34.0` / GitHub Pre-release
+**Planned publication:** `v0.35.0 Alpha — Local Daily Operating Loop` / NOT AUTHORIZED / NOT PUBLISHED
 
 ## 当前能力基线
 
@@ -18,11 +19,31 @@
 | Unified Inbox / Capture-to-Action | RFC-024 / ADR-052～053 | Integrated / Verified / ACC-014 passed |
 | Chinese numeral reminder hours | SP-014B | Integrated / Verified within documented deterministic scope |
 
+## v0.35.0 规划能力基线
+
+本节记录已进入 main 且通过验收、计划由 v0.35.0 汇总发布的能力，不表示当前源码版本
+已提升，也不表示 Tag/Release 已获授权。
+
+| 能力 | 治理合同 | 当前 main 状态 |
+|---|---|---|
+| Canonical Waiting-For Domain | SP-016 | Integrated / Verified / ACC-016 passed |
+| Waiting-For interaction / Inbox confirmation | SP-017 | Integrated / Verified / ACC-017 passed |
+| Canonical Work Log query boundary | SP-018 | Integrated / Verified / ACC-018 passed |
+| Daily Review Read Model | SP-019 | Integrated / Verified / ACC-019 passed |
+| Local Daily Profile / Daily Review CLI / Action Hints | SP-020 | Integrated / Verified / ACC-020 passed |
+| Review-to-Action / lifecycle / backup-restore | SP-020 | Integrated / Verified / ACC-020 passed |
+
 ## 兼容性边界
 
 v0.34.0 是从 v0.33.0 源码基线推进的治理与能力汇总，不引入数据库 schema 迁移，也不改变默认启用策略。既有 API、CLI 与 CEO Assistant 继续复用 Composition Root 和 canonical services。
 
 Reminder 中文小时仅支持今天/明天、明确上午/下午/晚上及一至十二小时，可复用既有半、一刻和数字分钟能力。复杂日期、模糊或相对时间、中文分钟、Recurring Reminder 与 LLM 时间解析不在范围内。
+
+v0.34.0 → v0.35.0 不需要破坏性数据库迁移、既有表重写、legacy import 或 dual-write。
+既有 UserTask、Reminder、Inbox 与 Work Log 数据保持原样；若 `followups.db` 不存在，
+`waiting_for_items`、`waiting_for_events` 与相关索引由当前代码通过 `IF NOT EXISTS`
+增量初始化。旧 `.env` 不保证满足 Local Daily Profile，必须改用稳定绝对 data/sqlite
+路径、有效 IANA timezone、显式 Provider/feature flags/API token 和完整 WorkspaceKey。
 
 ## 运行时模块
 

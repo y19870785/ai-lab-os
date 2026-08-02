@@ -13,12 +13,12 @@
   "latest_merged_sp": "SP-020",
   "latest_completed_sp": "SP-020",
   "current_sp": null,
-  "current_governance_task": null,
+  "current_governance_task": "REL-035",
   "next_candidate_sp": null,
   "next_candidate_name": null,
   "development_status": "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_reconciled_archived",
   "current_work": null,
-  "updated_at": "2026-08-01",
+  "updated_at": "2026-08-02",
   "governance_tasks": {
     "DOCS-001": {
       "name": "Repository Markdown Chinese Standardization and Documentation Governance",
@@ -37,6 +37,23 @@
       "version_changed": false,
       "tag_changed": false,
       "release_changed": false
+    },
+    "REL-035": {
+      "name": "v0.35.0 Alpha Release Consolidation",
+      "type": "RELEASE_GOVERNANCE",
+      "base_commit": "5456ed2406fa54443a02b436e2684bf90698afea",
+      "branch": "docs/rel-035-v035-alpha-release-planning",
+      "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "target_version": "0.35.0",
+      "target_release_name": "v0.35.0 Alpha — Local Daily Operating Loop",
+      "release_type": "prerelease",
+      "binary_assets": "none",
+      "implementation_approved": false,
+      "version_changed": false,
+      "tag_authorized": false,
+      "tag_created": false,
+      "github_release_authorized": false,
+      "github_release_published": false
     }
   },
   "governance_sources": {
@@ -660,6 +677,14 @@
     "authorized_tag": "v0.34.0",
     "github_release_type": "prerelease",
     "maturity": "Alpha / local-first / single-user-oriented",
-    "binary_assets": "not published"
+    "binary_assets": "not published",
+    "planned_releases": {
+      "v0.35.0": {
+        "name": "v0.35.0 Alpha — Local Daily Operating Loop",
+        "status": "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_PUBLISHED",
+        "release_type": "prerelease",
+        "binary_assets": "none"
+      }
+    }
   }
 }

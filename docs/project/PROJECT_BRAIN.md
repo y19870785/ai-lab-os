@@ -3,7 +3,7 @@
 > 产品版本：v0.34.0
 > 最近完成的 Product SP：SP-020
 > 当前 Product SP：None
-> 当前治理任务：None
+> 当前治理任务：REL-035
 > 下一候选 Product SP：None
 > 下一候选方向：None
 > SP-020 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED
@@ -15,6 +15,8 @@
 > SP-020 规划合并：PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
 > SP-020 功能合并：PR #57 / `9ea4b72241bd855319231c09fa6b80c112a14305` / main Quality Gate `30687851816` / SUCCESS
 > SP-020 对账：SP-020A / PR #58
+> REL-035 状态：PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
+> v0.35.0 发布规划：Local Daily Operating Loop / GitHub Pre-release / Binary Assets None / NOT_PUBLISHED
 
 ```text
 SP-020:
@@ -111,8 +113,8 @@ DOCS-001 已通过独立审查。Approved Head
 该任务确立了 176 个 Git 跟踪 Markdown 文件的中文治理基线，以及
 `DOCUMENTATION_POLICY.md`、`MARKDOWN_INVENTORY.md`、
 `TERMINOLOGY_GLOSSARY.md` 与自动化 Markdown 治理门禁。DOCS-001 已完成
-合并后对账并封存；当前没有 Governance Task。它没有修改产品代码、产品版本、
-Tag 或 Release，也没有授权或启动 SP-020 产品实施。
+合并后对账并封存。当前 Governance Task 是 REL-035；DOCS-001 没有修改产品代码、
+产品版本、Tag 或 Release，也没有授权或启动 SP-020 产品实施。
 
 ## 永久架构事实
 
@@ -259,6 +261,14 @@ tests/real: explicitly excluded
 
 SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已授权 Tag `v0.34.0` 和 GitHub Pre-release。Tag 是否存在及其目标、Release 发布状态、URL 与时间均以 GitHub Tags and GitHub Releases 为权威来源，仓库不维护这些外部事实的实时布尔镜像。
 
+## v0.35.0 Alpha / 发布收口规划中
+
+REL-035 将 SP-016～SP-020 已验收能力定义为 `v0.35.0 Alpha — Local Daily
+Operating Loop`，并建立数据兼容、配置升级、Release Notes、验证矩阵和独立授权状态机。
+当前源码版本仍为 `0.34.0`；Implementation 未批准、未开始，`v0.35.0` Tag 与 GitHub
+Release 均未授权、未创建。正式规划与未来唯一实施边界分别见
+`REL-035-V035-ALPHA-RELEASE-PLAN.md` 和 `REL-035-IMPLEMENTATION-TASK.md`。
+
 ## 当前技术债与限制
 
 - QUALITY-001：建立并逐步清理全库历史 Ruff 基线。
@@ -269,4 +279,4 @@ SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP、Current Governance Task、Next Candidate SP 均为 None。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本仍为 `0.34.0`，Tag 与 GitHub Pre-release 未改变；SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Next Candidate SP 均为 None，Current Governance Task 为 REL-035。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本仍为 `0.34.0`，Tag 与 GitHub Pre-release 未改变；SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
