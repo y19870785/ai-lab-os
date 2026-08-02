@@ -3,7 +3,8 @@
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
-> 当前没有 Product SP，也没有 Current Governance Task；REL-035 已完成最终发布对账并封存。
+> 当前没有已批准的 Product SP，也没有 Current Governance Task；SP-021 Planning Baseline
+> 已定义并等待独立审查，Implementation 未批准、未开始。REL-035 已完成最终发布对账并封存。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
@@ -12,10 +13,11 @@
 **成熟度：Alpha / local-first / single-user-oriented**
 **当前 Product SP：None**
 **当前 Governance Task：None**
+**下一候选 Product SP：SP-021 / Planning Baseline only**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
 `60fc299c4f4fd1ba22fc4a00d1490f3b2b893503`。Release 不上传 wheel 或 sdist，仅有 GitHub
-自动源码归档；它仍不是 production-ready。下一 Product SP 尚未批准。
+自动源码归档；它仍不是 production-ready。SP-021 是下一候选 Product SP，但规划不等于批准或开工。
 上一已发布版本为 `v0.34.0`；当前已发布版本为 `v0.35.0` GitHub Pre-release。
 
 AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业务判断和重要审批仍由用户负责。当前版本适合本地开发、验证和受控试用，不应被描述为 production ready。
@@ -38,6 +40,13 @@ AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业�
 - Local Daily Operating Loop（SP-020）：正式 Daily Review CLI、确定性 Action Hints、
   Review-to-Action、持续 Scheduler、优雅关闭、重启恢复、静止备份与隔离恢复已通过
   ACC-020；这仍是本地 Alpha 边界。
+
+### 下一候选能力（仅规划）
+
+- SP-021 规划渠道无关的 Interaction View、确定性编号引用、Action Preview、Confirm /
+  Cancel / Modify、canonical execution 和 API / CEO Assistant 共用合同。
+- 当前 `RFC-030`、`ADR-065`、`ADR-066` 均待独立审查，`ACC-021` 为
+  `PLANNING_BASELINE / NOT_EXECUTED`；没有 Interaction Schema、Migration 或产品实现。
 
 ### 已实现但默认关闭或需显式配置
 
@@ -276,6 +285,7 @@ python -m ruff check <changed-python-files>
 - v0.35.0 GitHub Release：PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED；不上传 wheel 或 sdist。
 - 外部发布事实：Tag 与 Release 的实际存在性、目标、URL 和发布时间以 GitHub Tags and GitHub Releases 为权威来源。
 - v0.35.0：Local Daily Operating Loop 已发布为 Pre-release；REL-035 已最终对账并封存。
-- 当前 Product SP：None；当前 Governance Task：None；下一 Product SP 尚未批准。
+- 当前 Product SP：None；当前 Governance Task：None；下一候选 Product SP 为 SP-021，
+  仅完成 Planning Baseline，Implementation 未批准、未开始。
 
 任务编号代表开发批次，不等同于产品版本；一个产品版本可以由多个 SP 共同组成。

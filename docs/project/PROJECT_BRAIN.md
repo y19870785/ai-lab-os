@@ -4,8 +4,8 @@
 > 最近完成的 Product SP：SP-020
 > 当前 Product SP：None
 > 当前治理任务：None
-> 下一候选 Product SP：None
-> 下一候选方向：None
+> 下一候选 Product SP：SP-021
+> 下一候选方向：Conversational Work Interaction & Confirmation Session
 > SP-020 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED
 > ACC-020 状态：PASSED / FINAL
 > SP-020 已批准实现 Head：`1c9b69ee45b4e1545b67ecd841cc217e23d4f38f`
@@ -15,6 +15,9 @@
 > SP-020 规划合并：PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
 > SP-020 功能合并：PR #57 / `9ea4b72241bd855319231c09fa6b80c112a14305` / main Quality Gate `30687851816` / SUCCESS
 > SP-020 对账：SP-020A / PR #58
+> SP-021 状态：PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
+> SP-021 基线：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
+> SP-021 设计：RFC-030、ADR-065、ADR-066 Proposed；ACC-021 Planning Baseline / Not Executed
 > REL-035 状态：FINAL_RECONCILED / ARCHIVED
 > v0.35.0：Local Daily Operating Loop / PRE_RELEASE_PUBLISHED / REMOTE_VERIFIED / Binary Assets None
 
@@ -282,4 +285,4 @@ assets 为 `0`。REL-035 已最终对账并封存；规划、实施与最终对�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP、Next Candidate SP 与 Current Governance Task 均为 None。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Current Governance Task 均为 None；Next Candidate SP 为 SP-021，仅完成 Planning Baseline，Implementation 未批准、未开始。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

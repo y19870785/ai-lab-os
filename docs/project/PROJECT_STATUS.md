@@ -1,6 +1,6 @@
 # AI-Lab 项目状态
 
-**日期：** 2026-08-02
+**日期：** 2026-08-03
 **源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 **已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
@@ -12,7 +12,7 @@
 | 最近完成的 SP | SP-020 |
 | 当前 Product SP | None |
 | 当前治理任务 | None |
-| 下一候选 SP | None |
+| 下一候选 SP | SP-021 / Planning Baseline only |
 | DOCS-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / RECONCILED / ARCHIVED |
 | SP-014 | APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-014B | APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED |
@@ -38,6 +38,8 @@
 | RFC-029 | Adopted |
 | ADR-063 / ADR-064 | Accepted |
 | ACC-020 | PASSED / FINAL（A～V 全部通过；独立证据复核 APPROVED） |
+| SP-021 | PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| ACC-021 | PLANNING_BASELINE / NOT_EXECUTED（21 / 21 mapped） |
 | REL-035 | FINAL_RECONCILED / ARCHIVED |
 
 ```text
@@ -129,4 +131,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 - v0.35.0：PRE_RELEASE_PUBLISHED
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP、Next Candidate SP 与 Current Governance Task 均为 None。SP-020 Feature PR #57 已 Squash Merge 至 main `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 为 SUCCESS；SP-020A 对账载体为 PR #58。ACC-020 A～V、独立证据复核、治理对账与封存均已完成。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 已远端验证，REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Current Governance Task 均为 None；Next Candidate SP 为 SP-021，仅完成 Planning Baseline。SP-020 Feature PR #57 已 Squash Merge 至 main `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 为 SUCCESS；SP-020A 对账载体为 PR #58。ACC-020 A～V、独立证据复核、治理对账与封存均已完成。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 已远端验证，REL-035 已最终对账并封存。SP-021 Implementation 未批准、未开始；该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

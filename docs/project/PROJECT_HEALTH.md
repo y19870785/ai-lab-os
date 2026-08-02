@@ -1,11 +1,11 @@
 # AI-Lab 项目健康状态
 
-**最近更新：** 2026-08-02
+**最近更新：** 2026-08-03
 **当前源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。`v0.35.0` GitHub Pre-release 已发布并远端验证，REL-035 已最终对账并封存。当前没有 Product SP、下一候选 SP 或 Governance Task；这些能力不等同于 production-ready 或完整多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已完成并封存，`v0.35.0` GitHub Pre-release 与 REL-035 已最终对账。当前没有已批准 Product SP 或 Governance Task；SP-021 仅建立 Planning Baseline 并等待独立审查，Implementation 未批准、未开始。这些能力不等同于 production-ready 或完整多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -25,7 +25,9 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通�
 | DOCS-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / RECONCILED / ARCHIVED |
 | DOCS-001 merge | PR #55 / `2d04f1b8574fde43b1d64a53d1ad22573073a4ef` / `2026-07-29T14:43:26Z` |
 | DOCS-001 main Quality Gate | run `30462290819` / SUCCESS |
-| Next candidate | None |
+| Next candidate | SP-021 / Planning Baseline only |
+| SP-021 | PLANNING_BASELINE_DEFINED / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
+| ACC-021 | 21 / 21 mapped / 0 executed |
 | SP-020 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED |
 | ACC-020 | PASSED / FINAL |
 | SP-020 planning merge | PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / run `30441534383` / SUCCESS |

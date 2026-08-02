@@ -14,11 +14,11 @@
   "latest_completed_sp": "SP-020",
   "current_sp": null,
   "current_governance_task": null,
-  "next_candidate_sp": null,
-  "next_candidate_name": null,
-  "development_status": "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_reconciled_archived",
+  "next_candidate_sp": "SP-021",
+  "next_candidate_name": "Conversational Work Interaction & Confirmation Session",
+  "development_status": "sp_021_planning_baseline_defined_pending_independent_review_implementation_not_approved_not_started",
   "current_work": null,
-  "updated_at": "2026-08-02",
+  "updated_at": "2026-08-03",
   "governance_tasks": {
     "DOCS-001": {
       "name": "Repository Markdown Chinese Standardization and Documentation Governance",
@@ -471,6 +471,30 @@
       "implementation_authorization_contract": "One explicit Owner authorization covers SP-020 implementation; Phase 0 is an internal mandatory quality gate and does not require a second authorization after passing",
       "reauthorization_triggers": "Phase 0 failure, stop condition, approved-scope change, Product SP split, or new architecture decision",
       "scope": "Windows Local Daily Profile, Daily Review CLI, deterministic Action Hints, canonical Review-to-Action delegation, lifecycle recovery and quiescent backup/restore acceptance"
+    },
+    "SP-021": {
+      "name": "Conversational Work Interaction & Confirmation Session",
+      "status": "PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED",
+      "planning_baseline_defined": true,
+      "planning_baseline_approved": false,
+      "approved": false,
+      "implementation_started": false,
+      "implementation_complete": false,
+      "completed": false,
+      "reconciled": false,
+      "archived": false,
+      "base_commit": "5f91d9da224daa9fbb2e68f7a3ba685411e93904",
+      "branch": "docs/sp-021-conversational-work-interaction-planning",
+      "planning_pr": null,
+      "target_version": "0.36.0",
+      "rfc": "RFC-030 PROPOSED",
+      "adrs": ["ADR-065 PROPOSED", "ADR-066 PROPOSED"],
+      "task_specification": "docs/project/SP-021-IMPLEMENTATION-TASK.md",
+      "acceptance": "ACC-021 PLANNING_BASELINE / NOT_EXECUTED",
+      "schema_decision": "DEDICATED ADDITIVE INTERACTION SCHEMA REQUIRED DURING IMPLEMENTATION / NOT_CREATED",
+      "migration_decision": "EXPLICIT ADDITIVE SCHEMA INITIALIZATION_OR_MIGRATION REQUIRED DURING IMPLEMENTATION / NOT_CREATED",
+      "recommended_split": ["SP-021A", "SP-021B", "SP-021C", "SP-021D"],
+      "scope": "Channel-independent Interaction View, deterministic reference resolution, Action Preview confirmation state machine, canonical execution adapters, shared API and CEO Assistant contract, restart and idempotency safety"
     }
   },
   "acceptance_records": {
@@ -659,6 +683,15 @@
         "Post-Merge main Quality Gate: 30687851816 / SUCCESS",
         "Post-Merge Verification: PASSED"
       ]
+    },
+    "ACC-021": {
+      "status": "PLANNING_BASELINE / NOT_EXECUTED",
+      "scenario_count": 21,
+      "mapped_scenarios": 21,
+      "executed_scenarios": 0,
+      "provider_calls": 0,
+      "evidence_status": "NOT_CREATED",
+      "implementation_approved": false
     }
   },
   "module_status": {

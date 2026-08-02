@@ -2,6 +2,17 @@
 
 ## [Unreleased] 未发布
 
+### SP-021 会话式工作交互与确认闭环规划基线
+
+- 基于 `5f91d9da224daa9fbb2e68f7a3ba685411e93904` 审计 CEO Assistant、API chat、
+  Workspace/session、persistence、canonical services、Action Hint、FailureInfo/trace/audit
+  与现有测试边界。
+- 新增 RFC-030、ADR-065、ADR-066、ACC-021 与实施任务规范，冻结 Interaction View、
+  deterministic reference、Action Preview、Confirm/Cancel/Modify、canonical adapters、
+  LLM Proposal、shared application contract、TTL/restart/idempotency 和 21 项验收矩阵。
+- 规划建议实施期新增专用 additive interaction schema 并拆为 SP-021A～D；本变更没有创建
+  Schema/Migration，没有修改产品代码、依赖、版本、Tag 或 Release，也未批准或启动实现。
+
 ## [0.35.0] - 2026-08-02（Alpha 预发布）
 
 - 定义 `v0.35.0 Alpha — Local Daily Operating Loop`，汇总 SP-016～SP-020 已验收能力；不新增产品行为。

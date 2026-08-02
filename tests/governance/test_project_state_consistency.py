@@ -73,7 +73,10 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["git_branch"] == "main"
-    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
 
 
 def test_sp015_release_baseline_is_archived_while_sp020_is_latest_work() -> None:
@@ -165,11 +168,13 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_"
-        "reconciled_archived"
+        "sp_021_planning_baseline_defined_pending_independent_review_"
+        "implementation_not_approved_not_started"
     )
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -224,7 +229,10 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
-    assert "> 下一候选方向：None" in text["brain"]
+    assert (
+        "> 下一候选方向：Conversational Work Interaction & Confirmation Session"
+        in text["brain"]
+    )
     assert f"> SP-015A 状态：{sp015a_status}" in text["brain"]
     assert f"> SP-015R 状态：{sp015r_status}" in text["brain"]
     assert "最近完成的 Product SP：SP-020" in text["brain"]
@@ -484,11 +492,13 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["current_governance_task"] is None
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
     assert state["development_status"] == (
-        "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_"
-        "reconciled_archived"
+        "sp_021_planning_baseline_defined_pending_independent_review_"
+        "implementation_not_approved_not_started"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -646,8 +656,10 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
     assert state["current_work"] is None
     assert "next_action" not in state
 
@@ -903,13 +915,15 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
     assert state["development_status"] == (
-        "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_"
-        "reconciled_archived"
+        "sp_021_planning_baseline_defined_pending_independent_review_"
+        "implementation_not_approved_not_started"
     )
     assert state["current_work"] is None
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
@@ -1319,7 +1333,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         "> 最近完成的 Product SP：SP-020\n"
         "> 当前 Product SP：None\n"
         "> 当前治理任务：None\n"
-        "> 下一候选 Product SP：None"
+        "> 下一候选 Product SP：SP-021"
     ) in brain
     assert (
         "> SP-019 状态：APPROVED / MERGED / POST_MERGE_VERIFIED / "
@@ -1333,7 +1347,8 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert "> Current main:" not in brain
     assert "Latest Merged SP 与 Latest Completed SP 均为 SP-020" in project_status
     assert (
-        "Current Product SP、Next Candidate SP 与 Current Governance Task 均为 None"
+        "Current Product SP 与 Current Governance Task 均为 None；"
+        "Next Candidate SP 为 SP-021"
     ) in project_status
     assert (
         "SP-019 Feature PR #51 已由 Acceptance Evidence Head "
@@ -1343,7 +1358,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert "| Current product SP | None |" in project_health
     assert "| Current governance task | None" in project_health
     assert (
-        "| Next candidate | None |"
+        "| Next candidate | SP-021 / Planning Baseline only |"
     ) in project_health
     assert (
         "| SP-019 Phase 0 | UserTask Workspace Query Closure / "
@@ -1385,17 +1400,19 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
-    assert state["updated_at"] == "2026-08-02"
+    assert state["updated_at"] == "2026-08-03"
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["current_work"] is None
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
     assert state["development_status"] == (
-        "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_"
-        "reconciled_archived"
+        "sp_021_planning_baseline_defined_pending_independent_review_"
+        "implementation_not_approved_not_started"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -1998,7 +2015,7 @@ def test_docs001_is_reconciled_and_archived() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_sp"] == "SP-021"
     assert docs001 == {
         "name": (
             "Repository Markdown Chinese Standardization and "
@@ -2060,8 +2077,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     assert state["current_governance_task"] is None
     assert state["git_branch"] == "main"
     assert state["current_sp"] is None
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
     assert pyproject["project"]["version"] == "0.35.0"
@@ -2254,7 +2273,7 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     }
     combined_current = "\n".join(current_docs.values())
     assert "v0.35.0 Alpha / GitHub Pre-release Published" in current_docs["README.md"]
-    assert "Current Governance Task:** None" in current_docs["ROADMAP.md"]
+    assert "当前治理任务：** None" in current_docs["ROADMAP.md"]
     assert "FINAL_RECONCILED / ARCHIVED" in combined_current
     assert "PRE_RELEASE_PUBLISHED" in combined_current
     assert "它仍不是 production-ready" in current_docs["README.md"]
@@ -2290,10 +2309,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 180
-    assert "- Git 跟踪 Markdown：180" in inventory
-    assert "- 仓库自有且纳入范围：180" in inventory
-    assert "- 新增中文治理文档：7" in inventory
+    assert len(tracked_markdown) == 185
+    assert "- Git 跟踪 Markdown：185" in inventory
+    assert "- 仓库自有且纳入范围：185" in inventory
+    assert "- 新增中文治理文档：12" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -2312,3 +2331,135 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
         "Scheduler shutdown 需正式幂等门禁",
     )
     assert all(marker not in limitations for marker in stale_current_limitations)
+
+
+def test_sp021_planning_baseline_is_complete_but_not_approved_or_started() -> None:
+    state = _load_state()
+    sp021 = state["sp_records"]["SP-021"]
+    acc021 = state["acceptance_records"]["ACC-021"]
+
+    assert state["latest_merged_sp"] == "SP-020"
+    assert state["latest_completed_sp"] == "SP-020"
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == (
+        "Conversational Work Interaction & Confirmation Session"
+    )
+    assert state["current_version"] == "0.35.0"
+
+    assert sp021["status"] == (
+        "PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / "
+        "PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED"
+    )
+    assert sp021["base_commit"] == (
+        "5f91d9da224daa9fbb2e68f7a3ba685411e93904"
+    )
+    assert sp021["branch"] == (
+        "docs/sp-021-conversational-work-interaction-planning"
+    )
+    assert sp021["target_version"] == "0.36.0"
+    assert sp021["planning_baseline_defined"] is True
+    assert sp021["planning_baseline_approved"] is False
+    assert sp021["approved"] is False
+    assert sp021["implementation_started"] is False
+    assert sp021["implementation_complete"] is False
+    assert sp021["completed"] is False
+    assert sp021["reconciled"] is False
+    assert sp021["archived"] is False
+    assert sp021["rfc"] == "RFC-030 PROPOSED"
+    assert sp021["adrs"] == ["ADR-065 PROPOSED", "ADR-066 PROPOSED"]
+    assert sp021["recommended_split"] == [
+        "SP-021A",
+        "SP-021B",
+        "SP-021C",
+        "SP-021D",
+    ]
+    assert "REQUIRED DURING IMPLEMENTATION / NOT_CREATED" in (
+        sp021["schema_decision"]
+    )
+    assert "REQUIRED DURING IMPLEMENTATION / NOT_CREATED" in (
+        sp021["migration_decision"]
+    )
+    assert acc021 == {
+        "status": "PLANNING_BASELINE / NOT_EXECUTED",
+        "scenario_count": 21,
+        "mapped_scenarios": 21,
+        "executed_scenarios": 0,
+        "provider_calls": 0,
+        "evidence_status": "NOT_CREATED",
+        "implementation_approved": False,
+    }
+
+    paths = {
+        "rfc": ROOT
+        / "docs/rfc/030-conversational-work-interaction-confirmation-session.md",
+        "adr065": ROOT
+        / "docs/adr/ADR-065-persistent-interaction-view-action-preview.md",
+        "adr066": ROOT
+        / "docs/adr/ADR-066-deterministic-reference-confirmation-state-machine.md",
+        "acc": ROOT
+        / "docs/acceptance/SP-021-conversational-work-interaction.md",
+        "task": ROOT / "docs/project/SP-021-IMPLEMENTATION-TASK.md",
+    }
+    assert all(path.is_file() for path in paths.values())
+    text = {
+        name: path.read_text(encoding="utf-8-sig") for name, path in paths.items()
+    }
+
+    rfc_contracts = (
+        "InteractionSessionService",
+        "Interaction View",
+        "Action Preview",
+        "source_revision",
+        "display_index",
+        "confirmation_token_hash",
+        "Preview 创建前后目标业务数据库必须零变化",
+        "LLM 只可提出",
+        "workspace isolation tuple",
+        "result_refresh_failed",
+        "interaction_audit_events",
+        "SP-021A",
+        "SP-021B",
+        "SP-021C",
+        "SP-021D",
+    )
+    assert all(marker in text["rfc"] for marker in rfc_contracts)
+
+    required_failure_codes = (
+        "interaction_view_not_found",
+        "interaction_view_expired",
+        "interaction_view_superseded",
+        "reference_not_resolved",
+        "reference_ambiguous",
+        "action_not_allowed",
+        "preview_not_found",
+        "preview_expired",
+        "preview_cancelled",
+        "preview_already_consumed",
+        "preview_superseded",
+        "stale_revision",
+        "workspace_mismatch",
+        "invalid_proposal",
+        "provider_unavailable",
+        "canonical_execution_failed",
+        "result_refresh_failed",
+    )
+    assert all(marker in text["rfc"] for marker in required_failure_codes)
+
+    for number in range(1, 22):
+        assert f"ACC-021-{number:02d}" in text["acc"]
+    assert "21 / 21 已映射，0 / 21 已执行" in text["acc"]
+    assert "NOT APPROVED / NOT STARTED" in text["task"]
+    assert "企业微信" in text["task"]
+    assert "Proposed / Pending Independent Review" in text["adr065"]
+    assert "Proposed / Pending Independent Review" in text["adr066"]
+
+    combined = "\n".join(text.values())
+    forbidden_positive_states = (
+        "Implementation:\nAPPROVED",
+        "ACC-021:\nPASSED / FINAL",
+        "RFC-030:\nADOPTED",
+        "ADR-065 / ADR-066:\nACCEPTED",
+    )
+    assert all(marker not in combined for marker in forbidden_positive_states)

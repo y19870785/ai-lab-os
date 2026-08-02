@@ -4,6 +4,20 @@
 
 v0.35.0 Alpha 在 v0.34.0 已发布基线上汇总 SP-016～SP-020 已验收的 Waiting-For、Work Log、Daily Review 与 Local Daily Operating Loop，不改变业务行为、Schema、依赖或运行 Profile 逻辑。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；根 `project_state.json` 记录稳定的仓库治理状态、历史验证基线和发布授权配置。当前 Git HEAD、Tag 和 GitHub Release 等外部事实通过 Git/GitHub 按需查询；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
 
+### SP-021 会话式交互目标边界（规划中）
+
+SP-021 Planning Baseline 将未来渠道无关交互收敛为
+`Interaction View -> deterministic reference -> Action Preview -> explicit confirmation -> canonical service -> fact refresh`。
+API 与 CEO Assistant 应复用 application 层 `InteractionSessionService`；channel adapter 只处理
+输入上下文和展示格式，未来 WeCom 不拥有领域逻辑。
+
+规划要求 View/Preview 使用专用持久化、workspace-first lookup、TTL、revision CAS、一次性
+confirmation token 与 idempotent recovery。LLM 只提出 schema-validated Proposal，不能指定任意
+数据库 ID、自动确认或直接调用 service。所有业务写入继续委托 `UserTaskService`、
+`ReminderManagementService`、`WaitingForService`、`InboxService` 与 `WorkLogService`。
+
+该边界目前是 RFC-030 / ADR-065 / ADR-066 Proposed 状态；没有创建 schema、migration 或产品实现。
+
 v0.35 开发线新增独立 canonical Waiting-For domain：`core/waiting_for` 使用 DatabaseManager 管理的 `followups.db` 保存 CAS 快照与 append-only 事件。FastAPI、CLI 与 Daily Agenda 均通过 Composition Root 中同一个 `WaitingForService` 访问真相源；Daily Agenda 将 UserTask、Reminder、Waiting-For 与 Work Log 视为可选来源，未启用来源不阻断其他来源查询。
 
 SP-018 新增唯一 `core/work_log/WorkLogService` 与 `SQLiteWorkLogRepository`。它复用 DatabaseManager 管理的既有 `episodic.db / episodic_memories`，不创建新表或索引；新记录采用 `wl_<32 hex>`，Legacy 记录只读投影为 `wl_legacy_<sha256>`。public get/list 在 SQL Workspace scope 后才解码或投影，API/CLI/CEO 输入验证共享 WorkLogService FailureInfo；Agenda 按真实 status 聚合并对 ALL 稳定分页，Legacy naive DST 不存在或歧义时间 fail closed。CEO Assistant、API、CLI、Inbox、Daily Agenda 与 Daily Brief 只通过该服务访问 Work Log；ACC-018 A～O 与合并后验证均已通过。

@@ -1,9 +1,9 @@
 # AI-Lab 已知限制
 
-> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-02
+> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-03
 
 `v0.35.0` 的发布不改变以下产品限制；REL-035 已最终对账并封存，当前 Governance Task
-为 None，下一 Product SP 尚未批准。
+为 None；SP-021 只是下一候选 Planning Baseline，Implementation 尚未批准或启动。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
@@ -21,6 +21,7 @@ general availability。
 | Daily Review 查询范围有限 | 正式 CLI、API 与 CEO Assistant 已复用唯一只读服务，但 review date 只支持 `today` / `yesterday`，不是任意日期分析引擎 |
 | Local Daily Profile 不是部署平台 | Windows Local Daily Profile 已实现并通过 ACC-020；它要求显式绝对路径和完整配置，不等于 Docker/服务管理/生产部署认证 |
 | Action Hint 是确定性子集 | Action Hints 已实现并通过 ACC-020；只基于 canonical facts/IDs，不使用 LLM 自动选工具或猜测写入意图 |
+| 会话式确认闭环尚未实现 | SP-021 只完成 Planning Baseline；Interaction View、Action Preview、确定性引用、持久确认态与 shared API/CEO contract 均未实现 |
 | 非 Local Daily Profile 的默认路径不稳定 | 默认 data root 仍随 working directory 推导；正式 Local Daily Profile 已验收并要求源码 checkout 外的稳定绝对路径 |
 | 在线跨库备份不受支持 | 多个 SQLite 文件与可选 Chroma 只规划停机后的完整 data directory 备份，不承诺在线一致快照 |
 

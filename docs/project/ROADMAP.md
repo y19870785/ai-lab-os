@@ -1,9 +1,10 @@
 # AI-Lab 路线图
 
-**Last Updated:** 2026-08-02
-**Current Version:** v0.35.0 Alpha / GitHub Pre-release Published
-**Current SP:** None
-**Current Governance Task:** None
+**最近更新：** 2026-08-03
+**当前版本：** v0.35.0 Alpha / GitHub Pre-release Published
+**当前 SP：** None
+**当前治理任务：** None
+**下一候选 SP：** SP-021 / Planning Baseline only
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -56,10 +57,10 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 ## v0.35.0 Alpha 已发布 Pre-release
 
 目标发布名称为 `v0.35.0 Alpha — Local Daily Operating Loop`。SP-016、SP-017、
-SP-018、SP-019 与 SP-020 已完成验收并封存；当前没有 Product SP 或下一候选 SP。
+SP-018、SP-019 与 SP-020 已完成验收并封存；当前没有已批准 Product SP。
 REL-035 已完成 Release PR 合并、main Quality Gate、Release Head 冻结、annotated Tag
-远端验证和 GitHub Pre-release 发布，并在最终对账后封存。当前没有 Governance Task，
-下一 Product SP 尚未批准：
+远端验证和 GitHub Pre-release 发布，并在最终对账后封存。当前没有 Governance Task；
+SP-021 是下一候选 Planning Baseline，但尚未批准或启动 Implementation：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
@@ -68,6 +69,7 @@ REL-035 已完成 Release PR 合并、main Quality Gate、Release Head 冻结、
 | SP-018 | Work Log Query Boundary & Context Closure | COMPLETED / POST_MERGE_VERIFIED / RECONCILED / ARCHIVED |
 | SP-019 | Daily Review Read Model & Deterministic Follow-up View | APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-020 | Local Daily Operating Loop & Review-to-Action Closure | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED |
+| SP-021 | Conversational Work Interaction & Confirmation Session | PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED |
 
 ACC-016、ACC-017、ACC-018、ACC-019 与 ACC-020 均为 PASSED / FINAL。SP-020 的 RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，SP-020A 对账载体为 PR #58，并完成治理对账与封存。`v0.34.0` 历史发布不变；`v0.35.0` 已发布为 GitHub Pre-release，REL-035 已最终对账并封存。
 
@@ -79,11 +81,15 @@ Authorization、GitHub Release Authorization 五个独立治理事件。规划�
 
 | 候选版本 | 候选方向 | 状态 |
 |---|---|---|
-| v0.36.0 | Recurring Reminder | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
+| v0.36.0 | Conversational Work Assistant / SP-021 | PLANNING_BASELINE_DEFINED / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED |
 | v0.37.0 | Minimal Web Console | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
 | v0.40.0 或更后 | Knowledge Main Path | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
 
 这些版本没有承诺发布日期。
+
+SP-021 的 RFC-030、ADR-065、ADR-066 与 ACC-021 只定义 Interaction View、确定性引用、
+Action Preview/Confirmation、canonical execution、LLM Proposal 安全边界和 API/CEO shared
+contract。Schema/Migration 只记录为未来实施需求；当前没有实现，也不包含 SP-022 企业微信接入。
 
 ## 更远期方向
 
