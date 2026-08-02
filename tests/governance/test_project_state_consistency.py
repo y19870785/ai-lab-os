@@ -70,7 +70,7 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "REL-035"
     assert state["next_candidate_sp"] is None
 
 
@@ -161,7 +161,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "REL-035"
     assert state["development_status"] == (
         "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_"
         "reconciled_archived"
@@ -229,7 +229,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert "当前 Product SP：None" in text["brain"]
     assert "ACC-016 状态：PASSED / FINAL" in text["brain"]
     assert "ACC-017 状态：PASSED / FINAL" in text["brain"]
-    assert "Current governance task | None" in text["health"]
+    assert "Current governance task | REL-035" in text["health"]
     assert "Alpha / RELEASE_AUTHORIZED" in text["health"]
     assert "**Authorization:** Release Authorized" in text["version_matrix"]
     assert (
@@ -383,6 +383,17 @@ def test_release_authorization_is_stable_and_github_is_authoritative() -> None:
         "github_release_type": "prerelease",
         "maturity": "Alpha / local-first / single-user-oriented",
         "binary_assets": "not published",
+        "planned_releases": {
+            "v0.35.0": {
+                "name": "v0.35.0 Alpha — Local Daily Operating Loop",
+                "status": (
+                    "PLANNING_BASELINE_DEFINED / "
+                    "IMPLEMENTATION_NOT_APPROVED / NOT_PUBLISHED"
+                ),
+                "release_type": "prerelease",
+                "binary_assets": "none",
+            }
+        },
     }
     realtime_mirrors = {
         "tag_created",
@@ -454,7 +465,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     )
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "REL-035"
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["next_candidate_sp"] is None
@@ -618,7 +629,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "REL-035"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["current_work"] is None
@@ -875,7 +886,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "REL-035"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["current_version"] == "0.34.0"
@@ -1291,7 +1302,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert (
         "> 最近完成的 Product SP：SP-020\n"
         "> 当前 Product SP：None\n"
-        "> 当前治理任务：None\n"
+        "> 当前治理任务：REL-035\n"
         "> 下一候选 Product SP：None"
     ) in brain
     assert (
@@ -1305,14 +1316,17 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     ) in brain
     assert "> Current main:" not in brain
     assert "Latest Merged SP 与 Latest Completed SP 均为 SP-020" in project_status
-    assert "Current Product SP、Current Governance Task 与 Next Candidate SP 均为 None" in project_status
+    assert (
+        "Current Product SP 与 Next Candidate SP 均为 None，"
+        "Current Governance Task 为 REL-035"
+    ) in project_status
     assert (
         "SP-019 Feature PR #51 已由 Acceptance Evidence Head "
         "`420da28664914fda8ccbecadf90947380ec43473` Squash Merge 为 main "
         "`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`"
     ) in project_status
     assert "| Current product SP | None |" in project_health
-    assert "| Current governance task | None |" in project_health
+    assert "| Current governance task | REL-035" in project_health
     assert (
         "| Next candidate | None |"
     ) in project_health
@@ -1356,11 +1370,11 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
-    assert state["updated_at"] == "2026-08-01"
+    assert state["updated_at"] == "2026-08-02"
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "REL-035"
     assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -1968,7 +1982,7 @@ def test_docs001_is_reconciled_and_archived() -> None:
     docs001 = state["governance_tasks"]["DOCS-001"]
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] is None
+    assert state["current_governance_task"] == "REL-035"
     assert state["next_candidate_sp"] is None
     assert docs001 == {
         "name": (
@@ -2018,3 +2032,115 @@ def test_docs001_is_reconciled_and_archived() -> None:
     assert "DRAFT_PR_OPEN" not in current_governance_docs
     assert "Current Governance Task: DOCS-001" not in current_governance_docs
     assert "当前治理任务：DOCS-001" not in current_governance_docs
+
+
+def test_rel035_release_planning_state_and_boundaries_are_locked() -> None:
+    state = _load_state()
+    pyproject = tomllib.loads(
+        (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
+    rel035 = state["governance_tasks"]["REL-035"]
+    planned_release = state["release_status"]["planned_releases"]["v0.35.0"]
+
+    assert state["current_governance_task"] == "REL-035"
+    assert state["current_sp"] is None
+    assert state["latest_merged_sp"] == "SP-020"
+    assert state["latest_completed_sp"] == "SP-020"
+    assert state["next_candidate_sp"] is None
+    assert state["current_version"] == "0.34.0"
+    assert state["version"] == "v0.34.0"
+    assert pyproject["project"]["version"] == "0.34.0"
+
+    assert rel035 == {
+        "name": "v0.35.0 Alpha Release Consolidation",
+        "type": "RELEASE_GOVERNANCE",
+        "base_commit": "5456ed2406fa54443a02b436e2684bf90698afea",
+        "branch": "docs/rel-035-v035-alpha-release-planning",
+        "status": (
+            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+            "NOT_STARTED"
+        ),
+        "target_version": "0.35.0",
+        "target_release_name": (
+            "v0.35.0 Alpha — Local Daily Operating Loop"
+        ),
+        "release_type": "prerelease",
+        "binary_assets": "none",
+        "implementation_approved": False,
+        "version_changed": False,
+        "tag_authorized": False,
+        "tag_created": False,
+        "github_release_authorized": False,
+        "github_release_published": False,
+    }
+    assert planned_release == {
+        "name": "v0.35.0 Alpha — Local Daily Operating Loop",
+        "status": (
+            "PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / "
+            "NOT_PUBLISHED"
+        ),
+        "release_type": "prerelease",
+        "binary_assets": "none",
+    }
+    assert state["release_status"]["current_version"] == "0.34.0"
+    assert state["release_status"]["authorized_tag"] == "v0.34.0"
+
+    plan_path = ROOT / "docs/project/REL-035-V035-ALPHA-RELEASE-PLAN.md"
+    task_path = ROOT / "docs/project/REL-035-IMPLEMENTATION-TASK.md"
+    assert plan_path.is_file()
+    assert task_path.is_file()
+    plan = plan_path.read_text(encoding="utf-8")
+    task = task_path.read_text(encoding="utf-8")
+    combined = f"{plan}\n{task}"
+
+    required_plan_markers = (
+        "v0.35.0 Alpha — Local Daily Operating Loop",
+        "No destructive database migration is required.",
+        "No existing v0.34.0 table rewrite is required.",
+        "No legacy data import is required.",
+        "No dual-write migration is required.",
+        "followups.db",
+        "waiting_for_items",
+        "waiting_for_events",
+        "CREATE TABLE IF NOT EXISTS",
+        "CREATE INDEX IF NOT EXISTS",
+        "PLANNING_BASELINE_DEFINED",
+        "IMPLEMENTATION_NOT_APPROVED",
+        "NOT_PUBLISHED",
+    )
+    assert all(marker in plan for marker in required_plan_markers)
+
+    required_config = (
+        "AI_LAB_DATA_DIR",
+        "AI_LAB_SQLITE_DIR",
+        "AI_LAB_TIMEZONE",
+        "AI_LAB_PROVIDER_MODE",
+        "AI_LAB_API_TOKEN",
+        "AI_LAB_TENANT_ID",
+        "AI_LAB_WORKSPACE_ID",
+        "AI_LAB_NAMESPACE",
+    )
+    assert all(marker in combined for marker in required_config)
+
+    required_authorization_events = (
+        "Planning PR Approval",
+        "Implementation Approval",
+        "Release PR Merge",
+        "Tag Authorization",
+        "GitHub Release Authorization",
+    )
+    assert all(marker in combined for marker in required_authorization_events)
+    assert "chore/rel-035-v035-alpha-release-consolidation" in task
+    assert "NOT APPROVED / NOT STARTED" in task
+    assert "不得重新执行正式 ACC-020 A～V" in task
+
+    limitations = (
+        ROOT / "docs/project/KNOWN_LIMITATIONS.md"
+    ).read_text(encoding="utf-8-sig")
+    stale_current_limitations = (
+        "Daily Review 没有正式 CLI",
+        "本地日常运行 Profile 尚未实现",
+        "Action Hint 尚未实现",
+        "Scheduler shutdown 需正式幂等门禁",
+    )
+    assert all(marker not in limitations for marker in stale_current_limitations)

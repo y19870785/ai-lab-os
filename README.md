@@ -3,7 +3,8 @@
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
-> 当前没有 Product SP 或 Governance Task；版本、Tag 与 GitHub Pre-release 均未改变。
+> 当前没有 Product SP；Governance Task 为 REL-035，正在定义 v0.35.0 Alpha 发布收口规划。
+> 源码版本仍为 `0.34.0`，v0.35.0 Implementation、Tag 与 GitHub Pre-release 均未授权。
 
 面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
 
@@ -29,6 +30,9 @@ AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业�
 - Waiting-For Follow-up Interaction：自然语言先捕获 Inbox，再以 Inbox ID 确认创建；显式 `wf_...` ID 支持确定性生命周期操作，已通过 ACC-017 A～O 并封存。
 - API、CLI 与 CEO Assistant：共享 canonical Composition Root 和领域服务。
 - Bearer Token 与 CORS allowlist：提供本地 API 安全边界。
+- Local Daily Operating Loop（SP-020）：正式 Daily Review CLI、确定性 Action Hints、
+  Review-to-Action、持续 Scheduler、优雅关闭、重启恢复、静止备份与隔离恢复已通过
+  ACC-020；这仍是本地 Alpha 边界。
 
 ### 已实现但默认关闭或需显式配置
 
@@ -240,10 +244,14 @@ python -m ruff check <changed-python-files>
 - [项目机器状态](project_state.json)：版本、已验证历史基线、当前 SP、质量门禁、技术债与稳定发布授权。
 - [项目大脑](docs/project/PROJECT_BRAIN.md)：长期架构事实与封存产品事实。
 - [Roadmap](docs/project/ROADMAP.md)：版本范围、里程碑与候选 SP。
-- [SP-020 Implementation Task](docs/project/SP-020-IMPLEMENTATION-TASK.md)：实现阶段、
-  停止条件与授权边界；当前实施遵循该合同。
+- [REL-035 v0.35.0 Alpha 发布规划](docs/project/REL-035-V035-ALPHA-RELEASE-PLAN.md)：
+  发布范围、兼容升级、验证矩阵与授权状态机。
+- [REL-035 实施任务书](docs/project/REL-035-IMPLEMENTATION-TASK.md)：未来版本提升与发布
+  收口的唯一授权边界；当前 NOT APPROVED / NOT STARTED。
+- [SP-020 Implementation Task](docs/project/SP-020-IMPLEMENTATION-TASK.md)：已封存的历史
+  实施合同。
 - [ACC-020](docs/acceptance/SP-020-local-daily-operating-loop.md)：本地日常闭环、
-  restart 与 Quiescent Backup/Restore 的未来验收合同；当前 NOT_EXECUTED。
+  restart 与 Quiescent Backup/Restore 的正式验收记录；PASSED / FINAL。
 - [Changelog](CHANGELOG.md)：按产品版本记录用户可见变化。
 - [v0.34.0 Alpha Release Notes](docs/releases/v0.34.0-alpha.md)：本候选版本范围、升级说明与限制。
 - [Known Limitations](docs/project/KNOWN_LIMITATIONS.md)：当前限制的可读汇总。
@@ -259,5 +267,7 @@ python -m ruff check <changed-python-files>
 - 授权 Tag：`v0.34.0`。
 - GitHub Release 类型：Pre-release，不上传 wheel 或 sdist。
 - 外部发布事实：Tag 与 Release 的实际存在性、目标、URL 和发布时间以 GitHub Tags and GitHub Releases 为权威来源。
+- v0.35.0：Local Daily Operating Loop 发布收口已规划；Implementation 未批准，
+  `v0.35.0` Tag 与 GitHub Pre-release 未授权、未创建。
 
 任务编号代表开发批次，不等同于产品版本；一个产品版本可以由多个 SP 共同组成。

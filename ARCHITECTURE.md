@@ -10,6 +10,13 @@ SP-018 新增唯一 `core/work_log/WorkLogService` 与 `SQLiteWorkLogRepository`
 
 SP-017 已完成验收并封存。正式链路为 `CEO Assistant capture -> InboxService.resolve_to_waiting_for() -> WaitingForService.create()`，复用 `inbox_resolution_claims` 的 `CLAIMED -> TARGET_CREATED -> COMPLETED`，不新增 Saga 表或 Waiting-For lifecycle Schema；自然语言写入必须先捕获并通过 Inbox ID 确认，后续 mutation 必须使用 canonical `wf_...` ID。
 
+REL-035 正在建立 `v0.35.0 Alpha — Local Daily Operating Loop` 的发布收口规划，
+不改变上述运行时架构。升级不需要破坏性 Migration、既有表重写、legacy import 或
+dual-write；缺失 `followups.db` 时，Waiting-For 表与索引按 `IF NOT EXISTS` 增量初始化。
+旧 `.env` 不能直接视为 Local Daily Profile 合格配置，必须显式提供稳定绝对 data/sqlite
+路径、IANA timezone、Provider、feature flags、API token 与完整 WorkspaceKey。当前源码
+版本仍为 `0.34.0`，REL-035 Implementation、Tag 与 GitHub Pre-release 均未授权。
+
 SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
 
 SP-005 Reminder & Scheduler Bridge 已通过 PR #10 审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-005 merge baseline 为 `167b0d78f7713b1d5bfc85198c1461c7a35f63d3`，合并时间为 `2026-07-15T14:03:32Z`。Scheduler 通过数据库 CAS claim、持久化 JobRun 和 Action Handler 支持可靠 One-shot；Reminder/Occurrence 使用 `reminders.db`、唯一键和 Saga reconciliation。该能力默认关闭；通知渠道、Recurring Reminder、Knowledge Reindex/Chunk Persistence/Citation、自动 Tool Calling、完整 MCP 闭环、Coordination 主链路、UI、Database backup/restore、in-flight counting 和 drain timeout 仍未完成。
