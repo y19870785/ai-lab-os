@@ -2144,11 +2144,64 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     assert reconciliation_path.is_file()
     reconciliation = reconciliation_path.read_text(encoding="utf-8")
 
+    required_plan_contracts = (
+        "v0.35.0 Alpha — Local Daily Operating Loop",
+        "No destructive database migration is required.",
+        "No existing v0.34.0 table rewrite is required.",
+        "No legacy data import is required.",
+        "No dual-write migration is required.",
+        "followups.db",
+        "waiting_for_items",
+        "waiting_for_events",
+        "CREATE TABLE IF NOT EXISTS",
+        "CREATE INDEX IF NOT EXISTS",
+    )
+    assert all(marker in plan for marker in required_plan_contracts)
+
+    combined_contracts = f"{plan}\n{task}"
+    required_config_contracts = (
+        "AI_LAB_DATA_DIR",
+        "AI_LAB_SQLITE_DIR",
+        "AI_LAB_TIMEZONE",
+        "AI_LAB_PROVIDER_MODE",
+        "AI_LAB_API_TOKEN",
+        "AI_LAB_TENANT_ID",
+        "AI_LAB_WORKSPACE_ID",
+        "AI_LAB_NAMESPACE",
+    )
+    assert all(marker in combined_contracts for marker in required_config_contracts)
+
+    required_authorization_events = (
+        "Planning PR Approval",
+        "Implementation Approval",
+        "Release PR Merge",
+        "Tag Authorization",
+        "GitHub Release Authorization",
+    )
+    assert all(marker in combined_contracts for marker in required_authorization_events)
+
+    required_validation_evidence = (
+        "Governance + Version | `37 passed`",
+        "pytest non-real | `1708 passed / 27 warnings`",
+        "Full pytest | `1708 passed / 5 skipped / 27 warnings`",
+        "AI_LAB_SQLITE_DIR` 位于 `AI_LAB_DATA_DIR` 外",
+        "AI_LAB_TIMEZONE=Invalid/REL035",
+        "缺失 `AI_LAB_PROVIDER_MODE`",
+        "缺失 `AI_LAB_ENABLE_DAILY_REVIEW`",
+        "Unexpected Files Created: NO",
+        "Provider Calls: 0",
+    )
+    assert all(marker in release_notes for marker in required_validation_evidence)
+
     assert (
         "Planning Baseline Original State：\n\n```text\nREL-035:\n"
         "PLANNING_BASELINE_DEFINED /\nIMPLEMENTATION_NOT_APPROVED /\nNOT_STARTED"
     ) in plan
     assert "Current State）：`FINAL_RECONCILED / ARCHIVED`" in plan
+    assert "chore/rel-035-v035-alpha-release-consolidation" in task
+    assert "Release PR:\n#60" in task
+    assert "Source Version:\n0.35.0" in task
+    assert "不得重新执行正式 ACC-020 A～V" in task
     assert "Implementation Status:\nFINAL_RECONCILED /\nARCHIVED" in task
     assert "PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED" in release_notes
     assert "GitHub Release ID：`363770731`" in release_notes
@@ -2204,8 +2257,23 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     assert "Current Governance Task:** None" in current_docs["ROADMAP.md"]
     assert "FINAL_RECONCILED / ARCHIVED" in combined_current
     assert "PRE_RELEASE_PUBLISHED" in combined_current
-    for forbidden in ("production-ready", "enterprise-ready", "stable release", "general availability"):
-        assert f"not {forbidden}" not in combined_current.lower()
+    assert "它仍不是 production-ready" in current_docs["README.md"]
+    assert (
+        "不是\nproduction-ready、enterprise-ready、stable release 或 "
+        "general availability"
+    ) in reconciliation
+
+    for forbidden_positive_claim in (
+        "Maturity: Production-ready",
+        "Maturity: Enterprise-ready",
+        "Release Stage: Stable",
+        "Release Stage: General Availability",
+        "成熟度：Production-ready",
+        "成熟度：Enterprise-ready",
+        "发布阶段：Stable Release",
+        "发布阶段：General Availability",
+    ):
+        assert forbidden_positive_claim not in combined_current
 
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8-sig")
     assert "## [Unreleased]" in changelog
@@ -2232,4 +2300,7 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
         encoding="utf-8-sig"
     )
     assert "GitHub Pre-release Published" in limitations
-    assert "production-ready" in limitations
+    assert (
+        "该 Alpha Pre-release 仍不是 production-ready、"
+        "enterprise-ready、stable release 或\ngeneral availability"
+    ) in limitations
