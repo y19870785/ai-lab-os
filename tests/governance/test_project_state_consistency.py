@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -71,6 +72,7 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] == "REL-035"
+    assert state["git_branch"] == "main"
     assert state["next_candidate_sp"] is None
 
 
@@ -2046,6 +2048,7 @@ def test_rel035_release_candidate_state_and_boundaries_are_locked() -> None:
     planned_release = state["release_status"]["planned_releases"]["v0.35.0"]
 
     assert state["current_governance_task"] == "REL-035"
+    assert state["git_branch"] == "main"
     assert state["current_sp"] is None
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
@@ -2106,6 +2109,36 @@ def test_rel035_release_candidate_state_and_boundaries_are_locked() -> None:
     release_notes = release_notes_path.read_text(encoding="utf-8")
     combined = f"{plan}\n{task}"
 
+    planning_original_state = (
+        "Planning Baseline Original State：\n\n"
+        "```text\n"
+        "REL-035:\n"
+        "PLANNING_BASELINE_DEFINED /\n"
+        "IMPLEMENTATION_NOT_APPROVED /\n"
+        "NOT_STARTED\n"
+        "```"
+    )
+    current_implementation_state = (
+        "Current Implementation State：\n\n"
+        "```text\n"
+        "Planning Merge Commit:\n"
+        "e596c3331ed86dbba3aeded3ccd61517d1901559\n\n"
+        "Implementation Base:\n"
+        "e596c3331ed86dbba3aeded3ccd61517d1901559\n\n"
+        "Current Source Version:\n"
+        "0.35.0\n\n"
+        "REL-035:\n"
+        "IMPLEMENTATION_APPROVED /\n"
+        "IMPLEMENTATION_IN_PROGRESS /\n"
+        "SOURCE_VERSION_UPDATED /\n"
+        "RELEASE_DOCUMENTATION_UPDATED /\n"
+        "RELEASE_CANDIDATE_VALIDATED /\n"
+        "DRAFT_PR_OPEN /\n"
+        "PENDING_INDEPENDENT_REVIEW"
+    )
+    assert planning_original_state in plan
+    assert current_implementation_state in plan
+
     required_plan_markers = (
         "v0.35.0 Alpha — Local Daily Operating Loop",
         "No destructive database migration is required.",
@@ -2117,8 +2150,6 @@ def test_rel035_release_candidate_state_and_boundaries_are_locked() -> None:
         "waiting_for_events",
         "CREATE TABLE IF NOT EXISTS",
         "CREATE INDEX IF NOT EXISTS",
-        "PLANNING_BASELINE_DEFINED",
-        "IMPLEMENTATION_NOT_APPROVED",
         "NOT_PUBLISHED",
     )
     assert all(marker in plan for marker in required_plan_markers)
@@ -2131,6 +2162,20 @@ def test_rel035_release_candidate_state_and_boundaries_are_locked() -> None:
             "e596c3331ed86dbba3aeded3ccd61517d1901559",
         )
     )
+    release_evidence = (
+        "Governance + Version | `37 passed`",
+        "pytest non-real | `1708 passed / 27 warnings`",
+        "Full pytest | `1708 passed / 5 skipped / 27 warnings`",
+        "AI_LAB_SQLITE_DIR` 位于 `AI_LAB_DATA_DIR` 外",
+        "AI_LAB_TIMEZONE=Invalid/REL035",
+        "缺失 `AI_LAB_PROVIDER_MODE`",
+        "缺失 `AI_LAB_ENABLE_DAILY_REVIEW`",
+        "Unexpected Files Created: NO",
+        "Provider Calls: 0",
+        "Release PR Merge: PENDING",
+        "Release Head: NOT FROZEN",
+    )
+    assert all(marker in release_notes for marker in release_evidence)
 
     required_config = (
         "AI_LAB_DATA_DIR",
@@ -2153,8 +2198,33 @@ def test_rel035_release_candidate_state_and_boundaries_are_locked() -> None:
     )
     assert all(marker in combined for marker in required_authorization_events)
     assert "chore/rel-035-v035-alpha-release-consolidation" in task
-    assert "NOT APPROVED / NOT STARTED" in task
+    assert "Release PR:\n#60" in task
+    assert "Source Version:\n0.35.0" in task
+    assert (
+        "Implementation Status:\n"
+        "IMPLEMENTATION_APPROVED /\n"
+        "IMPLEMENTATION_IN_PROGRESS /\n"
+        "RELEASE_CANDIDATE_VALIDATED /\n"
+        "DRAFT_PR_OPEN /\n"
+        "PENDING_INDEPENDENT_REVIEW"
+    ) in task
     assert "不得重新执行正式 ACC-020 A～V" in task
+
+    tracked_markdown = subprocess.run(
+        ["git", "ls-files", "*.md", "*.markdown"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.splitlines()
+    inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
+        encoding="utf-8-sig"
+    )
+    assert len(tracked_markdown) == 179
+    assert "- Git 跟踪 Markdown：179" in inventory
+    assert "- 仓库自有且纳入范围：179" in inventory
+    assert "- 新增中文治理文档：6" in inventory
 
     limitations = (
         ROOT / "docs/project/KNOWN_LIMITATIONS.md"

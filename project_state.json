@@ -3,7 +3,7 @@
   "project": "AI-Lab OS",
   "version": "v0.35.0",
   "current_version": "0.35.0",
-  "git_branch": "chore/rel-035-v035-alpha-release-consolidation",
+  "git_branch": "main",
   "verified_release_baseline": {
     "commit": "22f88d1da962fb436c48c19e5343fad8bf62f5f6",
     "quality_gate_run": 29855987444,
