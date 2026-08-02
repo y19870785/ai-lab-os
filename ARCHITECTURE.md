@@ -1,8 +1,8 @@
 # AI-Lab 架构文档
 
-## v0.34.0 Alpha 产品基线
+## v0.35.0 Alpha 产品基线
 
-v0.34.0 Alpha 在 v0.33.0 稳定化基础上收口 Canonical UserTask、Reminder、Intent Safety、Daily Agenda、Unified Inbox、Capture-to-Action 与治理一致性。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；根 `project_state.json` 记录稳定的仓库治理状态、历史验证基线和发布授权配置。当前 Git HEAD、Tag 和 GitHub Release 等外部事实通过 Git/GitHub 按需查询；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
+v0.35.0 Alpha 在 v0.34.0 已发布基线上汇总 SP-016～SP-020 已验收的 Waiting-For、Work Log、Daily Review 与 Local Daily Operating Loop，不改变业务行为、Schema、依赖或运行 Profile 逻辑。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；根 `project_state.json` 记录稳定的仓库治理状态、历史验证基线和发布授权配置。当前 Git HEAD、Tag 和 GitHub Release 等外部事实通过 Git/GitHub 按需查询；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。
 
 v0.35 开发线新增独立 canonical Waiting-For domain：`core/waiting_for` 使用 DatabaseManager 管理的 `followups.db` 保存 CAS 快照与 append-only 事件。FastAPI、CLI 与 Daily Agenda 均通过 Composition Root 中同一个 `WaitingForService` 访问真相源；Daily Agenda 将 UserTask、Reminder、Waiting-For 与 Work Log 视为可选来源，未启用来源不阻断其他来源查询。
 
@@ -10,12 +10,12 @@ SP-018 新增唯一 `core/work_log/WorkLogService` 与 `SQLiteWorkLogRepository`
 
 SP-017 已完成验收并封存。正式链路为 `CEO Assistant capture -> InboxService.resolve_to_waiting_for() -> WaitingForService.create()`，复用 `inbox_resolution_claims` 的 `CLAIMED -> TARGET_CREATED -> COMPLETED`，不新增 Saga 表或 Waiting-For lifecycle Schema；自然语言写入必须先捕获并通过 Inbox ID 确认，后续 mutation 必须使用 canonical `wf_...` ID。
 
-REL-035 正在建立 `v0.35.0 Alpha — Local Daily Operating Loop` 的发布收口规划，
+REL-035 已验证 `v0.35.0 Alpha — Local Daily Operating Loop` Release Candidate，
 不改变上述运行时架构。升级不需要破坏性 Migration、既有表重写、legacy import 或
 dual-write；缺失 `followups.db` 时，Waiting-For 表与索引按 `IF NOT EXISTS` 增量初始化。
 旧 `.env` 不能直接视为 Local Daily Profile 合格配置，必须显式提供稳定绝对 data/sqlite
 路径、IANA timezone、Provider、feature flags、API token 与完整 WorkspaceKey。当前源码
-版本仍为 `0.34.0`，REL-035 Implementation、Tag 与 GitHub Pre-release 均未授权。
+版本已提升为 `0.35.0`；REL-035 Implementation 已授权，Tag 与 GitHub Pre-release 仍未授权。
 
 SP-004 Canonical UserTask Domain 已通过 PR #8 完成审查并以 Squash Merge 进入 `main`。审查结论为 `APPROVED`，SP-004 merge baseline 为 `10d1534049be2d526c930c513912dc661ac41728`，合并时间为 `2026-07-15T11:39:33Z`。该提交是主分支合并基线，不是 PR Head。
 
@@ -385,7 +385,7 @@ Agent → ToolExecutor → [Validator → Permission → Sandbox → Tool]
 
 > Accepted scope 绑定当前 `asyncio.Task` 身份：同一 Task 的下游调用可继续，普通 detached child 不继承 bypass；仅 Scheduler 可通过 `spawn_accepted_task()` 显式延续已经接受的 Job。FastAPI Runtime dependency 仍先经过 `get_system()`，Runtime 在真实执行点再次检查以关闭竞态窗口。
 
-> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。当前源码版本为 `0.34.0` Alpha Candidate；v0.34.0 Tag 和 GitHub Release 尚未创建。
+> 当前仍无进程级 in-flight counter、drain timeout、强制取消或多进程 admission coordination。当前源码版本为 `0.35.0` Alpha Release Candidate；v0.35.0 Tag 和 GitHub Release 尚未授权或创建。
 
 ## SP-009 自然语言提醒闭环
 

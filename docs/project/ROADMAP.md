@@ -1,9 +1,9 @@
 # AI-Lab 路线图
 
 **Last Updated:** 2026-08-02
-**Current Version:** v0.34.0 Alpha / Release Authorized
+**Current Version:** v0.35.0 Alpha / Release Candidate / Not Published
 **Current SP:** None
-**Current Governance Task:** REL-035 / PLANNING_BASELINE_DEFINED
+**Current Governance Task:** REL-035 / IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -53,12 +53,13 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 
 发布授权已完成。授权 Tag 为 `v0.34.0`，授权 Release 类型为 Pre-release；实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为准。
 
-## v0.35.0 Alpha 发布收口规划
+## v0.35.0 Alpha 发布候选版
 
 目标发布名称为 `v0.35.0 Alpha — Local Daily Operating Loop`。SP-016、SP-017、
 SP-018、SP-019 与 SP-020 已完成验收并封存；当前没有 Product SP 或下一候选 SP。
-REL-035 只负责发布收口规划，Implementation 未批准、未开始，版本仍为 `0.34.0`，
-`v0.35.0` Tag 与 GitHub Pre-release 均未授权、未创建：
+REL-035 Implementation 已获正式授权，源码版本与发布文档已更新为 `0.35.0`，
+Release Candidate 已完成本地验证并进入 Draft PR 独立审查；`v0.35.0` Tag 与 GitHub
+Pre-release 均未授权、未创建：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
@@ -68,7 +69,7 @@ REL-035 只负责发布收口规划，Implementation 未批准、未开始，版
 | SP-019 | Daily Review Read Model & Deterministic Follow-up View | APPROVED / MERGED / POST_MERGE_VERIFIED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-020 | Local Daily Operating Loop & Review-to-Action Closure | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED |
 
-ACC-016、ACC-017、ACC-018、ACC-019 与 ACC-020 均为 PASSED / FINAL。SP-020 的 RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，SP-020A 对账载体为 PR #58，并完成治理对账与封存。版本仍为 `0.34.0`，Tag `v0.34.0` 与 GitHub Pre-release 未改变。
+ACC-016、ACC-017、ACC-018、ACC-019 与 ACC-020 均为 PASSED / FINAL。SP-020 的 RFC-029 为 Adopted，ADR-063、ADR-064 为 Accepted；Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，SP-020A 对账载体为 PR #58，并完成治理对账与封存。`v0.34.0` 历史发布不变；当前 `0.35.0` 仍未发布。
 
 REL-035 规划冻结无破坏性迁移、缺失 `followups.db` 时增量初始化、Local Daily Profile
 显式配置升级，以及 Planning Approval、Implementation Approval、Release PR Merge、Tag

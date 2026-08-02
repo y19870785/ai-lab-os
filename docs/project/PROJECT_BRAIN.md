@@ -1,6 +1,6 @@
 # AI-Lab Project Brain —— 项目大脑
 
-> 产品版本：v0.34.0
+> 产品版本：v0.35.0
 > 最近完成的 Product SP：SP-020
 > 当前 Product SP：None
 > 当前治理任务：REL-035
@@ -15,8 +15,8 @@
 > SP-020 规划合并：PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / main Quality Gate `30441534383` / SUCCESS
 > SP-020 功能合并：PR #57 / `9ea4b72241bd855319231c09fa6b80c112a14305` / main Quality Gate `30687851816` / SUCCESS
 > SP-020 对账：SP-020A / PR #58
-> REL-035 状态：PLANNING_BASELINE_DEFINED / IMPLEMENTATION_NOT_APPROVED / NOT_STARTED
-> v0.35.0 发布规划：Local Daily Operating Loop / GitHub Pre-release / Binary Assets None / NOT_PUBLISHED
+> REL-035 状态：IMPLEMENTATION_APPROVED / IMPLEMENTATION_IN_PROGRESS / SOURCE_VERSION_UPDATED / RELEASE_DOCUMENTATION_UPDATED / RELEASE_CANDIDATE_VALIDATED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW
+> v0.35.0 Release Candidate：Local Daily Operating Loop / RELEASE_CANDIDATE_VALIDATED / GitHub Pre-release / Binary Assets None / NOT_PUBLISHED
 
 ```text
 SP-020:
@@ -68,15 +68,15 @@ Reconciliation PR:
 > SP-019 设计：RFC-028 Adopted；ADR-061 与 ADR-062 Accepted
 > SP-019 规划合并基线：`e7fc5b1dd66ff7828c1697bfd5610f300599eee5` / Quality Gate run `30205853257` / SUCCESS
 > SP-019 功能合并：`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / Quality Gate run `30382312419` / SUCCESS
-> 发布阶段：v0.34.0 Alpha / RELEASE_AUTHORIZED
+> 发布阶段：v0.35.0 Alpha / RELEASE_CANDIDATE / NOT_PUBLISHED
 > 已验证发布基线：`22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 > SP-015 Base Commit：`57444274abd4e568a6af72b218d50290de563654`
 > SP-015 分支：`chore/sp-015-release-governance-consolidation`
 > SP-015 状态：APPROVED / MERGED / POST_MERGE_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED
 > SP-015A 状态：APPROVED / MERGED / RECONCILED / ARCHIVED
 > SP-015R 状态：APPROVED / MERGED / RECONCILED / ARCHIVED
-> Authorized Tag: v0.34.0
-> GitHub Release Type: Pre-release
+> Previous Authorized Tag: v0.34.0
+> v0.35.0 Tag / GitHub Release: NOT_AUTHORIZED / NOT_CREATED
 
 `Verified Release Baseline` 是最终发布提交之前经独立 main Quality Gate 验证的历史基线，不声明等于包含本文件的当前提交。当前 HEAD、Tag 与 GitHub Release 的存在性、目标、URL 和时间通过 Git/GitHub 查询；仓库根目录 [project_state.json](../../project_state.json) 记录稳定的项目与发布授权状态。
 
@@ -261,12 +261,12 @@ tests/real: explicitly excluded
 
 SP-015R 已合并、通过 main Quality Gate 并封存；Owner 与 ChatGPT 已授权 Tag `v0.34.0` 和 GitHub Pre-release。Tag 是否存在及其目标、Release 发布状态、URL 与时间均以 GitHub Tags and GitHub Releases 为权威来源，仓库不维护这些外部事实的实时布尔镜像。
 
-## v0.35.0 Alpha / 发布收口规划中
+## v0.35.0 Alpha / Release Candidate 已验证
 
 REL-035 将 SP-016～SP-020 已验收能力定义为 `v0.35.0 Alpha — Local Daily
 Operating Loop`，并建立数据兼容、配置升级、Release Notes、验证矩阵和独立授权状态机。
-当前源码版本仍为 `0.34.0`；Implementation 未批准、未开始，`v0.35.0` Tag 与 GitHub
-Release 均未授权、未创建。正式规划与未来唯一实施边界分别见
+当前源码版本已提升为 `0.35.0`；Implementation 已正式授权并执行，`v0.35.0` Tag 与 GitHub
+Release 仍未授权、未创建。正式规划与唯一实施边界分别见
 `REL-035-V035-ALPHA-RELEASE-PLAN.md` 和 `REL-035-IMPLEMENTATION-TASK.md`。
 
 ## 当前技术债与限制
@@ -279,4 +279,4 @@ Release 均未授权、未创建。正式规划与未来唯一实施边界分别
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Next Candidate SP 均为 None，Current Governance Task 为 REL-035。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本仍为 `0.34.0`，Tag 与 GitHub Pre-release 未改变；SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Next Candidate SP 均为 None，Current Governance Task 为 REL-035。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本为 `0.35.0` Release Candidate，Tag 与 GitHub Pre-release 未授权、未创建；SP-020 不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

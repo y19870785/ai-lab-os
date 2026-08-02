@@ -1,6 +1,6 @@
 # Alpha 发布检查清单
 
-## v0.35.0 Alpha 发布规划——Local Daily Operating Loop
+## v0.35.0 Alpha 发布候选版——Local Daily Operating Loop
 
 ### 规划基线
 
@@ -9,17 +9,16 @@
 - [x] SP-016～SP-020 与 ACC-016～ACC-020 的冻结事实已对账
 - [x] 数据兼容边界记录无破坏性迁移，以及缺失 `followups.db` 时的增量初始化
 - [x] Local Daily Profile 配置升级边界已记录
-- [x] 源码版本保持 `0.34.0`
-- [x] Implementation、Tag 与 GitHub Release 均未授权
+- [x] Planning PR 已通过独立审查并合并
+- [x] Owner 已冻结 main `e596c3331ed86dbba3aeded3ccd61517d1901559` 并授权 Implementation
+- [x] 源码版本与发布文档已更新为 `0.35.0`
+- [x] Tag 与 GitHub Release 均未授权、未创建
 
-### 未来实施门禁
+### Release Candidate 与发布门禁
 
-- [ ] Planning PR 已通过独立审查并合并
-- [ ] Owner 已冻结最新 main 并独立授权 Implementation
-- [ ] 源码版本与发布文档已更新为 `0.35.0`
-- [ ] v0.34.0 数据兼容与 Local Daily Profile 升级验证通过
-- [ ] Governance、Version、non-real、full pytest、Ruff 与 smoke 通过
-- [ ] wheel/sdist 构建、metadata 与全新安装验证通过
+- [x] v0.34.0 数据兼容与 Local Daily Profile 升级验证通过
+- [x] Governance、Version、non-real、full pytest、Ruff 与 smoke 通过
+- [x] wheel/sdist 构建、metadata 与全新安装验证通过
 - [ ] Release PR 已批准、合并且 main Quality Gate 通过
 - [ ] Post-Merge Reconciliation 完成且 Release Head 已冻结
 - [ ] Owner 已单独授权并验证 `v0.35.0` Tag

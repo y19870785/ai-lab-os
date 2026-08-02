@@ -2,13 +2,14 @@
 
 ## [Unreleased] 未发布
 
-### REL-035 v0.35.0 Alpha 发布收口规划
+### v0.35.0 Alpha — Local Daily Operating Loop（发布候选版）
 
 - 定义 `v0.35.0 Alpha — Local Daily Operating Loop`，汇总 SP-016～SP-020 已验收能力；不新增产品行为。
 - 建立 v0.34.0 数据兼容边界：无需破坏性 Migration、旧表重写、legacy import 或 dual-write；缺失 `followups.db` 时按 `IF NOT EXISTS` 增量初始化。
 - 建立 Local Daily Profile 配置升级、Release Notes、测试/smoke/build/metadata 矩阵、回滚与停止条件。
 - 将 Planning Approval、Implementation Approval、Release PR Merge、Tag Authorization 与 GitHub Release Authorization 保持为独立治理事件。
-- 当前源码版本保持 `0.34.0`；Implementation 未批准、未开始，`v0.35.0` Tag 与 GitHub Pre-release 未授权、未创建。
+- REL-035 Implementation 已获授权；源码版本提升为 `0.35.0`，并新增正式 Release Notes。
+- 当前仍为未发布 Release Candidate；`v0.35.0` Tag 与 GitHub Pre-release 未授权、未创建。
 
 ### SP-020 本地日常运行与复盘行动闭环实施
 - 新增严格的 Windows Local Daily Profile、稳定绝对数据目录校验、安全配置摘要、完整 WorkspaceKey 默认值与覆盖能力。
