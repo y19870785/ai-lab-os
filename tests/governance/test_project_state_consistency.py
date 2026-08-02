@@ -2304,3 +2304,11 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
         "该 Alpha Pre-release 仍不是 production-ready、"
         "enterprise-ready、stable release 或\ngeneral availability"
     ) in limitations
+
+    stale_current_limitations = (
+        "Daily Review 没有正式 CLI",
+        "本地日常运行 Profile 尚未实现",
+        "Action Hint 尚未实现",
+        "Scheduler shutdown 需正式幂等门禁",
+    )
+    assert all(marker not in limitations for marker in stale_current_limitations)
