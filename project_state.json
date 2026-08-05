@@ -13,11 +13,12 @@
   "latest_merged_sp": "SP-020",
   "latest_completed_sp": "SP-020",
   "current_sp": null,
-  "current_governance_task": "STRAT-001",
+  "current_governance_task": null,
   "next_candidate_sp": null,
   "next_candidate_name": null,
-  "development_status": "strat_001_planning_baseline_approved_final_review_passed_merge_authorized_not_merged",
-  "current_work": "STRAT-001 Planning Baseline",
+  "next_planned_governance_item": "ARCH-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION",
+  "development_status": "strat_001_approved_merged_main_quality_gate_passed_reconciled_archived",
+  "current_work": null,
   "updated_at": "2026-08-06",
   "governance_tasks": {
     "STRAT-001": {
@@ -27,7 +28,7 @@
       "latest_validated_main_base": "e4599632e38483780ef422c731a77bc01e85576c",
       "latest_validated_main_context": "QUALITY-002 / PR #64 / MERGED / APPLICATION_DAY_TEST_DETERMINISTIC",
       "branch": "docs/strat-001-product-strategy-realignment",
-      "status": "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_REVIEW_PASSED / READY_AUTHORIZED / MERGE_AUTHORIZED / NOT_MERGED",
+      "status": "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED",
       "planning_pr_creation_authorized": true,
       "planning_baseline_approved": true,
       "direction_review_status": "INITIAL_DIRECTION_REVIEW_PASSED",
@@ -35,10 +36,18 @@
       "ready_authorized": true,
       "merge_authorized": true,
       "planning_pr": 63,
-      "rfc": "RFC-031 / PROPOSED",
+      "approved_head": "4b34b8ea5b6e62f97a30e15ea333aa3a55e2aa1e",
+      "merge_base": "e4599632e38483780ef422c731a77bc01e85576c",
+      "merge_commit": "b644c38064117a4dcb906c8607c782b67aedf1a6",
+      "merged_at": "2026-08-05T19:20:21Z",
+      "main_quality_gate_run": 31038950753,
+      "main_quality_gate": "SUCCESS",
+      "post_merge_reconciled": true,
+      "archived": true,
+      "rfc": "RFC-031 / ADOPTED",
       "adrs": [
-        "ADR-067 / PROPOSED",
-        "ADR-068 / PROPOSED"
+        "ADR-067 / ACCEPTED",
+        "ADR-068 / ACCEPTED"
       ],
       "roadmap_order": [
         "STRAT-001",
@@ -48,10 +57,11 @@
         "PILOT-001",
         "REL-036"
       ],
-      "blocked_pr": {
+      "superseded_pr": {
         "number": 62,
-        "status": "OPEN / DRAFT / FROZEN_PENDING_STRAT_001 / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED",
-        "head": "31cf7125b2543fb2d29ed38f373ddcebe4170b70"
+        "head": "31cf7125b2543fb2d29ed38f373ddcebe4170b70",
+        "status": "CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 / IMPLEMENTATION_NEVER_AUTHORIZED",
+        "closed_at": "2026-08-05T19:33:50Z"
       },
       "product_code_changed": false,
       "schema_changed": false,

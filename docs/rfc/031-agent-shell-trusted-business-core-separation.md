@@ -1,12 +1,15 @@
 # RFC-031：Agent Shell 与可信业务核心分离
 
-- 状态：Proposed
+- 状态：Adopted
 - 治理任务：STRAT-001
 - 日期：2026-08-06
 - Original audit base：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
 - Latest validated main base：`e4599632e38483780ef422c731a77bc01e85576c`（已包含 QUALITY-002）
 - 规划分支：`docs/strat-001-product-strategy-realignment`
-- 独立审查：FINAL REVIEW PASSED / READY AUTHORIZED / MERGE AUTHORIZED / NOT MERGED
+- 独立审查：FINAL REVIEW PASSED
+- Adopted by：PR #63
+- Merge Commit：`b644c38064117a4dcb906c8607c782b67aedf1a6`
+- Main Quality Gate：`31038950753 / SUCCESS`
 - 产品实施：NOT_APPROVED / NOT_STARTED
 
 ## 摘要
@@ -127,11 +130,11 @@ Confirmation 必须引用同一个有效 Preview。高风险动作还必须满�
 
 ## 决策与后续门禁
 
-RFC-031 在 STRAT-001 合并前保持 Proposed。合并后是否 Adopted 由独立审查和 Owner 授权
-决定。后续顺序固定为：
+RFC-031 已由 STRAT-001 / PR #63 采纳。后续顺序固定为：
 
 ```text
 STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036
 ```
 
-PR #62 继续保持 Open、Draft 和冻结；不得据此启动 SP-021 Implementation。
+PR #62 已关闭且未合并，由 STRAT-001 取代；其历史设计保留为 ARCH-001 与新 SP-021 的
+输入，但不构成任何 Implementation 授权。

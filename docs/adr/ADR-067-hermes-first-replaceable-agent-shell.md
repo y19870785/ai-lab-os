@@ -1,10 +1,12 @@
 # ADR-067：Hermes 作为首个可替换 Agent Shell
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-06
 - Governance Task: STRAT-001
 - Related RFC: RFC-031
-- Final Independent Review: Passed / Ready Authorized / Merge Authorized / Not Merged
+- Final Independent Review: Passed
+- Accepted by: STRAT-001 / PR #63
+- Merge Commit: `b644c38064117a4dcb906c8607c782b67aedf1a6`
 
 ## 背景（Context）
 
@@ -71,5 +73,5 @@ Policy、Preview、Confirmation、Approval、Audit、Status、Verified Result �
 
 ## 状态与授权（Status and Authorization）
 
-本 ADR 在 STRAT-001 Draft PR 中为 Proposed。它不授权接入 Hermes、企业微信或实现
-Interaction，也不授权启动 ARCH-001、SP-021、INT-001、PILOT-001 或 REL-036。
+本 ADR 已由 STRAT-001 / PR #63 接受。它不授权接入 Hermes、企业微信或实现 Interaction，
+也不授权启动 ARCH-001、SP-021、INT-001、PILOT-001 或 REL-036。

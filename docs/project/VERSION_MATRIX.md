@@ -2,7 +2,8 @@
 
 **源码版本：** `0.35.0` Alpha / GitHub Pre-release Published
 **治理状态：** REL-035 / FINAL_RECONCILED / ARCHIVED
-**当前治理任务：** STRAT-001 / PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_REVIEW_PASSED / READY_AUTHORIZED / MERGE_AUTHORIZED / NOT_MERGED
+**当前治理任务：** None
+**下一规划治理项：** ARCH-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION
 **已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
 **当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
 

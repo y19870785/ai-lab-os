@@ -1,10 +1,12 @@
 # ADR-068：AI-Lab 作为业务事实与行动权威
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-06
 - Governance Task: STRAT-001
 - Related RFC: RFC-031
-- Final Independent Review: Passed / Ready Authorized / Merge Authorized / Not Merged
+- Final Independent Review: Passed
+- Accepted by: STRAT-001 / PR #63
+- Merge Commit: `b644c38064117a4dcb906c8607c782b67aedf1a6`
 
 ## 背景（Context）
 
@@ -101,5 +103,5 @@ Policy、Preview、Confirmation、Approval、Audit、Status、Verified Result �
 
 ## 状态与授权（Status and Authorization）
 
-本 ADR 在 STRAT-001 Draft PR 中为 Proposed。它只建立规划基线，不修改 Schema 或运行时，
-不授权实现 Interaction、高风险执行或任何后续任务。
+本 ADR 已由 STRAT-001 / PR #63 接受。它不修改 Schema 或运行时，也不授权实现
+Interaction、高风险执行或任何后续任务。

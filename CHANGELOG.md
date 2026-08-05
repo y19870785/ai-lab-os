@@ -11,8 +11,12 @@
   Confirmation 所有权边界，冻结通用 Agent/Tool/Workflow/Coordination 平台扩张。
 - 将 v0.36 拆分为 `STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036`，
   并重新规划 v0.37 报价需求与客户跟进、v0.38 企业知识审核与引用闭环。
-- PR #62 保持 Open、Draft、冻结、未获 Ready/Merge/Implementation 授权；本任务不修改
-  产品代码、Schema、Migration、运行时、版本、Tag 或 Release。
+- PR #63 已 Squash Merge 为 `b644c38064117a4dcb906c8607c782b67aedf1a6`，main Quality
+  Gate `31038950753` 为 SUCCESS；STRAT-001 已完成 post-merge reconciliation 并封存。
+- RFC-031 已 Adopted，ADR-067 与 ADR-068 已 Accepted。旧 PR #62 已关闭且未合并，由
+  STRAT-001 取代；其历史设计证据继续保留，但 Implementation 从未获授权。
+- 本任务未修改产品代码、Schema、Migration、运行时、版本、Tag 或 Release；ARCH-001
+  尚未启动且需要独立授权。
 
 ## [0.35.0] - 2026-08-02（Alpha 预发布）
 

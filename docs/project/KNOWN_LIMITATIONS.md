@@ -2,8 +2,8 @@
 
 > 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-06
 
-`v0.35.0` 的发布不改变以下产品限制；REL-035 已最终对账并封存，当前 Governance Task
-为 STRAT-001，下一 Product SP 尚未批准。
+`v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
+Governance Task 和 Product SP 均为 None。ARCH-001 是下一规划治理项，但尚未启动。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
@@ -41,7 +41,7 @@ general availability。
 | Trusted Interaction Boundary 未实现 | View / Preview / Confirm / Cancel / Status / Verified Result 仍需 ARCH-001 定义 |
 | Approval 不是完整领域模型 | 现有局部 confirmation 不能被描述为通用高风险审批能力 |
 | 企业微信 Owner Pilot 未开始 | 渠道、身份映射、消息可靠性和人工验收均未执行 |
-| PR #62 已冻结 | 保持 Open / Draft；不能作为 SP-021 启动或实现授权 |
+| PR #62 已关闭且被取代 | 保留分支、commit、discussion 与历史设计证据；Implementation 从未获授权 |
 | 通用平台扩张已冻结但未删除 | Agent/Tool/Workflow/Coordination 重叠代码仍存在，弃用需要独立审计与授权 |
 
 ## 稳定性与质量边界
@@ -55,5 +55,6 @@ general availability。
 | Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂看到 `running`，唯一重跑通过；未在 SP-014B 或 SP-015 修改 Scheduler |
 | QUALITY-001 | GitHub Ruff 只检查变更 Python 文件，尚无全仓历史清零基线 |
 | Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥，也不调用外部模型 |
+| QUALITY-003 Candidate — DeepSeek Real Brief Contract Audit | `test_deepseek_brief → daily_review.date_invalid`；CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
 
 完整机器可读技术债清单以 `project_state.json` 为准。
