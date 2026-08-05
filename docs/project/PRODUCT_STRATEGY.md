@@ -1,7 +1,7 @@
 # AI-Lab OS 产品战略
 
 - 战略任务：STRAT-001
-- 状态：PLANNING BASELINE / DRAFT PR / PENDING FINAL INDEPENDENT REVIEW
+- 状态：PLANNING BASELINE APPROVED / FINAL INDEPENDENT REVIEW PASSED / READY AUTHORIZED / NOT MERGE AUTHORIZED / NOT MERGED
 - 原始审计基线：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
 - 最新验证 main 基线：`e4599632e38483780ef422c731a77bc01e85576c`（已包含 QUALITY-002）
 - 日期：2026-08-06
@@ -174,7 +174,7 @@ Tag 和 Release 独立授权等底线。
 
 ## 本规划的停止条件
 
-- STRAT-001 Draft PR 不得转 Ready 或合并，除非获得独立审查和 Owner 明确授权。
+- STRAT-001 已通过最终独立审查并获得 Owner 的 Ready 授权；Merge 仍未授权。
 - 不得据此启动 ARCH-001、SP-021、INT-001、PILOT-001 或 REL-036。
 - 若 Adapter 设计要求 Hermes 直连数据库、AI-Lab 依赖 Hermes 内部实现、或 Shell
   会话被当成审批事实，应停止并重新审查架构。
