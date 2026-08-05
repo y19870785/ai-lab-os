@@ -3,7 +3,7 @@
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
-> 当前没有 Product SP；STRAT-001 产品战略规划基线已通过最终独立审查，Ready 与 Merge 均已授权，但尚未合并。
+> 当前没有 Product SP 或进行中的 Governance Task；STRAT-001 已合并、完成 post-merge reconciliation 并封存。下一规划治理项为 ARCH-001，但尚未启动且需要独立授权。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
@@ -13,7 +13,7 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **当前版本：v0.35.0 Alpha / GitHub Pre-release Published**
 **成熟度：Alpha / local-first / single-user-oriented**
 **当前 Product SP：None**
-**当前 Governance Task：STRAT-001**
+**当前 Governance Task：None**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
 `60fc299c4f4fd1ba22fc4a00d1490f3b2b893503`。Release 不上传 wheel 或 sdist，仅有 GitHub
@@ -251,6 +251,7 @@ python -m ruff check <changed-python-files>
 - [项目机器状态](project_state.json)：版本、已验证历史基线、当前 SP、质量门禁、技术债与稳定发布授权。
 - [产品战略](docs/project/PRODUCT_STRATEGY.md)：可信业务操作系统定位、产品边界与 v0.36+ 路线。
 - [能力所有权](docs/project/CAPABILITY_OWNERSHIP.md)：Agent Shell、业务核心、Memory、Knowledge 与 Interaction 所有权。
+- [STRAT-001 合并后对账](docs/project/STRAT-001-POST-MERGE-RECONCILIATION.md)：Merge、main Quality Gate、RFC/ADR 与旧 PR #62 的最终治理事实。
 - [项目大脑](docs/project/PROJECT_BRAIN.md)：长期架构事实与封存产品事实。
 - [Roadmap](docs/project/ROADMAP.md)：版本范围、里程碑与候选 SP。
 - [REL-035 v0.35.0 Alpha 发布规划](docs/project/REL-035-V035-ALPHA-RELEASE-PLAN.md)：

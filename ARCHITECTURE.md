@@ -2,6 +2,9 @@
 
 ## STRAT-001 目标架构基线
 
+本基线已由 STRAT-001 / PR #63 合并采纳；RFC-031 为 Adopted，ADR-067 与 ADR-068 为
+Accepted。ARCH-001 尚未启动，仍需要独立规划和 Owner 授权。
+
 AI-Lab OS 的长期架构定位是可信业务操作系统，不再以复制完整通用 Agent 平台为目标。
 用户入口经由可替换 Agent Shell、中立 Adapter Contract 和 Trusted Interaction Boundary
 访问 AI-Lab Business OS：

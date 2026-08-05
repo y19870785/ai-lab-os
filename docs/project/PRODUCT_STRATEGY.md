@@ -1,7 +1,7 @@
 # AI-Lab OS 产品战略
 
 - 战略任务：STRAT-001
-- 状态：PLANNING BASELINE APPROVED / FINAL INDEPENDENT REVIEW PASSED / READY AUTHORIZED / MERGE AUTHORIZED / NOT MERGED
+- 状态：APPROVED / MERGED / MAIN QUALITY GATE PASSED / POST-MERGE RECONCILED / ARCHIVED
 - 原始审计基线：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
 - 最新验证 main 基线：`e4599632e38483780ef422c731a77bc01e85576c`（已包含 QUALITY-002）
 - 日期：2026-08-06
@@ -135,9 +135,9 @@ STRAT-001
 - PILOT-001：企业微信 Owner Pilot；尚未批准、尚未启动。
 - REL-036：独立发布规划、验收、Tag 与 Release 授权；尚未批准、尚未启动。
 
-PR #62 当前必须保持 `OPEN / DRAFT / FROZEN_PENDING_STRAT_001 / NOT_READY /
-NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED`。它不构成 SP-021 启动事实；
-STRAT-001 合并后，由 Owner 决定关闭并重建，或基于新架构做完整重规划。
+PR #62 已 `CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 /
+IMPLEMENTATION_NEVER_AUTHORIZED`。其 View、Preview、Confirmation、CAS、idempotency 与
+recovery 设计保留为 ARCH-001 和新 SP-021 的历史输入，但不构成任何启动或实现授权。
 
 ### v0.37 报价需求与客户跟进闭环
 
@@ -174,7 +174,7 @@ Tag 和 Release 独立授权等底线。
 
 ## 本规划的停止条件
 
-- STRAT-001 已通过最终独立审查并获得 Owner 的 Ready 与 Merge 授权；当前仍未合并。
+- STRAT-001 已合并、通过 main Quality Gate、完成 post-merge reconciliation 并封存。
 - 不得据此启动 ARCH-001、SP-021、INT-001、PILOT-001 或 REL-036。
 - 若 Adapter 设计要求 Hermes 直连数据库、AI-Lab 依赖 Hermes 内部实现、或 Shell
   会话被当成审批事实，应停止并重新审查架构。

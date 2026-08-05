@@ -1,17 +1,17 @@
 # Markdown 文档治理清单
 
-> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；DOCS-001 新增 3 份治理文档，REL-035 新增 4 份发布治理文档，STRAT-001 新增 5 份战略治理文档。标题、表格、乱码、长篇叙述和链接由治理测试动态扫描，当前没有排除项或未解决问题。
+> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；DOCS-001 新增 3 份治理文档，REL-035 新增 4 份发布治理文档，STRAT-001 新增 5 份战略治理文档，STRAT-001A 新增 1 份对账文档。标题、表格、乱码、长篇叙述和链接由治理测试动态扫描，当前没有排除项或未解决问题。
 
 ## 汇总
 
-- Git 跟踪 Markdown：185
-- 仓库自有且纳入范围：185
+- Git 跟踪 Markdown：186
+- 仓库自有且纳入范围：186
 - 排除：0
 - 初始中文：93
 - 初始中英混合：41
 - 初始英文为主：39
 - 已审计并标准化的既有文档：173
-- 新增中文治理文档：12
+- 新增中文治理文档：13
 - 有效标题：每份文档恰好一个中文一级标题，其他普通标题均含中文
 - Markdown 表格：解释性表头与长篇单元格均由治理测试检查
 - 已修复乱码：1 个文件（`CHANGELOG.md` 历史段落）
@@ -147,6 +147,7 @@
 | `docs/project/PROJECT_HEALTH.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/project/PRODUCT_STRATEGY.md` | Project | 是 | 中文 | 是 | STRAT-001 新增 | — | 完成 |
 | `docs/project/CAPABILITY_OWNERSHIP.md` | Project | 是 | 中文 | 是 | STRAT-001 新增 | — | 完成 |
+| `docs/project/STRAT-001-POST-MERGE-RECONCILIATION.md` | Project | 是 | 中文 | 是 | STRAT-001A 新增 | — | 完成 |
 | `docs/project/PROJECT_STATUS.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/project/PROJECT_STRUCTURE.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/project/PUBLIC_API_INVENTORY.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |

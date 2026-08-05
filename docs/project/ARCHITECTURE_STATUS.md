@@ -1,6 +1,8 @@
 ﻿# 架构状态 —— v0.33.0（post-release main）
 
-> STRAT-001（2026-08-06）将下述十一层结构重新分类为 v0.35.0 既有实现事实，而不是
+> STRAT-001（2026-08-06）已通过 PR #63 合并并完成 post-merge reconciliation；RFC-031
+> 为 Adopted，ADR-067 与 ADR-068 为 Accepted。它将下述十一层结构重新分类为 v0.35.0
+> 既有实现事实，而不是
 > 长期产品扩张蓝图。长期目标架构是可替换 Agent Shell → 中立 Adapter Contract →
 > Trusted Interaction Boundary → AI-Lab Business OS。Composition Root、FailureInfo、
 > DatabaseManager、canonical domains、审计和恢复继续作为 CORE；通用 Agent/Tool/
