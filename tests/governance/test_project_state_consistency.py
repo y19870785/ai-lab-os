@@ -166,7 +166,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_governance_task"] == "STRAT-001"
     assert state["development_status"] == (
         "strat_001_planning_baseline_approved_final_review_passed_"
-        "ready_authorized_not_merged"
+        "merge_authorized_not_merged"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -488,7 +488,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
         "strat_001_planning_baseline_approved_final_review_passed_"
-        "ready_authorized_not_merged"
+        "merge_authorized_not_merged"
     )
     assert state["current_work"] == "STRAT-001 Planning Baseline"
     assert "next_action" not in state
@@ -909,7 +909,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["version"] == "v0.35.0"
     assert state["development_status"] == (
         "strat_001_planning_baseline_approved_final_review_passed_"
-        "ready_authorized_not_merged"
+        "merge_authorized_not_merged"
     )
     assert state["current_work"] == "STRAT-001 Planning Baseline"
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
@@ -1395,7 +1395,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
         "strat_001_planning_baseline_approved_final_review_passed_"
-        "ready_authorized_not_merged"
+        "merge_authorized_not_merged"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -2352,14 +2352,16 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     assert strat["planning_pr"] == 63
     assert strat["status"] == (
         "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_REVIEW_PASSED / "
-        "READY_AUTHORIZED / NOT_MERGE_AUTHORIZED / NOT_MERGED"
+        "READY_AUTHORIZED / MERGE_AUTHORIZED / NOT_MERGED"
     )
     assert strat["planning_pr_creation_authorized"] is True
     assert strat["planning_baseline_approved"] is True
     assert strat["direction_review_status"] == "INITIAL_DIRECTION_REVIEW_PASSED"
     assert strat["independent_review_status"] == "FINAL_REVIEW_PASSED"
     assert strat["ready_authorized"] is True
-    assert strat["merge_authorized"] is False
+    assert strat["merge_authorized"] is True
+    assert "MERGE_AUTHORIZED" in strat["status"]
+    assert "NOT_MERGED" in strat["status"]
     assert "planning_approved" not in strat
     assert strat["roadmap_order"] == [
         "STRAT-001",
@@ -2412,9 +2414,9 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     assert "Status: Proposed" in adr067
     assert "Status: Proposed" in adr068
     assert "状态：Proposed" in rfc
-    assert "Final Independent Review: Passed / Ready Authorized" in adr067
-    assert "Final Independent Review: Passed / Ready Authorized" in adr068
-    assert "独立审查：FINAL REVIEW PASSED / READY AUTHORIZED" in rfc
+    assert "Merge Authorized / Not Merged" in adr067
+    assert "Merge Authorized / Not Merged" in adr068
+    assert "MERGE AUTHORIZED / NOT MERGED" in rfc
     assert (
         "ARCH-001、SP-021、INT-001、PILOT-001 与 REL-036 均未启动"
         in project_status

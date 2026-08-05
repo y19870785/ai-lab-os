@@ -6,7 +6,7 @@
 - Original audit base：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
 - Latest validated main base：`e4599632e38483780ef422c731a77bc01e85576c`（已包含 QUALITY-002）
 - 规划分支：`docs/strat-001-product-strategy-realignment`
-- 独立审查：FINAL REVIEW PASSED / READY AUTHORIZED / NOT MERGE AUTHORIZED
+- 独立审查：FINAL REVIEW PASSED / READY AUTHORIZED / MERGE AUTHORIZED / NOT MERGED
 - 产品实施：NOT_APPROVED / NOT_STARTED
 
 ## 摘要

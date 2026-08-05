@@ -3,7 +3,7 @@
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
-> 当前没有 Product SP；STRAT-001 产品战略规划基线已通过最终独立审查并获 Ready 授权，尚未授权合并。
+> 当前没有 Product SP；STRAT-001 产品战略规划基线已通过最终独立审查，Ready 与 Merge 均已授权，但尚未合并。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务

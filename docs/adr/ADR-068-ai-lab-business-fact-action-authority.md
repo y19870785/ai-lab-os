@@ -4,7 +4,7 @@
 - Date: 2026-08-06
 - Governance Task: STRAT-001
 - Related RFC: RFC-031
-- Final Independent Review: Passed / Ready Authorized / Merge Not Authorized
+- Final Independent Review: Passed / Ready Authorized / Merge Authorized / Not Merged
 
 ## 背景（Context）
 
