@@ -1,7 +1,7 @@
 # AI-Lab OS 能力所有权
 
 - 战略任务：STRAT-001
-- 状态：PLANNING BASELINE / DRAFT PR / PENDING INDEPENDENT REVIEW
+- 状态：PLANNING BASELINE / DRAFT PR / PENDING FINAL INDEPENDENT REVIEW
 - 日期：2026-08-06
 
 ## 所有权判定规则
@@ -17,7 +17,7 @@
 | 通用对话与 Agent Loop | OWN | 不扩张 | Hermes 为首选实现，但必须可替换 |
 | 渠道与消息格式 | OWN | 仅公开 Adapter | 企业微信、Web、语音、桌面不进入业务核心 |
 | 通用 Skills 与工具发现 | OWN | 只暴露受控业务能力 | Skill 描述不是业务授权 |
-| Browser / Computer Use | OWN / EXECUTE | POLICY / PREVIEW / APPROVAL / VERIFY | Shell 执行结果必须由 AI-Lab 验证 |
+| Browser / Computer Use / 外部动作 | 可作为执行者或编排者 | OWN POLICY / PREVIEW / CONFIRMATION / APPROVAL / AUDIT / STATUS / VERIFY / RECOVERY；正式外部系统 Adapter 可执行 | 执行者可为 Shell、AI-Lab Adapter 或其他受控 Execution Adapter |
 | 通用 Cron | OWN | 不复制 | 通用唤醒和投递由 Shell 提供 |
 | 业务 Reminder / Scheduler | 可触发、可展示 | OWN | 到期事实、状态、幂等、执行证据与恢复归 AI-Lab |
 | 业务对象与规则 | 不拥有 | OWN | Shell 只能通过中立 contract 访问 |
@@ -28,6 +28,11 @@
 Hermes 不得直接访问 AI-Lab 数据库。AI-Lab 不得 import、链接或依赖 Hermes 内部模块、
 私有数据结构、会话存储或生命周期。Adapter contract 应可由其他 Shell 实现，并通过
 contract tests 验证替换性。
+
+实际执行可以由 Agent Shell、AI-Lab 的正式外部系统 Adapter，或其他受控 Execution
+Adapter 承担。执行能力所有权与业务行动权威是两件事：无论执行者是谁，AI-Lab 始终
+掌握业务 Policy、Preview、Confirmation、Approval、Audit、Status、Verified Result
+与 Recovery。
 
 ## 数据与记忆所有权
 
@@ -131,7 +136,7 @@ Shell 可以把自然语言映射为 View 或 Preview 请求，也可以呈现 C
 | 配方、规格、原料和包装数据 | 需要新增领域模型 | AI-Lab 权威主数据或 ERP 映射 |
 | ERP 集成 | 需要外部系统 | AI-Lab 保存映射、意图、审计和 Verified Result |
 | 经营分析 | 规划可覆盖 / 需要新增领域模型 | 基于 canonical business facts |
-| 工具调用 | 部分具备 / 需要外部系统 | Shell 执行，AI-Lab 控制高风险业务动作 |
+| 工具调用 | 部分具备 / 需要外部系统 | Shell、AI-Lab 正式 Adapter 或受控 Execution Adapter 可执行；AI-Lab 掌握业务控制与验证 |
 | Computer Use | 需要外部系统 / 暂不建议实施 | 权限与验证成熟后启用 |
 | 多 Agent | 需要外部系统 / 暂不建议实施 | Shell 编排，不新增业务事实源 |
 | 自动研发工作流 | 暂不建议实施 | 更后续受控执行与独立审查 |

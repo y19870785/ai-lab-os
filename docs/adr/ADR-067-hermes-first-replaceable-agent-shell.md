@@ -33,6 +33,10 @@ AI-Lab 的产品架构和领域模型不得要求 Hermes 才能运行；其他 S
 AI-Lab 保留业务 Reminder/Scheduler，因为其到期事实、业务状态、幂等、审计和恢复属于业务
 核心，而不是通用唤醒设施。
 
+“优先由 Agent Shell 提供”不是永久执行者限制。实际执行可以由 Agent Shell、AI-Lab 的
+正式外部系统 Adapter，或其他受控 Execution Adapter 承担；AI-Lab 始终掌握业务
+Policy、Preview、Confirmation、Approval、Audit、Status、Verified Result 与 Recovery。
+
 ## 结果（Consequences）
 
 正面结果：

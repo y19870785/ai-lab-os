@@ -3,7 +3,8 @@
 - 状态：Proposed
 - 治理任务：STRAT-001
 - 日期：2026-08-06
-- Base：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
+- Original audit base：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
+- Latest validated main base：`e4599632e38483780ef422c731a77bc01e85576c`（已包含 QUALITY-002）
 - 规划分支：`docs/strat-001-product-strategy-realignment`
 - 独立审查：PENDING
 - 产品实施：NOT_APPROVED / NOT_STARTED
@@ -67,6 +68,10 @@ User Channel
 - 执行或委托业务动作，记录 canonical status 与 audit；
 - 用内部状态、外部回执或 reconciliation 形成 Verified Result；
 - 显式暴露失败，提供可恢复状态。
+
+实际执行可以由 Agent Shell、AI-Lab 的正式外部系统 Adapter，或其他受控 Execution
+Adapter 承担。该选择属于后续架构与集成设计，不改变 AI-Lab 对业务 Policy、Preview、
+Confirmation、Approval、Audit、Status、Verified Result 与 Recovery 的权威。
 
 ## 不可违反的约束
 

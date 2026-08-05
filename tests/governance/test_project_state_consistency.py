@@ -165,7 +165,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] == "STRAT-001"
     assert state["development_status"] == (
-        "strat_001_planning_baseline_draft_pr_pending_independent_review"
+        "strat_001_planning_baseline_draft_pr_pending_final_independent_review"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -486,7 +486,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "strat_001_planning_baseline_draft_pr_pending_independent_review"
+        "strat_001_planning_baseline_draft_pr_pending_final_independent_review"
     )
     assert state["current_work"] == "STRAT-001 Planning Baseline"
     assert "next_action" not in state
@@ -906,7 +906,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
     assert state["development_status"] == (
-        "strat_001_planning_baseline_draft_pr_pending_independent_review"
+        "strat_001_planning_baseline_draft_pr_pending_final_independent_review"
     )
     assert state["current_work"] == "STRAT-001 Planning Baseline"
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
@@ -1391,7 +1391,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "strat_001_planning_baseline_draft_pr_pending_independent_review"
+        "strat_001_planning_baseline_draft_pr_pending_final_independent_review"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -2335,12 +2335,26 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     assert state["next_candidate_sp"] is None
     assert state["current_version"] == "0.35.0"
     assert strat["type"] == "PRODUCT_STRATEGY_GOVERNANCE"
-    assert strat["base_commit"] == "5f91d9da224daa9fbb2e68f7a3ba685411e93904"
+    assert strat["audit_base"] == "5f91d9da224daa9fbb2e68f7a3ba685411e93904"
+    assert strat["latest_validated_main_base"] == (
+        "e4599632e38483780ef422c731a77bc01e85576c"
+    )
+    assert strat["latest_validated_main_context"] == (
+        "QUALITY-002 / PR #64 / MERGED / APPLICATION_DAY_TEST_DETERMINISTIC"
+    )
     assert strat["planning_pr"] == 63
     assert strat["status"] == (
         "PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / "
-        "PENDING_INDEPENDENT_REVIEW / NOT_MERGED"
+        "PENDING_FINAL_INDEPENDENT_REVIEW / NOT_READY / "
+        "NOT_MERGE_AUTHORIZED / NOT_MERGED"
     )
+    assert strat["planning_pr_creation_authorized"] is True
+    assert strat["planning_baseline_approved"] is False
+    assert strat["direction_review_status"] == "INITIAL_DIRECTION_REVIEW_PASSED"
+    assert strat["independent_review_status"] == "PENDING_FINAL_REVIEW"
+    assert strat["ready_authorized"] is False
+    assert strat["merge_authorized"] is False
+    assert "planning_approved" not in strat
     assert strat["roadmap_order"] == [
         "STRAT-001",
         "ARCH-001",
@@ -2380,6 +2394,11 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
         "MCP 可以作为 Adapter transport 候选",
     ):
         assert principle in combined
+    assert (
+        "实际执行可以由 Agent Shell、AI-Lab 的正式外部系统 Adapter，或其他受控 "
+        "Execution\nAdapter 承担"
+    ) in combined
+    assert "Shell 执行，AI-Lab 控制高风险业务动作" not in combined
     assert (
         "STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036"
         in roadmap

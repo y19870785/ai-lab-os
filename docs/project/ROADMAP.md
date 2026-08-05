@@ -85,7 +85,7 @@ STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036
 
 | 工作项 | 范围 | 当前状态 |
 |---|---|---|
-| STRAT-001 | 产品定位、能力所有权、架构与路线基线 | PLANNING BASELINE / DRAFT PR / PENDING INDEPENDENT REVIEW |
+| STRAT-001 | 产品定位、能力所有权、架构与路线基线 | PLANNING BASELINE / DRAFT PR / PENDING_FINAL_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED |
 | ARCH-001 | 中立 Adapter Contract 与 Trusted Interaction Boundary | NOT_STARTED / NOT_APPROVED |
 | SP-021 | 可信对话工作交互完整重规划 | FROZEN_PENDING_STRAT_001 / NOT_STARTED / IMPLEMENTATION_NOT_APPROVED |
 | INT-001 | Hermes Adapter | NOT_STARTED / NOT_APPROVED |
@@ -117,7 +117,9 @@ v0.37 先收集和推进报价需求，不提前实现自动价格计算；v0.38
 
 这些目标均为 tentative，不构成承诺。通用 Cron、渠道、Skills、Browser、Computer Use
 与通用 Agent Loop 优先由可替换 Agent Shell 提供；AI-Lab 保留业务 Reminder/Scheduler
-以及业务事实、规则、确认、审计、Verified Result 和 Recovery。
+以及业务事实、规则、确认、审计、Verified Result 和 Recovery。实际执行可以由 Agent
+Shell、AI-Lab 正式外部系统 Adapter 或其他受控 Execution Adapter 承担，不固定为某一
+Shell 实现。
 
 ## 已完成基线
 

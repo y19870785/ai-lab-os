@@ -64,8 +64,10 @@ AI-Lab 根据 canonical state、可验证外部回执或 reconciliation 生成�
 - 外部引用或回执；
 - 验证方法、Verified Result 与恢复建议。
 
-Browser 或 Computer Use 可以由 Shell 执行，但 AI-Lab 仍负责动作是否被授权以及结果是否
-得到验证。无法验证的响应必须保持 pending、unknown 或 failed，不得报告最终成功。
+Browser、Computer Use 或其他外部动作可以由 Agent Shell、AI-Lab 的正式外部系统
+Adapter，或其他受控 Execution Adapter 执行。无论执行者是谁，AI-Lab 始终掌握业务
+Policy、Preview、Confirmation、Approval、Audit、Status、Verified Result 与 Recovery。
+无法验证的响应必须保持 pending、unknown 或 failed，不得报告最终成功。
 
 ## 结果（Consequences）
 

@@ -25,6 +25,10 @@ Approval、Audit、Verified Result 与 Recovery。
 作为 Adapter transport 候选，且不得绕过可信交互边界。完整规划见
 `docs/project/PRODUCT_STRATEGY.md`、`docs/project/CAPABILITY_OWNERSHIP.md` 和 RFC-031。
 
+实际执行者不固定为 Agent Shell：Agent Shell、AI-Lab 的正式外部系统 Adapter 或其他
+受控 Execution Adapter 均可承担执行。无论执行者是谁，AI-Lab 始终掌握业务 Policy、
+Preview、Confirmation、Approval、Audit、Status、Verified Result 与 Recovery。
+
 本节只建立规划架构，不修改 v0.35.0 运行时，也不启动 ARCH-001 或 SP-021。
 
 ## v0.35.0 Alpha 产品基线

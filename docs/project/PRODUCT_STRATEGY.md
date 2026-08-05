@@ -1,8 +1,9 @@
 # AI-Lab OS 产品战略
 
 - 战略任务：STRAT-001
-- 状态：PLANNING BASELINE / DRAFT PR / PENDING INDEPENDENT REVIEW
-- 基线：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
+- 状态：PLANNING BASELINE / DRAFT PR / PENDING FINAL INDEPENDENT REVIEW
+- 原始审计基线：`5f91d9da224daa9fbb2e68f7a3ba685411e93904`
+- 最新验证 main 基线：`e4599632e38483780ef422c731a77bc01e85576c`（已包含 QUALITY-002）
 - 日期：2026-08-06
 
 ## 正式产品定位
@@ -66,6 +67,11 @@ AI-Lab 冻结通用 Agent Runtime、通用 Tool Runtime、通用 Workflow 平台
 和通用多 Agent 编排的横向扩张。现有实现保留兼容性，不在 STRAT-001 中删除或弃用；
 只有被真实业务闭环需要时才激活或收窄。冻结通用 Tool Runtime 不排除 MCP 作为中立
 Adapter transport 候选，但 MCP 不能绕过 Trusted Interaction Boundary。
+
+实际执行可以由 Agent Shell、AI-Lab 的正式外部系统 Adapter，或其他受控 Execution
+Adapter 承担。无论执行者是谁，AI-Lab 始终掌握业务 Policy、Preview、Confirmation、
+Approval、Audit、Status、Verified Result 与 Recovery。通用 Browser / Computer Use
+能力优先复用成熟系统，不等于永久规定所有外部动作只能由 Agent Shell 执行。
 
 ## 产品事实与实现事实
 

@@ -11,7 +11,7 @@
 | 最近合并的 SP | SP-020 |
 | 最近完成的 SP | SP-020 |
 | 当前 Product SP | None |
-| 当前治理任务 | STRAT-001 / PLANNING BASELINE / DRAFT PR / PENDING INDEPENDENT REVIEW |
+| 当前治理任务 | STRAT-001 / PLANNING BASELINE / DRAFT PR / PENDING_FINAL_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED |
 | STRAT-001 Planning PR | #63 / OPEN / DRAFT / NOT_READY / NOT_MERGE_AUTHORIZED |
 | 下一候选 SP | None |
 | RFC-031 | Proposed |
@@ -47,6 +47,8 @@
 STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所有权和 v0.36+ 路线基线。
 当前 Product SP 仍为 None；ARCH-001、SP-021、INT-001、PILOT-001 与 REL-036 均未启动。
 产品代码、Schema、Migration、运行时、版本、Tag 和 Release 均未改变。
+Planning PR 创建和修订已获授权，但 `planning_baseline_approved = false`；最终独立审查、
+Ready 与 Merge 均未授权。
 
 ```text
 SP-020:
