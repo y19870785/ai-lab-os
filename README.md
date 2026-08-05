@@ -3,15 +3,17 @@
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
-> 当前没有 Product SP，也没有 Current Governance Task；REL-035 已完成最终发布对账并封存。
+> 当前没有 Product SP；Current Governance Task 为 STRAT-001，正在建立产品战略规划基线。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
-面向个人经营者和本地工作流的 AI Operating System 基础设施：用一套 Composition Root 连接任务、提醒、日程、收件箱、记忆、Agent 与可选模型 Provider。
+AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
+事实、状态、规则、决策和执行证据，并通过可替换的 Agent Shell 与用户自然交互。Hermes
+是首个首选但可替换的 Agent Shell，不是业务事实源或不可替换核心。
 
 **当前版本：v0.35.0 Alpha / GitHub Pre-release Published**
 **成熟度：Alpha / local-first / single-user-oriented**
 **当前 Product SP：None**
-**当前 Governance Task：None**
+**当前 Governance Task：STRAT-001**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
 `60fc299c4f4fd1ba22fc4a00d1490f3b2b893503`。Release 不上传 wheel 或 sdist，仅有 GitHub
@@ -247,6 +249,8 @@ python -m ruff check <changed-python-files>
 - [Markdown 文档清单](docs/project/MARKDOWN_INVENTORY.md)：全部 Git 跟踪 Markdown 的范围、初始语言和最终治理状态。
 - [统一术语表](docs/project/TERMINOLOGY_GLOSSARY.md)：中英文术语、技术标识与适用语境。
 - [项目机器状态](project_state.json)：版本、已验证历史基线、当前 SP、质量门禁、技术债与稳定发布授权。
+- [产品战略](docs/project/PRODUCT_STRATEGY.md)：可信业务操作系统定位、产品边界与 v0.36+ 路线。
+- [能力所有权](docs/project/CAPABILITY_OWNERSHIP.md)：Agent Shell、业务核心、Memory、Knowledge 与 Interaction 所有权。
 - [项目大脑](docs/project/PROJECT_BRAIN.md)：长期架构事实与封存产品事实。
 - [Roadmap](docs/project/ROADMAP.md)：版本范围、里程碑与候选 SP。
 - [REL-035 v0.35.0 Alpha 发布规划](docs/project/REL-035-V035-ALPHA-RELEASE-PLAN.md)：

@@ -13,13 +13,47 @@
   "latest_merged_sp": "SP-020",
   "latest_completed_sp": "SP-020",
   "current_sp": null,
-  "current_governance_task": null,
+  "current_governance_task": "STRAT-001",
   "next_candidate_sp": null,
   "next_candidate_name": null,
-  "development_status": "sp_020_approved_merged_main_quality_gate_passed_acc_020_passed_reconciled_archived",
-  "current_work": null,
-  "updated_at": "2026-08-02",
+  "development_status": "strat_001_planning_baseline_draft_pr_pending_independent_review",
+  "current_work": "STRAT-001 Planning Baseline",
+  "updated_at": "2026-08-06",
   "governance_tasks": {
+    "STRAT-001": {
+      "name": "AI-Lab OS Product Strategy Realignment and v0.36+ Roadmap Baseline",
+      "type": "PRODUCT_STRATEGY_GOVERNANCE",
+      "base_commit": "5f91d9da224daa9fbb2e68f7a3ba685411e93904",
+      "branch": "docs/strat-001-product-strategy-realignment",
+      "status": "PLANNING_BASELINE_DEFINED / DRAFT_PR_PENDING / PENDING_INDEPENDENT_REVIEW / NOT_MERGED",
+      "planning_approved": true,
+      "planning_pr": null,
+      "rfc": "RFC-031 / PROPOSED",
+      "adrs": [
+        "ADR-067 / PROPOSED",
+        "ADR-068 / PROPOSED"
+      ],
+      "roadmap_order": [
+        "STRAT-001",
+        "ARCH-001",
+        "SP-021",
+        "INT-001",
+        "PILOT-001",
+        "REL-036"
+      ],
+      "blocked_pr": {
+        "number": 62,
+        "status": "OPEN / DRAFT / FROZEN_PENDING_STRAT_001 / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED",
+        "head": "31cf7125b2543fb2d29ed38f373ddcebe4170b70"
+      },
+      "product_code_changed": false,
+      "schema_changed": false,
+      "migration_changed": false,
+      "runtime_behavior_changed": false,
+      "version_changed": false,
+      "tag_changed": false,
+      "release_changed": false
+    },
     "DOCS-001": {
       "name": "Repository Markdown Chinese Standardization and Documentation Governance",
       "type": "DOCUMENTATION_GOVERNANCE",

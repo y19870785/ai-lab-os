@@ -1,9 +1,9 @@
 # AI-Lab 路线图
 
-**Last Updated:** 2026-08-02
+**Last Updated:** 2026-08-06
 **Current Version:** v0.35.0 Alpha / GitHub Pre-release Published
 **Current SP:** None
-**Current Governance Task:** None
+**Current Governance Task:** STRAT-001
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -58,8 +58,8 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 目标发布名称为 `v0.35.0 Alpha — Local Daily Operating Loop`。SP-016、SP-017、
 SP-018、SP-019 与 SP-020 已完成验收并封存；当前没有 Product SP 或下一候选 SP。
 REL-035 已完成 Release PR 合并、main Quality Gate、Release Head 冻结、annotated Tag
-远端验证和 GitHub Pre-release 发布，并在最终对账后封存。当前没有 Governance Task，
-下一 Product SP 尚未批准：
+远端验证和 GitHub Pre-release 发布，并在最终对账后封存。当前 Governance Task 为
+STRAT-001；当前没有 Product SP，下一 Product SP 尚未批准：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
@@ -75,25 +75,49 @@ REL-035 规划冻结无破坏性迁移、缺失 `followups.db` 时增量初始�
 显式配置升级，以及 Planning Approval、Implementation Approval、Release PR Merge、Tag
 Authorization、GitHub Release Authorization 五个独立治理事件。规划不等于发布日期承诺。
 
-## 后续候选版本
+## v0.36 可信自然交互与 Owner Pilot 候选路线
 
-| 候选版本 | 候选方向 | 状态 |
+v0.36 不设计为一个巨大 SP。规划和授权顺序固定为：
+
+```text
+STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036
+```
+
+| 工作项 | 范围 | 当前状态 |
 |---|---|---|
-| v0.36.0 | Recurring Reminder | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
-| v0.37.0 | Minimal Web Console | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
-| v0.40.0 或更后 | Knowledge Main Path | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
+| STRAT-001 | 产品定位、能力所有权、架构与路线基线 | PLANNING BASELINE / DRAFT PR / PENDING INDEPENDENT REVIEW |
+| ARCH-001 | 中立 Adapter Contract 与 Trusted Interaction Boundary | NOT_STARTED / NOT_APPROVED |
+| SP-021 | 可信对话工作交互完整重规划 | FROZEN_PENDING_STRAT_001 / NOT_STARTED / IMPLEMENTATION_NOT_APPROVED |
+| INT-001 | Hermes Adapter | NOT_STARTED / NOT_APPROVED |
+| PILOT-001 | 企业微信 Owner Pilot | NOT_STARTED / NOT_APPROVED |
+| REL-036 | v0.36 独立发布治理 | NOT_STARTED / NOT_APPROVED |
 
-这些版本没有承诺发布日期。
+PR #62 必须保持 `OPEN / DRAFT / FROZEN_PENDING_STRAT_001 / NOT_READY /
+NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED`。STRAT-001 合并后，由 Owner 决定
+关闭并重建，或进行完整重规划；当前不得据此启动 SP-021 Implementation。
 
-## 更远期方向
+## v0.37 与 v0.38 候选路线
+
+| 候选版本 | 产品闭环 | 最低领域范围 | 状态 |
+|---|---|---|---|
+| v0.37 | 报价需求与客户跟进 | Quote Request、Customer、Contact、Follow-up、Next Action、Audit | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
+| v0.38 | 企业知识审核与引用 | Knowledge Source、Document Version、Review Status、Citation、Expiry | CANDIDATE / NOT_APPROVED / NOT_SCHEDULED |
+
+v0.37 先收集和推进报价需求，不提前实现自动价格计算；v0.38 只建设服务真实业务的审核、
+版本和引用闭环，不扩张为通用 RAG 平台。这些版本没有承诺发布日期。
+
+## 更远期候选方向
 
 | 版本方向 | 候选目标 |
 |---|---|
-| v0.40.0 | 多应用与更完整的 Agent/Tool/MCP 产品闭环 |
-| v0.50.0 | 受控业务系统与企业集成 |
+| v0.39 | 自动报价计算、报价版本与审批 |
+| v0.40 | 主动提醒、经营分析与 ERP 集成 |
+| 更后续 | 受控工具执行、Computer Use、多 Agent、研发编排与跨业务协作 |
 | v1.0.0 | 满足独立生产就绪标准后的稳定发布 |
 
-这些目标均为 tentative，不构成承诺。
+这些目标均为 tentative，不构成承诺。通用 Cron、渠道、Skills、Browser、Computer Use
+与通用 Agent Loop 优先由可替换 Agent Shell 提供；AI-Lab 保留业务 Reminder/Scheduler
+以及业务事实、规则、确认、审计、Verified Result 和 Recovery。
 
 ## 已完成基线
 

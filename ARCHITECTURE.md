@@ -1,5 +1,32 @@
 # AI-Lab 架构文档
 
+## STRAT-001 目标架构基线
+
+AI-Lab OS 的长期架构定位是可信业务操作系统，不再以复制完整通用 Agent 平台为目标。
+用户入口经由可替换 Agent Shell、中立 Adapter Contract 和 Trusted Interaction Boundary
+访问 AI-Lab Business OS：
+
+```text
+企业微信 / Web / 语音 / 桌面
+→ 可替换 Agent Shell（Hermes 为首选实现）
+→ 中立 Adapter Contract
+→ View / Preview / Confirm / Cancel / Status / Verified Result
+→ AI-Lab Business OS（业务事实 / 状态 / 规则 / 审计 / 恢复）
+→ ERP / 文件 / NAS / 邮件 / 浏览器 / 数据库
+```
+
+Hermes Memory 不是业务事实源，Hermes Conversation 不是审批事实源，Hermes Tool
+Response 不是最终成功证明。Hermes 不得直接访问 AI-Lab 数据库；AI-Lab 不得 import
+或依赖 Hermes 内部实现。AI-Lab 掌握业务对象、状态、规则、Preview、Confirmation、
+Approval、Audit、Verified Result 与 Recovery。
+
+通用 Agent、渠道、Skills、Browser、Computer Use 和通用 Cron 优先由 Agent Shell
+提供；AI-Lab 保留业务 Reminder/Scheduler。通用 Tool Runtime 扩张冻结，但 MCP 仍可
+作为 Adapter transport 候选，且不得绕过可信交互边界。完整规划见
+`docs/project/PRODUCT_STRATEGY.md`、`docs/project/CAPABILITY_OWNERSHIP.md` 和 RFC-031。
+
+本节只建立规划架构，不修改 v0.35.0 运行时，也不启动 ARCH-001 或 SP-021。
+
 ## v0.35.0 Alpha 产品基线
 
 v0.35.0 Alpha 在 v0.34.0 已发布基线上汇总 SP-016～SP-020 已验收的 Waiting-For、Work Log、Daily Review 与 Local Daily Operating Loop，不改变业务行为、Schema、依赖或运行 Profile 逻辑。产品版本唯一来源是 `pyproject.toml` 的 `[project].version`；根 `project_state.json` 记录稳定的仓库治理状态、历史验证基线和发布授权配置。当前 Git HEAD、Tag 和 GitHub Release 等外部事实通过 Git/GitHub 按需查询；运行时、CLI 与 API 只读取派生版本，不维护第二份产品版本常量。

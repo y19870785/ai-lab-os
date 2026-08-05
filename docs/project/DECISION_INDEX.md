@@ -1,6 +1,6 @@
 ﻿# AI-Lab Decision Index —— 设计决策索引
 
-> 当前源码版本：v0.34.0 Alpha | 更新日期：2026-07-28
+> 当前源码版本：v0.35.0 Alpha | 更新日期：2026-08-06
 
 ## RFC 列表
 
@@ -117,6 +117,9 @@
 | RFC-029 | Local Daily Operating Loop & Review-to-Action Closure | Adopted | 2026-07-29 |
 | ADR-063 | Daily Review Action Hints as Pure Deterministic Presentation | Accepted | 2026-07-29 |
 | ADR-064 | Local Daily Profile and Quiescent Backup/Restore Contract | Accepted | 2026-07-29 |
+| RFC-031 | Agent Shell 与可信业务核心分离 | Proposed | 2026-08-06 |
+| ADR-067 | Hermes 作为首个可替换 Agent Shell | Proposed | 2026-08-06 |
+| ADR-068 | AI-Lab 作为业务事实与行动权威 | Proposed | 2026-08-06 |
 
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 

@@ -1,6 +1,6 @@
 # AI-Lab 项目状态
 
-**日期：** 2026-08-02
+**日期：** 2026-08-06
 **源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 **已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
@@ -11,8 +11,11 @@
 | 最近合并的 SP | SP-020 |
 | 最近完成的 SP | SP-020 |
 | 当前 Product SP | None |
-| 当前治理任务 | None |
+| 当前治理任务 | STRAT-001 / PLANNING BASELINE / DRAFT PR / PENDING INDEPENDENT REVIEW |
 | 下一候选 SP | None |
+| RFC-031 | Proposed |
+| ADR-067 / ADR-068 | Proposed |
+| PR #62 | OPEN / DRAFT / FROZEN_PENDING_STRAT_001 / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED |
 | DOCS-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / RECONCILED / ARCHIVED |
 | SP-014 | APPROVED / MERGED / MANUAL_ACCEPTANCE_PASSED / RECONCILED / ARCHIVED |
 | SP-014B | APPROVED / MERGED / VERIFIED / RECONCILED / ARCHIVED |
@@ -39,6 +42,10 @@
 | ADR-063 / ADR-064 | Accepted |
 | ACC-020 | PASSED / FINAL（A～V 全部通过；独立证据复核 APPROVED） |
 | REL-035 | FINAL_RECONCILED / ARCHIVED |
+
+STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所有权和 v0.36+ 路线基线。
+当前 Product SP 仍为 None；ARCH-001、SP-021、INT-001、PILOT-001 与 REL-036 均未启动。
+产品代码、Schema、Migration、运行时、版本、Tag 和 Release 均未改变。
 
 ```text
 SP-020:
