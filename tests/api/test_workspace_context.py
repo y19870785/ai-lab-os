@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.testclient import TestClient
 
 from api.app import create_app
 from core.system import make_test_settings
+from tests.helpers.clock import MutableClock
+
+SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
 @pytest.mark.parametrize(
@@ -126,7 +130,19 @@ def test_brief_uses_session_and_agent_from_shared_context(tmp_path):
         ) == ("tenant", "workspace", "operations", "session", "agent")
 
 
-def test_same_context_flows_through_agenda_review_hint_and_mutation(tmp_path):
+@pytest.mark.parametrize(
+    "local_now",
+    [
+        datetime(2026, 8, 6, 0, 1, tzinfo=SHANGHAI),
+        datetime(2026, 8, 6, 0, 59, tzinfo=SHANGHAI),
+        datetime(2026, 8, 6, 12, 0, tzinfo=SHANGHAI),
+    ],
+    ids=["shanghai-00-01", "shanghai-00-59", "shanghai-12-00"],
+)
+def test_same_context_flows_through_agenda_review_hint_and_mutation(
+    tmp_path,
+    local_now,
+):
     headers = {
         "X-Tenant-ID": "tenant",
         "X-Workspace-ID": "workspace",
@@ -134,15 +150,25 @@ def test_same_context_flows_through_agenda_review_hint_and_mutation(tmp_path):
         "X-Session-ID": "session",
         "X-Agent-ID": "agent",
     }
-    with TestClient(create_app(make_test_settings(tmp_path))) as client:
+    application_day_start = local_now.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+    application_day_end = application_day_start + timedelta(days=1)
+    due_at = application_day_start + (local_now - application_day_start) / 2
+    assert application_day_start < due_at < local_now < application_day_end
+
+    clock = MutableClock(local_now.astimezone(UTC))
+    settings = make_test_settings(tmp_path, timezone_name=SHANGHAI.key)
+    with TestClient(create_app(settings, clock=clock)) as client:
         created = client.post(
             "/tasks",
             headers=headers,
             json={
                 "title": "Shared context overdue",
-                "due_at": (
-                    datetime.now(UTC) - timedelta(hours=1)
-                ).isoformat(),
+                "due_at": due_at.isoformat(),
             },
         ).json()
         agenda = client.get("/agenda", headers=headers)
