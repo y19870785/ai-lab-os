@@ -1,9 +1,9 @@
 # AI-Lab 已知限制
 
-> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-02
+> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-06
 
 `v0.35.0` 的发布不改变以下产品限制；REL-035 已最终对账并封存，当前 Governance Task
-为 None，下一 Product SP 尚未批准。
+为 STRAT-001，下一 Product SP 尚未批准。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
@@ -32,6 +32,17 @@ general availability。
 | CORS 不是身份隔离 | 显式 allowlist / 默认 deny-all 不能替代授权模型 |
 | 无内建 TLS 终止 | 网络部署需要受控反向代理和 TLS |
 | Prompt 注入防护不完整 | 自然语言、知识内容与工具执行仍需更强信任边界 |
+
+## STRAT-001 规划限制
+
+| 限制 | 当前事实 |
+|---|---|
+| Agent Shell Adapter 未实现 | Hermes 只是首选候选；当前没有接入、contract test 或替换性证明 |
+| Trusted Interaction Boundary 未实现 | View / Preview / Confirm / Cancel / Status / Verified Result 仍需 ARCH-001 定义 |
+| Approval 不是完整领域模型 | 现有局部 confirmation 不能被描述为通用高风险审批能力 |
+| 企业微信 Owner Pilot 未开始 | 渠道、身份映射、消息可靠性和人工验收均未执行 |
+| PR #62 已冻结 | 保持 Open / Draft；不能作为 SP-021 启动或实现授权 |
+| 通用平台扩张已冻结但未删除 | Agent/Tool/Workflow/Coordination 重叠代码仍存在，弃用需要独立审计与授权 |
 
 ## 稳定性与质量边界
 

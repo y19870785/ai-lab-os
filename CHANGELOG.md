@@ -2,6 +2,18 @@
 
 ## [Unreleased] 未发布
 
+### STRAT-001 产品战略校准规划
+
+- 将 AI-Lab OS 定位为面向个人经营者和企业真实工作流的可信业务操作系统。
+- 将 Hermes 定义为首个首选但可替换的 Agent Shell；业务事实、规则、确认、审批、审计、
+  Verified Result 与 Recovery 继续由 AI-Lab 掌握。
+- 建立 Agent Shell / Trusted Business Core、Memory、Knowledge、Interaction 与
+  Confirmation 所有权边界，冻结通用 Agent/Tool/Workflow/Coordination 平台扩张。
+- 将 v0.36 拆分为 `STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036`，
+  并重新规划 v0.37 报价需求与客户跟进、v0.38 企业知识审核与引用闭环。
+- PR #62 保持 Open、Draft、冻结、未获 Ready/Merge/Implementation 授权；本任务不修改
+  产品代码、Schema、Migration、运行时、版本、Tag 或 Release。
+
 ## [0.35.0] - 2026-08-02（Alpha 预发布）
 
 - 定义 `v0.35.0 Alpha — Local Daily Operating Loop`，汇总 SP-016～SP-020 已验收能力；不新增产品行为。

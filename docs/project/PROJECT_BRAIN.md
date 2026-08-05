@@ -3,9 +3,14 @@
 > 产品版本：v0.35.0
 > 最近完成的 Product SP：SP-020
 > 当前 Product SP：None
-> 当前治理任务：None
+> 当前治理任务：STRAT-001
 > 下一候选 Product SP：None
 > 下一候选方向：None
+> STRAT-001 状态：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_REVIEW_PASSED / READY_AUTHORIZED / MERGE_AUTHORIZED / NOT_MERGED
+> STRAT-001 Planning PR：#63 / OPEN / READY_FOR_REVIEW / MERGE_AUTHORIZED / NOT_MERGED
+> 战略定位：面向个人经营者和企业真实工作流的可信业务操作系统
+> Agent Shell：Hermes 为首选但可替换；不得直接访问 AI-Lab 数据库
+> PR #62：OPEN / DRAFT / FROZEN_PENDING_STRAT_001 / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED
 > SP-020 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED
 > ACC-020 状态：PASSED / FINAL
 > SP-020 已批准实现 Head：`1c9b69ee45b4e1545b67ecd841cc217e23d4f38f`
@@ -17,6 +22,16 @@
 > SP-020 对账：SP-020A / PR #58
 > REL-035 状态：FINAL_RECONCILED / ARCHIVED
 > v0.35.0：Local Daily Operating Loop / PRE_RELEASE_PUBLISHED / REMOTE_VERIFIED / Binary Assets None
+
+STRAT-001 将业务事实、状态、规则、Preview、Confirmation、Approval、Audit、Verified
+Result 与 Recovery 固定为 AI-Lab 权威；Hermes Memory、Conversation 和 Tool Response
+分别不得充当业务事实、审批事实或最终成功证明。通用 Agent、渠道、Skills、Browser、
+Computer Use 和通用 Cron 优先由 Agent Shell 提供；AI-Lab 保留业务 Reminder/Scheduler。
+实际执行可由 Agent Shell、AI-Lab 正式外部系统 Adapter 或其他受控 Execution Adapter
+承担；AI-Lab 始终掌握 Policy、Preview、Confirmation、Approval、Audit、Status、
+Verified Result 与 Recovery。
+v0.36 的治理顺序固定为 `STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036`，
+但除 STRAT-001 外均未获启动授权。
 
 ```text
 SP-020:

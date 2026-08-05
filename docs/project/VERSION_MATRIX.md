@@ -2,6 +2,7 @@
 
 **源码版本：** `0.35.0` Alpha / GitHub Pre-release Published
 **治理状态：** REL-035 / FINAL_RECONCILED / ARCHIVED
+**当前治理任务：** STRAT-001 / PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_REVIEW_PASSED / READY_AUTHORIZED / MERGE_AUTHORIZED / NOT_MERGED
 **已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
 **当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
 
@@ -31,6 +32,16 @@ annotated Tag 与 Release 已远端验证，但 Alpha 成熟度和已知限制�
 | Daily Review Read Model | SP-019 | Integrated / Verified / ACC-019 passed |
 | Local Daily Profile / Daily Review CLI / Action Hints | SP-020 | Integrated / Verified / ACC-020 passed |
 | Review-to-Action / lifecycle / backup-restore | SP-020 | Integrated / Verified / ACC-020 passed |
+
+## v0.36+ 战略兼容边界
+
+STRAT-001 不改变 `0.35.0` 运行时或内部合同版本。后续自然交互通过可替换 Agent Shell、
+中立 Adapter Contract 和 Trusted Interaction Boundary 演进；现有 API、CLI、CEO
+Assistant 与领域服务保持兼容，任何弃用都需要独立规划。
+
+Hermes 是首个首选但可替换的 Agent Shell。Hermes Memory、Conversation 与 Tool
+Response 不分别构成业务事实、审批事实和最终成功证明；Hermes 不得直接访问 AI-Lab
+数据库，AI-Lab 不得依赖 Hermes 内部实现。
 
 ## 兼容性边界
 
