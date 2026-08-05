@@ -25,9 +25,9 @@
       "type": "PRODUCT_STRATEGY_GOVERNANCE",
       "base_commit": "5f91d9da224daa9fbb2e68f7a3ba685411e93904",
       "branch": "docs/strat-001-product-strategy-realignment",
-      "status": "PLANNING_BASELINE_DEFINED / DRAFT_PR_PENDING / PENDING_INDEPENDENT_REVIEW / NOT_MERGED",
+      "status": "PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / PENDING_INDEPENDENT_REVIEW / NOT_MERGED",
       "planning_approved": true,
-      "planning_pr": null,
+      "planning_pr": 63,
       "rfc": "RFC-031 / PROPOSED",
       "adrs": [
         "ADR-067 / PROPOSED",

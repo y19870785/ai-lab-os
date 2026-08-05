@@ -2336,6 +2336,11 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     assert state["current_version"] == "0.35.0"
     assert strat["type"] == "PRODUCT_STRATEGY_GOVERNANCE"
     assert strat["base_commit"] == "5f91d9da224daa9fbb2e68f7a3ba685411e93904"
+    assert strat["planning_pr"] == 63
+    assert strat["status"] == (
+        "PLANNING_BASELINE_DEFINED / DRAFT_PR_OPEN / "
+        "PENDING_INDEPENDENT_REVIEW / NOT_MERGED"
+    )
     assert strat["roadmap_order"] == [
         "STRAT-001",
         "ARCH-001",

@@ -12,6 +12,7 @@
 | 最近完成的 SP | SP-020 |
 | 当前 Product SP | None |
 | 当前治理任务 | STRAT-001 / PLANNING BASELINE / DRAFT PR / PENDING INDEPENDENT REVIEW |
+| STRAT-001 Planning PR | #63 / OPEN / DRAFT / NOT_READY / NOT_MERGE_AUTHORIZED |
 | 下一候选 SP | None |
 | RFC-031 | Proposed |
 | ADR-067 / ADR-068 | Proposed |
