@@ -13,14 +13,53 @@
   "latest_merged_sp": "SP-020",
   "latest_completed_sp": "SP-020",
   "current_sp": null,
-  "current_governance_task": null,
+  "current_governance_task": "ARCH-001",
   "next_candidate_sp": null,
   "next_candidate_name": null,
-  "next_planned_governance_item": "ARCH-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION",
-  "development_status": "strat_001_approved_merged_main_quality_gate_passed_reconciled_archived",
-  "current_work": null,
+  "next_planned_governance_item": null,
+  "development_status": "arch_001_open_draft_pending_independent_review_not_ready_not_merge_authorized_implementation_not_approved",
+  "current_work": "ARCH-001 Trusted Interaction Architecture Baseline",
   "updated_at": "2026-08-06",
   "governance_tasks": {
+    "ARCH-001": {
+      "name": "Trusted Interaction Architecture Baseline",
+      "type": "ARCHITECTURE_PLANNING_GOVERNANCE",
+      "base_commit": "7bf12b1f4206608f0c67223546e8400eb9066c8e",
+      "branch": "docs/arch-001-trusted-interaction-architecture",
+      "status": "OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED",
+      "planning_authorized": true,
+      "independent_review_status": "PENDING_INDEPENDENT_REVIEW",
+      "ready_authorized": false,
+      "merge_authorized": false,
+      "implementation_approved": false,
+      "rfc": "RFC-032 / PROPOSED",
+      "adrs": [
+        "ADR-069 / PROPOSED",
+        "ADR-070 / PROPOSED",
+        "ADR-071 / PROPOSED",
+        "ADR-072 / PROPOSED"
+      ],
+      "follow_up_tasks": {
+        "SP-021": "NOT_STARTED / IMPLEMENTATION_NOT_APPROVED",
+        "INT-001": "NOT_STARTED / NOT_APPROVED",
+        "PILOT-001": "NOT_STARTED / NOT_APPROVED",
+        "REL-036": "NOT_STARTED / NOT_APPROVED"
+      },
+      "quality_003": "CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED",
+      "superseded_pr": {
+        "number": 62,
+        "head": "31cf7125b2543fb2d29ed38f373ddcebe4170b70",
+        "status": "CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 / IMPLEMENTATION_NEVER_AUTHORIZED"
+      },
+      "product_code_changed": false,
+      "schema_changed": false,
+      "migration_changed": false,
+      "runtime_behavior_changed": false,
+      "dependencies_changed": false,
+      "version_changed": false,
+      "tag_changed": false,
+      "release_changed": false
+    },
     "STRAT-001": {
       "name": "AI-Lab OS Product Strategy Realignment and v0.36+ Roadmap Baseline",
       "type": "PRODUCT_STRATEGY_GOVERNANCE",

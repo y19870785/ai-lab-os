@@ -3,7 +3,9 @@
 ## STRAT-001 目标架构基线
 
 本基线已由 STRAT-001 / PR #63 合并采纳；RFC-031 为 Adopted，ADR-067 与 ADR-068 为
-Accepted。ARCH-001 尚未启动，仍需要独立规划和 Owner 授权。
+Accepted。ARCH-001 已获 Owner 授权开始规划，当前为 OPEN / DRAFT /
+PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED /
+IMPLEMENTATION_NOT_APPROVED。
 
 AI-Lab OS 的长期架构定位是可信业务操作系统，不再以复制完整通用 Agent 平台为目标。
 用户入口经由可替换 Agent Shell、中立 Adapter Contract 和 Trusted Interaction Boundary
@@ -32,7 +34,13 @@ Approval、Audit、Verified Result 与 Recovery。
 受控 Execution Adapter 均可承担执行。无论执行者是谁，AI-Lab 始终掌握业务 Policy、
 Preview、Confirmation、Approval、Audit、Status、Verified Result 与 Recovery。
 
-本节只建立规划架构，不修改 v0.35.0 运行时，也不启动 ARCH-001 或 SP-021。
+ARCH-001 进一步提出 `trusted-interaction/v1` Shell-neutral、Transport-neutral 合同，覆盖 View、Preview、
+Confirm、Cancel、Modify、Status、Verified Result 与 Recovery，并将 lifecycle 与 execution、verification、
+recovery 子状态分离。Preview 与 Confirmation 是 AI-Lab canonical facts；最终成功必须先形成 AI-Lab
+Verified Result；identity/Workspace 映射失败关闭。完整规划见
+`docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md`、RFC-032 与 ADR-069～072。
+
+本节只建立规划架构，不修改 v0.35.0 运行时，也不启动 SP-021、INT-001、PILOT-001 或 REL-036。
 
 ## v0.35.0 Alpha 产品基线
 
