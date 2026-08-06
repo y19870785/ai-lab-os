@@ -2,6 +2,14 @@
 
 ## [Unreleased] 未发布
 
+### ARCH-001 可信交互架构规划
+
+- ARCH-001 已获授权开始 Draft Planning：审计 v0.35.0 现有业务域与通用 Runtime，定义
+  Shell-neutral / Transport-neutral Trusted Interaction Boundary、identity/Workspace fail-closed、
+  canonical Preview/Confirmation、Verified Result、重试、审计与恢复合同。
+- 新增 RFC-032 与 ADR-069～072，Planning PR 中均保持 Proposed；不修改产品代码、Schema、Migration、
+  Runtime、依赖、版本、Tag 或 Release，且不启动 SP-021、INT-001、PILOT-001 或 REL-036。
+
 ### STRAT-001 产品战略校准规划
 
 - 将 AI-Lab OS 定位为面向个人经营者和企业真实工作流的可信业务操作系统。
