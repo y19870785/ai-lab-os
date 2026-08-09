@@ -17,8 +17,8 @@
   "next_candidate_sp": null,
   "next_candidate_name": null,
   "next_planned_governance_item": null,
-  "development_status": "sp_021_approved_merged_main_quality_gate_passed_post_merge_reconciled_archived",
-  "current_work": null,
+  "development_status": "int_001_implementation_authorized_open_draft_pending_independent_review_not_ready_not_merge_authorized",
+  "current_work": "INT-001",
   "updated_at": "2026-08-09",
   "governance_tasks": {
     "ARCH-001": {
@@ -51,7 +51,7 @@
       ],
       "follow_up_tasks": {
         "SP-021": "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED",
-        "INT-001": "NOT_STARTED / NOT_APPROVED",
+        "INT-001": "IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED",
         "PILOT-001": "NOT_STARTED / NOT_APPROVED",
         "REL-036": "NOT_STARTED / NOT_APPROVED"
       },
@@ -609,7 +609,7 @@
       "acceptance": "ACC-021 A-R / PASSED / FINAL / INDEPENDENT_REVIEW_PASSED",
       "reconciliation": "SP-021A / SELF_CLOSING / NO_RECURSIVE_RECONCILIATION",
       "follow_up_tasks": {
-        "INT-001": "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED",
+        "INT-001": "IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED",
         "PILOT-001": "NOT_STARTED / NOT_APPROVED",
         "REL-036": "NOT_STARTED / NOT_APPROVED"
       },

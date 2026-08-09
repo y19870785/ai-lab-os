@@ -165,8 +165,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "sp_021_approved_merged_main_quality_gate_passed_"
-        "post_merge_reconciled_archived"
+        "int_001_implementation_authorized_open_draft_pending_independent_"
+        "review_not_ready_not_merge_authorized"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -487,10 +487,10 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "sp_021_approved_merged_main_quality_gate_passed_"
-        "post_merge_reconciled_archived"
+        "int_001_implementation_authorized_open_draft_pending_independent_"
+        "review_not_ready_not_merge_authorized"
     )
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert "next_action" not in state
 
     assert sp017 == {
@@ -648,7 +648,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert "next_action" not in state
 
     assert sp018["name"] == "Work Log Query Boundary & Context Closure"
@@ -908,10 +908,10 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
     assert state["development_status"] == (
-        "sp_021_approved_merged_main_quality_gate_passed_"
-        "post_merge_reconciled_archived"
+        "int_001_implementation_authorized_open_draft_pending_independent_"
+        "review_not_ready_not_merge_authorized"
     )
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
     assert state["release_status"]["current_version"] == "0.35.0"
     assert "SP-020" in state["sp_records"]
@@ -1385,12 +1385,12 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "sp_021_approved_merged_main_quality_gate_passed_"
-        "post_merge_reconciled_archived"
+        "int_001_implementation_authorized_open_draft_pending_independent_"
+        "review_not_ready_not_merge_authorized"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -1993,7 +1993,7 @@ def test_docs001_is_reconciled_and_archived() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert docs001 == {
@@ -2287,10 +2287,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 196
-    assert "- Git 跟踪 Markdown：196" in inventory
-    assert "- 仓库自有且纳入范围：196" in inventory
-    assert "- 新增中文治理文档：21" in inventory
+    assert len(tracked_markdown) == 199
+    assert "- Git 跟踪 Markdown：199" in inventory
+    assert "- 仓库自有且纳入范围：199" in inventory
+    assert "- 新增中文治理文档：24" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -2342,7 +2342,7 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     strat = state["governance_tasks"]["STRAT-001"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert state["current_version"] == "0.35.0"
@@ -2443,7 +2443,7 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     assert "QUALITY-003 Candidate — DeepSeek Real Brief Contract Audit" in limitations
     assert "daily_review.date_invalid" in limitations
     assert "REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED" in limitations
-    assert "INT-001、PILOT-001 与 REL-036 均未启动" in project_status
+    assert "INT-001 已获实现授权" in project_status
 
 
 def test_arch001_post_merge_reconciliation_is_consistent() -> None:
@@ -2468,7 +2468,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["next_planned_governance_item"] is None
@@ -2507,7 +2507,10 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
             "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / "
             "IMPLEMENTATION_NOT_APPROVED"
         ),
-        "INT-001": "NOT_STARTED / NOT_APPROVED",
+        "INT-001": (
+            "IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / "
+            "PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED"
+        ),
         "PILOT-001": "NOT_STARTED / NOT_APPROVED",
         "REL-036": "NOT_STARTED / NOT_APPROVED",
     }
@@ -2611,7 +2614,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
     acc021 = state["acceptance_records"]["ACC-021"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "INT-001"
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["next_candidate_sp"] is None
@@ -2646,8 +2649,8 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
     assert "no standalone migration file" in sp021["migration_change_meaning"]
     assert sp021["follow_up_tasks"] == {
         "INT-001": (
-            "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / "
-            "IMPLEMENTATION_NOT_APPROVED"
+            "IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / "
+            "PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED"
         ),
         "PILOT-001": "NOT_STARTED / NOT_APPROVED",
         "REL-036": "NOT_STARTED / NOT_APPROVED",
@@ -2719,9 +2722,73 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
         "SP-021 Draft",
         "SP-021 已获实现授权并处于 Draft",
         "等待独立审查且未获 Ready/Merge 授权",
-        "PENDING_INDEPENDENT_REVIEW",
-        "NOT_READY",
-        "NOT_MERGE_AUTHORIZED",
         "SP-021、INT-001、\nSP-021 已",
     ):
         assert stale not in current_documents
+
+
+def test_int001_draft_implementation_state_is_consistent() -> None:
+    state = _load_state()
+    arch = state["governance_tasks"]["ARCH-001"]
+    sp021 = state["sp_records"]["SP-021"]
+    expected = (
+        "IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / "
+        "PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED"
+    )
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] == "INT-001"
+    assert state["next_candidate_sp"] is None
+    assert state["development_status"] == (
+        "int_001_implementation_authorized_open_draft_pending_independent_"
+        "review_not_ready_not_merge_authorized"
+    )
+    assert arch["follow_up_tasks"]["INT-001"] == expected
+    assert sp021["follow_up_tasks"]["INT-001"] == expected
+    assert arch["follow_up_tasks"]["PILOT-001"] == "NOT_STARTED / NOT_APPROVED"
+    assert arch["follow_up_tasks"]["REL-036"] == "NOT_STARTED / NOT_APPROVED"
+    assert state["quality_candidates"]["QUALITY-003"]["authorized"] is False
+    assert state["quality_candidates"]["QUALITY-004"]["authorized"] is False
+    assert state["current_version"] == "0.35.0"
+
+    implementation = (
+        ROOT / "docs/project/INT-001-SHELL-NEUTRAL-TRUSTED-INTERACTION-ADAPTER.md"
+    )
+    projection = ROOT / "docs/project/INT-001-HERMES-MCP-PROJECTION.md"
+    acceptance = (
+        ROOT / "docs/acceptance/INT-001-shell-neutral-trusted-interaction-adapter.md"
+    )
+    assert implementation.is_file()
+    assert projection.is_file()
+    assert acceptance.is_file()
+    combined = "\n".join(
+        path.read_text(encoding="utf-8-sig")
+        for path in (implementation, projection, acceptance)
+    )
+    for marker in (
+        "trusted-interaction/v1",
+        "Hermes Memory != Business Fact Source",
+        "Hermes Conversation != Approval Fact Source",
+        "Hermes Tool Response != Final Success Proof",
+        "PENDING_INDEPENDENT_REVIEW",
+        "NOT_READY",
+        "NOT_MERGE_AUTHORIZED",
+        "AUTOMATED_EVIDENCE_PASSED",
+    ):
+        assert marker in combined
+    for premature in (
+        "FINAL_INDEPENDENT_REVIEW_PASSED",
+        "READY_AUTHORIZED",
+        " / MERGE_AUTHORIZED / ",
+    ):
+        assert premature not in combined
+
+    inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
+        encoding="utf-8-sig"
+    )
+    for path in (
+        "docs/project/INT-001-SHELL-NEUTRAL-TRUSTED-INTERACTION-ADAPTER.md",
+        "docs/project/INT-001-HERMES-MCP-PROJECTION.md",
+        "docs/acceptance/INT-001-shell-neutral-trusted-interaction-adapter.md",
+    ):
+        assert path in inventory

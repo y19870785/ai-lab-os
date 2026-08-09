@@ -5,7 +5,7 @@
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-021 已完成合并、ACC-021 最终验收、main Quality Gate、治理对账与封存；`v0.35.0` GitHub Pre-release 保持不变。当前 Product SP 与 Governance Task 均为 None。INT-001 是下一候选任务但未启动。这些能力不等同于 production-ready 或完整多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-021 已完成合并、ACC-021 最终验收、main Quality Gate、治理对账与封存；`v0.35.0` GitHub Pre-release 保持不变。当前 Product SP 与 Governance Task 均为 None，当前工作为 INT-001。INT-001 已获实现授权并处于 Draft / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED；真实 Hermes 与 Channel 未接入。这些能力不等同于 production-ready 或完整多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -102,6 +102,7 @@ Reconciliation PR:
 | Daily Review / SP-019 | Integrated / Verified / Manual acceptance passed | RFC-028 Adopted；ADR-061、ADR-062 Accepted；ACC-019 A～M PASSED / FINAL；SP-019 archived |
 | Local Daily Loop / SP-020 | Integrated / Verified / Archived | RFC-029 Adopted；ADR-063、ADR-064 Accepted；ACC-020 PASSED / FINAL；main Quality Gate SUCCESS |
 | Trusted Interaction / SP-021 | Integrated / Verified / Archived | RFC-032 Adopted；ADR-069～072 Accepted；ACC-021 PASSED / FINAL；main Quality Gate SUCCESS |
+| Trusted Interaction Adapter / INT-001 | Implemented / Draft / Pending review | Shell-neutral facade、fail-closed authorities、official MCP stdio reference projection；真实 identity/policy/Hermes 未接入 |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |

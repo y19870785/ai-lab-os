@@ -1,10 +1,8 @@
 """Static release-contract checks; wheel construction remains a release gate."""
 
 import ast
-from pathlib import Path
-
 import tomllib
-
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -37,11 +35,18 @@ def test_dependency_extras_match_runtime_boundaries():
     assert _names(extras["api"]) == {"fastapi", "uvicorn"}
     assert _names(extras["real"]) == {"openai"}
     assert _names(extras["knowledge"]) == {"chromadb", "sentence-transformers"}
+    assert _names(extras["integration"]) == {"mcp"}
     assert {"pytest", "pytest-asyncio", "httpx"} <= _names(extras["test"])
     assert {"build", "twine"} <= _names(extras["build"])
     assert {"ruff", "mypy"} <= _names(extras["dev"])
-    assert _names(extras["api"] + extras["real"] + extras["test"] +
-                  extras["build"] + extras["dev"]) == _names(extras["local"])
+    assert _names(
+        extras["api"]
+        + extras["real"]
+        + extras["integration"]
+        + extras["test"]
+        + extras["build"]
+        + extras["dev"]
+    ) == _names(extras["local"])
 
 
 def test_setuptools_discovers_product_packages_only():

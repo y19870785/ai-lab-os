@@ -26,6 +26,9 @@ knowledge = [
     "chromadb>=0.4",
     "sentence-transformers>=2.2",
 ]
+integration = [
+    "mcp>=2,<3",
+]
 test = [
     "httpx>=0.27",
     "pytest>=8.0",
@@ -43,6 +46,7 @@ local = [
     "build>=1.2",
     "fastapi>=0.110",
     "httpx>=0.27",
+    "mcp>=2,<3",
     "mypy>=1.8",
     "openai>=1.0",
     "pytest>=8.0",

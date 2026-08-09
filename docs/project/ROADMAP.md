@@ -4,6 +4,7 @@
 **当前版本：** v0.35.0 Alpha / GitHub Pre-release Published
 **当前 Product SP：** None
 **当前 Governance Task：** None
+**当前工作：** INT-001 / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED
 **下一规划治理项：** None
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
@@ -89,15 +90,17 @@ STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036
 | STRAT-001 | 产品定位、能力所有权、架构与路线基线 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | ARCH-001 | 中立 Adapter Contract 与 Trusted Interaction Boundary | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | SP-021 | Canonical Trusted Interaction Domain | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
-| INT-001 | Hermes Adapter | NOT_STARTED / NOT_APPROVED |
+| INT-001 | Shell-neutral Trusted Interaction Adapter / Hermes MCP Projection | IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED |
 | PILOT-001 | 企业微信 Owner Pilot | NOT_STARTED / NOT_APPROVED |
 | REL-036 | v0.36 独立发布治理 | NOT_STARTED / NOT_APPROVED |
 
 PR #62 已 `CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 /
 IMPLEMENTATION_NEVER_AUTHORIZED`。其历史设计证据继续保留；ARCH-001 和替代 SP-021
 必须分别规划并获得 Owner 授权。ARCH-001 已采纳并封存 architecture contract；SP-021 已通过最终独立审查、
-ACC-021 A～R、PR #68 合并与 main Quality Gate，并完成对账和封存。INT-001 是下一候选任务，
-但 INT-001、PILOT-001 与 REL-036 仍未启动，均需要独立授权。
+ACC-021 A～R、PR #68 合并与 main Quality Gate，并完成对账和封存。INT-001 已获独立实现授权，
+当前 Draft 实现只覆盖 Shell-neutral Adapter、fail-closed identity/policy authority、本地 stdio MCP
+reference projection 与自动证据；真实 Hermes/Channel 未接入，Ready 与 Merge 未授权。PILOT-001
+与 REL-036 仍未启动，均需要独立授权。
 
 ## v0.37 与 v0.38 候选路线
 
