@@ -1,10 +1,10 @@
 # AI-Lab 路线图
 
-**Last Updated:** 2026-08-06
-**Current Version:** v0.35.0 Alpha / GitHub Pre-release Published
-**Current SP:** None
-**Current Governance Task:** ARCH-001
-**Next Planned Governance Item:** None
+**最后更新：** 2026-08-09
+**当前版本：** v0.35.0 Alpha / GitHub Pre-release Published
+**当前 Product SP：** None
+**当前 Governance Task：** None
+**下一规划治理项：** None
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -60,7 +60,7 @@ v0.34.0 Tag 与 GitHub Release 只能在以下条件完成后创建：
 SP-018、SP-019 与 SP-020 已完成验收并封存；当前没有 Product SP 或下一候选 SP。
 REL-035 已完成 Release PR 合并、main Quality Gate、Release Head 冻结、annotated Tag
 远端验证和 GitHub Pre-release 发布，并在最终对账后封存。STRAT-001 也已完成合并、
-main Quality Gate、post-merge reconciliation 和封存；当前 Product SP 为 None，ARCH-001 是 Current Governance Task：
+main Quality Gate、post-merge reconciliation 和封存；当前 Product SP 与 Current Governance Task 均为 None：
 
 | 候选 SP | 方向 | 状态 |
 |---|---|---|
@@ -87,15 +87,15 @@ STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036
 | 工作项 | 范围 | 当前状态 |
 |---|---|---|
 | STRAT-001 | 产品定位、能力所有权、架构与路线基线 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
-| ARCH-001 | 中立 Adapter Contract 与 Trusted Interaction Boundary | OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED |
-| SP-021 | 可信对话工作交互完整重规划 | SUPERSEDED_DRAFT_CLOSED / NOT_STARTED / IMPLEMENTATION_NOT_APPROVED |
+| ARCH-001 | 中立 Adapter Contract 与 Trusted Interaction Boundary | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
+| SP-021 | Canonical Trusted Interaction Domain | NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
 | INT-001 | Hermes Adapter | NOT_STARTED / NOT_APPROVED |
 | PILOT-001 | 企业微信 Owner Pilot | NOT_STARTED / NOT_APPROVED |
 | REL-036 | v0.36 独立发布治理 | NOT_STARTED / NOT_APPROVED |
 
 PR #62 已 `CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 /
 IMPLEMENTATION_NEVER_AUTHORIZED`。其历史设计证据继续保留；ARCH-001 和替代 SP-021
-必须分别规划并获得 Owner 授权。ARCH-001 当前只定义 architecture contract；SP-021、INT-001、
+必须分别规划并获得 Owner 授权。ARCH-001 已采纳并封存 architecture contract；SP-021、INT-001、
 PILOT-001 与 REL-036 仍未启动。
 
 ## v0.37 与 v0.38 候选路线

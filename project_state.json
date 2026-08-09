@@ -13,39 +13,51 @@
   "latest_merged_sp": "SP-020",
   "latest_completed_sp": "SP-020",
   "current_sp": null,
-  "current_governance_task": "ARCH-001",
-  "next_candidate_sp": null,
-  "next_candidate_name": null,
+  "current_governance_task": null,
+  "next_candidate_sp": "SP-021",
+  "next_candidate_name": "Canonical Trusted Interaction Domain",
   "next_planned_governance_item": null,
-  "development_status": "arch_001_open_draft_pending_independent_review_not_ready_not_merge_authorized_implementation_not_approved",
-  "current_work": "ARCH-001 Trusted Interaction Architecture Baseline",
-  "updated_at": "2026-08-06",
+  "development_status": "arch_001_approved_merged_main_quality_gate_passed_post_merge_reconciled_archived",
+  "current_work": null,
+  "updated_at": "2026-08-09",
   "governance_tasks": {
     "ARCH-001": {
       "name": "Trusted Interaction Architecture Baseline",
       "type": "ARCHITECTURE_PLANNING_GOVERNANCE",
       "base_commit": "7bf12b1f4206608f0c67223546e8400eb9066c8e",
       "branch": "docs/arch-001-trusted-interaction-architecture",
-      "status": "OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED",
+      "status": "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED",
       "planning_authorized": true,
-      "independent_review_status": "PENDING_INDEPENDENT_REVIEW",
-      "ready_authorized": false,
-      "merge_authorized": false,
+      "independent_review_status": "FINAL_REVIEW_PASSED",
+      "ready_authorized": true,
+      "merge_authorized": true,
       "implementation_approved": false,
-      "rfc": "RFC-032 / PROPOSED",
+      "planning_pr": 66,
+      "approved_head": "5edbb37da6bf9d4b7dd98f5d0e860c695a08ce90",
+      "merge_base": "7bf12b1f4206608f0c67223546e8400eb9066c8e",
+      "merge_commit": "4f9eab191fc0d99898ee69a2b42912017e4740e3",
+      "merged_at": "2026-08-09T08:37:05Z",
+      "main_quality_gate_run": 31303951232,
+      "main_quality_gate": "SUCCESS",
+      "post_merge_reconciled": true,
+      "archived": true,
+      "reconciliation": "ARCH-001A / SELF-CLOSING / NO_RECURSIVE_RECONCILIATION",
+      "rfc": "RFC-032 / ADOPTED",
       "adrs": [
-        "ADR-069 / PROPOSED",
-        "ADR-070 / PROPOSED",
-        "ADR-071 / PROPOSED",
-        "ADR-072 / PROPOSED"
+        "ADR-069 / ACCEPTED",
+        "ADR-070 / ACCEPTED",
+        "ADR-071 / ACCEPTED",
+        "ADR-072 / ACCEPTED"
       ],
       "follow_up_tasks": {
-        "SP-021": "NOT_STARTED / IMPLEMENTATION_NOT_APPROVED",
+        "SP-021": "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED",
         "INT-001": "NOT_STARTED / NOT_APPROVED",
         "PILOT-001": "NOT_STARTED / NOT_APPROVED",
         "REL-036": "NOT_STARTED / NOT_APPROVED"
       },
       "quality_003": "CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED",
+      "quality_003_observation": "2026-08-09 accidental reproduction: test_deepseek_brief -> daily_review.date_invalid; no secret or provider response body committed",
+      "quality_004": "CANDIDATE / SAFETY_RELEVANT / NON_BLOCKING_FOR_ARCH_001 / NOT_STARTED / NOT_AUTHORIZED",
       "superseded_pr": {
         "number": 62,
         "head": "31cf7125b2543fb2d29ed38f373ddcebe4170b70",
@@ -561,6 +573,21 @@
       "implementation_authorization_contract": "One explicit Owner authorization covers SP-020 implementation; Phase 0 is an internal mandatory quality gate and does not require a second authorization after passing",
       "reauthorization_triggers": "Phase 0 failure, stop condition, approved-scope change, Product SP split, or new architecture decision",
       "scope": "Windows Local Daily Profile, Daily Review CLI, deterministic Action Hints, canonical Review-to-Action delegation, lifecycle recovery and quiescent backup/restore acceptance"
+    }
+  },
+  "quality_candidates": {
+    "QUALITY-003": {
+      "name": "DeepSeek Real Brief Contract Audit",
+      "status": "CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED",
+      "observation": "2026-08-09 accidental reproduction: test_deepseek_brief -> daily_review.date_invalid",
+      "authorized": false
+    },
+    "QUALITY-004": {
+      "name": "Real-Provider Credential Isolation Guard",
+      "status": "CANDIDATE / SAFETY_RELEVANT / NON_BLOCKING_FOR_ARCH_001 / NOT_STARTED / NOT_AUTHORIZED",
+      "observation": "Empty-string environment overrides can allow python-dotenv to reload local .env credentials and unintentionally enable real tests",
+      "required_interim_guard": "Use a non-empty invalid sentinel such as DISABLED, verify all real tests skip in a preflight, and stop if any real Provider call begins",
+      "authorized": false
     }
   },
   "acceptance_records": {

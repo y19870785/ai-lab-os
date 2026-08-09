@@ -1,11 +1,12 @@
 # ARCH-001：可信交互架构基线
 
-- 状态：OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED
+- 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED
 - 类型：RFC / ADR / Planning Task / Governance Documentation / Contract Design
 - 授权 Base：`7bf12b1f4206608f0c67223546e8400eb9066c8e`
 - 分支：`docs/arch-001-trusted-interaction-architecture`
 - Current Product SP：None
-- Current Governance Task：ARCH-001
+- Current Governance Task：None
+- Planning PR：#66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3`
 - 日期：2026-08-06
 
 ## 执行摘要（Executive Summary）
@@ -517,24 +518,24 @@ Contract Test 实现属于后续任务，不在 ARCH-001 创建 Python model、f
 
 | 工作项 | 唯一范围 | 明确排除 | 当前状态 |
 |---|---|---|---|
-| ARCH-001 | 定义 terminology、ownership、lifecycle、contract、identity/workspace rules、security/audit/reliability 与 acceptance strategy | 所有 runtime/schema/integration 实现 | OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED |
-| SP-021 | 实现 canonical Interaction domain、state machine、services、repository interfaces、persistence design、CAS/idempotency、facts 与 domain tests | Shell/channel/release 集成 | NOT_STARTED / IMPLEMENTATION_NOT_APPROVED |
+| ARCH-001 | 定义 terminology、ownership、lifecycle、contract、identity/workspace rules、security/audit/reliability 与 acceptance strategy | 所有 runtime/schema/integration 实现 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
+| SP-021 | 实现 canonical Interaction domain、state machine、services、repository interfaces、persistence design、CAS/idempotency、facts 与 domain tests | Shell/channel/release 集成 | NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
 | INT-001 | 实现 Shell-neutral adapter、Hermes binding、transport projection、Fake/Reference contract tests 与 status/streaming projection | DB direct access、企业微信 | NOT_STARTED / NOT_APPROVED |
 | PILOT-001 | 企业微信 channel、Owner binding、Workspace mapping、operation allowlist、人工验收与恢复演练 | 通用渠道平台 | NOT_STARTED / NOT_APPROVED |
 | REL-036 | v0.36 evidence、readiness、limitations、upgrade/recovery、Tag/Pre-release governance | 新功能实现 | NOT_STARTED / NOT_APPROVED |
 
 ## 验收标准（Acceptance Criteria）
 
-- [ ] 主文档、RFC-032 与 ADR-069～072 通过独立审查；Planning PR 中均保持 Proposed。
-- [ ] Adapter contract 覆盖八个操作、通用 envelope、副作用、权威性、FailureInfo 与 audit。
-- [ ] identity/workspace 模型明确 fail closed、跨渠道与角色约束。
-- [ ] lifecycle、race、timeout、uncertain outcome、Verified Result 和 Recovery 可由状态表审查。
-- [ ] Fake/Reference contract-test strategy 证明 Hermes 与 transport 可替换。
-- [ ] 现有能力逐项分类，通用平台扩张冻结但不删除。
-- [ ] `project_state.json` 与 Markdown 一致：Current Product SP=None、Current Governance Task=ARCH-001。
-- [ ] SP-021、INT-001、PILOT-001、REL-036 与 QUALITY-003 状态不被启动或改变。
-- [ ] governance、version、non-real 与 credentials-isolated gate 全绿；真实 Provider 调用为零。
-- [ ] 产品代码、Schema、Migration、Runtime、依赖、版本、Tag 和 Release 均未改变。
+- [x] 主文档、RFC-032 与 ADR-069～072 通过独立审查；RFC 已 Adopted，ADR 已 Accepted。
+- [x] Adapter contract 覆盖八个操作、通用 envelope、副作用、权威性、FailureInfo 与 audit。
+- [x] identity/workspace 模型明确 fail closed、跨渠道与角色约束。
+- [x] lifecycle、race、timeout、uncertain outcome、Verified Result 和 Recovery 可由状态表审查。
+- [x] Fake/Reference contract-test strategy 证明 Hermes 与 transport 可替换。
+- [x] 现有能力逐项分类，通用平台扩张冻结但不删除。
+- [x] `project_state.json` 与 Markdown 一致：Current Product SP=None；对账后 Current Governance Task=None。
+- [x] SP-021、INT-001、PILOT-001 与 REL-036 均未启动；QUALITY-003 状态未提升。
+- [x] governance、version、non-real 与有效 credentials-isolated gate 全绿；误调用事实另见 ARCH-001A 对账记录。
+- [x] 产品代码、Schema、Migration、Runtime、依赖、版本、Tag 和 Release 均未改变。
 
 ## 非目标（Non-goals）
 
@@ -544,7 +545,7 @@ Contract Test 实现属于后续任务，不在 ARCH-001 创建 Python model、f
 
 ## 授权边界（Authorization Boundary）
 
-本 Planning PR 只能保持：
+ARCH-001 Planning PR 在独立审查前只能保持：
 
 ```text
 ARCH-001:
@@ -552,5 +553,6 @@ OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW /
 NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED
 ```
 
-RFC-032 与 ADR-069～072 只能为 Proposed。独立审查、Ready、Merge、Adopted/Accepted、post-merge
-reconciliation，以及 SP-021、INT-001、PILOT-001、REL-036 的启动均需要后续单独 Owner 授权。
+上述门禁已经由后续独立审查与 Owner 授权逐项满足。PR #66 合并后，RFC-032 为 Adopted，
+ADR-069～072 为 Accepted，ARCH-001 完成 post-merge reconciliation 并封存。SP-021、INT-001、
+PILOT-001、REL-036 的启动仍需要后续单独 Owner 授权。

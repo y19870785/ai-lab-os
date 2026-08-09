@@ -1,9 +1,10 @@
 # ADR-069：采用 Shell-neutral 版本化 Interaction Contract
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-06
 - Governance Task: ARCH-001
 - Related RFC: RFC-032
+- Accepted by: ARCH-001 / PR #66 / Merge Commit `4f9eab191fc0d99898ee69a2b42912017e4740e3`
 - Implementation: NOT_APPROVED / NOT_STARTED
 
 ## 背景（Context）
@@ -38,4 +39,5 @@ Confirmation、Approval、Audit、Status、Verified Result 或 Recovery。
 
 ## 状态与授权（Status and Authorization）
 
-本 ADR 在 ARCH-001 Draft Planning PR 中保持 Proposed。Accepted、实现、INT-001 或 Hermes 接入均需后续授权。
+本 ADR 已由 ARCH-001 / PR #66 合并接受。Accepted 不批准实现、INT-001 或 Hermes 接入；
+这些工作仍需后续单独授权。

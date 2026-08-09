@@ -1,6 +1,6 @@
 # AI-Lab 项目状态
 
-**日期：** 2026-08-06
+**日期：** 2026-08-09
 **源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 **已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
@@ -11,13 +11,15 @@
 | 最近合并的 SP | SP-020 |
 | 最近完成的 SP | SP-020 |
 | 当前 Product SP | None |
-| 当前治理任务 | ARCH-001 |
-| ARCH-001 | OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED |
-| RFC-032 / ADR-069～072 | Proposed |
+| 当前治理任务 | None |
+| ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
+| ARCH-001 Planning PR | #66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3` |
+| RFC-032 | Adopted |
+| ADR-069～072 | Accepted |
 | 下一规划治理项 | None |
 | STRAT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | STRAT-001 Planning PR | #63 / MERGED / CLOSED / `b644c38064117a4dcb906c8607c782b67aedf1a6` |
-| 下一候选 SP | None |
+| 下一候选 SP | SP-021 / Canonical Trusted Interaction Domain / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
 | RFC-031 | Adopted |
 | ADR-067 / ADR-068 | Accepted |
 | PR #62 | CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 / IMPLEMENTATION_NEVER_AUTHORIZED |
@@ -49,10 +51,11 @@
 | REL-035 | FINAL_RECONCILED / ARCHIVED |
 
 STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所有权和 v0.36+ 路线基线。
-当前 Product SP 仍为 None；ARCH-001 仅开始架构 Planning，SP-021、INT-001、PILOT-001 与 REL-036 均未启动。
+当前 Product SP 与 Governance Task 均为 None；SP-021 是下一候选 Product SP，但 SP-021、INT-001、PILOT-001 与 REL-036 均未启动。
 产品代码、Schema、Migration、运行时、版本、Tag 和 Release 均未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
-与封存。ARCH-001 已获仅限 Planning 的授权，当前 Draft 等待独立审查，未获 Ready、Merge 或实现授权。
+与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge
+reconciliation 并封存；该结果不构成任何实现授权。
 
 ARCH-001 已完成当前实现审计并提出 `trusted-interaction/v1` 合同基线：Preview 与 Confirmation 是 AI-Lab
 canonical facts，identity/Workspace 映射失败关闭，Tool/HTTP/外部 ack 不能替代 Verified Result，不确定
@@ -105,7 +108,7 @@ v0.34.0 Alpha 之上的 v0.35 开发线已合并 canonical Work Log 与 Daily Re
 SP-020 已建立 Planning Baseline，方向为 Windows Local Daily Profile、直接复用现有
 `DailyReviewService` 的正式 CLI、纯确定性 Action Hint、canonical
 Review-to-Action 委托，以及 restart / Quiescent Backup / isolated restore 验收。
-Implementation、正式验收、独立证据复核、功能合并、main Quality Gate 与治理对账均已完成；Current Product SP 为 None，Current Governance Task 为 ARCH-001。
+Implementation、正式验收、独立证据复核、功能合并、main Quality Gate 与治理对账均已完成；Current Product SP 与 Current Governance Task 均为 None。
 
 REL-035 已按 `v0.35.0 Alpha — Local Daily Operating Loop` 发布收口规划完成 v0.34.0
 数据兼容、Local Daily 配置升级、验证矩阵和独立授权状态机。Release PR #60 已合并，
@@ -147,4 +150,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 - v0.35.0：PRE_RELEASE_PUBLISHED
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Next Candidate SP 均为 None，Current Governance Task 为 ARCH-001。SP-020 Feature PR #57 已 Squash Merge 至 main `9ea4b72241bd855319231c09fa6b80c112a14305`（`2026-08-01T06:29:58Z`），main Quality Gate `30687851816` 为 SUCCESS；SP-020A 对账载体为 PR #58。ACC-020 A～V、独立证据复核、治理对账与封存均已完成。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 已远端验证，REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Current Governance Task 均为 None；Next Candidate SP 为 SP-021 / Canonical Trusted Interaction Domain，但未启动且需要单独授权。ARCH-001 已通过 PR #66 合并为 `4f9eab191fc0d99898ee69a2b42912017e4740e3`，main Quality Gate `31303951232` 为 SUCCESS，并完成治理对账与封存。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 已远端验证，REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

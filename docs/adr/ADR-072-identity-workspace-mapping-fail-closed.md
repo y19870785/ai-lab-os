@@ -1,9 +1,10 @@
 # ADR-072：Identity 与 Workspace 映射失败关闭
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-06
 - Governance Task: ARCH-001
 - Related RFC: RFC-032
+- Accepted by: ARCH-001 / PR #66 / Merge Commit `4f9eab191fc0d99898ee69a2b42912017e4740e3`
 - Implementation: NOT_APPROVED / NOT_STARTED
 
 ## 背景（Context）
@@ -40,4 +41,4 @@ fail closed。ARCH-001 不实现 OAuth、企业微信身份、多租户 Schema �
 
 ## 状态与授权（Status and Authorization）
 
-本 ADR 在 ARCH-001 Draft Planning PR 中保持 Proposed。PILOT-001 与任何身份实现尚未授权。
+本 ADR 已由 ARCH-001 / PR #66 合并接受。PILOT-001 与任何身份实现仍未获授权。

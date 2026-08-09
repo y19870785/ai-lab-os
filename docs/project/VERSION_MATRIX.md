@@ -2,7 +2,8 @@
 
 **源码版本：** `0.35.0` Alpha / GitHub Pre-release Published
 **治理状态：** REL-035 / FINAL_RECONCILED / ARCHIVED
-**当前治理任务：** ARCH-001 / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW
+**当前治理任务：** None
+**下一候选 Product SP：** SP-021 / Canonical Trusted Interaction Domain / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION
 **下一规划治理项：** None
 **已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
 **当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
@@ -44,8 +45,8 @@ Hermes 是首个首选但可替换的 Agent Shell。Hermes Memory、Conversation
 Response 不分别构成业务事实、审批事实和最终成功证明；Hermes 不得直接访问 AI-Lab
 数据库，AI-Lab 不得依赖 Hermes 内部实现。
 
-ARCH-001 Draft 规划 `trusted-interaction/v1` Shell-neutral、Transport-neutral 合同；RFC-032 与
-ADR-069～072 均为 Proposed。该合同尚未实现，不改变本表任何 v0.35.0 runtime contract version。
+ARCH-001 已采纳 `trusted-interaction/v1` Shell-neutral、Transport-neutral 合同；RFC-032 为 Adopted，
+ADR-069～072 为 Accepted。该合同尚未实现，不改变本表任何 v0.35.0 runtime contract version。
 SP-021、INT-001、PILOT-001 与 REL-036 均未启动。
 
 ## 兼容性边界

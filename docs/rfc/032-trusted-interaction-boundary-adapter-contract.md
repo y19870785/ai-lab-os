@@ -1,9 +1,10 @@
 # RFC-032：可信交互边界与中立 Adapter Contract
 
-- 状态：Proposed
+- 状态：Adopted
 - 治理任务：ARCH-001
 - 日期：2026-08-06
 - 授权 Base：`7bf12b1f4206608f0c67223546e8400eb9066c8e`
+- Adopted by：ARCH-001 / PR #66 / Merge Commit `4f9eab191fc0d99898ee69a2b42912017e4740e3`
 - 关联 ADR：ADR-069、ADR-070、ADR-071、ADR-072
 - 产品实现：NOT_APPROVED / NOT_STARTED
 
@@ -144,4 +145,5 @@ Fake Adapter 与 Hermes Adapter；transport-specific tests 只验证 projection�
 SP-021 只规划 canonical Interaction Domain；INT-001 只规划/实现 Shell Adapter；PILOT-001 只做企业微信
 Owner Pilot；REL-036 独立收集 release evidence。四项均 `NOT_STARTED`，需要单独 Owner 授权。
 
-本 RFC 在 ARCH-001 Draft Planning PR 中保持 Proposed；独立审查、Ready、Merge 与 Adopted 均未授权。
+本 RFC 已由 ARCH-001 / PR #66 合并采纳。Adopted 只确认架构合同；SP-021、INT-001、
+PILOT-001、REL-036 与任何产品实现仍需单独授权。

@@ -1,10 +1,10 @@
 # AI-Lab 已知限制
 
-> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-06
+> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-09
 
 `v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
-Product SP 为 None，Governance Task 为 ARCH-001。ARCH-001 仅处于 Draft Planning，等待独立审查，
-不授权产品实现。
+Product SP 与 Governance Task 均为 None。ARCH-001 已合并、对账并封存，但不授权产品实现；
+SP-021 是未启动且需要单独授权的下一候选 Product SP。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
@@ -39,7 +39,7 @@ general availability。
 | 限制 | 当前事实 |
 |---|---|
 | Agent Shell Adapter 未实现 | Hermes 只是首选候选；当前没有接入、contract test 或替换性证明 |
-| Trusted Interaction Boundary 未实现 | ARCH-001 Draft 已规划 View / Preview / Confirm / Cancel / Modify / Status / Verified Result / Recovery；Domain、Adapter 与 contract tests 均未实现 |
+| Trusted Interaction Boundary 未实现 | ARCH-001 已采纳 View / Preview / Confirm / Cancel / Modify / Status / Verified Result / Recovery 架构合同；Domain、Adapter 与 contract tests 均未实现 |
 | 强 Identity / Workspace mapping 未实现 | 当前 bearer token 与 header/profile scope 不能证明 Channel User、Owner、Operator 或 Approver；Pilot 前必须 fail closed |
 | 统一 Interaction recovery 未实现 | Reminder、Inbox 等有局部恢复证据，但尚无 canonical Interaction / Execution / Verification / Recovery 聚合 |
 | Approval 不是完整领域模型 | 现有局部 confirmation 不能被描述为通用高风险审批能力 |
@@ -58,6 +58,7 @@ general availability。
 | Scheduler 测试时序波动 | PR #33 首次 pytest attempt 曾短暂看到 `running`，唯一重跑通过；未在 SP-014B 或 SP-015 修改 Scheduler |
 | QUALITY-001 | GitHub Ruff 只检查变更 Python 文件，尚无全仓历史清零基线 |
 | Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥，也不调用外部模型 |
-| QUALITY-003 Candidate — DeepSeek Real Brief Contract Audit | `test_deepseek_brief → daily_review.date_invalid`；CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
+| QUALITY-003 Candidate — DeepSeek Real Brief Contract Audit | `test_deepseek_brief → daily_review.date_invalid`；2026-08-09 accidental reproduction；CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
+| QUALITY-004 Candidate — Real-Provider Credential Isolation Guard | 空字符串环境覆盖可能允许 `python-dotenv` 重新加载本地 `.env` 凭据；CANDIDATE / SAFETY_RELEVANT / NON_BLOCKING_FOR_ARCH_001 / NOT_STARTED / NOT_AUTHORIZED。修复获批前必须使用非空 sentinel 并先确认 real tests 全部 skip |
 
 完整机器可读技术债清单以 `project_state.json` 为准。

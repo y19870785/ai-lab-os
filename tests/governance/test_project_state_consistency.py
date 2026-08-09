@@ -71,9 +71,9 @@ def test_verified_release_baseline_and_sp_progression_are_well_formed() -> None:
     assert _sp_number(state["latest_completed_sp"]) == max(completed_numbers)
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
+    assert state["current_governance_task"] is None
     assert state["git_branch"] == "main"
-    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_sp"] == "SP-021"
 
 
 def test_sp015_release_baseline_is_archived_while_sp020_is_latest_work() -> None:
@@ -163,13 +163,13 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert records["SP-015R"]["main_quality_gate"] == "PASSED"
     assert records["SP-015R"]["main_quality_gate_run"] == 29855987444
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
+    assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "arch_001_open_draft_pending_independent_review_not_ready_"
-        "not_merge_authorized_implementation_not_approved"
+        "arch_001_approved_merged_main_quality_gate_passed_"
+        "post_merge_reconciled_archived"
     )
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == "Canonical Trusted Interaction Domain"
     assert records["SP-016"]["name"] == sp016_name
     assert records["SP-016"]["status"] == sp016_status
     assert records["SP-016"]["planning_baseline_defined"] is True
@@ -224,14 +224,14 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert f"| SP-015R | {sp015r_status} |" in text["status"]
     assert f"| SP-016 | {sp016_status} |" in text["status"]
     assert f"| SP-016 | {sp016_name} | COMPLETED / ARCHIVED |" in text["roadmap"]
-    assert "> 当前治理任务：ARCH-001" in text["brain"]
+    assert "> 当前治理任务：None" in text["brain"]
     assert f"> SP-015A 状态：{sp015a_status}" in text["brain"]
     assert f"> SP-015R 状态：{sp015r_status}" in text["brain"]
     assert "最近完成的 Product SP：SP-020" in text["brain"]
     assert "当前 Product SP：None" in text["brain"]
     assert "ACC-016 状态：PASSED / FINAL" in text["brain"]
     assert "ACC-017 状态：PASSED / FINAL" in text["brain"]
-    assert "Current governance task | ARCH-001" in text["health"]
+    assert "Current governance task | None" in text["health"]
     assert "Alpha / PRE_RELEASE_PUBLISHED" in text["health"]
     assert "**治理状态：** REL-035 / FINAL_RECONCILED / ARCHIVED" in text["version_matrix"]
     assert (
@@ -481,16 +481,16 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     )
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
+    assert state["current_governance_task"] is None
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == "Canonical Trusted Interaction Domain"
     assert state["development_status"] == (
-        "arch_001_open_draft_pending_independent_review_not_ready_"
-        "not_merge_authorized_implementation_not_approved"
+        "arch_001_approved_merged_main_quality_gate_passed_"
+        "post_merge_reconciled_archived"
     )
-    assert state["current_work"] == "ARCH-001 Trusted Interaction Architecture Baseline"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp017 == {
@@ -645,10 +645,10 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
-    assert state["current_work"] == "ARCH-001 Trusted Interaction Architecture Baseline"
+    assert state["current_governance_task"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == "Canonical Trusted Interaction Domain"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp018["name"] == "Work Log Query Boundary & Context Closure"
@@ -902,16 +902,16 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["current_governance_task"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == "Canonical Trusted Interaction Domain"
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
     assert state["development_status"] == (
-        "arch_001_open_draft_pending_independent_review_not_ready_"
-        "not_merge_authorized_implementation_not_approved"
+        "arch_001_approved_merged_main_quality_gate_passed_"
+        "post_merge_reconciled_archived"
     )
-    assert state["current_work"] == "ARCH-001 Trusted Interaction Architecture Baseline"
+    assert state["current_work"] is None
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
     assert state["release_status"]["current_version"] == "0.35.0"
     assert "SP-020" in state["sp_records"]
@@ -1318,8 +1318,8 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert (
         "> 最近完成的 Product SP：SP-020\n"
         "> 当前 Product SP：None\n"
-        "> 当前治理任务：ARCH-001\n"
-        "> 下一候选 Product SP：None"
+        "> 当前治理任务：None\n"
+        "> 下一候选 Product SP：SP-021 / Canonical Trusted Interaction Domain"
     ) in brain
     assert (
         "> SP-019 状态：APPROVED / MERGED / POST_MERGE_VERIFIED / "
@@ -1332,16 +1332,16 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     ) in brain
     assert "> Current main:" not in brain
     assert "Latest Merged SP 与 Latest Completed SP 均为 SP-020" in project_status
-    assert "当前 Product SP 仍为 None；ARCH-001 仅开始架构 Planning" in project_status
+    assert "当前 Product SP 与 Governance Task 均为 None" in project_status
     assert (
         "SP-019 Feature PR #51 已由 Acceptance Evidence Head "
         "`420da28664914fda8ccbecadf90947380ec43473` Squash Merge 为 main "
         "`a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49`"
     ) in project_status
     assert "| Current product SP | None |" in project_health
-    assert "| Current governance task | ARCH-001" in project_health
+    assert "| Current governance task | None" in project_health
     assert (
-        "| Next candidate | None |"
+        "| Next candidate Product SP | SP-021 / Canonical Trusted Interaction Domain"
     ) in project_health
     assert (
         "| SP-019 Phase 0 | UserTask Workspace Query Closure / "
@@ -1383,17 +1383,17 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
-    assert state["updated_at"] == "2026-08-06"
+    assert state["updated_at"] == "2026-08-09"
     assert state["latest_merged_sp"] == "SP-020"
     assert state["latest_completed_sp"] == "SP-020"
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
-    assert state["current_work"] == "ARCH-001 Trusted Interaction Architecture Baseline"
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == "Canonical Trusted Interaction Domain"
     assert state["development_status"] == (
-        "arch_001_open_draft_pending_independent_review_not_ready_"
-        "not_merge_authorized_implementation_not_approved"
+        "arch_001_approved_merged_main_quality_gate_passed_"
+        "post_merge_reconciled_archived"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -1995,9 +1995,9 @@ def test_docs001_is_reconciled_and_archived() -> None:
     docs001 = state["governance_tasks"]["DOCS-001"]
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
-    assert state["current_work"] == "ARCH-001 Trusted Interaction Architecture Baseline"
-    assert state["next_candidate_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
+    assert state["next_candidate_sp"] == "SP-021"
     assert state["next_planned_governance_item"] is None
     assert docs001 == {
         "name": (
@@ -2057,11 +2057,11 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     rel035 = state["governance_tasks"]["REL-035"]
     published_release = state["release_status"]["published_releases"]["v0.35.0"]
 
-    assert state["current_governance_task"] == "ARCH-001"
+    assert state["current_governance_task"] is None
     assert state["git_branch"] == "main"
     assert state["current_sp"] is None
-    assert state["next_candidate_sp"] is None
-    assert state["next_candidate_name"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == "Canonical Trusted Interaction Domain"
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
     assert pyproject["project"]["version"] == "0.35.0"
@@ -2254,7 +2254,7 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     }
     combined_current = "\n".join(current_docs.values())
     assert "v0.35.0 Alpha / GitHub Pre-release Published" in current_docs["README.md"]
-    assert "Current Governance Task:** ARCH-001" in current_docs["ROADMAP.md"]
+    assert "当前 Governance Task：** None" in current_docs["ROADMAP.md"]
     assert "FINAL_RECONCILED / ARCHIVED" in combined_current
     assert "PRE_RELEASE_PUBLISHED" in combined_current
     assert "它仍不是 production-ready" in current_docs["README.md"]
@@ -2290,10 +2290,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 192
-    assert "- Git 跟踪 Markdown：192" in inventory
-    assert "- 仓库自有且纳入范围：192" in inventory
-    assert "- 新增中文治理文档：19" in inventory
+    assert len(tracked_markdown) == 193
+    assert "- Git 跟踪 Markdown：193" in inventory
+    assert "- 仓库自有且纳入范围：193" in inventory
+    assert "- 新增中文治理文档：20" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -2344,9 +2344,9 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
 
     strat = state["governance_tasks"]["STRAT-001"]
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
-    assert state["current_work"] == "ARCH-001 Trusted Interaction Architecture Baseline"
-    assert state["next_candidate_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
+    assert state["next_candidate_sp"] == "SP-021"
     assert state["next_planned_governance_item"] is None
     assert state["current_version"] == "0.35.0"
     assert strat["type"] == "PRODUCT_STRATEGY_GOVERNANCE"
@@ -2449,7 +2449,7 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     assert "SP-021、INT-001、PILOT-001 与 REL-036 均未启动" in project_status
 
 
-def test_arch001_trusted_interaction_planning_baseline_is_consistent() -> None:
+def test_arch001_post_merge_reconciliation_is_consistent() -> None:
     state = _load_state()
     arch = state["governance_tasks"]["ARCH-001"]
     plan = (
@@ -2465,31 +2465,51 @@ def test_arch001_trusted_interaction_planning_baseline_is_consistent() -> None:
         ROOT / "docs/adr/ADR-072-identity-workspace-mapping-fail-closed.md",
     ]
     adrs = [path.read_text(encoding="utf-8-sig") for path in adr_paths]
+    reconciliation = (
+        ROOT / "docs/project/ARCH-001-POST-MERGE-RECONCILIATION.md"
+    ).read_text(encoding="utf-8-sig")
 
     assert state["current_sp"] is None
-    assert state["current_governance_task"] == "ARCH-001"
-    assert state["current_work"] == "ARCH-001 Trusted Interaction Architecture Baseline"
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
+    assert state["next_candidate_sp"] == "SP-021"
+    assert state["next_candidate_name"] == "Canonical Trusted Interaction Domain"
     assert state["next_planned_governance_item"] is None
     assert state["current_version"] == "0.35.0"
     assert arch["base_commit"] == "7bf12b1f4206608f0c67223546e8400eb9066c8e"
     assert arch["status"] == (
-        "OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / "
-        "NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED"
+        "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / "
+        "POST_MERGE_RECONCILED / ARCHIVED"
     )
     assert arch["planning_authorized"] is True
-    assert arch["independent_review_status"] == "PENDING_INDEPENDENT_REVIEW"
-    assert arch["ready_authorized"] is False
-    assert arch["merge_authorized"] is False
+    assert arch["independent_review_status"] == "FINAL_REVIEW_PASSED"
+    assert arch["ready_authorized"] is True
+    assert arch["merge_authorized"] is True
     assert arch["implementation_approved"] is False
-    assert arch["rfc"] == "RFC-032 / PROPOSED"
+    assert arch["planning_pr"] == 66
+    assert arch["approved_head"] == "5edbb37da6bf9d4b7dd98f5d0e860c695a08ce90"
+    assert arch["merge_base"] == "7bf12b1f4206608f0c67223546e8400eb9066c8e"
+    assert arch["merge_commit"] == "4f9eab191fc0d99898ee69a2b42912017e4740e3"
+    assert arch["merged_at"] == "2026-08-09T08:37:05Z"
+    assert arch["main_quality_gate_run"] == 31303951232
+    assert arch["main_quality_gate"] == "SUCCESS"
+    assert arch["post_merge_reconciled"] is True
+    assert arch["archived"] is True
+    assert arch["reconciliation"] == (
+        "ARCH-001A / SELF-CLOSING / NO_RECURSIVE_RECONCILIATION"
+    )
+    assert arch["rfc"] == "RFC-032 / ADOPTED"
     assert arch["adrs"] == [
-        "ADR-069 / PROPOSED",
-        "ADR-070 / PROPOSED",
-        "ADR-071 / PROPOSED",
-        "ADR-072 / PROPOSED",
+        "ADR-069 / ACCEPTED",
+        "ADR-070 / ACCEPTED",
+        "ADR-071 / ACCEPTED",
+        "ADR-072 / ACCEPTED",
     ]
     assert arch["follow_up_tasks"] == {
-        "SP-021": "NOT_STARTED / IMPLEMENTATION_NOT_APPROVED",
+        "SP-021": (
+            "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / "
+            "IMPLEMENTATION_NOT_APPROVED"
+        ),
         "INT-001": "NOT_STARTED / NOT_APPROVED",
         "PILOT-001": "NOT_STARTED / NOT_APPROVED",
         "REL-036": "NOT_STARTED / NOT_APPROVED",
@@ -2498,6 +2518,15 @@ def test_arch001_trusted_interaction_planning_baseline_is_consistent() -> None:
         "CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / "
         "NOT_STARTED / NOT_AUTHORIZED"
     )
+    assert "2026-08-09 accidental reproduction" in arch["quality_003_observation"]
+    assert arch["quality_004"] == (
+        "CANDIDATE / SAFETY_RELEVANT / NON_BLOCKING_FOR_ARCH_001 / "
+        "NOT_STARTED / NOT_AUTHORIZED"
+    )
+    quality = state["quality_candidates"]
+    assert quality["QUALITY-003"]["authorized"] is False
+    assert quality["QUALITY-004"]["authorized"] is False
+    assert "DISABLED" in quality["QUALITY-004"]["required_interim_guard"]
     assert arch["superseded_pr"] == {
         "number": 62,
         "head": "31cf7125b2543fb2d29ed38f373ddcebe4170b70",
@@ -2518,9 +2547,11 @@ def test_arch001_trusted_interaction_planning_baseline_is_consistent() -> None:
     ):
         assert arch[unchanged] is False
 
-    assert "状态：Proposed" in rfc
-    assert all("Status: Proposed" in adr for adr in adrs)
-    combined = "\n".join([plan, rfc, *adrs])
+    assert "状态：Adopted" in rfc
+    assert "Adopted by：ARCH-001 / PR #66" in rfc
+    assert all("Status: Accepted" in adr for adr in adrs)
+    assert all("Accepted by: ARCH-001 / PR #66" in adr for adr in adrs)
+    combined = "\n".join([plan, rfc, *adrs, reconciliation])
     required_contracts = (
         "Hermes Memory != Business Fact Source",
         "Hermes Conversation != Approval Fact Source",
@@ -2541,14 +2572,21 @@ def test_arch001_trusted_interaction_planning_baseline_is_consistent() -> None:
         "CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001",
     )
     assert all(marker in combined for marker in required_contracts)
-    forbidden_states = (
-        "FINAL_INDEPENDENT_REVIEW_PASSED",
-        "READY_AUTHORIZED",
-        "MERGE_AUTHORIZED / NOT_MERGED",
-        "RFC-032 / ADOPTED",
-        "ADR-069 / ACCEPTED",
-    )
-    assert all(marker not in combined for marker in forbidden_states)
+    for evidence in (
+        "31303951232 / SUCCESS",
+        "22 files",
+        "ARCH-001A / SELF-CLOSING / NO_RECURSIVE_RECONCILIATION",
+        "2026-08-09 accidental reproduction",
+        "QUALITY-004 Candidate — Real-Provider Credential Isolation Guard",
+        "Product code changed：No",
+        "Schema / Migration changed：No",
+        "Runtime changed：No",
+        "Dependencies / lock files changed：No",
+        "CLOSED / DRAFT / NOT_MERGED / SUPERSEDED_BY_STRAT_001",
+    ):
+        assert evidence in reconciliation
+    assert "ARCH-001B" in reconciliation
+    assert "不创建 ARCH-001B" in reconciliation
 
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
@@ -2558,6 +2596,7 @@ def test_arch001_trusted_interaction_planning_baseline_is_consistent() -> None:
     )
     for path in [
         "docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md",
+        "docs/project/ARCH-001-POST-MERGE-RECONCILIATION.md",
         "docs/rfc/032-trusted-interaction-boundary-adapter-contract.md",
         "docs/adr/ADR-069-shell-neutral-versioned-interaction-contract.md",
         "docs/adr/ADR-070-preview-confirmation-ai-lab-canonical-facts.md",

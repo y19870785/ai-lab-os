@@ -129,8 +129,8 @@ STRAT-001
 ```
 
 - STRAT-001：冻结产品定位、所有权、路线与治理基线；本 PR 仅完成此项。
-- ARCH-001：定义中立 Adapter Contract 与 Trusted Interaction Boundary；已获 Planning 授权，当前 Draft 等待独立审查，未授权实现。
-- SP-021：在新架构基线上完整重规划可信对话工作交互；尚未启动。
+- ARCH-001：中立 Adapter Contract 与 Trusted Interaction Boundary 已通过 PR #66 合并采纳、对账并封存；未授权实现。
+- SP-021：Canonical Trusted Interaction Domain；下一候选 Product SP，尚未启动且需要单独授权。
 - INT-001：实现 Hermes Adapter；尚未批准、尚未启动。
 - PILOT-001：企业微信 Owner Pilot；尚未批准、尚未启动。
 - REL-036：独立发布规划、验收、Tag 与 Release 授权；尚未批准、尚未启动。
