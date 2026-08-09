@@ -3,7 +3,7 @@
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
-> SP-021 已通过 ACC-021 A～R、最终独立审查与 main Quality Gate，并完成合并、对账和封存。当前 Product SP 与 Governance Task 均为 None。
+> SP-021 已通过 ACC-021 A～R、最终独立审查与 main Quality Gate，并完成合并、对账和封存。INT-001 已获实现授权，当前为 Draft / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
@@ -14,6 +14,7 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **成熟度：Alpha / local-first / single-user-oriented**
 **当前 Product SP：None**
 **当前 Governance Task：None**
+**当前工作：INT-001**
 **下一候选 Product SP：None**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
@@ -26,13 +27,17 @@ AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业�
 ARCH-001 定义 Shell-neutral、Transport-neutral 的 Trusted Interaction Architecture Baseline：View、
 Preview、Confirm、Cancel、Modify、Status、Verified Result、Recovery，以及 identity/Workspace、重试、
 审计和恢复合同。RFC-032 已 Adopted，ADR-069～072 已 Accepted；SP-021 已实现并验证
-canonical domain、持久化、Status/View 与 Fake/Reference port；INT-001 是下一候选任务但尚未启动，
-PILOT-001 与 REL-036 均未启动。详见
+canonical domain、持久化、Status/View 与 Fake/Reference port；INT-001 已实现 Shell-neutral
+application adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
+当前仍为 Draft 并等待独立审查。真实 Hermes/Channel 未接入；PILOT-001 与 REL-036 均未启动。详见
 `docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md` 和
 `docs/project/ARCH-001-POST-MERGE-RECONCILIATION.md`。
 SP-021 实施边界、ACC-021 与合并后对账见 `docs/project/SP-021-CANONICAL-TRUSTED-INTERACTION-DOMAIN.md`、
 `docs/acceptance/SP-021-canonical-trusted-interaction-domain.md` 和
 `docs/project/SP-021-POST-MERGE-RECONCILIATION.md`。
+INT-001 实现与 MCP 边界见 `docs/project/INT-001-SHELL-NEUTRAL-TRUSTED-INTERACTION-ADAPTER.md`、
+`docs/project/INT-001-HERMES-MCP-PROJECTION.md` 和
+`docs/acceptance/INT-001-shell-neutral-trusted-interaction-adapter.md`。
 
 ## 当前能力
 
