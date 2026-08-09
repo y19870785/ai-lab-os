@@ -18,10 +18,16 @@ from core.daily_review import DailyReviewService
 from core.database.manager import DatabaseManager
 from core.inbox import InboxService, SQLiteInboxRepository
 from core.interaction import (
+    ApprovalAuthority,
+    CanonicalCommitAuthority,
+    DisabledApprovalAuthority,
+    DisabledCanonicalCommitAuthority,
     DisabledExecutionPort,
     DisabledVerificationPort,
+    ExecutionPort,
     InteractionService,
     SQLiteInteractionRepository,
+    VerificationPort,
 )
 from core.knowledge.manager import KnowledgeManager
 from core.knowledge.sqlite_store import SQLiteKnowledgeStore
@@ -155,6 +161,10 @@ async def create_system(
     settings: SystemSettings,
     *,
     clock: Clock | None = None,
+    interaction_execution_port: ExecutionPort | None = None,
+    interaction_verification_port: VerificationPort | None = None,
+    interaction_canonical_commit_authority: CanonicalCommitAuthority | None = None,
+    interaction_approval_authority: ApprovalAuthority | None = None,
 ) -> SystemContainer:
     """Construct one dependency graph without starting any lifecycle twice."""
 
@@ -203,8 +213,10 @@ async def create_system(
     interaction_service = InteractionService(
         interaction_repository,
         clock,
-        DisabledExecutionPort(),
-        DisabledVerificationPort(),
+        interaction_execution_port or DisabledExecutionPort(),
+        interaction_verification_port or DisabledVerificationPort(),
+        interaction_canonical_commit_authority or DisabledCanonicalCommitAuthority(),
+        interaction_approval_authority or DisabledApprovalAuthority(),
     )
 
     user_task_repository = None

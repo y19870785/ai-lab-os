@@ -89,6 +89,7 @@ class Interaction(BaseModel):
     current_approval_id: str | None = None
     current_execution_id: str | None = None
     verified_result_id: str | None = None
+    canonical_commit_evidence_id: str | None = None
     recovery_id: str | None = None
     canonical_object_id: str | None = None
     safe_summary: str = ""
@@ -153,6 +154,8 @@ class Approval(BaseModel):
     namespace: str
     approver_id: str
     approver_role: str
+    authority_evidence_id: str
+    authority_evidence_digest: str
     policy_reference: str
     created_at: datetime
     expires_at: datetime
@@ -190,11 +193,30 @@ class VerifiedResult(BaseModel):
     verification_method: str
     outcome: str
     verified_at: datetime
-    canonical_object_id: str | None = None
-    canonical_revision: int | None = None
-    canonical_commit_succeeded: bool = False
+    canonical_commit_evidence_id: str | None = None
     external_reference: str | None = None
     evidence_digest: str
+
+
+class CanonicalCommitEvidence(BaseModel):
+    """AI-Lab-owned proof of the canonical commit required by a Preview."""
+
+    model_config = ConfigDict(frozen=True)
+
+    canonical_commit_evidence_id: str
+    interaction_id: str
+    execution_id: str
+    preview_id: str
+    tenant_id: str
+    workspace_id: str
+    namespace: str
+    policy_reference: str
+    commit_required: bool
+    outcome: str
+    canonical_object_id: str | None = None
+    canonical_revision: int | None = None
+    evidence_digest: str
+    committed_at: datetime
 
 
 class Recovery(BaseModel):
@@ -245,6 +267,7 @@ class InteractionStatus(BaseModel):
     approval: Approval | None = None
     execution: Execution | None = None
     verified_result: VerifiedResult | None = None
+    canonical_commit_evidence: CanonicalCommitEvidence | None = None
     recovery: Recovery | None = None
 
 
@@ -303,8 +326,54 @@ class VerificationObservation(BaseModel):
     method: str = "reference"
     outcome: str = ""
     evidence_digest: str = ""
-    canonical_object_id: str | None = None
-    canonical_revision: int | None = None
-    canonical_commit_succeeded: bool = False
     external_reference: str | None = None
     failure: FailureInfo | None = None
+
+
+class CanonicalCommitRequest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    interaction_id: str
+    execution_id: str
+    preview_id: str
+    tenant_id: str
+    workspace_id: str
+    namespace: str
+    operation: str
+    policy_reference: str
+    normalized_parameters: dict[str, Any]
+    target_object_id: str | None = None
+    target_revision: int | None = None
+    trace_id: str
+
+
+class ApprovalAuthorizationRequest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    interaction_id: str
+    preview_id: str
+    preview_revision: int
+    tenant_id: str
+    workspace_id: str
+    namespace: str
+    approver_id: str
+    requested_role: str
+    policy_reference: str
+    trace_id: str
+
+
+class ApprovalAuthorizationEvidence(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    authority_evidence_id: str
+    interaction_id: str
+    preview_id: str
+    preview_revision: int
+    tenant_id: str
+    workspace_id: str
+    namespace: str
+    approver_id: str
+    authorized_role: str
+    policy_reference: str
+    evidence_digest: str
+    expires_at: datetime

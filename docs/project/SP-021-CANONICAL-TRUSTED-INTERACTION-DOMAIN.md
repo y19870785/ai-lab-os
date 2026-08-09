@@ -21,7 +21,7 @@ INT-001、PILOT-001 与 REL-036 均为 `NOT_STARTED / NOT_APPROVED`。QUALITY-00
 | FailureInfo | CORE | 所有应用边界失败继续使用统一 `FailureInfo` / `FailureException` |
 | WorkspaceKey | ADAPT | SP-021 禁止空值、默认回退和 actor 不匹配，严格 fail closed |
 | revision / CAS | CORE | aggregate 更新必须匹配 expected revision |
-| idempotency | CORE | `Workspace + command + key` 持久化；同 key 异 payload 冲突 |
+| idempotency | CORE | `Workspace + command + key` 由 SQLite 唯一约束原子 claim；同 key 同 payload 并发只产生一个 canonical Interaction，同 key 异 payload 冲突且不能覆盖先到 identity |
 | Inbox resolution Saga | RETAIN | 参考其持久化 claim 与恢复思路，不耦合 Interaction |
 | UserTask / Reminder / Inbox / Waiting-For / Work Log | RETAIN | 维持现有行为，本 SP 不迁移既有写入口 |
 | Agenda / Daily Review / Action Hint | RETAIN | 维持现有 read model 与行为 |
@@ -34,9 +34,10 @@ INT-001、PILOT-001 与 REL-036 均为 `NOT_STARTED / NOT_APPROVED`。QUALITY-00
 
 - `Preview`：零外部副作用，绑定 Workspace、actor、operation、policy、revision 和 expiry；
 - `Confirmation`：绑定 exact Preview / revision / actor / Workspace / expiry；
-- `Approval`：与 Confirmation 分离，记录 approver role 与独立证据；
+- `Approval`：与 Confirmation 分离；caller 自报 role 不构成 authority，只有 AI-Lab-controlled `ApprovalAuthority` 验证且绑定 Preview/Workspace/actor/policy 的证据才能形成事实；
 - `Execution`：记录 attempt、executor type、idempotency、external reference 与不确定性；
-- `VerifiedResult`：记录验证方法、证据摘要、canonical object/revision 与 commit evidence；
+- `VerifiedResult`：只记录外部验证观察及证据摘要，不能声明 canonical commit 成功；
+- `CanonicalCommitEvidence`：由 AI-Lab-controlled authority 产生并持久化，独立记录 operation 所需 canonical object/revision 与 commit 证据；
 - `Recovery`：记录 uncertain/failure 后的恢复状态与证据；
 - `AuditEvidence`：重建请求、Preview、授权、执行、验证、恢复和状态转换链。
 
@@ -52,6 +53,7 @@ Channel、Shell、Adapter 和 Transport 标识只能进入 correlation / audit�
 - Modify 通过创建下一 Preview revision 实现，旧 Preview 原子标记为 `SUPERSEDED`；
 - Confirmation 只接受当前 active Preview 的 exact revision；需要 Approval 时 Confirmation 不直接授权执行；
 - `AUTHORIZED → EXECUTING` 先持久化 Execution intent，再调用 port；
+- 若进程在 intent 已提交而 port outcome 尚未持久化时崩溃，重启后的显式 recover 会保留原 Execution ID、attempt 与 idempotency，转入 verification/recovery，绝不再次调用 ExecutionPort；
 - accepted / acknowledged / HTTP-like success 只能进入 `VERIFYING`，不能进入 `SUCCEEDED`；
 - uncertain outcome 进入 `RECOVERY_REQUIRED` 并同时持久化 Recovery；
 - 只有 VerifiedResult 与必要 canonical commit evidence 同时存在，才进入 `SUCCEEDED`；
@@ -61,10 +63,14 @@ Channel、Shell、Adapter 和 Transport 标识只能进入 correlation / audit�
 
 新增独立 `interactions.db`，按仓库既有初始化约定执行可重复的 additive `CREATE TABLE IF NOT EXISTS`：
 
+- Schema initialization changed：Yes；
+- `migration_changed` 机器字段：True，表示本 SP 改变了 additive schema initialization behavior；
+- Standalone migration file changed：No，未新增独立 Migration 文件。
+
 | 表 | 职责 |
 | --- | --- |
 | `interaction_records` | 当前 aggregate snapshot、Workspace、revision 与 lifecycle state |
-| `interaction_facts` | Preview、Confirmation、Approval、Execution、VerifiedResult、Recovery |
+| `interaction_facts` | 持久化 Preview、Confirmation、Approval、Execution、VerifiedResult、CanonicalCommitEvidence 与 Recovery 等权威事实 |
 | `interaction_idempotency` | Workspace-scoped command deduplication 与 payload conflict |
 | `interaction_audit` | 有序 canonical audit evidence |
 
@@ -74,7 +80,7 @@ Channel、Shell、Adapter 和 Transport 标识只能进入 correlation / audit�
 
 `InteractionService` 提供 transport-neutral 的 create、preview/modify、confirm、approve、cancel、expire、execute、verify/recover、status、view 与 audit 能力。所有 mutation 要求显式 Workspace、actor、expected revision 和 idempotency key。
 
-`ExecutionPort` 与 `VerificationPort` 是最小 Protocol，不 import Hermes、MCP、WeCom、Browser 或 provider SDK。Composition Root 只注入 `DisabledExecutionPort` 与 `DisabledVerificationPort`，因此 production 默认不会产生外部副作用。测试使用确定性的 `ReferenceExecutionPort` 与 `ReferenceVerificationPort`。
+`ExecutionPort` 与 `VerificationPort` 是外部执行/观察的最小 Protocol；`ApprovalAuthority` 与 `CanonicalCommitAuthority` 是 AI-Lab-controlled trusted input 边界。四者均不 import Hermes、MCP、WeCom、Browser 或 provider SDK。Composition Root 默认注入 Disabled 实现，因而 production 不会产生外部副作用，也不会把 caller role 或 verifier response 当成权威证据。测试使用确定性的 Reference 实现。
 
 ## FailureInfo 与安全
 
@@ -82,7 +88,7 @@ Channel、Shell、Adapter 和 Transport 标识只能进入 correlation / audit�
 
 ## Restart、ordering 与 recovery
 
-aggregate、facts、idempotency 与 audit 全部落 SQLite。进程重启后 Status 能恢复当前 revision；expired Preview 仍按注入 Clock 判定；同 key 重试不会重复调用 execution port；late command 受 CAS/state precondition 拒绝；uncertain execution 只能进入 verify/recover，不允许 blind retry。
+aggregate、facts、idempotency 与 audit 全部落 SQLite。create idempotency 在数据库事务内先 claim canonical identity，不使用 conflict update 覆盖已存在 identity。进程重启后 Status 能恢复当前 revision；expired Preview 仍按注入 Clock 判定；同 key 重试不会重复调用 execution port；intent/outcome crash gap 由显式 recover 进入安全 verification/recovery；late command 受 CAS/state precondition 拒绝；uncertain execution 不允许 blind retry。
 
 ## ACC-021 映射
 
@@ -99,7 +105,8 @@ ACC-021 A～R 的自动证据位于：
 
 - 没有真实 Execution / Verification Adapter；外部系统验证方式由 INT-001 或后续业务 Adapter 定义；
 - 没有 Channel Identity、OAuth、企业微信绑定或多租户 Schema；调用方必须提供已解析的 WorkspaceKey 与 actor；
-- policy reference 与 Approval role 已成为 canonical facts，但正式 Policy engine / RBAC 不属于本 SP；
+- policy reference 与经 authority 验证的 Approval 已成为 canonical facts；默认 authority fail closed，正式 Policy engine / RBAC 不属于本 SP；
+- 默认 canonical commit authority fail closed；SP-021 仅用 deterministic internal/reference evidence 验证合同，不接入 UserTask、Reminder、Quote 等真实业务提交；
 - 现有业务域尚未迁移到 Trusted Interaction Boundary；
 - 没有 HTTP、streaming、Shell UI、webhook、poll worker 或自动 recovery worker；Status/View 为 Python application boundary。
 

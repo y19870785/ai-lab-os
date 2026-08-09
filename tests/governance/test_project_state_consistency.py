@@ -2621,6 +2621,11 @@ def test_sp021_draft_implementation_state_is_consistent() -> None:
     assert sp021["implementation_authorized"] is True
     assert sp021["implementation_started"] is True
     assert sp021["implementation_complete"] is False
+    assert sp021["schema_changed"] is True
+    assert sp021["migration_changed"] is True
+    assert sp021["schema_initialization_changed"] is True
+    assert sp021["standalone_migration_file_changed"] is False
+    assert "no standalone migration file" in sp021["migration_change_meaning"]
     assert sp021["ready_authorized"] is False
     assert sp021["merge_authorized"] is False
     assert sp021["follow_up_tasks"] == {
@@ -2653,6 +2658,7 @@ def test_sp021_draft_implementation_state_is_consistent() -> None:
         "Approval",
         "Execution",
         "VerifiedResult",
+        "CanonicalCommitEvidence",
         "Recovery",
         "FailureInfo",
         "Workspace",

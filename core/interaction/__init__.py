@@ -2,7 +2,11 @@
 
 from core.interaction.models import (
     Approval,
+    ApprovalAuthorizationEvidence,
+    ApprovalAuthorizationRequest,
     AuditEvidence,
+    CanonicalCommitEvidence,
+    CanonicalCommitRequest,
     Confirmation,
     Execution,
     ExecutionObservation,
@@ -23,6 +27,10 @@ from core.interaction.models import (
     VerifiedResult,
 )
 from core.interaction.ports import (
+    ApprovalAuthority,
+    CanonicalCommitAuthority,
+    DisabledApprovalAuthority,
+    DisabledCanonicalCommitAuthority,
     DisabledExecutionPort,
     DisabledVerificationPort,
     ExecutionPort,
@@ -33,8 +41,16 @@ from core.interaction.service import InteractionService
 
 __all__ = [
     "Approval",
+    "ApprovalAuthority",
+    "ApprovalAuthorizationEvidence",
+    "ApprovalAuthorizationRequest",
     "AuditEvidence",
+    "CanonicalCommitAuthority",
+    "CanonicalCommitEvidence",
+    "CanonicalCommitRequest",
     "Confirmation",
+    "DisabledApprovalAuthority",
+    "DisabledCanonicalCommitAuthority",
     "DisabledExecutionPort",
     "DisabledVerificationPort",
     "Execution",

@@ -23,6 +23,10 @@ from core.interaction import (
 )
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
+from tests.helpers.interaction import (
+    ReferenceApprovalAuthority,
+    ReferenceCanonicalCommitAuthority,
+)
 
 pytestmark = pytest.mark.asyncio(loop_scope="function")
 NOW = datetime(2026, 8, 9, 4, 0, tzinfo=UTC)
@@ -35,13 +39,19 @@ def workspace(name: str = "workspace-a", actor: str = "owner-a") -> WorkspaceKey
     )
 
 
-async def service(tmp_path: Path, *, execution=None, verification=None, clock=None):
+async def service(
+    tmp_path: Path, *, execution=None, verification=None, clock=None,
+    canonical_commit=None, approval_authority=None,
+):
+    active_clock = clock or MutableClock(NOW)
     manager = DatabaseManager(tmp_path)
     repository = SQLiteInteractionRepository(manager, tmp_path / "interactions.db")
     result = InteractionService(
-        repository, clock or MutableClock(NOW),
+        repository, active_clock,
         execution or DisabledExecutionPort(),
         verification or DisabledVerificationPort(),
+        canonical_commit or ReferenceCanonicalCommitAuthority(active_clock),
+        approval_authority or ReferenceApprovalAuthority(active_clock),
     )
     await result.initialize()
     return result, manager
@@ -174,7 +184,9 @@ async def test_expiry_uses_injected_clock(tmp_path: Path):
     manager.close_all()
 
 
-async def test_high_risk_approval_is_distinct_from_confirmation(tmp_path: Path):
+async def test_high_risk_approval_authority_fails_closed_and_is_distinct_from_confirmation(
+    tmp_path: Path,
+):
     result, manager = await service(tmp_path)
     interaction = await create(result)
     preview = await result.preview(
@@ -194,15 +206,57 @@ async def test_high_risk_approval_is_distinct_from_confirmation(tmp_path: Path):
                                   interaction_id=interaction.interaction_id)
     assert current.interaction.lifecycle_state == LifecycleState.AWAITING_CONFIRMATION
     assert current.confirmation is not None and current.approval is None
+    with pytest.raises(FailureException) as missing:
+        await result.approve(
+            workspace=workspace(), actor_id="owner-a",
+            interaction_id=interaction.interaction_id,
+            preview_id=preview.preview_id,
+            preview_revision=preview.preview_revision,
+            expected_revision=current.interaction.revision,
+            approver_role="owner",
+            idempotency_key="approve-missing",
+        )
+    assert missing.value.failure.code == "interaction.approval_authority_missing"
+    with pytest.raises(FailureException) as claimed_admin:
+        await result.approve(
+            workspace=workspace(), actor_id="owner-a",
+            interaction_id=interaction.interaction_id,
+            preview_id=preview.preview_id,
+            preview_revision=preview.preview_revision,
+            expected_revision=current.interaction.revision,
+            approver_role="admin",
+            authority_evidence="trusted-approval",
+            idempotency_key="approve-claimed-admin",
+        )
+    assert claimed_admin.value.failure.code == "interaction.approval_authority_invalid"
+    with pytest.raises(FailureException) as invalid:
+        await result.approve(
+            workspace=workspace(), actor_id="owner-a",
+            interaction_id=interaction.interaction_id,
+            preview_id=preview.preview_id,
+            preview_revision=preview.preview_revision,
+            expected_revision=current.interaction.revision,
+            approver_role="owner",
+            authority_evidence="caller-supplied-role-is-not-authority",
+            idempotency_key="approve-invalid",
+        )
+    assert invalid.value.failure.code == "interaction.approval_authority_invalid"
+    unchanged = await result.status(
+        workspace=workspace(), actor_id="owner-a",
+        interaction_id=interaction.interaction_id,
+    )
+    assert unchanged.interaction.lifecycle_state == LifecycleState.AWAITING_CONFIRMATION
+    assert unchanged.approval is None
     approval = await result.approve(
         workspace=workspace(), actor_id="owner-a", interaction_id=interaction.interaction_id,
         preview_id=preview.preview_id, preview_revision=preview.preview_revision,
         expected_revision=current.interaction.revision, approver_role="owner",
-        idempotency_key="approve",
+        authority_evidence="trusted-approval", idempotency_key="approve",
     )
     current = await result.status(workspace=workspace(), actor_id="owner-a",
                                   interaction_id=interaction.interaction_id)
     assert approval.approval_id == current.approval.approval_id
+    assert approval.authority_evidence_id.startswith("aae_")
     assert current.interaction.lifecycle_state == LifecycleState.AUTHORIZED
     manager.close_all()
 

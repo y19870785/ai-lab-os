@@ -10,6 +10,7 @@ import pytest
 from core.database import DatabaseManager
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.interaction import (
+    DisabledCanonicalCommitAuthority,
     InteractionService,
     LifecycleState,
     RecoveryStatus,
@@ -20,6 +21,8 @@ from core.interaction import (
 from core.workspace.models import WorkspaceKey
 from tests.helpers.clock import MutableClock
 from tests.helpers.interaction import (
+    ReferenceApprovalAuthority,
+    ReferenceCanonicalCommitAuthority,
     ReferenceExecutionPort,
     ReferenceVerificationPort,
     acknowledged,
@@ -33,13 +36,19 @@ WS = WorkspaceKey(tenant_id="tenant", workspace_id="workspace", namespace="busin
                   user_id="owner", trace_id="trace")
 
 
-async def make_service(tmp_path: Path, execution=None, verification=None, clock=None):
+async def make_service(
+    tmp_path: Path, execution=None, verification=None, clock=None,
+    canonical_commit=None, approval_authority=None,
+):
+    active_clock = clock or MutableClock(NOW)
     manager = DatabaseManager(tmp_path)
     repository = SQLiteInteractionRepository(manager, tmp_path / "interactions.db")
     service = InteractionService(
-        repository, clock or MutableClock(NOW),
+        repository, active_clock,
         execution or ReferenceExecutionPort(acknowledged()),
         verification or ReferenceVerificationPort(verified()),
+        canonical_commit or ReferenceCanonicalCommitAuthority(active_clock),
+        approval_authority or ReferenceApprovalAuthority(active_clock),
     )
     await service.initialize()
     return service, manager
@@ -171,10 +180,12 @@ async def test_acc_021_j_verified_external_result_without_canonical_commit_canno
     verifier = ReferenceVerificationPort(VerificationObservation(
         status=VerificationStatus.VERIFIED, method="read-after-write",
         outcome="external mutation observed", evidence_digest="verified-digest",
-        canonical_object_id="object-1", canonical_revision=2,
-        canonical_commit_succeeded=False,
     ))
-    service, manager = await make_service(tmp_path, verification=verifier)
+    service, manager = await make_service(
+        tmp_path,
+        verification=verifier,
+        canonical_commit=DisabledCanonicalCommitAuthority(),
+    )
     authorized = await authorize(service)
     executing = await service.start_execution(
         workspace=WS, actor_id="owner", interaction_id=authorized.interaction.interaction_id,
@@ -185,7 +196,9 @@ async def test_acc_021_j_verified_external_result_without_canonical_commit_canno
         expected_revision=executing.interaction.revision, idempotency_key="verify",
     )
     assert result.interaction.lifecycle_state == LifecycleState.RECOVERY_REQUIRED
-    assert result.verified_result is None
+    assert result.verified_result is not None
+    assert result.verified_result.canonical_commit_evidence_id is None
+    assert result.canonical_commit_evidence is None
     assert result.interaction.failure.code == "interaction.canonical_commit_failed"
     manager.close_all()
 

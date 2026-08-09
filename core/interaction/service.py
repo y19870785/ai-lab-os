@@ -12,7 +12,10 @@ from core.clock import Clock
 from core.errors import ErrorCategory, FailureException, FailureInfo
 from core.interaction.models import (
     Approval,
+    ApprovalAuthorizationRequest,
     AuditEvidence,
+    CanonicalCommitEvidence,
+    CanonicalCommitRequest,
     Confirmation,
     Execution,
     ExecutionRequest,
@@ -30,7 +33,14 @@ from core.interaction.models import (
     VerificationStatus,
     VerifiedResult,
 )
-from core.interaction.ports import ExecutionPort, VerificationPort
+from core.interaction.ports import (
+    ApprovalAuthority,
+    CanonicalCommitAuthority,
+    DisabledApprovalAuthority,
+    DisabledCanonicalCommitAuthority,
+    ExecutionPort,
+    VerificationPort,
+)
 from core.interaction.repository import SQLiteInteractionRepository
 from core.workspace.models import WorkspaceKey
 
@@ -51,11 +61,17 @@ class InteractionService:
         clock: Clock,
         execution_port: ExecutionPort,
         verification_port: VerificationPort,
+        canonical_commit_authority: CanonicalCommitAuthority | None = None,
+        approval_authority: ApprovalAuthority | None = None,
     ) -> None:
         self._repository = repository
         self._clock = clock
         self._execution_port = execution_port
         self._verification_port = verification_port
+        self._canonical_commit_authority = (
+            canonical_commit_authority or DisabledCanonicalCommitAuthority()
+        )
+        self._approval_authority = approval_authority or DisabledApprovalAuthority()
 
     async def initialize(self) -> None:
         await self._repository.initialize()
@@ -205,9 +221,11 @@ class InteractionService:
                    "scope": scope, "safe_summary": safe_summary,
                    "correlation": correlation or {}}
         digest = self._digest(payload)
-        existing = await self._idempotent(scope, "create", idempotency_key, digest, trace_id)
-        if existing is not None:
-            return existing
+        if not idempotency_key.strip():
+            self._fail(
+                "interaction.idempotency_key_missing", ErrorCategory.VALIDATION,
+                "create", "Idempotency key is required", trace_id=trace_id,
+            )
         now = self._clock.now()
         interaction = Interaction(
             interaction_id=self._id("int"), tenant_id=scope[0], workspace_id=scope[1],
@@ -216,13 +234,19 @@ class InteractionService:
             policy_reference=policy_reference, safe_summary=safe_summary,
             correlation=correlation or {}, created_at=now, updated_at=now,
         )
-        await self._repository.create(
-            interaction,
-            self._audit(interaction, event_type="interaction.requested",
-                        from_state=None, idempotency_key=idempotency_key),
-            operation="create", idempotency_key=idempotency_key, payload_digest=digest,
-        )
-        return interaction
+        try:
+            return await self._repository.create(
+                interaction,
+                self._audit(interaction, event_type="interaction.requested",
+                            from_state=None, idempotency_key=idempotency_key),
+                operation="create", idempotency_key=idempotency_key,
+                payload_digest=digest,
+            )
+        except ValueError as exc:
+            self._fail(
+                "interaction.idempotency_conflict", ErrorCategory.CONFLICT,
+                "create", str(exc), trace_id=trace_id,
+            )
 
     async def preview(
         self,
@@ -416,6 +440,7 @@ class InteractionService:
         self, *, workspace: WorkspaceKey, actor_id: str, interaction_id: str,
         preview_id: str, preview_revision: int, expected_revision: int,
         approver_role: str, idempotency_key: str,
+        authority_evidence: str | None = None,
         expires_in: timedelta = timedelta(minutes=15),
     ) -> Approval:
         scope = self._scope(workspace, actor_id)
@@ -423,6 +448,7 @@ class InteractionService:
             "interaction_id": interaction_id, "preview_id": preview_id,
             "preview_revision": preview_revision, "expected_revision": expected_revision,
             "approver_id": actor_id, "approver_role": approver_role,
+            "authority_evidence_digest": self._digest(authority_evidence or ""),
             "expires_in": expires_in.total_seconds(),
         })
         prior = await self._idempotent(scope, "approve", idempotency_key, digest,
@@ -455,13 +481,59 @@ class InteractionService:
             self._fail("interaction.approval_invalid", ErrorCategory.VALIDATION,
                        "approve", "Approver role and future expiry are required",
                        trace_id=current.trace_id)
+        if not authority_evidence:
+            self._fail(
+                "interaction.approval_authority_missing",
+                ErrorCategory.PERMISSION_DENIED,
+                "approve",
+                "AI-Lab-controlled approval authority evidence is required",
+                trace_id=current.trace_id,
+            )
+        authority_request = ApprovalAuthorizationRequest(
+            interaction_id=interaction_id,
+            preview_id=preview_id,
+            preview_revision=preview_revision,
+            tenant_id=current.tenant_id,
+            workspace_id=current.workspace_id,
+            namespace=current.namespace,
+            approver_id=actor_id,
+            requested_role=approver_role,
+            policy_reference=current.policy_reference,
+            trace_id=current.trace_id,
+        )
+        try:
+            authority = await self._approval_authority.authorize(
+                authority_request, authority_evidence
+            )
+        except Exception as exc:  # noqa: BLE001 - trusted authority boundary
+            self._fail(
+                "interaction.approval_authority_invalid",
+                ErrorCategory.PERMISSION_DENIED,
+                "approve",
+                f"Approval authority rejected the evidence: {exc}",
+                trace_id=current.trace_id,
+            )
+        if authority is None or not self._approval_authority_matches(
+            authority_request, authority, now
+        ):
+            self._fail(
+                "interaction.approval_authority_invalid",
+                ErrorCategory.PERMISSION_DENIED,
+                "approve",
+                "Approval authority evidence is invalid or does not match the Preview",
+                trace_id=current.trace_id,
+            )
         approval = Approval(
             approval_id=self._id("apr"), interaction_id=interaction_id,
             preview_id=preview_id, preview_revision=preview_revision,
             tenant_id=current.tenant_id, workspace_id=current.workspace_id,
             namespace=current.namespace, approver_id=actor_id,
-            approver_role=approver_role, policy_reference=current.policy_reference,
-            created_at=now, expires_at=min(preview.expires_at, now + expires_in),
+            approver_role=authority.authorized_role,
+            authority_evidence_id=authority.authority_evidence_id,
+            authority_evidence_digest=authority.evidence_digest,
+            policy_reference=current.policy_reference,
+            created_at=now,
+            expires_at=min(preview.expires_at, authority.expires_at, now + expires_in),
         )
         updated = current.model_copy(update={
             "lifecycle_state": LifecycleState.AUTHORIZED,
@@ -473,11 +545,29 @@ class InteractionService:
             [self._audit(updated, event_type="interaction.approved",
                          from_state=current.lifecycle_state,
                          idempotency_key=idempotency_key,
-                         references={"preview_id": preview_id,
-                                     "approval_id": approval.approval_id})],
+                          references={"preview_id": preview_id,
+                                      "approval_id": approval.approval_id,
+                                      "authority_evidence_id":
+                                          approval.authority_evidence_id})],
             "approve", idempotency_key, digest,
         )
         return approval
+
+    @staticmethod
+    def _approval_authority_matches(request, evidence, now) -> bool:
+        return (
+            evidence.interaction_id == request.interaction_id
+            and evidence.preview_id == request.preview_id
+            and evidence.preview_revision == request.preview_revision
+            and evidence.tenant_id == request.tenant_id
+            and evidence.workspace_id == request.workspace_id
+            and evidence.namespace == request.namespace
+            and evidence.approver_id == request.approver_id
+            and evidence.authorized_role == request.requested_role
+            and evidence.policy_reference == request.policy_reference
+            and bool(evidence.evidence_digest)
+            and now < evidence.expires_at
+        )
 
     async def cancel(
         self, *, workspace: WorkspaceKey, actor_id: str, interaction_id: str,
@@ -696,10 +786,13 @@ class InteractionService:
         self, *, workspace: WorkspaceKey, actor_id: str, interaction_id: str,
         expected_revision: int, idempotency_key: str,
         _idempotency_operation: str = "verify",
+        _idempotency_digest: str | None = None,
     ) -> InteractionStatus:
         scope = self._scope(workspace, actor_id)
-        digest = self._digest({"interaction_id": interaction_id,
-                               "expected_revision": expected_revision})
+        digest = _idempotency_digest or self._digest({
+            "interaction_id": interaction_id,
+            "expected_revision": expected_revision,
+        })
         prior = await self._idempotent(
             scope, _idempotency_operation, idempotency_key, digest, workspace.trace_id
         )
@@ -733,27 +826,55 @@ class InteractionService:
             observation = None
         else:
             failure = observation.failure
+        preview = await self._repository.fact(
+            interaction_id, Preview, current.current_preview_id
+        )
+        if preview is None:
+            self._fail(
+                "interaction.preview_missing", ErrorCategory.CONFLICT,
+                "verify", "Canonical Preview is missing", trace_id=current.trace_id,
+            )
         now = self._clock.now()
-        facts: list[VerifiedResult | Recovery] = []
+        facts: list[VerifiedResult | CanonicalCommitEvidence | Recovery] = []
         references = {"execution_id": execution.execution_id}
         if (observation is not None
                 and observation.status == VerificationStatus.VERIFIED
-                and observation.evidence_digest
-                and (not (await self._repository.fact(interaction_id, Preview,
-                                                       current.current_preview_id)).canonical_commit_required
-                     or observation.canonical_commit_succeeded)):
+                and observation.evidence_digest):
             result = VerifiedResult(
                 verified_result_id=self._id("vrs"), interaction_id=interaction_id,
                 execution_id=execution.execution_id, tenant_id=current.tenant_id,
                 workspace_id=current.workspace_id, namespace=current.namespace,
                 verification_method=observation.method, outcome=observation.outcome,
-                verified_at=now, canonical_object_id=observation.canonical_object_id,
-                canonical_revision=observation.canonical_revision,
-                canonical_commit_succeeded=observation.canonical_commit_succeeded,
+                verified_at=now,
                 external_reference=observation.external_reference,
                 evidence_digest=observation.evidence_digest,
             )
             facts.append(result)
+            try:
+                commit_evidence = await self._canonical_commit(
+                    current, preview, execution, now
+                )
+            except Exception as exc:  # noqa: BLE001 - canonical authority boundary
+                commit_evidence = None
+                failure = FailureInfo(
+                    code="interaction.canonical_commit_failed",
+                    category=ErrorCategory.PERSISTENCE_FAILURE,
+                    message=f"AI-Lab canonical commit evidence unavailable: {exc}",
+                    component="trusted_interaction", operation="verify",
+                    retryable=False, trace_id=current.trace_id,
+                )
+            references["verified_result_id"] = result.verified_result_id
+        else:
+            result = None
+            commit_evidence = None
+
+        if result is not None and commit_evidence is not None:
+            result = result.model_copy(update={
+                "canonical_commit_evidence_id":
+                    commit_evidence.canonical_commit_evidence_id,
+            })
+            facts[0] = result
+            facts.append(commit_evidence)
             if current.recovery_id is not None:
                 recovery = await self._repository.fact(
                     interaction_id, Recovery, current.recovery_id
@@ -761,10 +882,12 @@ class InteractionService:
                 if recovery is not None:
                     facts.append(recovery.model_copy(update={
                         "status": RecoveryStatus.RECOVERED,
-                        "evidence_digest": observation.evidence_digest,
+                        "evidence_digest": commit_evidence.evidence_digest,
                         "updated_at": now,
                     }))
-            references["verified_result_id"] = result.verified_result_id
+            references["canonical_commit_evidence_id"] = (
+                commit_evidence.canonical_commit_evidence_id
+            )
             final = current.model_copy(update={
                 "lifecycle_state": LifecycleState.SUCCEEDED,
                 "execution_status": ExecutionStatus.COMPLETED,
@@ -773,19 +896,13 @@ class InteractionService:
                 if current.recovery_status != RecoveryStatus.NOT_REQUIRED
                 else RecoveryStatus.NOT_REQUIRED,
                 "verified_result_id": result.verified_result_id,
-                "canonical_object_id": observation.canonical_object_id,
+                "canonical_commit_evidence_id":
+                    commit_evidence.canonical_commit_evidence_id,
+                "canonical_object_id": commit_evidence.canonical_object_id,
                 "failure": None, "revision": current.revision + 1,
                 "updated_at": now,
             })
         else:
-            if observation is not None and observation.status == VerificationStatus.VERIFIED:
-                failure = FailureInfo(
-                    code="interaction.canonical_commit_failed",
-                    category=ErrorCategory.PERSISTENCE_FAILURE,
-                    message="Verified external result lacks required canonical commit evidence",
-                    component="trusted_interaction", operation="verify",
-                    retryable=False, trace_id=current.trace_id,
-                )
             recovery = Recovery(
                 recovery_id=current.recovery_id or self._id("rcv"),
                 interaction_id=interaction_id, tenant_id=current.tenant_id,
@@ -797,11 +914,17 @@ class InteractionService:
             )
             facts.append(recovery)
             references["recovery_id"] = recovery.recovery_id
+            if result is not None:
+                references["verified_result_id"] = result.verified_result_id
             final = current.model_copy(update={
                 "lifecycle_state": LifecycleState.RECOVERY_REQUIRED,
-                "verification_status": observation.status if observation else VerificationStatus.UNCERTAIN,
+                "verification_status": (
+                    observation.status if observation else VerificationStatus.UNCERTAIN
+                ),
                 "recovery_status": RecoveryStatus.PENDING,
-                "recovery_id": recovery.recovery_id, "failure": failure,
+                "recovery_id": recovery.recovery_id,
+                "verified_result_id": result.verified_result_id if result else None,
+                "failure": failure,
                 "revision": current.revision + 1, "updated_at": now,
             })
         await self._transition(final, current.revision, facts,
@@ -815,9 +938,181 @@ class InteractionService:
         return await self.status(workspace=workspace, actor_id=actor_id,
                                  interaction_id=interaction_id)
 
-    async def recover(self, **kwargs: Any) -> InteractionStatus:
-        """Recovery is a fresh, idempotent verification against persisted execution evidence."""
-        return await self.verify(**kwargs, _idempotency_operation="recover")
+    async def _canonical_commit(
+        self, interaction: Interaction, preview: Preview, execution: Execution, now
+    ) -> CanonicalCommitEvidence:
+        if not preview.canonical_commit_required:
+            return CanonicalCommitEvidence(
+                canonical_commit_evidence_id=self._id("cce"),
+                interaction_id=interaction.interaction_id,
+                execution_id=execution.execution_id,
+                preview_id=preview.preview_id,
+                tenant_id=interaction.tenant_id,
+                workspace_id=interaction.workspace_id,
+                namespace=interaction.namespace,
+                policy_reference=interaction.policy_reference,
+                commit_required=False,
+                outcome="NOT_REQUIRED",
+                canonical_object_id=preview.target_object_id,
+                canonical_revision=preview.target_revision,
+                evidence_digest=self._digest({
+                    "interaction_id": interaction.interaction_id,
+                    "preview_id": preview.preview_id,
+                    "policy_reference": interaction.policy_reference,
+                    "outcome": "NOT_REQUIRED",
+                }),
+                committed_at=now,
+            )
+        request = CanonicalCommitRequest(
+            interaction_id=interaction.interaction_id,
+            execution_id=execution.execution_id,
+            preview_id=preview.preview_id,
+            tenant_id=interaction.tenant_id,
+            workspace_id=interaction.workspace_id,
+            namespace=interaction.namespace,
+            operation=interaction.operation,
+            policy_reference=interaction.policy_reference,
+            normalized_parameters=preview.normalized_parameters,
+            target_object_id=preview.target_object_id,
+            target_revision=preview.target_revision,
+            trace_id=interaction.trace_id,
+        )
+        evidence = await self._canonical_commit_authority.record(request)
+        if not self._canonical_commit_matches(request, evidence):
+            raise ValueError("canonical commit evidence does not match the request")
+        return evidence
+
+    @staticmethod
+    def _canonical_commit_matches(request, evidence) -> bool:
+        return (
+            evidence.interaction_id == request.interaction_id
+            and evidence.execution_id == request.execution_id
+            and evidence.preview_id == request.preview_id
+            and evidence.tenant_id == request.tenant_id
+            and evidence.workspace_id == request.workspace_id
+            and evidence.namespace == request.namespace
+            and evidence.policy_reference == request.policy_reference
+            and evidence.commit_required is True
+            and evidence.outcome == "COMMITTED"
+            and bool(evidence.canonical_object_id)
+            and evidence.canonical_revision is not None
+            and bool(evidence.evidence_digest)
+        )
+
+    async def recover(
+        self, *, workspace: WorkspaceKey, actor_id: str, interaction_id: str,
+        expected_revision: int, idempotency_key: str,
+    ) -> InteractionStatus:
+        """Reconcile a persisted execution gap, then verify without re-execution."""
+
+        scope = self._scope(workspace, actor_id)
+        digest = self._digest({
+            "interaction_id": interaction_id,
+            "expected_revision": expected_revision,
+        })
+        prior = await self._idempotent(
+            scope, "recover", idempotency_key, digest, workspace.trace_id
+        )
+        if prior is not None:
+            return await self.status(
+                workspace=workspace, actor_id=actor_id, interaction_id=interaction_id
+            )
+        current = await self._require(scope, interaction_id, workspace.trace_id)
+        if current.revision != expected_revision:
+            reconciled = await self._idempotent(
+                scope, "reconcile_execution", f"{idempotency_key}:execution-gap",
+                digest, workspace.trace_id,
+            )
+            if reconciled is None or reconciled.interaction_id != interaction_id:
+                self._fail(
+                    "interaction.revision_conflict", ErrorCategory.CONFLICT,
+                    "recover", "Interaction revision is stale",
+                    trace_id=current.trace_id,
+                )
+            current = await self._require(scope, interaction_id, workspace.trace_id)
+        if (current.lifecycle_state == LifecycleState.EXECUTING
+                and current.execution_status == ExecutionStatus.ATTEMPTED):
+            current = await self._reconcile_execution_gap(
+                current=current,
+                actor_id=actor_id,
+                idempotency_key=f"{idempotency_key}:execution-gap",
+                payload_digest=digest,
+            )
+        return await self.verify(
+            workspace=workspace,
+            actor_id=actor_id,
+            interaction_id=interaction_id,
+            expected_revision=current.revision,
+            idempotency_key=idempotency_key,
+            _idempotency_operation="recover",
+            _idempotency_digest=digest,
+        )
+
+    async def _reconcile_execution_gap(
+        self, *, current: Interaction, actor_id: str,
+        idempotency_key: str, payload_digest: str,
+    ) -> Interaction:
+        execution = await self._repository.fact(
+            current.interaction_id, Execution, current.current_execution_id
+        )
+        if execution is None or execution.status != ExecutionStatus.ATTEMPTED:
+            self._fail(
+                "interaction.execution_missing", ErrorCategory.CONFLICT,
+                "recover", "Persisted attempted Execution is missing",
+                trace_id=current.trace_id,
+            )
+        now = self._clock.now()
+        failure = FailureInfo(
+            code="interaction.execution_outcome_uncertain_after_restart",
+            category=ErrorCategory.EXECUTION_FAILURE,
+            message="Execution intent exists without a persisted port outcome",
+            component="trusted_interaction", operation="recover",
+            retryable=False, trace_id=current.trace_id,
+        )
+        uncertain_execution = execution.model_copy(update={
+            "status": ExecutionStatus.UNCERTAIN,
+            "failure": failure,
+            "finished_at": now,
+        })
+        recovery = Recovery(
+            recovery_id=current.recovery_id or self._id("rcv"),
+            interaction_id=current.interaction_id,
+            tenant_id=current.tenant_id,
+            workspace_id=current.workspace_id,
+            namespace=current.namespace,
+            actor_id=actor_id,
+            status=RecoveryStatus.PENDING,
+            reason=failure.code,
+            created_at=now,
+            updated_at=now,
+        )
+        reconciled = current.model_copy(update={
+            "lifecycle_state": LifecycleState.RECOVERY_REQUIRED,
+            "execution_status": ExecutionStatus.UNCERTAIN,
+            "verification_status": VerificationStatus.UNCERTAIN,
+            "recovery_status": RecoveryStatus.PENDING,
+            "recovery_id": recovery.recovery_id,
+            "failure": failure,
+            "revision": current.revision + 1,
+            "updated_at": now,
+        })
+        await self._transition(
+            reconciled,
+            current.revision,
+            [uncertain_execution, recovery],
+            [self._audit(
+                reconciled,
+                event_type="interaction.execution_gap_reconciled",
+                from_state=current.lifecycle_state,
+                idempotency_key=idempotency_key,
+                references={"execution_id": execution.execution_id},
+                failure=failure,
+            )],
+            "reconcile_execution",
+            idempotency_key,
+            payload_digest,
+        )
+        return reconciled
 
     async def status(self, *, workspace: WorkspaceKey, actor_id: str,
                      interaction_id: str) -> InteractionStatus:
@@ -837,6 +1132,11 @@ class InteractionService:
                                                   current.current_execution_id),
             verified_result=await self._repository.fact(interaction_id, VerifiedResult,
                                                         current.verified_result_id),
+            canonical_commit_evidence=await self._repository.fact(
+                interaction_id,
+                CanonicalCommitEvidence,
+                current.canonical_commit_evidence_id,
+            ),
             recovery=await self._repository.fact(interaction_id, Recovery, current.recovery_id),
         )
 

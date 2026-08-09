@@ -10,6 +10,9 @@
   实现 Workspace fail-closed、revision/CAS、持久化幂等和 restart recovery。
 - 新增 Shell/Transport-neutral Execution 与 Verification ports；生产 Composition Root 仅注入 disabled
   ports，测试使用 deterministic Reference ports，Tool/HTTP acknowledgement 不能产生最终成功。
+- 根据独立审查补强数据库原子 create idempotency claim、execution intent/outcome crash-gap
+  reconciliation、Approval authority fail-closed，以及 AI-Lab-owned `CanonicalCommitEvidence`；
+  VerificationPort 不再能声明 canonical commit 成功。
 - 建立 ACC-021 A～R 自动化证据。当前仍为 OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW /
   NOT_READY / NOT_MERGE_AUTHORIZED；INT-001、PILOT-001、REL-036 未启动。
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from collections.abc import Iterable
 from pathlib import Path
 from typing import TypeVar
@@ -14,6 +15,7 @@ from core.database.connection import transaction
 from core.interaction.models import (
     Approval,
     AuditEvidence,
+    CanonicalCommitEvidence,
     Confirmation,
     Execution,
     Interaction,
@@ -22,7 +24,10 @@ from core.interaction.models import (
     VerifiedResult,
 )
 
-Fact = Preview | Confirmation | Approval | Execution | VerifiedResult | Recovery
+Fact = (
+    Preview | Confirmation | Approval | Execution | VerifiedResult
+    | CanonicalCommitEvidence | Recovery
+)
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
@@ -119,11 +124,16 @@ class SQLiteInteractionRepository:
         operation: str,
         idempotency_key: str,
         payload_digest: str,
-    ) -> None:
+    ) -> Interaction:
         with (
             self._manager.lease(self.LOGICAL_NAME, self._path) as conn,
             transaction(conn),
         ):
+                existing = self._claim_create_idempotency(
+                    conn, interaction, operation, idempotency_key, payload_digest
+                )
+                if existing is not None:
+                    return existing
                 conn.execute(
                     """INSERT INTO interaction_records
                     (interaction_id,tenant_id,workspace_id,namespace,revision,lifecycle_state,payload)
@@ -136,9 +146,7 @@ class SQLiteInteractionRepository:
                     ),
                 )
                 self._insert_audit(conn, audit)
-                self._insert_idempotency(
-                    conn, interaction, operation, idempotency_key, payload_digest
-                )
+                return interaction
 
     async def transition(
         self,
@@ -191,16 +199,69 @@ class SQLiteInteractionRepository:
             (tenant_id,workspace_id,namespace,operation,idempotency_key,payload_digest,interaction_id,result_payload)
             VALUES(?,?,?,?,?,?,?,?)
             ON CONFLICT(tenant_id,workspace_id,namespace,operation,idempotency_key)
-            DO UPDATE SET interaction_id=excluded.interaction_id,
-                          result_payload=excluded.result_payload
-            WHERE interaction_idempotency.payload_digest=excluded.payload_digest""",
+            DO NOTHING""",
             (
                 interaction.tenant_id, interaction.workspace_id, interaction.namespace,
                 operation, key, digest, interaction.interaction_id, self._dump(interaction),
             ),
         )
-        if cursor.rowcount != 1:
+        if cursor.rowcount == 1:
+            return
+        row = conn.execute(
+            """SELECT payload_digest,interaction_id FROM interaction_idempotency
+            WHERE tenant_id=? AND workspace_id=? AND namespace=?
+            AND operation=? AND idempotency_key=?""",
+            (
+                interaction.tenant_id, interaction.workspace_id, interaction.namespace,
+                operation, key,
+            ),
+        ).fetchone()
+        if (row is None or row["payload_digest"] != digest
+                or row["interaction_id"] != interaction.interaction_id):
             raise ValueError("idempotency conflict")
+        conn.execute(
+            """UPDATE interaction_idempotency SET result_payload=?
+            WHERE tenant_id=? AND workspace_id=? AND namespace=?
+            AND operation=? AND idempotency_key=? AND payload_digest=?
+            AND interaction_id=?""",
+            (
+                self._dump(interaction), interaction.tenant_id,
+                interaction.workspace_id, interaction.namespace, operation, key,
+                digest, interaction.interaction_id,
+            ),
+        )
+
+    def _claim_create_idempotency(
+        self, conn, interaction: Interaction, operation: str, key: str, digest: str
+    ) -> Interaction | None:
+        """Atomically claim create identity before inserting the aggregate."""
+
+        try:
+            conn.execute(
+                """INSERT INTO interaction_idempotency
+                (tenant_id,workspace_id,namespace,operation,idempotency_key,
+                 payload_digest,interaction_id,result_payload)
+                VALUES(?,?,?,?,?,?,?,?)""",
+                (
+                    interaction.tenant_id, interaction.workspace_id,
+                    interaction.namespace, operation, key, digest,
+                    interaction.interaction_id, self._dump(interaction),
+                ),
+            )
+            return None
+        except sqlite3.IntegrityError:
+            row = conn.execute(
+                """SELECT payload_digest,result_payload FROM interaction_idempotency
+                WHERE tenant_id=? AND workspace_id=? AND namespace=?
+                AND operation=? AND idempotency_key=?""",
+                (
+                    interaction.tenant_id, interaction.workspace_id,
+                    interaction.namespace, operation, key,
+                ),
+            ).fetchone()
+            if row is None or row["payload_digest"] != digest:
+                raise ValueError("idempotency conflict") from None
+            return self._load(Interaction, row["result_payload"])
 
     def _insert_audit(self, conn, audit: AuditEvidence) -> None:
         conn.execute(
