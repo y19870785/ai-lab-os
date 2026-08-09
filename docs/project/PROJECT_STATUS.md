@@ -12,8 +12,9 @@
 | 最近完成的 SP | SP-021 |
 | 当前 Product SP | None |
 | 当前治理任务 | None |
-| 当前工作 | INT-001 |
-| INT-001 | IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED |
+| 当前工作 | None |
+| INT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED |
+| PILOT-001 | NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | ARCH-001 Planning PR | #66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3` |
 | RFC-032 | Adopted |
@@ -56,10 +57,10 @@
 
 STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所有权和 v0.36+ 路线基线。
 当前 Product SP 与 Governance Task 均为 None。SP-021 已通过最终独立审查、ACC-021 A～R、PR #68
-Squash Merge 与 main Quality Gate `31311699187`，并完成治理对账和封存。INT-001 已获实现授权，
-已实现 Shell-neutral Adapter、fail-closed identity/policy authority 与本地 stdio MCP reference
-projection；当前为 Draft / PENDING_INDEPENDENT_REVIEW，未获 Ready 或 Merge 授权。PILOT-001
-与 REL-036 均未启动；版本、Tag 和 Release 未改变。
+Squash Merge 与 main Quality Gate `31311699187`，并完成治理对账和封存。INT-001 已实现
+Shell-neutral Adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
+通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 和 main Quality Gate `31324821391`，
+并完成治理对账和封存。PILOT-001 仅为未授权下一候选；REL-036 未启动，版本、Tag 和 Release 未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
 与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge
 reconciliation 并封存；该结果不构成任何实现授权。
@@ -157,4 +158,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 - v0.35.0：PRE_RELEASE_PUBLISHED
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP 与 Current Governance Task 均为 None。SP-021 已完成合并、main Quality Gate、ACC-021 最终验收、治理对账与封存。当前工作 INT-001 已获实现授权并处于 Draft / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED；真实 Hermes/Channel 未接入。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。
+Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP、Current Governance Task 与 Current Work 均为 None。SP-021 已完成合并、main Quality Gate、ACC-021 最终验收、治理对账与封存。INT-001 已完成 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate、治理对账与封存；真实 Hermes/Channel 未接入。PILOT-001 仅为未授权下一候选。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。
