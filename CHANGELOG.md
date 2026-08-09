@@ -2,6 +2,17 @@
 
 ## [Unreleased] 未发布
 
+### SP-021 可信交互领域实施（Draft）
+
+- 新增 AI-Lab canonical Interaction aggregate、Preview、Confirmation、Approval、Execution、
+  VerifiedResult、Recovery、Status/View 与审计证据。
+- 新增 `interactions.db` additive schema，复用 DatabaseManager、ConnectionLease 与 transaction；
+  实现 Workspace fail-closed、revision/CAS、持久化幂等和 restart recovery。
+- 新增 Shell/Transport-neutral Execution 与 Verification ports；生产 Composition Root 仅注入 disabled
+  ports，测试使用 deterministic Reference ports，Tool/HTTP acknowledgement 不能产生最终成功。
+- 建立 ACC-021 A～R 自动化证据。当前仍为 OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW /
+  NOT_READY / NOT_MERGE_AUTHORIZED；INT-001、PILOT-001、REL-036 未启动。
+
 ### ARCH-001 可信交互架构规划与合并后对账
 
 - ARCH-001 已通过独立审查并由 PR #66 Squash Merge：审计 v0.35.0 现有业务域与通用 Runtime，定义

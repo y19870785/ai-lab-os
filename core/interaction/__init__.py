@@ -1,0 +1,61 @@
+"""Canonical trusted interaction domain."""
+
+from core.interaction.models import (
+    Approval,
+    AuditEvidence,
+    Confirmation,
+    Execution,
+    ExecutionObservation,
+    ExecutionRequest,
+    ExecutionStatus,
+    Interaction,
+    InteractionStatus,
+    InteractionView,
+    LifecycleState,
+    Preview,
+    PreviewStatus,
+    Recovery,
+    RecoveryStatus,
+    ResolutionPhase,
+    VerificationObservation,
+    VerificationRequest,
+    VerificationStatus,
+    VerifiedResult,
+)
+from core.interaction.ports import (
+    DisabledExecutionPort,
+    DisabledVerificationPort,
+    ExecutionPort,
+    VerificationPort,
+)
+from core.interaction.repository import SQLiteInteractionRepository
+from core.interaction.service import InteractionService
+
+__all__ = [
+    "Approval",
+    "AuditEvidence",
+    "Confirmation",
+    "DisabledExecutionPort",
+    "DisabledVerificationPort",
+    "Execution",
+    "ExecutionObservation",
+    "ExecutionPort",
+    "ExecutionRequest",
+    "ExecutionStatus",
+    "Interaction",
+    "InteractionService",
+    "InteractionStatus",
+    "InteractionView",
+    "LifecycleState",
+    "Preview",
+    "PreviewStatus",
+    "Recovery",
+    "RecoveryStatus",
+    "ResolutionPhase",
+    "SQLiteInteractionRepository",
+    "VerificationObservation",
+    "VerificationPort",
+    "VerificationRequest",
+    "VerificationStatus",
+    "VerifiedResult",
+]

@@ -5,7 +5,7 @@
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。`v0.35.0` GitHub Pre-release 已发布并远端验证，REL-035 已最终对账并封存。STRAT-001 与 ARCH-001 均已合并、通过 main Quality Gate 并完成对账封存；当前 Product SP 与 Governance Task 均为 None。SP-021 是下一候选 Product SP，但未启动且需要单独授权。这些能力不等同于 production-ready 或完整多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已完成合并、验收与封存；`v0.35.0` GitHub Pre-release 保持不变。当前 Product SP 为 SP-021，Governance Task 为 None。SP-021 已获实现授权并处于 Draft / PENDING_INDEPENDENT_REVIEW，正在实现 canonical Trusted Interaction Domain；未获 Ready 或 Merge 授权。这些能力不等同于 production-ready 或完整多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -19,11 +19,10 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已通�
 | SP-019 feature merge main | `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / run `30382312419` / SUCCESS |
 | SP-019 reconciliation merge main | `934075ceefe39ede3c624b621b7673d62f6d06dd` / run `30387237549` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current product SP | None |
+| Current product SP | SP-021 / IMPLEMENTATION_IN_PROGRESS / DRAFT / PENDING_INDEPENDENT_REVIEW |
 | Current governance task | None |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | RFC-032 / ADR-069～072 | Adopted / Accepted |
-| Next candidate Product SP | SP-021 / Canonical Trusted Interaction Domain / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
 | Next planned governance item | None |
 | STRAT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | STRAT-001 main Quality Gate | `31038950753` / SUCCESS |

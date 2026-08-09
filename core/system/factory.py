@@ -17,6 +17,12 @@ from core.coordination.orchestrator import AgentOrchestrator
 from core.daily_review import DailyReviewService
 from core.database.manager import DatabaseManager
 from core.inbox import InboxService, SQLiteInboxRepository
+from core.interaction import (
+    DisabledExecutionPort,
+    DisabledVerificationPort,
+    InteractionService,
+    SQLiteInteractionRepository,
+)
 from core.knowledge.manager import KnowledgeManager
 from core.knowledge.sqlite_store import SQLiteKnowledgeStore
 from core.memory.manager import MemoryManager
@@ -190,6 +196,15 @@ async def create_system(
         work_log_repository,
         clock=clock,
         timezone_name=settings.timezone_name,
+    )
+    interaction_repository = SQLiteInteractionRepository(
+        database_manager, settings.sqlite_dir / "interactions.db"
+    )
+    interaction_service = InteractionService(
+        interaction_repository,
+        clock,
+        DisabledExecutionPort(),
+        DisabledVerificationPort(),
     )
 
     user_task_repository = None
@@ -439,6 +454,8 @@ async def create_system(
         memory_stores=memory_stores,
         work_log_repository=work_log_repository,
         work_log_service=work_log_service,
+        interaction_repository=interaction_repository,
+        interaction_service=interaction_service,
         knowledge_manager=knowledge_manager,
         tool_registry=tool_registry,
         tool_executor=tool_executor,

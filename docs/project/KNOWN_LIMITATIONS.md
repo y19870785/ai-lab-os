@@ -3,8 +3,8 @@
 > 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-09
 
 `v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
-Product SP 与 Governance Task 均为 None。ARCH-001 已合并、对账并封存，但不授权产品实现；
-SP-021 是未启动且需要单独授权的下一候选 Product SP。
+Current Product SP 为 SP-021，Governance Task 为 None。SP-021 已获实现授权并处于 Draft /
+PENDING_INDEPENDENT_REVIEW；未获 Ready 或 Merge 授权。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
@@ -39,10 +39,10 @@ general availability。
 | 限制 | 当前事实 |
 |---|---|
 | Agent Shell Adapter 未实现 | Hermes 只是首选候选；当前没有接入、contract test 或替换性证明 |
-| Trusted Interaction Boundary 未实现 | ARCH-001 已采纳 View / Preview / Confirm / Cancel / Modify / Status / Verified Result / Recovery 架构合同；Domain、Adapter 与 contract tests 均未实现 |
+| Trusted Interaction 外部闭环未完成 | SP-021 Draft 已实现 canonical Domain、持久化、Status/View 与 deterministic Reference ports；真实 Adapter、Shell、Channel 与 contract integration 属于 INT-001/PILOT-001，均未启动 |
 | 强 Identity / Workspace mapping 未实现 | 当前 bearer token 与 header/profile scope 不能证明 Channel User、Owner、Operator 或 Approver；Pilot 前必须 fail closed |
-| 统一 Interaction recovery 未实现 | Reminder、Inbox 等有局部恢复证据，但尚无 canonical Interaction / Execution / Verification / Recovery 聚合 |
-| Approval 不是完整领域模型 | 现有局部 confirmation 不能被描述为通用高风险审批能力 |
+| Interaction recovery 尚无自动 worker | SP-021 已持久化 Interaction / Execution / Verification / Recovery 并提供显式 recover；未实现 poll/webhook/background reconciliation |
+| Approval 尚无完整 Policy/RBAC | SP-021 将 Approval 与 Confirmation 分离并持久化，但正式 Policy engine、角色目录与多主体审批不在本 SP |
 | 企业微信 Owner Pilot 未开始 | 渠道、身份映射、消息可靠性和人工验收均未执行 |
 | PR #62 已关闭且被取代 | 保留分支、commit、discussion 与历史设计证据；Implementation 从未获授权 |
 | 通用平台扩张已冻结但未删除 | Agent/Tool/Workflow/Coordination 重叠代码仍存在，弃用需要独立审计与授权 |

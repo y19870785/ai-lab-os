@@ -4,8 +4,8 @@
 
 ## 汇总
 
-- Git 跟踪 Markdown：193
-- 仓库自有且纳入范围：193
+- Git 跟踪 Markdown：195
+- 仓库自有且纳入范围：195
 - 排除：0
 - 初始中文：93
 - 初始中英混合：41
@@ -42,6 +42,7 @@
 | `docs/acceptance/SP-018-work-log-query-boundary-context-closure.md` | Acceptance | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/acceptance/SP-019-daily-review-read-model.md` | Acceptance | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/acceptance/SP-020-local-daily-operating-loop.md` | Acceptance | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
+| `docs/acceptance/SP-021-canonical-trusted-interaction-domain.md` | Acceptance | 是 | 中英混合 | 是 | SP-021 新增 | — | 完成 |
 | `docs/adr/000-template.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-001-core-layer-package-structure.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-002-message-bus-interface.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
@@ -166,6 +167,7 @@
 | `docs/project/ROADMAP.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/project/SECURITY_CHECKLIST.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/project/SP-020-IMPLEMENTATION-TASK.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
+| `docs/project/SP-021-CANONICAL-TRUSTED-INTERACTION-DOMAIN.md` | Project | 是 | 中英混合 | 是 | SP-021 新增 | — | 完成 |
 | `docs/project/TECHNICAL_DEBT.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/project/TERMINOLOGY_GLOSSARY.md` | Project | 是 | 中文 | 否 | 保持原样 | — | 完成 |
 | `docs/project/TEST_MATRIX.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |

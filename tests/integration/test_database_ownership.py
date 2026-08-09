@@ -21,7 +21,7 @@ async def test_composition_root_injects_one_manager_and_preserves_paths(tmp_path
     assert all(store._db_manager is system.database_manager for store in managed_stores)
     await system.start()
     try:
-        assert system.database_manager.connection_count == 6
+        assert system.database_manager.connection_count == 7
         assert system.database_manager.get_path("episodic") == (
             settings.sqlite_dir / "episodic.db"
         ).resolve()
@@ -33,6 +33,9 @@ async def test_composition_root_injects_one_manager_and_preserves_paths(tmp_path
         ).resolve()
         assert system.database_manager.get_path("waiting_for") == (
             settings.sqlite_dir / "followups.db"
+        ).resolve()
+        assert system.database_manager.get_path("interactions") == (
+            settings.sqlite_dir / "interactions.db"
         ).resolve()
         assert not (settings.data_dir / "database" / "episodic.db").exists()
         assert (await system.health())["components"]["database"]["status"] == "healthy"
@@ -46,7 +49,8 @@ async def test_system_shutdown_closes_every_managed_connection(tmp_path: Path):
     connections = [
         system.database_manager.get_connection(name)
         for name in (
-            "episodic", "semantic", "decision", "user_tasks", "inbox", "waiting_for"
+            "episodic", "semantic", "decision", "user_tasks", "inbox", "waiting_for",
+            "interactions",
         )
     ]
 
