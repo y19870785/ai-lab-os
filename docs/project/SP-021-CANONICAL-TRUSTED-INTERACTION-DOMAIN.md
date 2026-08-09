@@ -1,8 +1,8 @@
 # SP-021 Canonical Trusted Interaction Domain 实施记录
 
-- 状态：IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / IMPLEMENTATION_IN_PROGRESS / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED
+- 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED
 - Base：`072276207ec0cc0d69372ef38e833c3e1b72ae90`
-- Current Product SP：SP-021
+- Current Product SP：None
 - Current Governance Task：None
 - 架构权威：RFC-031、ADR-067～068、RFC-032、ADR-069～072
 
@@ -99,7 +99,7 @@ ACC-021 A～R 的自动证据位于：
 - `tests/acceptance/test_acc_021_canonical_trusted_interaction.py`：A～R 汇总、uncertain、ordering、FailureInfo、事务回滚；
 - 既有 full suite：证明 UserTask、Reminder、Inbox、Waiting-For、Work Log、Agenda、Daily Review 与 Action Hint 无回归。
 
-这些结果只构成 Draft PR 的自动化验收证据，状态仍为 `PENDING_INDEPENDENT_REVIEW`，不得写成 FINAL、Ready 或 Merge Authorized。
+这些结果已由最终独立审查复核通过；ACC-021 A～R 状态为 `PASSED / FINAL / INDEPENDENT_REVIEW_PASSED`。
 
 ## 已知限制
 
@@ -112,4 +112,4 @@ ACC-021 A～R 的自动证据位于：
 
 ## 非目标与授权声明
 
-本 PR 不实现 Hermes、MCP 产品集成、企业微信、真实 Provider、Browser/Computer Use、通用 Runtime 扩张、版本、Tag 或 Release。SP-021 未完成独立审查，未获 Ready 或 Merge 授权；实现者不得自证完成或启动 INT-001、PILOT-001、REL-036、QUALITY-003、QUALITY-004。
+SP-021 未实现 Hermes、MCP 产品集成、企业微信、真实 Provider、Browser/Computer Use、通用 Runtime 扩张、版本、Tag 或 Release。PR #68 已通过最终独立审查并合并，SP-021 已完成对账和封存；这不授权启动 INT-001、PILOT-001、REL-036、QUALITY-003 或 QUALITY-004。

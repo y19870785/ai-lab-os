@@ -5,7 +5,7 @@
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已完成合并、验收与封存；`v0.35.0` GitHub Pre-release 保持不变。当前 Product SP 为 SP-021，Governance Task 为 None。SP-021 已获实现授权并处于 Draft / PENDING_INDEPENDENT_REVIEW，正在实现 canonical Trusted Interaction Domain；未获 Ready 或 Merge 授权。这些能力不等同于 production-ready 或完整多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-021 已完成合并、ACC-021 最终验收、main Quality Gate、治理对账与封存；`v0.35.0` GitHub Pre-release 保持不变。当前 Product SP 与 Governance Task 均为 None。INT-001 是下一候选任务但未启动。这些能力不等同于 production-ready 或完整多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -19,7 +19,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已完�
 | SP-019 feature merge main | `a3abf5f5f9a1e5efb7296d7381e5c44c70c4cd49` / run `30382312419` / SUCCESS |
 | SP-019 reconciliation merge main | `934075ceefe39ede3c624b621b7673d62f6d06dd` / run `30387237549` / SUCCESS |
 | Ruff | Changed Python files gate / SUCCESS |
-| Current product SP | SP-021 / IMPLEMENTATION_IN_PROGRESS / DRAFT / PENDING_INDEPENDENT_REVIEW |
+| Current product SP | None |
 | Current governance task | None |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | RFC-032 / ADR-069～072 | Adopted / Accepted |
@@ -34,12 +34,15 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-020 已完�
 | PR #62 | CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 / IMPLEMENTATION_NEVER_AUTHORIZED |
 | SP-020 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / ACC_020_PASSED / INDEPENDENT_EVIDENCE_REVIEW_APPROVED / RECONCILED / ARCHIVED |
 | ACC-020 | PASSED / FINAL |
+| SP-021 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
+| ACC-021 | PASSED / FINAL / INDEPENDENT_REVIEW_PASSED |
+| SP-021 feature merge | PR #68 / `e59091d5a54009ac87164433422c204144d21234` / run `31311699187` / SUCCESS |
 | SP-020 planning merge | PR #53 / `fbd10fb5c4cd3913bb70d0c17cdd6df9de196625` / run `30441534383` / SUCCESS |
 | SP-020 feature merge | PR #57 / `9ea4b72241bd855319231c09fa6b80c112a14305` / run `30687851816` / SUCCESS |
 | SP-020 reconciliation | SP-020A / PR #58 |
 | SP-019 Phase 0 | UserTask Workspace Query Closure / ACCEPTED |
 | SP-019 Daily Review | MERGED / VERIFIED / ACCEPTED / ARCHIVED |
-| Latest completed SP | SP-020 / ACC-020 PASSED / FINAL / reconciled / archived |
+| Latest completed SP | SP-021 / ACC-021 PASSED / FINAL / reconciled / archived |
 | Release stage | v0.35.0 Alpha / PRE_RELEASE_PUBLISHED |
 | v0.35.0 publication | Local Daily Operating Loop / PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED / Assets 0 |
 
@@ -98,6 +101,7 @@ Reconciliation PR:
 | Work Log / SP-018 | Integrated / Verified / Archived | RFC-027 Adopted；ADR-058～060 Accepted；ACC-018 A～O PASSED / FINAL |
 | Daily Review / SP-019 | Integrated / Verified / Manual acceptance passed | RFC-028 Adopted；ADR-061、ADR-062 Accepted；ACC-019 A～M PASSED / FINAL；SP-019 archived |
 | Local Daily Loop / SP-020 | Integrated / Verified / Archived | RFC-029 Adopted；ADR-063、ADR-064 Accepted；ACC-020 PASSED / FINAL；main Quality Gate SUCCESS |
+| Trusted Interaction / SP-021 | Integrated / Verified / Archived | RFC-032 Adopted；ADR-069～072 Accepted；ACC-021 PASSED / FINAL；main Quality Gate SUCCESS |
 | Knowledge | Implemented / Disabled | Reindex、Chunk Persistence、Citation 与真实主链路未完成 |
 | Tool Runtime / MCP | Integrated | 自动 Tool Calling 和完整 MCP 产品闭环未完成 |
 | Coordination | Implemented / Disabled | 未接入 CEO Assistant 主链路 |
