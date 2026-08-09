@@ -1,9 +1,10 @@
 # ADR-071：最终成功必须先形成 Verified Result
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-06
 - Governance Task: ARCH-001
 - Related RFC: RFC-032
+- Accepted by: ARCH-001 / PR #66 / Merge Commit `4f9eab191fc0d99898ee69a2b42912017e4740e3`
 - Implementation: NOT_APPROVED / NOT_STARTED
 
 ## 背景（Context）
@@ -37,4 +38,4 @@ canonical object/revision、external reference、method、redacted digest、veri
 
 ## 状态与授权（Status and Authorization）
 
-本 ADR 在 ARCH-001 Draft Planning PR 中保持 Proposed。Accepted 与运行时实现均未授权。
+本 ADR 已由 ARCH-001 / PR #66 合并接受。Accepted 不构成运行时实现授权。

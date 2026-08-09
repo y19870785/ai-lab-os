@@ -120,11 +120,11 @@
 | RFC-031 | Agent Shell 与可信业务核心分离 | Adopted | 2026-08-06 |
 | ADR-067 | Hermes 作为首个可替换 Agent Shell | Accepted | 2026-08-06 |
 | ADR-068 | AI-Lab 作为业务事实与行动权威 | Accepted | 2026-08-06 |
-| RFC-032 | 可信交互边界与中立 Adapter Contract | Proposed | 2026-08-06 |
-| ADR-069 | 采用 Shell-neutral 版本化 Interaction Contract | Proposed | 2026-08-06 |
-| ADR-070 | Preview 与 Confirmation 作为 AI-Lab Canonical Facts | Proposed | 2026-08-06 |
-| ADR-071 | 最终成功必须先形成 Verified Result | Proposed | 2026-08-06 |
-| ADR-072 | Identity 与 Workspace 映射失败关闭 | Proposed | 2026-08-06 |
+| RFC-032 | 可信交互边界与中立 Adapter Contract | Adopted | 2026-08-06 |
+| ADR-069 | 采用 Shell-neutral 版本化 Interaction Contract | Accepted | 2026-08-06 |
+| ADR-070 | Preview 与 Confirmation 作为 AI-Lab Canonical Facts | Accepted | 2026-08-06 |
+| ADR-071 | 最终成功必须先形成 Verified Result | Accepted | 2026-08-06 |
+| ADR-072 | Identity 与 Workspace 映射失败关闭 | Accepted | 2026-08-06 |
 
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 

@@ -3,10 +3,11 @@
 > 产品版本：v0.35.0
 > 最近完成的 Product SP：SP-020
 > 当前 Product SP：None
-> 当前治理任务：ARCH-001
-> 下一候选 Product SP：None
-> ARCH-001 状态：OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED
-> ARCH-001 设计：RFC-032 Proposed；ADR-069～072 Proposed
+> 当前治理任务：None
+> 下一候选 Product SP：SP-021 / Canonical Trusted Interaction Domain / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED
+> ARCH-001 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED
+> ARCH-001 设计：RFC-032 Adopted；ADR-069～072 Accepted
+> ARCH-001 Planning PR：#66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3`
 > STRAT-001 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED
 > STRAT-001 Planning PR：#63 / MERGED / CLOSED / `b644c38064117a4dcb906c8607c782b67aedf1a6`
 > 战略定位：面向个人经营者和企业真实工作流的可信业务操作系统
@@ -32,10 +33,11 @@ Computer Use 和通用 Cron 优先由 Agent Shell 提供；AI-Lab 保留业务 R
 承担；AI-Lab 始终掌握 Policy、Preview、Confirmation、Approval、Audit、Status、
 Verified Result 与 Recovery。
 v0.36 的治理顺序固定为 `STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036`。
-STRAT-001 已封存；ARCH-001 已获得仅限 Planning 的独立授权。它定义
+STRAT-001 与 ARCH-001 均已封存；ARCH-001 定义并采纳了
 Shell-neutral/Transport-neutral Adapter Contract、identity/Workspace fail-closed、Interaction lifecycle、
 canonical Preview/Confirmation、Verified Result、分层 retry/idempotency、FailureInfo projection、audit 与
-recovery 语义，不实现任何 Domain、Adapter 或 Channel。SP-021、INT-001、PILOT-001 与 REL-036 均未启动。
+recovery 语义，不实现任何 Domain、Adapter 或 Channel。当前 Governance Task 为 None；SP-021
+是下一候选 Product SP，但 SP-021、INT-001、PILOT-001 与 REL-036 均未启动。
 
 ```text
 SP-020:
@@ -301,4 +303,4 @@ assets 为 `0`。REL-035 已最终对账并封存；规划、实施与最终对�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Next Candidate SP 均为 None，Current Governance Task 为 ARCH-001。SP-020 Feature PR #57 已 Squash Merge 为 `9ea4b72241bd855319231c09fa6b80c112a14305`，main Quality Gate `30687851816` 为 SUCCESS，并完成治理对账与封存。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。
+SP-016、SP-017、SP-018、SP-019 与 SP-020 均已完成验收并封存；ACC-016、ACC-017、ACC-018、ACC-019、ACC-020 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-020，Current Product SP 与 Current Governance Task 均为 None；Next Candidate SP 为 SP-021 / Canonical Trusted Interaction Domain，但未启动且需要单独授权。ARCH-001 已通过 PR #66 合并、main Quality Gate `31303951232`、治理对账并封存。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；REL-035 已最终对账并封存。该发布不等于 production-ready，External Notification、Recurring Reminder、Web UI、强身份/RBAC 与多租户边界仍未实现。

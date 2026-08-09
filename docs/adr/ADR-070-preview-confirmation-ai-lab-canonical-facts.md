@@ -1,9 +1,10 @@
 # ADR-070：Preview 与 Confirmation 作为 AI-Lab Canonical Facts
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-06
 - Governance Task: ARCH-001
 - Related RFC: RFC-032
+- Accepted by: ARCH-001 / PR #66 / Merge Commit `4f9eab191fc0d99898ee69a2b42912017e4740e3`
 - Implementation: NOT_APPROVED / NOT_STARTED
 
 ## 背景（Context）
@@ -40,4 +41,5 @@ Schema、token 实现或账户绑定。
 
 ## 状态与授权（Status and Authorization）
 
-本 ADR 在 ARCH-001 Draft Planning PR 中保持 Proposed。SP-021 尚未启动，Implementation 未授权。
+本 ADR 已由 ARCH-001 / PR #66 合并接受。SP-021 仍为未启动的下一候选项，Implementation
+未获授权。

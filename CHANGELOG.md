@@ -2,13 +2,16 @@
 
 ## [Unreleased] 未发布
 
-### ARCH-001 可信交互架构规划
+### ARCH-001 可信交互架构规划与合并后对账
 
-- ARCH-001 已获授权开始 Draft Planning：审计 v0.35.0 现有业务域与通用 Runtime，定义
+- ARCH-001 已通过独立审查并由 PR #66 Squash Merge：审计 v0.35.0 现有业务域与通用 Runtime，定义
   Shell-neutral / Transport-neutral Trusted Interaction Boundary、identity/Workspace fail-closed、
   canonical Preview/Confirmation、Verified Result、重试、审计与恢复合同。
-- 新增 RFC-032 与 ADR-069～072，Planning PR 中均保持 Proposed；不修改产品代码、Schema、Migration、
-  Runtime、依赖、版本、Tag 或 Release，且不启动 SP-021、INT-001、PILOT-001 或 REL-036。
+- RFC-032 已 Adopted，ADR-069～072 已 Accepted；main Quality Gate `31303951232` 为 SUCCESS，
+  ARCH-001 已完成自闭环治理对账并封存。
+- 登记 QUALITY-003 的 `2026-08-09 accidental reproduction` 与 QUALITY-004 Candidate；不实施修复。
+- 不修改产品代码、Schema、Migration、Runtime、依赖、版本、Tag 或 Release，且不启动
+  SP-021、INT-001、PILOT-001 或 REL-036。
 
 ### STRAT-001 产品战略校准规划
 
