@@ -41,8 +41,17 @@ class ReferenceShellBindingResolver:
 
 
 class ReferenceOperationPolicyResolver:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        canonical_operation: str = "reference.noop",
+        policy_reference: str = "policy/reference-noop/v1",
+        risk_level: str = "low",
+    ) -> None:
         self.requests: list[tuple[str, dict[str, Any]]] = []
+        self.canonical_operation = canonical_operation
+        self.policy_reference = policy_reference
+        self.risk_level = risk_level
 
     async def resolve(
         self,
@@ -54,9 +63,9 @@ class ReferenceOperationPolicyResolver:
     ) -> ResolvedOperationPlan:
         self.requests.append((requested_operation, parameters))
         return ResolvedOperationPlan(
-            canonical_operation="reference.noop",
-            policy_reference="policy/reference-noop/v1",
-            risk_level="low",
+            canonical_operation=self.canonical_operation,
+            policy_reference=self.policy_reference,
+            risk_level=self.risk_level,
             normalized_parameters=parameters,
             mutation_summary="Reference no-op Preview",
             safe_summary="Reference no-op interaction",

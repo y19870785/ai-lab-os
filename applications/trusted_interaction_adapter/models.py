@@ -11,6 +11,17 @@ from core.errors import FailureInfo
 from core.workspace.models import WorkspaceKey
 
 CONTRACT_VERSION = "trusted-interaction/v1"
+DIRECT_TRANSPORT = "direct"
+MCP_STDIO_TRANSPORT = "mcp-stdio"
+
+
+class AdapterInvocationContext(BaseModel):
+    """AI-Lab-injected adapter/transport provenance, never caller authority."""
+
+    model_config = ConfigDict(frozen=True)
+
+    adapter: str = CONTRACT_VERSION
+    transport: str = DIRECT_TRANSPORT
 
 
 class ShellAssertion(BaseModel):
@@ -86,6 +97,8 @@ class AdapterResponse(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     contract_version: str = CONTRACT_VERSION
+    adapter: str = CONTRACT_VERSION
+    transport: str = DIRECT_TRANSPORT
     request_id: str
     trace_id: str
     interaction_id: str | None = None

@@ -38,6 +38,10 @@ ai_lab_interaction_recover
 JSON-RPC result 与 Shell Tool Response 都不等于 canonical success；Shell 必须使用 response 中的
 `interaction_id`、`lifecycle_state`、`available_operations` 与 `final`。
 
+`final` 表示 canonical Interaction 是否终止，而不是 success：`SUCCEEDED`、`FAILED`、
+`CANCELLED`、`EXPIRED` 均为 true，`RECOVERY_REQUIRED` 等非终态为 false。Business success 仍需
+canonical `SUCCEEDED` 与所需 Verified/Commit evidence。
+
 ## 输入边界（Input Boundary）
 
 每个 tool 接收 `ShellAssertion`。其中 channel、shell、session、identity、workspace claim 与
@@ -50,6 +54,10 @@ Tool Response 不是 Verified Result。
 所有 tools 返回相同 `AdapterResponse` envelope：contract/request/trace/interaction/revision、
 canonical lifecycle/execution/verification/recovery status、available operations、Preview、
 FailureInfo 与 final。`authoritative` 表示 canonical source，不表示 operation succeeded。
+服务端固定注入 `adapter=trusted-interaction/v1` 与 `transport=mcp-stdio`；它们只属于 audit /
+correlation provenance，不是 identity、Workspace、risk、policy 或 approval authority。MCP caller
+不能通过 `ShellAssertion.correlation` 覆盖这些值。Direct Adapter 使用 `transport=direct`，因此
+两条路径可区分，但共享同一 transport-neutral canonical projection。
 
 ## Hermes 配置边界
 

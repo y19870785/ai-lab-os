@@ -15,17 +15,20 @@
 | D | Preview 零外部副作用 | PASSED |
 | E | create + preview 组合 idempotency；payload conflict 可见 | PASSED |
 | F | Confirmation 精确绑定 canonical Preview/actor/Workspace/revision | PASSED |
-| G | Modify supersede 旧 Preview，旧 consent 失效 | PASSED |
-| H | Cancel 委托 canonical safety rules | PASSED |
-| I | Status 直接投影 canonical state | PASSED |
+| G | Modify 仅在 operation/policy/risk 未漂移时 supersede；漂移无 canonical write | PASSED |
+| H | 已有外部副作用风险时 Cancel 返回 canonical failure，且不伪造 cancellation | PASSED |
+| I | Direct Adapter 与 MCP 对同一 canonical state 的 Status/View 投影一致 | PASSED |
 | J | View 使用 canonical available operations | PASSED |
 | K | MCP exact allowlist；无 approve/execute/verify/commit tools | PASSED |
-| L | MCP/transport success 不等于 business success | PASSED |
+| L | `final` 表示 terminality；MCP/transport completion 与 `final=true` 均不等于 business success | PASSED |
 | M | FailureInfo 复用且 secrets 脱敏 | PASSED |
 | N | Interaction ID/status 在 restart 后可恢复 | PASSED |
-| O | Recovery 只调用 canonical recover，不 re-execute | PASSED |
+| O | MCP Recovery 经过 policy gate，只调用 canonical recover；ExecutionPort 计数不增加 | PASSED |
 | P | 两种 Shell assertion 可观察同一 canonical Interaction | PASSED |
 | Q | 全产品 non-real regression 与 credentials isolation | PASSED |
+
+补充 contract evidence 覆盖 Adapter/MCP provenance：AI-Lab 注入稳定的 `adapter` 与 `transport`，
+caller correlation 不能伪造 authoritative transport provenance；这些字段不提升为业务身份或授权。
 
 ## 证据位置（Evidence Locations）
 

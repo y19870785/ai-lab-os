@@ -8,6 +8,8 @@ from typing import Any
 from mcp.server.mcpserver import MCPServer
 
 from applications.trusted_interaction_adapter.models import (
+    MCP_STDIO_TRANSPORT,
+    AdapterInvocationContext,
     AdapterResponse,
     ShellAssertion,
 )
@@ -22,6 +24,7 @@ TOOL_NAMES = (
     "ai_lab_interaction_view",
     "ai_lab_interaction_recover",
 )
+MCP_INVOCATION = AdapterInvocationContext(transport=MCP_STDIO_TRANSPORT)
 
 
 def _wire(response: AdapterResponse) -> dict[str, Any]:
@@ -58,6 +61,7 @@ def build_mcp_server(adapter: TrustedInteractionAdapter) -> MCPServer:
                 requested_operation=requested_operation,
                 parameters=parameters,
                 idempotency_key=idempotency_key,
+                invocation=MCP_INVOCATION,
             )
         )
 
@@ -80,6 +84,7 @@ def build_mcp_server(adapter: TrustedInteractionAdapter) -> MCPServer:
                 requested_operation=requested_operation,
                 parameters=parameters,
                 idempotency_key=idempotency_key,
+                invocation=MCP_INVOCATION,
             )
         )
 
@@ -102,6 +107,7 @@ def build_mcp_server(adapter: TrustedInteractionAdapter) -> MCPServer:
                 preview_revision=preview_revision,
                 expected_revision=expected_revision,
                 idempotency_key=idempotency_key,
+                invocation=MCP_INVOCATION,
             )
         )
 
@@ -120,6 +126,7 @@ def build_mcp_server(adapter: TrustedInteractionAdapter) -> MCPServer:
                 interaction_id=interaction_id,
                 expected_revision=expected_revision,
                 idempotency_key=idempotency_key,
+                invocation=MCP_INVOCATION,
             )
         )
 
@@ -130,7 +137,11 @@ def build_mcp_server(adapter: TrustedInteractionAdapter) -> MCPServer:
         """Read canonical status; never infer success from transport completion."""
 
         return _wire(
-            await adapter.status(assertion=assertion, interaction_id=interaction_id)
+            await adapter.status(
+                assertion=assertion,
+                interaction_id=interaction_id,
+                invocation=MCP_INVOCATION,
+            )
         )
 
     @server.tool(name=TOOL_NAMES[5], structured_output=True)
@@ -140,7 +151,11 @@ def build_mcp_server(adapter: TrustedInteractionAdapter) -> MCPServer:
         """Read the canonical safe view and available operations."""
 
         return _wire(
-            await adapter.view(assertion=assertion, interaction_id=interaction_id)
+            await adapter.view(
+                assertion=assertion,
+                interaction_id=interaction_id,
+                invocation=MCP_INVOCATION,
+            )
         )
 
     @server.tool(name=TOOL_NAMES[6], structured_output=True)
@@ -158,6 +173,7 @@ def build_mcp_server(adapter: TrustedInteractionAdapter) -> MCPServer:
                 interaction_id=interaction_id,
                 expected_revision=expected_revision,
                 idempotency_key=idempotency_key,
+                invocation=MCP_INVOCATION,
             )
         )
 

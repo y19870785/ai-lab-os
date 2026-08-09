@@ -12,6 +12,7 @@ from applications.trusted_interaction_adapter.authorities import (
     ShellBindingResolver,
 )
 from applications.trusted_interaction_adapter.models import (
+    AdapterInvocationContext,
     AdapterResponse,
     ResolvedShellContext,
     ShellAssertion,
@@ -75,6 +76,7 @@ class TrustedInteractionAdapter:
         interaction_id: str,
         request_id: str,
         trace_id: str,
+        invocation: AdapterInvocationContext,
     ) -> AdapterResponse:
         status = await self._interactions.status(
             workspace=context.workspace,
@@ -86,23 +88,35 @@ class TrustedInteractionAdapter:
             actor_id=context.actor_id,
             interaction_id=interaction_id,
         )
-        return project_status(status, view, request_id=request_id, trace_id=trace_id)
+        return project_status(
+            status,
+            view,
+            request_id=request_id,
+            trace_id=trace_id,
+            invocation=invocation,
+        )
 
     async def _guard(
         self,
         assertion: ShellAssertion,
-        operation: Callable[[ResolvedShellContext, str, str], Awaitable[AdapterResponse]],
+        operation: Callable[
+            [ResolvedShellContext, str, str, AdapterInvocationContext],
+            Awaitable[AdapterResponse],
+        ],
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
+        provenance = invocation or AdapterInvocationContext()
         request_id, trace_id = self._correlation(assertion)
         try:
             context = await self._resolve(assertion)
-            return await operation(context, request_id, trace_id)
+            return await operation(context, request_id, trace_id, provenance)
         except FailureException as exc:
             return project_failure(
                 exc.failure,
                 request_id=request_id,
                 trace_id=trace_id,
                 authoritative=not exc.failure.code.startswith("interaction_adapter."),
+                invocation=provenance,
             )
         except Exception as exc:  # noqa: BLE001 - authority/adapter boundary
             failure = failure_from_exception(
@@ -113,7 +127,26 @@ class TrustedInteractionAdapter:
                 code="interaction_adapter.internal_failure",
             )
             return project_failure(
-                failure, request_id=request_id, trace_id=trace_id
+                failure,
+                request_id=request_id,
+                trace_id=trace_id,
+                invocation=provenance,
+            )
+
+    def _require_policy_context(self, *, current, plan, operation, trace_id) -> None:
+        if (
+            current.interaction.operation != plan.canonical_operation
+            or current.interaction.policy_reference != plan.policy_reference
+            or current.interaction.risk_level != plan.risk_level
+        ):
+            raise self._adapter_failure(
+                code="interaction_adapter.policy_context_changed",
+                operation=operation,
+                message=(
+                    "Resolved operation, policy, or risk no longer matches the "
+                    "canonical Interaction"
+                ),
+                trace_id=trace_id,
             )
 
     async def preview(
@@ -123,9 +156,13 @@ class TrustedInteractionAdapter:
         requested_operation: str,
         parameters: dict[str, Any],
         idempotency_key: str,
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
         async def action(
-            context: ResolvedShellContext, request_id: str, trace_id: str
+            context: ResolvedShellContext,
+            request_id: str,
+            trace_id: str,
+            provenance: AdapterInvocationContext,
         ) -> AdapterResponse:
             plan = await self._policies.resolve(
                 context=context,
@@ -151,12 +188,14 @@ class TrustedInteractionAdapter:
                 idempotency_key=f"{idempotency_key}:create",
                 safe_summary=plan.safe_summary,
                 correlation={
+                    **assertion.correlation,
                     "channel": assertion.channel,
                     "shell": assertion.shell,
                     "shell_session_id": assertion.shell_session_id,
                     "message_id": assertion.message_id,
                     "binding_evidence_id": context.binding_evidence_id,
-                    **assertion.correlation,
+                    "adapter": provenance.adapter,
+                    "transport": provenance.transport,
                 },
             )
             await self._interactions.preview(
@@ -180,9 +219,10 @@ class TrustedInteractionAdapter:
                 interaction_id=created.interaction_id,
                 request_id=request_id,
                 trace_id=trace_id,
+                invocation=provenance,
             )
 
-        return await self._guard(assertion, action)
+        return await self._guard(assertion, action, invocation)
 
     async def modify(
         self,
@@ -193,9 +233,13 @@ class TrustedInteractionAdapter:
         requested_operation: str,
         parameters: dict[str, Any],
         idempotency_key: str,
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
         async def action(
-            context: ResolvedShellContext, request_id: str, trace_id: str
+            context: ResolvedShellContext,
+            request_id: str,
+            trace_id: str,
+            provenance: AdapterInvocationContext,
         ) -> AdapterResponse:
             plan = await self._policies.resolve(
                 context=context,
@@ -208,13 +252,9 @@ class TrustedInteractionAdapter:
                 actor_id=context.actor_id,
                 interaction_id=interaction_id,
             )
-            if current.interaction.operation != plan.canonical_operation:
-                raise self._adapter_failure(
-                    code="interaction_adapter.operation_mismatch",
-                    operation="modify",
-                    message="Resolved operation does not match the canonical Interaction",
-                    trace_id=trace_id,
-                )
+            self._require_policy_context(
+                current=current, plan=plan, operation="modify", trace_id=trace_id
+            )
             await self._interactions.preview(
                 workspace=context.workspace,
                 actor_id=context.actor_id,
@@ -236,9 +276,10 @@ class TrustedInteractionAdapter:
                 interaction_id=interaction_id,
                 request_id=request_id,
                 trace_id=trace_id,
+                invocation=provenance,
             )
 
-        return await self._guard(assertion, action)
+        return await self._guard(assertion, action, invocation)
 
     async def confirm(
         self,
@@ -249,8 +290,9 @@ class TrustedInteractionAdapter:
         preview_revision: int,
         expected_revision: int,
         idempotency_key: str,
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
-        async def action(context, request_id, trace_id):
+        async def action(context, request_id, trace_id, provenance):
             await self._interactions.confirm(
                 workspace=context.workspace,
                 actor_id=context.actor_id,
@@ -265,9 +307,10 @@ class TrustedInteractionAdapter:
                 interaction_id=interaction_id,
                 request_id=request_id,
                 trace_id=trace_id,
+                invocation=provenance,
             )
 
-        return await self._guard(assertion, action)
+        return await self._guard(assertion, action, invocation)
 
     async def cancel(
         self,
@@ -276,8 +319,9 @@ class TrustedInteractionAdapter:
         interaction_id: str,
         expected_revision: int,
         idempotency_key: str,
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
-        async def action(context, request_id, trace_id):
+        async def action(context, request_id, trace_id, provenance):
             await self._interactions.cancel(
                 workspace=context.workspace,
                 actor_id=context.actor_id,
@@ -290,27 +334,41 @@ class TrustedInteractionAdapter:
                 interaction_id=interaction_id,
                 request_id=request_id,
                 trace_id=trace_id,
+                invocation=provenance,
             )
 
-        return await self._guard(assertion, action)
+        return await self._guard(assertion, action, invocation)
 
     async def status(
-        self, *, assertion: ShellAssertion, interaction_id: str
+        self,
+        *,
+        assertion: ShellAssertion,
+        interaction_id: str,
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
-        async def action(context, request_id, trace_id):
+        async def action(context, request_id, trace_id, provenance):
             return await self._respond(
                 context=context,
                 interaction_id=interaction_id,
                 request_id=request_id,
                 trace_id=trace_id,
+                invocation=provenance,
             )
 
-        return await self._guard(assertion, action)
+        return await self._guard(assertion, action, invocation)
 
     async def view(
-        self, *, assertion: ShellAssertion, interaction_id: str
+        self,
+        *,
+        assertion: ShellAssertion,
+        interaction_id: str,
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
-        return await self.status(assertion=assertion, interaction_id=interaction_id)
+        return await self.status(
+            assertion=assertion,
+            interaction_id=interaction_id,
+            invocation=invocation,
+        )
 
     async def recover(
         self,
@@ -319,8 +377,31 @@ class TrustedInteractionAdapter:
         interaction_id: str,
         expected_revision: int,
         idempotency_key: str,
+        invocation: AdapterInvocationContext | None = None,
     ) -> AdapterResponse:
-        async def action(context, request_id, trace_id):
+        async def action(context, request_id, trace_id, provenance):
+            current = await self._interactions.status(
+                workspace=context.workspace,
+                actor_id=context.actor_id,
+                interaction_id=interaction_id,
+            )
+            preview = current.preview
+            if preview is None:
+                raise self._adapter_failure(
+                    code="interaction_adapter.policy_context_unavailable",
+                    operation="recover",
+                    message="Canonical Preview is unavailable for policy validation",
+                    trace_id=trace_id,
+                )
+            plan = await self._policies.resolve(
+                context=context,
+                requested_operation=current.interaction.operation,
+                parameters=preview.normalized_parameters,
+                trace_id=trace_id,
+            )
+            self._require_policy_context(
+                current=current, plan=plan, operation="recover", trace_id=trace_id
+            )
             await self._interactions.recover(
                 workspace=context.workspace,
                 actor_id=context.actor_id,
@@ -333,6 +414,7 @@ class TrustedInteractionAdapter:
                 interaction_id=interaction_id,
                 request_id=request_id,
                 trace_id=trace_id,
+                invocation=provenance,
             )
 
-        return await self._guard(assertion, action)
+        return await self._guard(assertion, action, invocation)

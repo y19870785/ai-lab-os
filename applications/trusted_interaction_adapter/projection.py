@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from applications.trusted_interaction_adapter.models import (
+    AdapterInvocationContext,
     AdapterResponse,
     PreviewPayload,
 )
@@ -16,8 +17,12 @@ def project_failure(
     request_id: str,
     trace_id: str,
     authoritative: bool = False,
+    invocation: AdapterInvocationContext | None = None,
 ) -> AdapterResponse:
+    provenance = invocation or AdapterInvocationContext()
     return AdapterResponse(
+        adapter=provenance.adapter,
+        transport=provenance.transport,
         request_id=request_id,
         trace_id=trace_id or failure.trace_id,
         authoritative=authoritative,
@@ -32,7 +37,9 @@ def project_status(
     *,
     request_id: str,
     trace_id: str,
+    invocation: AdapterInvocationContext | None = None,
 ) -> AdapterResponse:
+    provenance = invocation or AdapterInvocationContext()
     item = status.interaction
     preview = status.preview
     preview_payload = None
@@ -53,6 +60,8 @@ def project_status(
             expires_at=preview.expires_at.isoformat(),
         )
     return AdapterResponse(
+        adapter=provenance.adapter,
+        transport=provenance.transport,
         request_id=request_id,
         trace_id=trace_id,
         interaction_id=item.interaction_id,
@@ -65,13 +74,11 @@ def project_status(
         available_operations=view.available_operations,
         preview=preview_payload,
         failure=item.failure,
-        final=(
-            item.lifecycle_state == LifecycleState.SUCCEEDED
-            and status.verified_result is not None
-            and (
-                preview is None
-                or not preview.canonical_commit_required
-                or status.canonical_commit_evidence is not None
-            )
-        ),
+        final=item.lifecycle_state
+        in {
+            LifecycleState.SUCCEEDED,
+            LifecycleState.FAILED,
+            LifecycleState.CANCELLED,
+            LifecycleState.EXPIRED,
+        },
     )

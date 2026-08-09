@@ -12,7 +12,10 @@ from applications.trusted_interaction_adapter import (
     ShellAssertion,
     TrustedInteractionAdapter,
 )
-from applications.trusted_interaction_adapter.mcp_server import TOOL_NAMES
+from applications.trusted_interaction_adapter.mcp_server import (
+    TOOL_NAMES,
+    build_mcp_server,
+)
 from core.database import DatabaseManager
 from core.errors import FailureInfo
 from core.interaction import (
@@ -23,7 +26,13 @@ from core.interaction import (
     SQLiteInteractionRepository,
 )
 from tests.helpers.clock import MutableClock
-from tests.helpers.interaction import ReferenceCanonicalCommitAuthority
+from tests.helpers.interaction import (
+    ReferenceCanonicalCommitAuthority,
+    ReferenceExecutionPort,
+    ReferenceVerificationPort,
+    uncertain,
+    verified,
+)
 from tests.helpers.interaction_adapter import (
     ReferenceOperationPolicyResolver,
     ReferenceShellBindingResolver,
@@ -46,6 +55,47 @@ async def _adapter(tmp_path, *, binding=None, policy=None):
     )
     await interactions.initialize()
     return TrustedInteractionAdapter(interactions, binding, policy), manager
+
+
+async def _recovery_adapter(tmp_path):
+    clock = MutableClock(NOW)
+    manager = DatabaseManager(tmp_path)
+    execution = ReferenceExecutionPort(uncertain())
+    verification = ReferenceVerificationPort(verified())
+    interactions = InteractionService(
+        SQLiteInteractionRepository(manager, tmp_path / "interactions.db"),
+        clock,
+        execution,
+        verification,
+        ReferenceCanonicalCommitAuthority(clock),
+    )
+    await interactions.initialize()
+    binding = ReferenceShellBindingResolver()
+    adapter = TrustedInteractionAdapter(
+        interactions, binding, ReferenceOperationPolicyResolver()
+    )
+    return adapter, interactions, binding, execution, manager
+
+
+async def _recovery_required(adapter, interactions, binding):
+    previewed = await _preview(adapter)
+    confirmed = await adapter.confirm(
+        assertion=shell_assertion(),
+        interaction_id=previewed.interaction_id,
+        preview_id=previewed.preview.preview_id,
+        preview_revision=previewed.preview.preview_revision,
+        expected_revision=previewed.revision,
+        idempotency_key="confirm-1",
+    )
+    status = await interactions.start_execution(
+        workspace=binding.context.workspace,
+        actor_id=binding.context.actor_id,
+        interaction_id=previewed.interaction_id,
+        expected_revision=confirmed.revision,
+        idempotency_key="execute-1",
+    )
+    assert status.interaction.lifecycle_state == LifecycleState.RECOVERY_REQUIRED
+    return status
 
 
 async def _preview(result, *, assertion=None, key="request-1", value=1):
@@ -159,19 +209,33 @@ async def test_acc_int_001_g_modify_invalidates_old_consent(tmp_path):
 
 
 async def test_acc_int_001_h_cancel_uses_canonical_safety_rules(tmp_path):
-    result, manager = await _adapter(
-        tmp_path,
-        binding=ReferenceShellBindingResolver(),
-        policy=ReferenceOperationPolicyResolver(),
+    result, interactions, binding, _, manager = await _recovery_adapter(tmp_path)
+    recovery_required = await _recovery_required(result, interactions, binding)
+    audits_before = await interactions.audit(
+        workspace=binding.context.workspace,
+        actor_id=binding.context.actor_id,
+        interaction_id=recovery_required.interaction.interaction_id,
     )
-    previewed = await _preview(result)
-    cancelled = await result.cancel(
+    rejected = await result.cancel(
         assertion=shell_assertion(),
-        interaction_id=previewed.interaction_id,
-        expected_revision=previewed.revision,
+        interaction_id=recovery_required.interaction.interaction_id,
+        expected_revision=recovery_required.interaction.revision,
         idempotency_key="cancel-1",
     )
-    assert cancelled.lifecycle_state == LifecycleState.CANCELLED.value
+    canonical = await interactions.status(
+        workspace=binding.context.workspace,
+        actor_id=binding.context.actor_id,
+        interaction_id=recovery_required.interaction.interaction_id,
+    )
+    audits_after = await interactions.audit(
+        workspace=binding.context.workspace,
+        actor_id=binding.context.actor_id,
+        interaction_id=recovery_required.interaction.interaction_id,
+    )
+    assert rejected.failure.code == "interaction.cancel_outcome_uncertain"
+    assert canonical.interaction.lifecycle_state == LifecycleState.RECOVERY_REQUIRED
+    assert audits_after == audits_before
+    assert not any(item.event_type == "interaction.cancelled" for item in audits_after)
     manager.close_all()
 
 
@@ -182,11 +246,37 @@ async def test_acc_int_001_i_status_is_canonical(tmp_path):
         policy=ReferenceOperationPolicyResolver(),
     )
     previewed = await _preview(result)
-    status = await result.status(
+    direct = await result.status(
         assertion=shell_assertion(), interaction_id=previewed.interaction_id
     )
-    assert status.authoritative is True
-    assert status.revision == previewed.revision
+    server = build_mcp_server(result)
+    mcp_result = await server.call_tool(
+        "ai_lab_interaction_status",
+        {
+            "assertion": shell_assertion().model_dump(mode="json"),
+            "interaction_id": previewed.interaction_id,
+        },
+    )
+    mcp = mcp_result.structured_content
+    fields = (
+        "interaction_id",
+        "revision",
+        "lifecycle_state",
+        "execution_status",
+        "verification_status",
+        "recovery_status",
+        "available_operations",
+        "authoritative",
+        "final",
+    )
+    assert direct.authoritative is True
+    assert direct.revision == previewed.revision
+    assert {field: getattr(direct, field) for field in fields} == {
+        field: tuple(mcp[field]) if field == "available_operations" else mcp[field]
+        for field in fields
+    }
+    assert direct.transport == "direct"
+    assert mcp["transport"] == "mcp-stdio"
     manager.close_all()
 
 
@@ -255,11 +345,34 @@ async def test_acc_int_001_n_contract_carries_restart_stable_canonical_id(tmp_pa
     manager.close_all()
 
 
-async def test_acc_int_001_o_recovery_never_calls_execution_directly():
-    source = inspect.getsource(TrustedInteractionAdapter.recover)
-    assert ".recover(" in source
-    assert "start_execution" not in source
-    assert ".execute(" not in source
+async def test_acc_int_001_o_mcp_recovery_never_reexecutes(tmp_path):
+    result, interactions, binding, execution, manager = await _recovery_adapter(
+        tmp_path
+    )
+    recovery_required = await _recovery_required(result, interactions, binding)
+    execution_calls_before = len(execution.requests)
+    server = build_mcp_server(result)
+    recovered = await server.call_tool(
+        "ai_lab_interaction_recover",
+        {
+            "assertion": shell_assertion().model_dump(mode="json"),
+            "interaction_id": recovery_required.interaction.interaction_id,
+            "expected_revision": recovery_required.interaction.revision,
+            "idempotency_key": "recover-1",
+        },
+    )
+    execution_calls_after = len(execution.requests)
+    canonical = await interactions.status(
+        workspace=binding.context.workspace,
+        actor_id=binding.context.actor_id,
+        interaction_id=recovery_required.interaction.interaction_id,
+    )
+    assert execution_calls_before == execution_calls_after == 1
+    assert recovered.structured_content["lifecycle_state"] == "SUCCEEDED"
+    assert canonical.interaction.lifecycle_state == LifecycleState.SUCCEEDED
+    assert canonical.recovery is not None
+    assert canonical.recovery.status.value == "RECOVERED"
+    manager.close_all()
 
 
 async def test_acc_int_001_p_shell_is_replaceable(tmp_path):
@@ -281,6 +394,8 @@ async def test_acc_int_001_q_response_contract_is_transport_neutral():
     fields = set(AdapterResponse.model_fields)
     assert {
         "contract_version",
+        "adapter",
+        "transport",
         "interaction_id",
         "authoritative",
         "lifecycle_state",

@@ -86,17 +86,22 @@ Preview 调用使用外部 idempotency key 的确定性派生：`<key>:create` �
 payload 返回 canonical idempotency conflict。Preview 不调用 execution、verification 或
 canonical commit authority。
 
-Modify 通过再次调用 canonical `preview` 生成新 revision 并 supersede 旧 Preview；旧 consent
-不再有效。Confirm 必须精确匹配 Interaction ID、Preview ID、Preview revision、Interaction
-revision、actor、Workspace 与 idempotency key。Cancel、Status、View 与 Recovery 全部委托给
-`InteractionService`；Recovery 不调用 execution，也不盲目重试外部动作。
+Modify 只有在重新解析的 canonical operation、policy reference 与 risk level 全部匹配现有
+Interaction 时，才通过 canonical `preview` 生成新 revision 并 supersede 旧 Preview；任一 policy
+context 漂移都 fail closed，且不写 Preview、不增加 revision。Confirm 必须精确匹配 Interaction
+ID、Preview ID、Preview revision、Interaction revision、actor、Workspace 与 idempotency key。
+Cancel、Status、View 与 Recovery 全部委托给 `InteractionService`。Recovery 在读取 canonical
+Interaction/Preview 后重新经过 Policy Authority；policy 缺失或 operation/policy/risk 不匹配时
+不调用 canonical recover。匹配时也只调用 canonical recover，不调用 execution，不盲目重试外部动作。
 
 ## 结果语义（Result Semantics）
 
 `AdapterResponse.authoritative=true` 只表示字段来自 canonical status/view，不表示业务成功。
-只有 canonical lifecycle 为 `SUCCEEDED`、存在 `VerifiedResult`，并在 Preview 要求 commit 时
-存在 `CanonicalCommitEvidence`，`final` 才能为 true。MCP tool 调用成功、JSON-RPC success、
-Tool Response 或外部 acknowledgment 都不能替代该判断。
+`final` 只表示 canonical terminality：`SUCCEEDED`、`FAILED`、`CANCELLED` 与 `EXPIRED` 为 true，
+其余 lifecycle（包括 `RECOVERY_REQUIRED`）为 false。`final=true` 不等于 business success；成功仍
+必须由 canonical `SUCCEEDED`、`VerifiedResult`，以及 Preview 要求 commit 时存在的
+`CanonicalCommitEvidence` 共同证明。MCP tool 调用成功、JSON-RPC success、Tool Response 或
+外部 acknowledgment 都不能替代该证据。
 
 ## FailureInfo 失败边界
 
@@ -109,6 +114,9 @@ Workspace 或 policy 无权威映射时 fail closed；Shell 不得把 failure �
 - Shell 与 MCP 不访问 AI-Lab 数据库；
 - assertion 中的 Workspace、Owner 或 Approver 不被自然语言推断；
 - request、trace、message、channel、shell session 与 binding evidence 仅作为 correlation；
+- Adapter 由 AI-Lab stamp `adapter=trusted-interaction/v1`；direct 与 MCP 分别 stamp
+  `transport=direct` 和 `transport=mcp-stdio`。这些 provenance 不能决定 actor、Workspace、risk、
+  policy 或 approval，且 caller correlation 不能覆盖 authoritative transport stamp；
 - `FailureInfo` 对 token、authorization、secret 与常见 credential shape 脱敏；
 - MCP 工具没有 approve、execute、verify 或 canonical commit authority。
 

@@ -155,6 +155,59 @@ async def test_status_survives_restart_and_shell_replacement(tmp_path):
     await second.shutdown()
 
 
+async def test_mcp_stamps_non_forgeable_transport_provenance(tmp_path):
+    system = await create_system(make_test_settings(tmp_path))
+    await system.start()
+    binding = ReferenceShellBindingResolver()
+    adapter = TrustedInteractionAdapter(
+        system.interaction_service,
+        binding,
+        ReferenceOperationPolicyResolver(),
+    )
+    server = build_mcp_server(adapter)
+    assertion = shell_assertion().model_copy(
+        update={
+            "correlation": {
+                "request_id": "request-provenance",
+                "trace_id": "trace-provenance",
+                "adapter": "caller-forged-adapter",
+                "transport": "caller-forged-transport",
+            }
+        }
+    )
+    result = await server.call_tool(
+        "ai_lab_interaction_preview",
+        {
+            "assertion": assertion.model_dump(mode="json"),
+            "requested_operation": "reference.noop",
+            "parameters": {},
+            "idempotency_key": "provenance-1",
+        },
+    )
+    response = result.structured_content
+    canonical = await system.interaction_service.status(
+        workspace=binding.context.workspace,
+        actor_id=binding.context.actor_id,
+        interaction_id=response["interaction_id"],
+    )
+    assert response["adapter"] == "trusted-interaction/v1"
+    assert response["transport"] == "mcp-stdio"
+    assert canonical.interaction.correlation == {
+        "request_id": "request-provenance",
+        "trace_id": "trace-provenance",
+        "channel": "reference-channel",
+        "shell": "reference-shell",
+        "shell_session_id": "shell-session-1",
+        "message_id": "message-1",
+        "binding_evidence_id": "binding-evidence-1",
+        "adapter": "trusted-interaction/v1",
+        "transport": "mcp-stdio",
+    }
+    assert canonical.interaction.actor_id == binding.context.actor_id
+    assert canonical.interaction.workspace_id == binding.context.workspace.workspace_id
+    await system.shutdown()
+
+
 async def test_adapter_has_no_database_repository_or_shell_private_dependency():
     import applications.trusted_interaction_adapter as package
 
