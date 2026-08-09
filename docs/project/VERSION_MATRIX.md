@@ -4,8 +4,9 @@
 **治理状态：** REL-035 / FINAL_RECONCILED / ARCHIVED
 **当前治理任务：** None
 **当前 Product SP：** None
-**当前工作：** INT-001 / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED
+**当前工作：** None
 **下一规划治理项：** None
+**下一候选工作：** PILOT-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED
 **已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
 **当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
 
@@ -49,9 +50,10 @@ Response 不分别构成业务事实、审批事实和最终成功证明；Herme
 
 ARCH-001 已采纳 `trusted-interaction/v1` Shell-neutral、Transport-neutral 合同；RFC-032 为 Adopted，
 ADR-069～072 为 Accepted。SP-021 已实现、验证、合并、对账并封存该 canonical domain，但不改变产品版本号或已发布
-v0.35.0 contract。INT-001 已获实现授权，其 Draft 增加 `trusted-interaction/v1` Shell-neutral
-application adapter 与官方 MCP stdio reference projection；真实 Hermes、identity/policy authority、
-external execution 与 Pilot 均未实现。PILOT-001 与 REL-036 未启动。
+v0.35.0 contract。INT-001 已增加并验证 `trusted-interaction/v1` Shell-neutral application adapter
+与官方 MCP stdio reference projection，通过最终独立审查、PR #70 合并、main Quality Gate、对账和
+封存；真实 Hermes、identity/policy authority、external execution 与 Pilot 均未实现。PILOT-001
+仅为未授权下一候选，REL-036 未启动。
 
 ## 兼容性边界
 

@@ -8,8 +8,12 @@
   canonical Preview/Modify/Confirm/Cancel/Status/View/Recovery projection 与 ACC-INT-001 A～Q 自动证据。
 - 新增官方 `mcp>=2,<3` local optional dependency 和本地 stdio MCP exact seven-tool allowlist；
   MCP/Tool success 不等于业务成功，真实 Hermes、Channel、执行与 Provider 均未接入。
-- 当前状态为 IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW /
-  NOT_READY / NOT_MERGE_AUTHORIZED；版本、Tag 与 Release 未改变。
+- 独立审查发现并验证修复 Modify policy/risk drift、Recovery policy gate、`final` terminality、
+  runtime acceptance evidence 与 adapter/transport provenance 五项 blocker。
+- ACC-INT-001 A～Q 已 `PASSED / FINAL / INDEPENDENT_REVIEW_PASSED`；PR #70 Squash Merge 为
+  `c3c71c7934e50725e4a82ef745245fcdb502811c`，main Quality Gate `31324821391` 为 SUCCESS。
+- INT-001 已完成 post-merge reconciliation 和封存；PILOT-001 仅为未授权下一候选，版本、Tag 与
+  Release 未改变。
 
 ### SP-021 可信交互领域实施与合并后对账
 

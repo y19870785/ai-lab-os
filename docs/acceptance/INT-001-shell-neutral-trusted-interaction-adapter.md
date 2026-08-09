@@ -1,6 +1,6 @@
 # ACC-INT-001 — Shell-Neutral Trusted Interaction Adapter 验收
 
-- 状态：AUTOMATED_EVIDENCE_PASSED / PENDING_INDEPENDENT_REVIEW
+- 状态：PASSED / FINAL / INDEPENDENT_REVIEW_PASSED
 - Base：`49d77b6bd6bde3fe39eaecd5a7f8aa5b66249356`
 - Real Provider calls：0
 - Real Hermes calls：0
@@ -39,8 +39,10 @@ caller correlation 不能伪造 authoritative transport provenance；这些字�
 
 ## 结果解释（Interpretation）
 
-自动测试通过不构成最终独立审查、Ready 或 Merge 授权。A～Q 自动证据已通过，并将在 Draft PR
-当前 Head 上提交独立审查；文档保持 `PENDING_INDEPENDENT_REVIEW`。
+ACC-INT-001 A～Q 自动证据已在 Approved Head
+`696fc66e26d7a69fc2fb2a0dc67f33f7400f2912` 通过，并通过最终独立审查。PR #70 已 Squash
+Merge 为 `c3c71c7934e50725e4a82ef745245fcdb502811c`，main Quality Gate
+`31324821391` 为 SUCCESS。该验收不授权真实 Hermes、Channel 或 PILOT-001。
 
 ## 排除范围（Exclusions）
 

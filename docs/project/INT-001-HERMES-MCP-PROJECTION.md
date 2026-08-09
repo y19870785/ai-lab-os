@@ -1,6 +1,6 @@
 # INT-001 — Hermes MCP 投影
 
-- 状态：REFERENCE PROJECTION IMPLEMENTED / REAL HERMES NOT CONNECTED
+- 状态：REFERENCE PROJECTION IMPLEMENTED / VERIFIED / MERGED / ARCHIVED / REAL HERMES NOT CONNECTED
 - Transport：local stdio MCP
 - Contract：`trusted-interaction/v1`
 
@@ -70,3 +70,9 @@ identity binding 与 policy resolver 需要独立授权和证据。
 自动测试通过官方 MCP client 启动上述 module、完成 initialization、精确发现七项工具，并验证
 默认 Preview 返回 transport success 但 `final=false` 的 fail-closed response。没有真实 Provider
 或真实 Hermes 调用。
+
+## 治理结果（Governance Result）
+
+INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 与 main Quality Gate
+`31324821391`，并完成 post-merge reconciliation 和封存。该结果只验证 Shell-neutral Adapter
+与 reference MCP projection，不构成真实 Hermes、identity binding、operation policy 或 Pilot 授权。

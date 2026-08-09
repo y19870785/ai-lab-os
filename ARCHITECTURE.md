@@ -1,7 +1,7 @@
 # AI-Lab 架构文档
 
-> 当前工作：INT-001 / IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT /
-> PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED。
+> 当前工作：None。INT-001 已通过最终独立审查、PR #70 Squash Merge、main Quality Gate
+> 与 post-merge reconciliation，并完成封存。
 
 INT-001 在 `applications/trusted_interaction_adapter` 增加 Shell-neutral application
 boundary，并通过官方 MCP SDK 提供本地 stdio projection。该层只依赖 canonical
@@ -52,8 +52,9 @@ SP-021 已建立 canonical Interaction aggregate、Preview、Confirmation、Appr
 VerifiedResult、Recovery、持久化幂等/CAS/audit 与 transport-neutral Status/View application boundary。
 PR #68 已 Squash Merge，ACC-021 A～R 与 main Quality Gate 均通过，SP-021 已完成对账并封存。
 Composition Root 默认注入 disabled Execution/Verification ports，不会产生真实外部副作用。
-INT-001 已获实现授权并处于 Draft / PENDING_INDEPENDENT_REVIEW；真实 Shell/Channel 未接入，
-Ready 与 Merge 未授权。PILOT-001 与 REL-036 也均未启动。
+INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 与 main Quality Gate，
+并完成 post-merge reconciliation 和封存；真实 Shell/Channel 仍未接入。PILOT-001 只是下一候选，
+尚未启动且需要独立授权；REL-036 未启动。
 
 ## v0.35.0 Alpha 产品基线
 

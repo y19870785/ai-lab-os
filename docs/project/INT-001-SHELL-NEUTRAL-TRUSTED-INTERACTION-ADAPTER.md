@@ -1,6 +1,6 @@
 # INT-001 — Shell-Neutral Trusted Interaction Adapter 实现
 
-- 状态：IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED
+- 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED
 - Base：`49d77b6bd6bde3fe39eaecd5a7f8aa5b66249356`
 - Product SP：None
 - Current Governance Task：None
@@ -134,7 +134,7 @@ domain、Composition Root 与既有 Agent/Tool/Workflow/Coordination runtime
 `tests/acceptance/test_acc_int_001_shell_adapter.py`。状态只能记录为：
 
 ```text
-AUTOMATED_EVIDENCE_PASSED / PENDING_INDEPENDENT_REVIEW
+ACC-INT-001 A-Q / PASSED / FINAL / INDEPENDENT_REVIEW_PASSED
 ```
 
 ## 非目标（Non-goals）
@@ -155,5 +155,7 @@ Pilot 运维恢复演练仍需后续独立授权。
 
 ## 授权边界（Authorization Boundary）
 
-本 Draft PR 只能等待独立审查。不得自行转 Ready、Merge、创建 INT-001A，或启动
-PILOT-001 / REL-036。
+INT-001 已由 PR #70 Squash Merge 为
+`c3c71c7934e50725e4a82ef745245fcdb502811c`，main Quality Gate
+`31324821391` 为 SUCCESS，并通过 INT-001A 完成自闭环治理对账。该完成状态不授权启动
+PILOT-001 或 REL-036；PILOT-001 仍需独立 Owner 授权。
