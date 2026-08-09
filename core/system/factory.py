@@ -17,6 +17,18 @@ from core.coordination.orchestrator import AgentOrchestrator
 from core.daily_review import DailyReviewService
 from core.database.manager import DatabaseManager
 from core.inbox import InboxService, SQLiteInboxRepository
+from core.interaction import (
+    ApprovalAuthority,
+    CanonicalCommitAuthority,
+    DisabledApprovalAuthority,
+    DisabledCanonicalCommitAuthority,
+    DisabledExecutionPort,
+    DisabledVerificationPort,
+    ExecutionPort,
+    InteractionService,
+    SQLiteInteractionRepository,
+    VerificationPort,
+)
 from core.knowledge.manager import KnowledgeManager
 from core.knowledge.sqlite_store import SQLiteKnowledgeStore
 from core.memory.manager import MemoryManager
@@ -149,6 +161,10 @@ async def create_system(
     settings: SystemSettings,
     *,
     clock: Clock | None = None,
+    interaction_execution_port: ExecutionPort | None = None,
+    interaction_verification_port: VerificationPort | None = None,
+    interaction_canonical_commit_authority: CanonicalCommitAuthority | None = None,
+    interaction_approval_authority: ApprovalAuthority | None = None,
 ) -> SystemContainer:
     """Construct one dependency graph without starting any lifecycle twice."""
 
@@ -190,6 +206,17 @@ async def create_system(
         work_log_repository,
         clock=clock,
         timezone_name=settings.timezone_name,
+    )
+    interaction_repository = SQLiteInteractionRepository(
+        database_manager, settings.sqlite_dir / "interactions.db"
+    )
+    interaction_service = InteractionService(
+        interaction_repository,
+        clock,
+        interaction_execution_port or DisabledExecutionPort(),
+        interaction_verification_port or DisabledVerificationPort(),
+        interaction_canonical_commit_authority or DisabledCanonicalCommitAuthority(),
+        interaction_approval_authority or DisabledApprovalAuthority(),
     )
 
     user_task_repository = None
@@ -439,6 +466,8 @@ async def create_system(
         memory_stores=memory_stores,
         work_log_repository=work_log_repository,
         work_log_service=work_log_service,
+        interaction_repository=interaction_repository,
+        interaction_service=interaction_service,
         knowledge_manager=knowledge_manager,
         tool_registry=tool_registry,
         tool_executor=tool_executor,

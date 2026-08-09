@@ -19,6 +19,7 @@ from core.daily_review import DailyReviewService
 from core.database.manager import DatabaseManager
 from core.errors import RuntimeStatus
 from core.inbox import InboxService, SQLiteInboxRepository
+from core.interaction import InteractionService, SQLiteInteractionRepository
 from core.knowledge.manager import KnowledgeManager
 from core.memory.manager import MemoryManager
 from core.memory.protocol import MemoryStore
@@ -67,6 +68,8 @@ class SystemContainer:
     memory_stores: tuple[MemoryStore, ...]
     work_log_repository: SQLiteWorkLogRepository
     work_log_service: WorkLogService
+    interaction_repository: SQLiteInteractionRepository
+    interaction_service: InteractionService
     knowledge_manager: KnowledgeManager | None
     tool_registry: ToolRegistry
     tool_executor: ToolExecutor
@@ -130,6 +133,9 @@ class SystemContainer:
 
             await self.work_log_service.initialize()
             logger.info("work_log.initialized")
+
+            await self.interaction_service.initialize()
+            logger.info("trusted_interaction.initialized")
 
             if self.user_task_service is not None:
                 await self.user_task_service.initialize()
@@ -235,6 +241,7 @@ class SystemContainer:
         await close_component("waiting_for_service", self.waiting_for_service.close)
         await close_component("inbox_service", self.inbox_service.close)
         await close_component("work_log_service", self.work_log_service.close)
+        await close_component("interaction_service", self.interaction_service.close)
         if self.user_task_service is not None:
             await close_component("user_task_service", self.user_task_service.close)
         await close_component("workflow_runtime", self.workflow_runtime.shutdown)

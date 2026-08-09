@@ -12,13 +12,13 @@
   "source_baseline": "independently verified main before the final publication commit",
   "latest_merged_sp": "SP-020",
   "latest_completed_sp": "SP-020",
-  "current_sp": null,
+  "current_sp": "SP-021",
   "current_governance_task": null,
-  "next_candidate_sp": "SP-021",
-  "next_candidate_name": "Canonical Trusted Interaction Domain",
+  "next_candidate_sp": null,
+  "next_candidate_name": null,
   "next_planned_governance_item": null,
-  "development_status": "arch_001_approved_merged_main_quality_gate_passed_post_merge_reconciled_archived",
-  "current_work": null,
+  "development_status": "sp_021_implementation_authorized_open_draft_in_progress_pending_independent_review_not_ready_not_merge_authorized",
+  "current_work": "SP-021 Canonical Trusted Interaction Domain",
   "updated_at": "2026-08-09",
   "governance_tasks": {
     "ARCH-001": {
@@ -573,6 +573,47 @@
       "implementation_authorization_contract": "One explicit Owner authorization covers SP-020 implementation; Phase 0 is an internal mandatory quality gate and does not require a second authorization after passing",
       "reauthorization_triggers": "Phase 0 failure, stop condition, approved-scope change, Product SP split, or new architecture decision",
       "scope": "Windows Local Daily Profile, Daily Review CLI, deterministic Action Hints, canonical Review-to-Action delegation, lifecycle recovery and quiescent backup/restore acceptance"
+    },
+    "SP-021": {
+      "name": "Canonical Trusted Interaction Domain",
+      "type": "PRODUCT_IMPLEMENTATION",
+      "status": "IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / IMPLEMENTATION_IN_PROGRESS / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED",
+      "base_commit": "072276207ec0cc0d69372ef38e833c3e1b72ae90",
+      "branch": "feat/sp-021-canonical-trusted-interaction-domain",
+      "implementation_authorized": true,
+      "implementation_started": true,
+      "implementation_complete": false,
+      "independent_review_status": "PENDING_INDEPENDENT_REVIEW",
+      "ready_authorized": false,
+      "merge_authorized": false,
+      "current_product_sp": true,
+      "architecture_authority": [
+        "RFC-031 / ADOPTED",
+        "ADR-067 / ACCEPTED",
+        "ADR-068 / ACCEPTED",
+        "RFC-032 / ADOPTED",
+        "ADR-069 / ACCEPTED",
+        "ADR-070 / ACCEPTED",
+        "ADR-071 / ACCEPTED",
+        "ADR-072 / ACCEPTED"
+      ],
+      "acceptance": "ACC-021 A-R / AUTOMATED EVIDENCE IN DRAFT PR / PENDING INDEPENDENT REVIEW",
+      "follow_up_tasks": {
+        "INT-001": "NOT_STARTED / NOT_APPROVED",
+        "PILOT-001": "NOT_STARTED / NOT_APPROVED",
+        "REL-036": "NOT_STARTED / NOT_APPROVED"
+      },
+      "product_code_changed": true,
+      "schema_changed": true,
+      "migration_changed": true,
+      "schema_initialization_changed": true,
+      "standalone_migration_file_changed": false,
+      "migration_change_meaning": "Additive interactions.db schema initialization changed; no standalone migration file was added",
+      "runtime_behavior_changed": true,
+      "dependencies_changed": false,
+      "version_changed": false,
+      "tag_changed": false,
+      "release_changed": false
     }
   },
   "quality_candidates": {
@@ -779,6 +820,7 @@
     }
   },
   "module_status": {
+    "Trusted_Interaction": "Draft implementation / Persistent canonical domain / Pending independent review",
     "UserTask": "Integrated / Workspace query closure accepted",
     "Reminder_Core": "Integrated / Verified / Disabled by default",
     "Reminder_Management": "Integrated / Verified",
