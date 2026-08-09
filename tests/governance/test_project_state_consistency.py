@@ -2738,7 +2738,6 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     state = _load_state()
     arch = state["governance_tasks"]["ARCH-001"]
     sp021 = state["sp_records"]["SP-021"]
-    integration = state["integration_tasks"]["INT-001"]
     final_status = (
         "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / "
         "POST_MERGE_RECONCILED / ARCHIVED"
@@ -2755,6 +2754,16 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
+    assert state["schema_version"] == 1
+    for unauthorized_root in (
+        "integration_tasks",
+        "integration_records",
+        "current_integration_task",
+        "completed_integration_tasks",
+        "pilot_tasks",
+        "route_tasks",
+    ):
+        assert unauthorized_root not in state
     assert state["development_status"] == (
         "int_001_approved_merged_main_quality_gate_passed_post_merge_"
         "reconciled_archived"
@@ -2765,47 +2774,6 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
     assert arch["follow_up_tasks"]["REL-036"] == "NOT_STARTED / NOT_APPROVED"
     assert sp021["follow_up_tasks"]["REL-036"] == "NOT_STARTED / NOT_APPROVED"
-
-    assert integration["status"] == (
-        "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / "
-        "POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED"
-    )
-    assert integration["implementation_pr"] == 70
-    assert integration["approved_head"] == (
-        "696fc66e26d7a69fc2fb2a0dc67f33f7400f2912"
-    )
-    assert integration["merge_base"] == (
-        "49d77b6bd6bde3fe39eaecd5a7f8aa5b66249356"
-    )
-    assert integration["merge_commit"] == (
-        "c3c71c7934e50725e4a82ef745245fcdb502811c"
-    )
-    assert integration["merged_at"] == "2026-08-09T16:50:10Z"
-    assert integration["parent_count"] == 1
-    assert integration["unique_parent"] == integration["merge_base"]
-    assert integration["main_quality_gate_run"] == 31324821391
-    assert integration["main_quality_gate"] == "SUCCESS"
-    assert integration["github_non_real"] == (
-        "1775 passed / 6 skipped / 26 warnings"
-    )
-    assert integration["real_test_isolation"] == "10 passed / 5 skipped"
-    assert integration["ruff"] == "SUCCESS"
-    assert integration["real_provider"] == "NO EVIDENCE OF EXECUTION"
-    assert integration["acceptance"] == (
-        "ACC-INT-001 A-Q / PASSED / FINAL / INDEPENDENT_REVIEW_PASSED"
-    )
-    assert set(integration["review_blockers"].values()) == {
-        "RESOLVED / INDEPENDENTLY_VERIFIED"
-    }
-    assert len(integration["review_blockers"]) == 5
-    assert integration["post_merge_reconciled"] is True
-    assert integration["archived"] is True
-    assert integration["reconciliation"] == (
-        "INT-001A / SELF_CLOSING / NO_RECURSIVE_RECONCILIATION"
-    )
-    assert integration["recursive_reconciliation"] == (
-        "INT-001B / DO_NOT_CREATE"
-    )
 
     quality = state["quality_candidates"]
     assert quality["QUALITY-003"]["authorized"] is False
@@ -2829,6 +2797,35 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         name: path.read_text(encoding="utf-8-sig")
         for name, path in paths.items()
     }
+    reconciliation = text["reconciliation"]
+    for marker in (
+        "#70",
+        "696fc66e26d7a69fc2fb2a0dc67f33f7400f2912",
+        "49d77b6bd6bde3fe39eaecd5a7f8aa5b66249356",
+        "Parent Count | `1`",
+        "c3c71c7934e50725e4a82ef745245fcdb502811c",
+        "2026-08-09T16:50:10Z",
+        "31324821391 / SUCCESS",
+        "1775 passed / 6 skipped / 26 warnings",
+        "10 passed / 5 skipped",
+        "NO EVIDENCE OF EXECUTION",
+        "ACC-INT-001 A-Q:",
+        "Modify policy/risk drift",
+        "Recovery policy gate",
+        "`final` terminality semantics",
+        "Runtime acceptance evidence completeness",
+        "Trusted adapter/transport provenance",
+        "RESOLVED / INDEPENDENTLY_VERIFIED",
+        "SELF_CLOSING",
+        "NO_RECURSIVE_RECONCILIATION",
+        "INT-001B",
+        "DO_NOT_CREATE",
+        "99de47895b967bc41c3b1dcb3d2caaa630fcd4de",
+        "60fc299c4f4fd1ba22fc4a00d1490f3b2b893503",
+    ):
+        assert marker in reconciliation
+    assert reconciliation.count("RESOLVED / INDEPENDENTLY_VERIFIED") == 5
+
     combined = "\n".join(text.values())
     for marker in (
         "trusted-interaction/v1",

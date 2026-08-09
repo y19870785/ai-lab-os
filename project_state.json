@@ -186,45 +186,6 @@
       "ci_changed": false
     }
   },
-  "integration_tasks": {
-    "INT-001": {
-      "name": "Shell-Neutral Trusted Interaction Adapter and Hermes MCP Projection",
-      "type": "INTEGRATION_IMPLEMENTATION",
-      "status": "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED",
-      "base_commit": "49d77b6bd6bde3fe39eaecd5a7f8aa5b66249356",
-      "branch": "feat/int-001-shell-neutral-trusted-interaction-adapter",
-      "implementation_authorized": true,
-      "implementation_complete": true,
-      "independent_review_status": "FINAL_REVIEW_PASSED",
-      "ready_authorized": true,
-      "merge_authorized": true,
-      "implementation_pr": 70,
-      "approved_head": "696fc66e26d7a69fc2fb2a0dc67f33f7400f2912",
-      "merge_base": "49d77b6bd6bde3fe39eaecd5a7f8aa5b66249356",
-      "merge_commit": "c3c71c7934e50725e4a82ef745245fcdb502811c",
-      "merged_at": "2026-08-09T16:50:10Z",
-      "parent_count": 1,
-      "unique_parent": "49d77b6bd6bde3fe39eaecd5a7f8aa5b66249356",
-      "main_quality_gate_run": 31324821391,
-      "main_quality_gate": "SUCCESS",
-      "github_non_real": "1775 passed / 6 skipped / 26 warnings",
-      "real_test_isolation": "10 passed / 5 skipped",
-      "ruff": "SUCCESS",
-      "real_provider": "NO EVIDENCE OF EXECUTION",
-      "acceptance": "ACC-INT-001 A-Q / PASSED / FINAL / INDEPENDENT_REVIEW_PASSED",
-      "review_blockers": {
-        "modify_policy_risk_drift": "RESOLVED / INDEPENDENTLY_VERIFIED",
-        "recovery_policy_gate": "RESOLVED / INDEPENDENTLY_VERIFIED",
-        "final_terminality_semantics": "RESOLVED / INDEPENDENTLY_VERIFIED",
-        "runtime_acceptance_evidence_completeness": "RESOLVED / INDEPENDENTLY_VERIFIED",
-        "trusted_adapter_transport_provenance": "RESOLVED / INDEPENDENTLY_VERIFIED"
-      },
-      "post_merge_reconciled": true,
-      "archived": true,
-      "reconciliation": "INT-001A / SELF_CLOSING / NO_RECURSIVE_RECONCILIATION",
-      "recursive_reconciliation": "INT-001B / DO_NOT_CREATE"
-    }
-  },
   "governance_sources": {
     "machine_readable_project_state": "project_state.json",
     "runtime_product_version": "pyproject.toml:[project].version",
