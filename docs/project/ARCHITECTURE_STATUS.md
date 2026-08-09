@@ -8,6 +8,11 @@
 > DatabaseManager、canonical domains、审计和恢复继续作为 CORE；通用 Agent/Tool/
 > Workflow 扩张冻结，通用 Coordination 优先外置。MCP 仍可作为 Adapter transport 候选。
 
+> ARCH-001 当前为 OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY /
+> NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED。RFC-032 与 ADR-069～072 为 Proposed；
+> 它规划 Shell-neutral/Transport-neutral Adapter Contract、identity/Workspace fail-closed、canonical
+> Preview/Confirmation、Verified Result 与 Recovery，不修改本页所述 v0.35.0 运行时实现。
+
 > SP-010 Reminder Inbox 已通过 PR #21 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。`ReminderInboxService` 复用 ADR-040 聚合并由 Composition Root 统一持有；RFC-020 已 Adopted，ADR-041/042 已 Accepted。跨 SQLite 聚合不是快照事务。
 
 > SP-011 Reminder Management Closure 已通过 PR #23 合并并完成治理对账，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。Composition Root-owned `ReminderManagementService` 复用现有 Bridge Saga，并将确定性 Reminder 响应与 Provider 提示分离。RFC-021 已 Adopted，ADR-043/044/045 已 Accepted。跨数据库原子事务、外部通知、Recurring Reminder 与 Web UI 仍未实现。

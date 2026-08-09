@@ -3,7 +3,8 @@
 > 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-06
 
 `v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
-Governance Task 和 Product SP 均为 None。ARCH-001 是下一规划治理项，但尚未启动。
+Product SP 为 None，Governance Task 为 ARCH-001。ARCH-001 仅处于 Draft Planning，等待独立审查，
+不授权产品实现。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
@@ -38,7 +39,9 @@ general availability。
 | 限制 | 当前事实 |
 |---|---|
 | Agent Shell Adapter 未实现 | Hermes 只是首选候选；当前没有接入、contract test 或替换性证明 |
-| Trusted Interaction Boundary 未实现 | View / Preview / Confirm / Cancel / Status / Verified Result 仍需 ARCH-001 定义 |
+| Trusted Interaction Boundary 未实现 | ARCH-001 Draft 已规划 View / Preview / Confirm / Cancel / Modify / Status / Verified Result / Recovery；Domain、Adapter 与 contract tests 均未实现 |
+| 强 Identity / Workspace mapping 未实现 | 当前 bearer token 与 header/profile scope 不能证明 Channel User、Owner、Operator 或 Approver；Pilot 前必须 fail closed |
+| 统一 Interaction recovery 未实现 | Reminder、Inbox 等有局部恢复证据，但尚无 canonical Interaction / Execution / Verification / Recovery 聚合 |
 | Approval 不是完整领域模型 | 现有局部 confirmation 不能被描述为通用高风险审批能力 |
 | 企业微信 Owner Pilot 未开始 | 渠道、身份映射、消息可靠性和人工验收均未执行 |
 | PR #62 已关闭且被取代 | 保留分支、commit、discussion 与历史设计证据；Implementation 从未获授权 |

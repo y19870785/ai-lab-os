@@ -3,7 +3,7 @@
 > SP-019 已完成 Squash Merge、ACC-019 A～M 与 post-merge Quality Gate：Daily Review 通过同一确定性只读边界聚合 Work Log、UserTask、Waiting-For、Reminder 与 Inbox。
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
-> 当前没有 Product SP 或进行中的 Governance Task；STRAT-001 已合并、完成 post-merge reconciliation 并封存。下一规划治理项为 ARCH-001，但尚未启动且需要独立授权。
+> 当前 Product SP 为 None；ARCH-001 已获授权开始独立架构规划，Planning PR 保持 Draft、待独立审查，且不授权任何产品实现。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
@@ -13,7 +13,7 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **当前版本：v0.35.0 Alpha / GitHub Pre-release Published**
 **成熟度：Alpha / local-first / single-user-oriented**
 **当前 Product SP：None**
-**当前 Governance Task：None**
+**当前 Governance Task：ARCH-001 / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
 `60fc299c4f4fd1ba22fc4a00d1490f3b2b893503`。Release 不上传 wheel 或 sdist，仅有 GitHub
@@ -21,6 +21,12 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 上一已发布版本为 `v0.34.0`；当前已发布版本为 `v0.35.0` GitHub Pre-release。
 
 AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业务判断和重要审批仍由用户负责。当前版本适合本地开发、验证和受控试用，不应被描述为 production ready。
+
+ARCH-001 只定义 Shell-neutral、Transport-neutral 的 Trusted Interaction Architecture Baseline：View、
+Preview、Confirm、Cancel、Modify、Status、Verified Result、Recovery，以及 identity/Workspace、重试、
+审计和恢复合同。RFC-032 与 ADR-069～072 在 Planning PR 中均为 Proposed；SP-021、INT-001、
+PILOT-001 与 REL-036 均未启动。详见
+`docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md`。
 
 ## 当前能力
 
@@ -281,6 +287,6 @@ python -m ruff check <changed-python-files>
 - v0.35.0 GitHub Release：PUBLISHED / PRE-RELEASE / REMOTE_VERIFIED；不上传 wheel 或 sdist。
 - 外部发布事实：Tag 与 Release 的实际存在性、目标、URL 和发布时间以 GitHub Tags and GitHub Releases 为权威来源。
 - v0.35.0：Local Daily Operating Loop 已发布为 Pre-release；REL-035 已最终对账并封存。
-- 当前 Product SP：None；当前 Governance Task：None；下一 Product SP 尚未批准。
+- 当前 Product SP：None；当前 Governance Task：ARCH-001；下一 Product SP 尚未批准。
 
 任务编号代表开发批次，不等同于产品版本；一个产品版本可以由多个 SP 共同组成。
