@@ -25,8 +25,8 @@ AI-Lab 能帮助整理信息、记录工作、创建任务与提醒；最终业�
 
 ARCH-001 定义 Shell-neutral、Transport-neutral 的 Trusted Interaction Architecture Baseline：View、
 Preview、Confirm、Cancel、Modify、Status、Verified Result、Recovery，以及 identity/Workspace、重试、
-审计和恢复合同。RFC-032 已 Adopted，ADR-069～072 已 Accepted；SP-021、INT-001、
-SP-021 已实现并验证 canonical domain、持久化、Status/View 与 Fake/Reference port；INT-001 是下一候选任务但尚未启动，
+审计和恢复合同。RFC-032 已 Adopted，ADR-069～072 已 Accepted；SP-021 已实现并验证
+canonical domain、持久化、Status/View 与 Fake/Reference port；INT-001 是下一候选任务但尚未启动，
 PILOT-001 与 REL-036 均未启动。详见
 `docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md` 和
 `docs/project/ARCH-001-POST-MERGE-RECONCILIATION.md`。

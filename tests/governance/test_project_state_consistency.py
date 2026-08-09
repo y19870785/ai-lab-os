@@ -2718,5 +2718,10 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
         "SP-021 / IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT",
         "SP-021 Draft",
         "SP-021 已获实现授权并处于 Draft",
+        "等待独立审查且未获 Ready/Merge 授权",
+        "PENDING_INDEPENDENT_REVIEW",
+        "NOT_READY",
+        "NOT_MERGE_AUTHORIZED",
+        "SP-021、INT-001、\nSP-021 已",
     ):
         assert stale not in current_documents

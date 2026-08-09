@@ -36,8 +36,8 @@ v0.36 的治理顺序固定为 `STRAT-001 → ARCH-001 → SP-021 → INT-001 �
 STRAT-001 与 ARCH-001 均已封存；ARCH-001 定义并采纳了
 Shell-neutral/Transport-neutral Adapter Contract、identity/Workspace fail-closed、Interaction lifecycle、
 canonical Preview/Confirmation、Verified Result、分层 retry/idempotency、FailureInfo projection、audit 与
-recovery 语义。当前 Governance Task 为 None；SP-021 已通过最终独立审查、ACC-021 A～R、合并与 main Quality Gate，实现 canonical
-Domain 与持久化，等待独立审查且未获 Ready/Merge 授权；INT-001、PILOT-001 与 REL-036 均未启动。
+recovery 语义。当前 Governance Task 为 None；SP-021 已通过最终独立审查、ACC-021 A～R、PR #68 Squash Merge
+与 main Quality Gate，并完成 canonical domain 实施、治理对账和封存；INT-001 是下一候选任务，但仍未启动且需要独立授权。
 
 ```text
 SP-020:

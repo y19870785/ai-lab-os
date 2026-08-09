@@ -95,8 +95,9 @@ STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036
 
 PR #62 已 `CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 /
 IMPLEMENTATION_NEVER_AUTHORIZED`。其历史设计证据继续保留；ARCH-001 和替代 SP-021
-必须分别规划并获得 Owner 授权。ARCH-001 已采纳并封存 architecture contract；SP-021、INT-001、
-SP-021 已通过最终独立审查、ACC-021 A～R、PR #68 合并与 main Quality Gate，并完成对账和封存。INT-001 是下一候选任务，但 INT-001、PILOT-001 与 REL-036 仍未启动，均需要单独授权。
+必须分别规划并获得 Owner 授权。ARCH-001 已采纳并封存 architecture contract；SP-021 已通过最终独立审查、
+ACC-021 A～R、PR #68 合并与 main Quality Gate，并完成对账和封存。INT-001 是下一候选任务，
+但 INT-001、PILOT-001 与 REL-036 仍未启动，均需要独立授权。
 
 ## v0.37 与 v0.38 候选路线
 
