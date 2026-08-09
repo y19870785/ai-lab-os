@@ -39,10 +39,11 @@ recovery 子状态分离。Preview 与 Confirmation 是 AI-Lab canonical facts�
 Verified Result；identity/Workspace 映射失败关闭。完整规划见
 `docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md`、RFC-032 与 ADR-069～072。
 
-SP-021 已获独立产品实施授权，正在建立 canonical Interaction aggregate、Preview、Confirmation、
-Approval、Execution、VerifiedResult、Recovery、持久化幂等/CAS/audit 与 transport-neutral
-Status/View application boundary。Composition Root 默认注入 disabled Execution/Verification ports，
-不会产生真实外部副作用。INT-001、PILOT-001 与 REL-036 均未启动。
+SP-021 已建立 canonical Interaction aggregate、Preview、Confirmation、Approval、Execution、
+VerifiedResult、Recovery、持久化幂等/CAS/audit 与 transport-neutral Status/View application boundary。
+PR #68 已 Squash Merge，ACC-021 A～R 与 main Quality Gate 均通过，SP-021 已完成对账并封存。
+Composition Root 默认注入 disabled Execution/Verification ports，不会产生真实外部副作用。
+INT-001 是下一候选任务但未启动；PILOT-001 与 REL-036 也均未启动。
 
 ## v0.35.0 Alpha 产品基线
 

@@ -8,9 +8,9 @@
 
 | 项目 | 状态 |
 |---|---|
-| 最近合并的 SP | SP-020 |
-| 最近完成的 SP | SP-020 |
-| 当前 Product SP | SP-021 / IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / IMPLEMENTATION_IN_PROGRESS / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED |
+| 最近合并的 SP | SP-021 |
+| 最近完成的 SP | SP-021 |
+| 当前 Product SP | None |
 | 当前治理任务 | None |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | ARCH-001 Planning PR | #66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3` |
@@ -48,12 +48,14 @@
 | RFC-029 | Adopted |
 | ADR-063 / ADR-064 | Accepted |
 | ACC-020 | PASSED / FINAL（A～V 全部通过；独立证据复核 APPROVED） |
+| SP-021 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
+| ACC-021 | PASSED / FINAL（A～R 全部通过；FINAL_REVIEW_PASSED） |
 | REL-035 | FINAL_RECONCILED / ARCHIVED |
 
 STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所有权和 v0.36+ 路线基线。
-当前 Product SP 为 SP-021，Governance Task 为 None。SP-021 已获实现授权，当前 Draft PR 正在实现
-canonical Interaction Domain、additive Schema、持久化、Status/View 与 Reference ports；等待独立审查，
-未获 Ready/Merge 授权。INT-001、PILOT-001 与 REL-036 均未启动；版本、Tag 和 Release 未改变。
+当前 Product SP 与 Governance Task 均为 None。SP-021 已通过最终独立审查、ACC-021 A～R、PR #68
+Squash Merge 与 main Quality Gate `31311699187`，并完成治理对账和封存。INT-001 是下一候选任务，
+但 INT-001、PILOT-001 与 REL-036 均未启动；版本、Tag 和 Release 未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
 与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge
 reconciliation 并封存；该结果不构成任何实现授权。
@@ -151,4 +153,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 - v0.35.0：PRE_RELEASE_PUBLISHED
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-020；Current Product SP 为 SP-021，Current Governance Task 为 None。SP-021 已获实现授权并处于 Draft / PENDING_INDEPENDENT_REVIEW，未获 Ready 或 Merge 授权。ARCH-001 已完成合并与封存。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。
+Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP 与 Current Governance Task 均为 None。SP-021 已完成合并、main Quality Gate、ACC-021 最终验收、治理对账与封存。INT-001 是下一候选任务但未启动。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。

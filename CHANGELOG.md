@@ -2,7 +2,7 @@
 
 ## [Unreleased] 未发布
 
-### SP-021 可信交互领域实施（Draft）
+### SP-021 可信交互领域实施与合并后对账
 
 - 新增 AI-Lab canonical Interaction aggregate、Preview、Confirmation、Approval、Execution、
   VerifiedResult、Recovery、Status/View 与审计证据。
@@ -13,8 +13,9 @@
 - 根据独立审查补强数据库原子 create idempotency claim、execution intent/outcome crash-gap
   reconciliation、Approval authority fail-closed，以及 AI-Lab-owned `CanonicalCommitEvidence`；
   VerificationPort 不再能声明 canonical commit 成功。
-- 建立 ACC-021 A～R 自动化证据。当前仍为 OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW /
-  NOT_READY / NOT_MERGE_AUTHORIZED；INT-001、PILOT-001、REL-036 未启动。
+- 建立 ACC-021 A～R 自动化证据；最终独立审查通过后，PR #68 Squash Merge 为
+  `e59091d5a54009ac87164433422c204144d21234`，main Quality Gate `31311699187` 为 SUCCESS。
+- SP-021 已完成治理对账并封存；INT-001 仅为下一候选任务，INT-001、PILOT-001、REL-036 均未启动。
 
 ### ARCH-001 可信交互架构规划与合并后对账
 

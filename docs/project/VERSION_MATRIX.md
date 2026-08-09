@@ -3,7 +3,7 @@
 **源码版本：** `0.35.0` Alpha / GitHub Pre-release Published
 **治理状态：** REL-035 / FINAL_RECONCILED / ARCHIVED
 **当前治理任务：** None
-**当前 Product SP：** SP-021 / IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / IMPLEMENTATION_IN_PROGRESS / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED
+**当前 Product SP：** None
 **下一规划治理项：** None
 **已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
 **当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
@@ -34,6 +34,7 @@ annotated Tag 与 Release 已远端验证，但 Alpha 成熟度和已知限制�
 | Daily Review Read Model | SP-019 | Integrated / Verified / ACC-019 passed |
 | Local Daily Profile / Daily Review CLI / Action Hints | SP-020 | Integrated / Verified / ACC-020 passed |
 | Review-to-Action / lifecycle / backup-restore | SP-020 | Integrated / Verified / ACC-020 passed |
+| Canonical Trusted Interaction Domain | SP-021 | Integrated / Verified / ACC-021 passed / Archived |
 
 ## v0.36+ 战略兼容边界
 
@@ -46,7 +47,7 @@ Response 不分别构成业务事实、审批事实和最终成功证明；Herme
 数据库，AI-Lab 不得依赖 Hermes 内部实现。
 
 ARCH-001 已采纳 `trusted-interaction/v1` Shell-neutral、Transport-neutral 合同；RFC-032 为 Adopted，
-ADR-069～072 为 Accepted。SP-021 Draft 正在实现该 canonical domain，但不改变产品版本号或已发布
+ADR-069～072 为 Accepted。SP-021 已实现、验证、合并、对账并封存该 canonical domain，但不改变产品版本号或已发布
 v0.35.0 contract；INT-001、PILOT-001 与 REL-036 均未启动。
 
 ## 兼容性边界

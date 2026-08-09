@@ -37,4 +37,4 @@
 
 ## 判定边界
 
-本文件不宣称 ACC-021 `PASSED / FINAL`。Draft PR 的自动化结果必须经独立审查；Ready 与 Merge 需要后续 Owner 明确授权。Hermes、企业微信、MCP、真实外部 Adapter 和真实 Provider 不属于本验收。
+ACC-021 A～R 已在 Approved Head `3c899d6a0d83d3d546ce0eb38ec921181dbe2d81` 通过，并经最终独立审查复核；状态为 `PASSED / FINAL / INDEPENDENT_REVIEW_PASSED`。PR #68 已 Squash Merge，main Quality Gate `31311699187` 为 SUCCESS。Hermes、企业微信、MCP、真实外部 Adapter 和真实 Provider 不属于本验收。
