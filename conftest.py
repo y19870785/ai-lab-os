@@ -49,7 +49,7 @@ def pytest_ignore_collect(
     collection_path: Path,
     config: pytest.Config,
 ) -> bool | None:
-    """在危险 conftest/test module 导入前排除未授权 tests/real。"""
+    """在默认递归目录收集边界排除未授权 tests/real。"""
     if _is_real_provider_path(collection_path) and not _real_provider_tests_authorized(
         config
     ):

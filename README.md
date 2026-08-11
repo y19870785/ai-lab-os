@@ -49,8 +49,9 @@ PILOT-001 规划与分层验收证据要求见
 `docs/project/PILOT-001-WECOM-OWNER-TRUSTED-TASK-CAPTURE.md` 和
 `docs/acceptance/PILOT-001-wecom-owner-pilot.md`。
 
-QUALITY-004 在 pytest collection 边界默认排除 `tests/real`。真实 Provider 测试只有在显式同时提供
-`--run-real-provider` 与 `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1` 时才允许进入 collection；API Key 或
+QUALITY-004 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 可导入无副作用的
+conftest/module 定义，但未经双授权的 real item 会在执行前 fail-closed skip。真实 Provider 环境只有在同时提供
+`--run-real-provider` 与 `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1` 后才允许加载 dotenv 并检查凭据；API Key 或
 本地 `.env` 的存在不构成执行授权。P0-E 的 WeCom/MCP 环境连接与工具隔离已经成功，但 validation suite
 意外执行真实 Provider，因此环境验收未获最终通过；这是本地测试凭据隔离安全缺陷，不是 WeCom/MCP
 compatibility failure。

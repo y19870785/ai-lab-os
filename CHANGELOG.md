@@ -4,12 +4,14 @@
 
 ### QUALITY-004 真实 Provider 凭据隔离保护
 
-- 在仓库根 pytest collection 边界默认排除 `tests/real`，阻止其 `conftest.py`、测试模块和
-  `load_dotenv()` 在普通 pytest、IDE、Codex Validation 与本地 Full Suite 中被导入。
+- 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 允许 pytest 导入无副作用的
+  conftest/module 定义，但未经双授权的 real item 在执行前 fail-closed skip。
+- 将 `load_dotenv()` 移入 session fixture，并固定为“双授权 → dotenv → 凭据可用性 → real test”；
+  显式路径在未授权时不会加载 `.env`、初始化 Provider 或发起网络请求。
 - 真实 Provider 测试改为双因素显式授权：必须同时提供 `--run-real-provider` 与
   `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1`；API Key 或 `.env` 凭据存在不再等于执行授权。
-- 新增 Q4-A～Q4-G 隔离回归，覆盖真实形态假凭据、空字符串、`DISABLED` sentinel、单因素拒绝与
-  双因素仅 collection 验证；QUALITY-004 验证期间不调用真实 Provider。
+- 新增 Q4-A～Q4-J 与 AST 静态隔离回归，覆盖真实形态假凭据、空字符串、`DISABLED` sentinel、
+  单因素拒绝、显式目录/file/node、mixed selection 与双因素仅 collection；QUALITY-004 验证期间不调用真实 Provider。
 - P0-E 的 WeCom/MCP 环境连接与工具隔离成功，但 validation suite 曾意外执行真实 Provider，故验收
   未获最终通过。该事故属于本地测试凭据隔离安全缺陷，不是 WeCom/MCP compatibility failure。
 
