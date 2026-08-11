@@ -166,7 +166,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_governance_task"] is None
     assert (
         state["development_status"]
-        == "quality_004_real_provider_isolation_guard_open_draft_pending_independent_review"
+        == "quality_004_guard_approved_pilot_p0e_revalidation_required"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -488,9 +488,9 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_name"] is None
     assert (
         state["development_status"]
-        == "quality_004_real_provider_isolation_guard_open_draft_pending_independent_review"
+        == "quality_004_guard_approved_pilot_p0e_revalidation_required"
     )
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp017 == {
@@ -648,7 +648,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp018["name"] == "Work Log Query Boundary & Context Closure"
@@ -909,9 +909,9 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["version"] == "v0.35.0"
     assert (
         state["development_status"]
-        == "quality_004_real_provider_isolation_guard_open_draft_pending_independent_review"
+        == "quality_004_guard_approved_pilot_p0e_revalidation_required"
     )
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
     assert state["release_status"]["current_version"] == "0.35.0"
     assert "SP-020" in state["sp_records"]
@@ -1385,12 +1385,12 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert (
         state["development_status"]
-        == "quality_004_real_provider_isolation_guard_open_draft_pending_independent_review"
+        == "quality_004_guard_approved_pilot_p0e_revalidation_required"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -1993,7 +1993,7 @@ def test_docs001_is_reconciled_and_archived() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert docs001 == {
@@ -2342,7 +2342,7 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     strat = state["governance_tasks"]["STRAT-001"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert state["current_version"] == "0.35.0"
@@ -2469,7 +2469,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["next_planned_governance_item"] is None
@@ -2515,7 +2515,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
         "PILOT-001": (
             "PLANNING_BASELINE_APPROVED / "
             "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-            "P0_E_BLOCKED_BY_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
+            "P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "IMPLEMENTATION_NOT_APPROVED / "
             "REAL_PILOT_NOT_STARTED"
@@ -2624,7 +2624,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
     acc021 = state["acceptance_records"]["ACC-021"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["next_candidate_sp"] is None
@@ -2665,7 +2665,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
         "PILOT-001": (
             "PLANNING_BASELINE_APPROVED / "
             "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-            "P0_E_BLOCKED_BY_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
+            "P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "IMPLEMENTATION_NOT_APPROVED / "
             "REAL_PILOT_NOT_STARTED"
@@ -2754,7 +2754,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     )
     pilot_status = (
         "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-        "P0_E_BLOCKED_BY_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
+        "P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "IMPLEMENTATION_NOT_APPROVED / REAL_PILOT_NOT_STARTED"
     )
@@ -2763,7 +2763,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["schema_version"] == 1
@@ -2780,7 +2780,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         assert unauthorized_root not in state
     assert (
         state["development_status"]
-        == "quality_004_real_provider_isolation_guard_open_draft_pending_independent_review"
+        == "quality_004_guard_approved_pilot_p0e_revalidation_required"
     )
     assert arch["follow_up_tasks"]["INT-001"] == final_status
     assert sp021["follow_up_tasks"]["INT-001"] == final_status
@@ -2793,7 +2793,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     assert quality["QUALITY-003"]["authorized"] is False
     assert "REAL_PROVIDER_ONLY" in quality["QUALITY-003"]["status"]
     assert quality["QUALITY-004"]["authorized"] is True
-    assert "SAFETY_BLOCKING_FOR_PILOT" in quality["QUALITY-004"]["status"]
+    assert "PILOT_SAFETY_BLOCKER_CLEARED" in quality["QUALITY-004"]["status"]
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
 
@@ -2895,7 +2895,7 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     sp021 = state["sp_records"]["SP-021"]
     pilot_status = (
         "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-        "P0_E_BLOCKED_BY_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
+        "P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004 / P0_R_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "IMPLEMENTATION_NOT_APPROVED / REAL_PILOT_NOT_STARTED"
     )
@@ -2907,10 +2907,10 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
     assert (
         state["development_status"]
-        == "quality_004_real_provider_isolation_guard_open_draft_pending_independent_review"
+        == "quality_004_guard_approved_pilot_p0e_revalidation_required"
     )
     assert arch["follow_up_tasks"]["PILOT-001"] == pilot_status
     assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
@@ -2933,8 +2933,9 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     )
     assert quality["QUALITY-003"]["authorized"] is False
     assert quality["QUALITY-004"]["status"] == (
-        "CONFIRMED / SAFETY_BLOCKING_FOR_PILOT / IMPLEMENTATION_AUTHORIZED / "
-        "OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW"
+        "RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / "
+        "REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED / "
+        "PILOT_SAFETY_BLOCKER_CLEARED"
     )
     assert quality["QUALITY-004"]["authorized"] is True
 
@@ -3036,7 +3037,7 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
         assert forbidden_domain not in combined
 
 
-def test_quality004_real_provider_isolation_guard_is_open_draft() -> None:
+def test_quality004_real_provider_isolation_guard_has_durable_approval() -> None:
     state = _load_state()
     quality003 = state["quality_candidates"]["QUALITY-003"]
     quality004 = state["quality_candidates"]["QUALITY-004"]
@@ -3044,12 +3045,20 @@ def test_quality004_real_provider_isolation_guard_is_open_draft() -> None:
     assert state["schema_version"] == 1
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "QUALITY-004"
+    assert state["current_work"] is None
+    assert state["development_status"] == (
+        "quality_004_guard_approved_pilot_p0e_revalidation_required"
+    )
+    assert state["latest_merged_sp"] == "SP-021"
+    assert state["latest_completed_sp"] == "SP-021"
+    assert state["current_version"] == "0.35.0"
+    assert state["version"] == "v0.35.0"
     assert quality004 == {
         "name": "Real-Provider Credential Isolation Guard",
         "status": (
-            "CONFIRMED / SAFETY_BLOCKING_FOR_PILOT / IMPLEMENTATION_AUTHORIZED / "
-            "OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW"
+            "RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / "
+            "REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED / "
+            "PILOT_SAFETY_BLOCKER_CLEARED"
         ),
         "classification": "SAFETY_FIX / TEST_EXECUTION_ISOLATION / PILOT_BLOCKER",
         "base_commit": "0f1fca015248bbf2c5f87175d887b770e68dc07c",
@@ -3062,7 +3071,9 @@ def test_quality004_real_provider_isolation_guard_is_open_draft() -> None:
         "required_guard": (
             "--run-real-provider AND AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1"
         ),
-        "blocks": "PILOT-001 / P0-E",
+        "approved_head": "32816b750907cc03bd5c7c61bd1fb1ebbaf77d5b",
+        "independent_review_status": "FINAL_REVIEW_PASSED",
+        "blocking_status": "CLEARED_FOR_P0_E_REVALIDATION",
         "real_provider_called_during_implementation": False,
         "authorized": True,
     }
@@ -3071,6 +3082,18 @@ def test_quality004_real_provider_isolation_guard_is_open_draft() -> None:
         "NOT_STARTED / NOT_AUTHORIZED"
     )
     assert quality003["authorized"] is False
+    assert state["governance_tasks"]["ARCH-001"]["follow_up_tasks"]["REL-036"] == (
+        "NOT_STARTED / NOT_APPROVED"
+    )
+    for unauthorized_root in (
+        "quality_tasks",
+        "quality_records",
+        "current_quality_task",
+        "pilot_tasks",
+        "pilot_records",
+        "current_pilot",
+    ):
+        assert unauthorized_root not in state
 
     guard = (ROOT / "conftest.py").read_text(encoding="utf-8-sig")
     assert "--run-real-provider" in guard
@@ -3086,5 +3109,7 @@ def test_quality004_real_provider_isolation_guard_is_open_draft() -> None:
             "docs/project/PROJECT_STATUS.md",
         )
     )
-    assert "P0_E_BLOCKED_BY_QUALITY_004" in documentation
+    assert "P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004" in documentation
+    assert "P0_R_NOT_AUTHORIZED" in documentation
+    assert "PILOT_SAFETY_BLOCKER_CLEARED" in documentation
     assert "不是 WeCom/MCP compatibility failure" in documentation

@@ -14,6 +14,11 @@
   单因素拒绝、显式目录/file/node、mixed selection 与双因素仅 collection；QUALITY-004 验证期间不调用真实 Provider。
 - P0-E 的 WeCom/MCP 环境连接与工具隔离成功，但 validation suite 曾意外执行真实 Provider，故验收
   未获最终通过。该事故属于本地测试凭据隔离安全缺陷，不是 WeCom/MCP compatibility failure。
+- QUALITY-004 Guard 已实现并通过最终独立安全审查，状态收口为
+  `RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED /
+  PILOT_SAFETY_BLOCKER_CLEARED`；不预写 Merge 或 main Quality Gate。
+- P0-E 当前改为 `P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004`，尚未重新验证；P0-R、Phase 1、Phase 2
+  与 REL-036 仍未授权或未启动。
 
 ### PILOT-001 企业微信 Owner 可信任务捕获规划
 
