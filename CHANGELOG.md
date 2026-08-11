@@ -2,6 +2,17 @@
 
 ## [Unreleased] 未发布
 
+### QUALITY-004 真实 Provider 凭据隔离保护
+
+- 在仓库根 pytest collection 边界默认排除 `tests/real`，阻止其 `conftest.py`、测试模块和
+  `load_dotenv()` 在普通 pytest、IDE、Codex Validation 与本地 Full Suite 中被导入。
+- 真实 Provider 测试改为双因素显式授权：必须同时提供 `--run-real-provider` 与
+  `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1`；API Key 或 `.env` 凭据存在不再等于执行授权。
+- 新增 Q4-A～Q4-G 隔离回归，覆盖真实形态假凭据、空字符串、`DISABLED` sentinel、单因素拒绝与
+  双因素仅 collection 验证；QUALITY-004 验证期间不调用真实 Provider。
+- P0-E 的 WeCom/MCP 环境连接与工具隔离成功，但 validation suite 曾意外执行真实 Provider，故验收
+  未获最终通过。该事故属于本地测试凭据隔离安全缺陷，不是 WeCom/MCP compatibility failure。
+
 ### PILOT-001 企业微信 Owner 可信任务捕获规划
 
 - 新增中文规划基线与分层验收计划，固定 `SINGLE_OWNER / DM_ONLY / LOCAL_HOST / ALLOWLISTED /

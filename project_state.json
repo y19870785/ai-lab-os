@@ -17,9 +17,9 @@
   "next_candidate_sp": null,
   "next_candidate_name": null,
   "next_planned_governance_item": null,
-  "development_status": "pilot_001_planning_baseline_approved_implementation_not_authorized",
-  "current_work": null,
-  "updated_at": "2026-08-11",
+  "development_status": "quality_004_real_provider_isolation_guard_open_draft_pending_independent_review",
+  "current_work": "QUALITY-004",
+  "updated_at": "2026-08-12",
   "governance_tasks": {
     "ARCH-001": {
       "name": "Trusted Interaction Architecture Baseline",
@@ -52,7 +52,7 @@
       "follow_up_tasks": {
         "SP-021": "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED",
         "INT-001": "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED",
-        "PILOT-001": "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED",
+        "PILOT-001": "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_BLOCKED_BY_QUALITY_004 / P0_R_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED / REAL_PILOT_NOT_STARTED",
         "REL-036": "NOT_STARTED / NOT_APPROVED"
       },
       "quality_003": "CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED",
@@ -610,7 +610,7 @@
       "reconciliation": "SP-021A / SELF_CLOSING / NO_RECURSIVE_RECONCILIATION",
       "follow_up_tasks": {
         "INT-001": "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED",
-        "PILOT-001": "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED",
+        "PILOT-001": "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_BLOCKED_BY_QUALITY_004 / P0_R_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / IMPLEMENTATION_NOT_APPROVED / REAL_PILOT_NOT_STARTED",
         "REL-036": "NOT_STARTED / NOT_APPROVED"
       },
       "product_code_changed": true,
@@ -635,10 +635,15 @@
     },
     "QUALITY-004": {
       "name": "Real-Provider Credential Isolation Guard",
-      "status": "CANDIDATE / SAFETY_RELEVANT / NON_BLOCKING_FOR_ARCH_001 / NOT_STARTED / NOT_AUTHORIZED",
-      "observation": "Empty-string environment overrides can allow python-dotenv to reload local .env credentials and unintentionally enable real tests",
-      "required_interim_guard": "Use a non-empty invalid sentinel such as DISABLED, verify all real tests skip in a preflight, and stop if any real Provider call begins",
-      "authorized": false
+      "status": "CONFIRMED / SAFETY_BLOCKING_FOR_PILOT / IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW",
+      "classification": "SAFETY_FIX / TEST_EXECUTION_ISOLATION / PILOT_BLOCKER",
+      "base_commit": "0f1fca015248bbf2c5f87175d887b770e68dc07c",
+      "branch": "fix/quality-004-real-provider-isolation-guard",
+      "observation": "Ordinary pytest could import tests/real, where python-dotenv reloaded local credentials and credential presence implicitly enabled real-provider execution",
+      "required_guard": "--run-real-provider AND AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1",
+      "blocks": "PILOT-001 / P0-E",
+      "real_provider_called_during_implementation": false,
+      "authorized": true
     }
   },
   "acceptance_records": {

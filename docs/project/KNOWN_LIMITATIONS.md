@@ -59,6 +59,6 @@ general availability。
 | QUALITY-001 | GitHub Ruff 只检查变更 Python 文件，尚无全仓历史清零基线 |
 | Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥，也不调用外部模型 |
 | QUALITY-003 Candidate — DeepSeek Real Brief Contract Audit | `test_deepseek_brief → daily_review.date_invalid`；2026-08-09 accidental reproduction；CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
-| QUALITY-004 Candidate — Real-Provider Credential Isolation Guard | 空字符串环境覆盖可能允许 `python-dotenv` 重新加载本地 `.env` 凭据；CANDIDATE / SAFETY_RELEVANT / NON_BLOCKING_FOR_ARCH_001 / NOT_STARTED / NOT_AUTHORIZED。修复获批前必须使用非空 sentinel 并先确认 real tests 全部 skip |
+| QUALITY-004 — Real-Provider Credential Isolation Guard | 已确认普通 pytest 可导入 `tests/real`，其 `load_dotenv()` 可重新装载本机凭据并把凭据存在误作执行信号。当前为 CONFIRMED / SAFETY_BLOCKING_FOR_PILOT / IMPLEMENTATION_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW；新边界要求 `--run-real-provider` 与 `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1` 同时存在。P0-E 环境连接成功但验收受此安全缺陷污染；这不是 WeCom/MCP compatibility failure |
 
 完整机器可读技术债清单以 `project_state.json` 为准。

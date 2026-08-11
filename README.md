@@ -4,7 +4,7 @@
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
 > SP-021 已通过 ACC-021 A～R、最终独立审查与 main Quality Gate，并完成合并、对账和封存。INT-001 已通过 ACC-INT-001 A～Q、最终独立审查与 main Quality Gate，并完成合并、对账和封存。
-> PILOT-001 企业微信 Owner 可信任务捕获规划基线已获批准并通过最终独立规划审查；实现仍未授权，真实 Pilot 尚未启动。
+> PILOT-001 企业微信 Owner 可信任务捕获规划基线已获批准并通过最终独立规划审查；P0-E 因本地测试凭据隔离缺陷被 QUALITY-004 阻断，实现与后续 Phase 仍未授权。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
@@ -15,8 +15,8 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **成熟度：Alpha / local-first / single-user-oriented**
 **当前 Product SP：None**
 **当前 Governance Task：None**
-**当前工作：None**
-**PILOT-001 规划：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED**
+**当前工作：QUALITY-004 / OPEN_DRAFT / PENDING_INDEPENDENT_REVIEW**
+**PILOT-001 规划：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_BLOCKED_BY_QUALITY_004 / P0_R_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_PILOT_NOT_STARTED**
 **下一候选 Product SP：None**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
@@ -48,6 +48,12 @@ INT-001 合并事实与最终治理状态见
 PILOT-001 规划与分层验收证据要求见
 `docs/project/PILOT-001-WECOM-OWNER-TRUSTED-TASK-CAPTURE.md` 和
 `docs/acceptance/PILOT-001-wecom-owner-pilot.md`。
+
+QUALITY-004 在 pytest collection 边界默认排除 `tests/real`。真实 Provider 测试只有在显式同时提供
+`--run-real-provider` 与 `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1` 时才允许进入 collection；API Key 或
+本地 `.env` 的存在不构成执行授权。P0-E 的 WeCom/MCP 环境连接与工具隔离已经成功，但 validation suite
+意外执行真实 Provider，因此环境验收未获最终通过；这是本地测试凭据隔离安全缺陷，不是 WeCom/MCP
+compatibility failure。
 
 ## 当前能力
 
