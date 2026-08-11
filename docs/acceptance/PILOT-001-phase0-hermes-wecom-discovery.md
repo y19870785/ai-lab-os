@@ -109,8 +109,9 @@ binding/policy authority。
 | title | `明天下午3点跟进测试客户的5000盒护发精油报价` |
 | description | `跟进测试客户的5000盒护发精油报价` |
 | priority | `medium` |
-| due_at | `2026-08-13T15:00:00+08:00`（canonical persistence 等价为 UTC 07:00） |
+| canonical normalized due_at | `2026-08-13T07:00:00+00:00` |
 | timezone | `Asia/Shanghai` |
+| Owner-facing local presentation | `2026-08-13 15:00:00 Asia/Shanghai` |
 | source | `wecom_owner_pilot` |
 | risk | `medium` |
 | requires_confirmation | `true` |

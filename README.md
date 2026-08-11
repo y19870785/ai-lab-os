@@ -55,8 +55,8 @@ PILOT-001 规划与分层验收证据要求见
 QUALITY-004 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 可导入无副作用的
 conftest/module 定义，但未经双授权的 real item 会在执行前 fail-closed skip。真实 Provider 环境只有在同时提供
 `--run-real-provider` 与 `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1` 后才允许加载 dotenv 并检查凭据；API Key 或
-本地 `.env` 的存在不构成执行授权。P0-E 的 WeCom/MCP 环境连接与工具隔离已经成功，但 validation suite
-意外执行真实 Provider，因此环境验收未获最终通过；这是本地测试凭据隔离安全缺陷，不是 WeCom/MCP
+本地 `.env` 的存在不构成执行授权。首次 P0-E 的 WeCom/MCP 环境连接与工具隔离已经成功，但当时 validation suite
+意外执行真实 Provider，因此首次环境验收未获最终通过；这是本地测试凭据隔离安全缺陷，不是 WeCom/MCP
 compatibility failure。QUALITY-004 Guard 已实现并通过最终独立安全审查，Pilot safety blocker 已清除；
 P0-E 已在 QUALITY-004 后完成复验。P0-R 仅实现 Preview authority；Vanilla Hermes 最终只通过模型可控的
 tool arguments 向 AI-Lab 传递入站字段，故 Fresh Owner 入站证据为 `UNSUPPORTED`，Phase 0 已停止并等待
