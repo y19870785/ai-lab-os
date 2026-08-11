@@ -1,9 +1,9 @@
 # AI-Lab 已知限制
 
-> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-09
+> 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-12
 
 `v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
-Current Product SP 与 Governance Task 均为 None，当前工作为 INT-001 Draft。SP-021 已通过最终独立审查、合并、main Quality Gate、
+Current Product SP、Governance Task 与工作均为 None。P0-R 已实现并通过最终独立审查，Preview authority 已建立；Fresh Owner Ingress Evidence 为 `UNSUPPORTED`，Phase 0 已按设计停止在 ingress bridge 设计之前。SP-021 已通过最终独立审查、合并、main Quality Gate、
 ACC-021 最终验收与治理对账，并已封存。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
@@ -43,7 +43,7 @@ general availability。
 | 强 Identity / Workspace mapping 未实现 | 当前 bearer token 与 header/profile scope 不能证明 Channel User、Owner、Operator 或 Approver；Pilot 前必须 fail closed |
 | Interaction recovery 尚无自动 worker | SP-021 已持久化 Interaction / Execution / Verification / Recovery 并提供显式 recover；未实现 poll/webhook/background reconciliation |
 | Approval 尚无完整 Policy/RBAC | SP-021 将 Approval 与 Confirmation 分离并持久化，但正式 Policy engine、角色目录与多主体审批不在本 SP |
-| 企业微信 Owner Pilot 未开始 | 渠道、身份映射、消息可靠性和人工验收均未执行 |
+| 企业微信 Owner Pilot 仅到 Preview | P0-E 已完成复验，P0-R 已实现并通过最终独立审查，本地单 Owner Preview authority 已建立；该 static binding 不是生产身份认证。Vanilla Hermes 未把 channel-originated event metadata 以模型不可伪造的旁路传给 AI-Lab，Fresh Owner 入站证据为 `UNSUPPORTED`，Phase 0 已按设计停止在 ingress bridge 独立设计之前 |
 | PR #62 已关闭且被取代 | 保留分支、commit、discussion 与历史设计证据；Implementation 从未获授权 |
 | 通用平台扩张已冻结但未删除 | Agent/Tool/Workflow/Coordination 重叠代码仍存在，弃用需要独立审计与授权 |
 
@@ -59,6 +59,6 @@ general availability。
 | QUALITY-001 | GitHub Ruff 只检查变更 Python 文件，尚无全仓历史清零基线 |
 | Real tests 不属于普通门禁 | Quality Gate 不配置真实密钥，也不调用外部模型 |
 | QUALITY-003 Candidate — DeepSeek Real Brief Contract Audit | `test_deepseek_brief → daily_review.date_invalid`；2026-08-09 accidental reproduction；CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
-| QUALITY-004 — Real-Provider Credential Isolation Guard | 已确认并修复普通或显式路径 pytest 因 import-time `load_dotenv()` 重新装载本机凭据的风险；双因素 Guard 已实现并通过最终独立安全审查，状态为 RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED / PILOT_SAFETY_BLOCKER_CLEARED。P0-E 环境链路曾成功但验收受污染，当前需要重新验证；这不是 WeCom/MCP compatibility failure |
+| QUALITY-004 — Real-Provider Credential Isolation Guard | 已确认并修复普通或显式路径 pytest 因 import-time `load_dotenv()` 重新装载本机凭据的风险；双因素 Guard 已实现并通过最终独立安全审查，状态为 RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED / PILOT_SAFETY_BLOCKER_CLEARED。P0-E 已完成 QUALITY-004 后复验；这不是 WeCom/MCP compatibility failure |
 
 完整机器可读技术债清单以 `project_state.json` 为准。

@@ -1,7 +1,7 @@
 # AI-Lab 架构文档
 
-> 当前工作：None。INT-001 已通过最终独立审查、PR #70 Squash Merge、main Quality Gate
-> 与 post-merge reconciliation，并完成封存。
+> 当前工作：None。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
+> Fresh Owner Ingress Evidence 为 `UNSUPPORTED`，Phase 0 已按设计停止在 ingress bridge 设计之前。
 
 INT-001 在 `applications/trusted_interaction_adapter` 增加 Shell-neutral application
 boundary，并通过官方 MCP SDK 提供本地 stdio projection。该层只依赖 canonical
@@ -53,8 +53,11 @@ VerifiedResult、Recovery、持久化幂等/CAS/audit 与 transport-neutral Stat
 PR #68 已 Squash Merge，ACC-021 A～R 与 main Quality Gate 均通过，SP-021 已完成对账并封存。
 Composition Root 默认注入 disabled Execution/Verification ports，不会产生真实外部副作用。
 INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 与 main Quality Gate，
-并完成 post-merge reconciliation 和封存；真实 Shell/Channel 仍未接入。PILOT-001 只是下一候选，
-尚未启动且需要独立授权；REL-036 未启动。
+并完成 post-merge reconciliation 和封存。PILOT-001-P0R 已实现并通过最终独立审查，通过独立 `pilot_001_mcp_server`
+显式注入本地单 Owner binding 与 Preview-only policy，通用 MCP 入口仍 fail closed。该 binding 是
+`NOT_PRODUCTION_IDENTITY_AUTHENTICATION`；Vanilla Hermes 的 MCP client 只转发模型生成的 tool
+arguments，没有把 channel event metadata 作为模型不可伪造的 provenance 注入 AI-Lab。因此
+Fresh Owner 入站证据为 `UNSUPPORTED`，不得进入 Phase 1、业务 mutation 或 Coordinator；REL-036 未启动。
 
 ## v0.35.0 Alpha 产品基线
 

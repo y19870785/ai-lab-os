@@ -4,7 +4,7 @@
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
 > SP-021 已通过 ACC-021 A～R、最终独立审查与 main Quality Gate，并完成合并、对账和封存。INT-001 已通过 ACC-INT-001 A～Q、最终独立审查与 main Quality Gate，并完成合并、对账和封存。
-> PILOT-001 企业微信 Owner 可信任务捕获规划基线已获批准并通过最终独立规划审查；QUALITY-004 Guard 已实现并通过最终独立安全审查，P0-E 需要重新验证，实现与后续 Phase 仍未授权。
+> PILOT-001 P0-E 已完成 QUALITY-004 后复验；P0-R 已实现并通过最终独立审查，Preview authority 已建立。Fresh Owner 入站证据判定为 `UNSUPPORTED`，Phase 0 已按设计停止在 ingress bridge 独立设计之前。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
@@ -16,7 +16,7 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **当前 Product SP：None**
 **当前 Governance Task：None**
 **当前工作：None**
-**PILOT-001 规划：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004 / P0_R_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_PILOT_NOT_STARTED**
+**PILOT-001：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED**
 **下一候选 Product SP：None**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
@@ -31,9 +31,11 @@ Preview、Confirm、Cancel、Modify、Status、Verified Result、Recovery，以�
 审计和恢复合同。RFC-032 已 Adopted，ADR-069～072 已 Accepted；SP-021 已实现并验证
 canonical domain、持久化、Status/View 与 Fake/Reference port；INT-001 已实现 Shell-neutral
 application adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
-已通过 PR #70 合并、main Quality Gate 并完成治理对账和封存。真实 Hermes/Channel 未接入；
+已通过 PR #70 合并、main Quality Gate 并完成治理对账和封存。P0-R 已接通真实 Hermes/WeCom 的
+Preview-only Pilot composition；
 PILOT-001 规划基线已获批准并通过最终独立规划审查，设计固定 `SINGLE_OWNER / DM_ONLY / LOCAL_HOST / ALLOWLISTED /
-TEXT_ONLY` 与唯一 `user_task.create` Mutation；实现、真实 Phase 与真实 Pilot 均未授权，REL-036
+TEXT_ONLY` 与唯一 `user_task.create` Mutation。当前 binding 只是本机单 Owner static binding，
+不是生产身份认证，也不能证明某次 MCP 调用来自新的真实入站事件；Phase 1/2 与业务 mutation 未授权，REL-036
 未启动。详见
 `docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md` 和
 `docs/project/ARCH-001-POST-MERGE-RECONCILIATION.md`。
@@ -47,15 +49,18 @@ INT-001 合并事实与最终治理状态见
 `docs/project/INT-001-POST-MERGE-RECONCILIATION.md`。
 PILOT-001 规划与分层验收证据要求见
 `docs/project/PILOT-001-WECOM-OWNER-TRUSTED-TASK-CAPTURE.md` 和
-`docs/acceptance/PILOT-001-wecom-owner-pilot.md`。
+`docs/acceptance/PILOT-001-wecom-owner-pilot.md` 和
+`docs/acceptance/PILOT-001-phase0-hermes-wecom-discovery.md`。
 
 QUALITY-004 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 可导入无副作用的
 conftest/module 定义，但未经双授权的 real item 会在执行前 fail-closed skip。真实 Provider 环境只有在同时提供
 `--run-real-provider` 与 `AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1` 后才允许加载 dotenv 并检查凭据；API Key 或
-本地 `.env` 的存在不构成执行授权。P0-E 的 WeCom/MCP 环境连接与工具隔离已经成功，但 validation suite
-意外执行真实 Provider，因此环境验收未获最终通过；这是本地测试凭据隔离安全缺陷，不是 WeCom/MCP
+本地 `.env` 的存在不构成执行授权。首次 P0-E 的 WeCom/MCP 环境连接与工具隔离已经成功，但当时 validation suite
+意外执行真实 Provider，因此首次环境验收未获最终通过；这是本地测试凭据隔离安全缺陷，不是 WeCom/MCP
 compatibility failure。QUALITY-004 Guard 已实现并通过最终独立安全审查，Pilot safety blocker 已清除；
-P0-E 仍需重新验证，P0-R 仍未授权。
+P0-E 已在 QUALITY-004 后完成复验。P0-R 已实现并通过最终独立审查，Preview authority 已建立；Vanilla Hermes 最终只通过模型可控的
+tool arguments 向 AI-Lab 传递入站字段，故 Fresh Owner 入站证据为 `UNSUPPORTED`，Phase 0 已停止并等待
+独立 ingress bridge 设计。
 
 ## 当前能力
 
