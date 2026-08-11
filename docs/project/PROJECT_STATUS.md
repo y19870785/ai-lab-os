@@ -12,11 +12,11 @@
 | 最近完成的 SP | SP-021 |
 | 当前 Product SP | None |
 | 当前治理任务 | None |
-| 当前工作 | None |
+| 当前工作 | PILOT-001-P0R |
 | INT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED |
 | QUALITY-004 | RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED / PILOT_SAFETY_BLOCKER_CLEARED |
 | QUALITY-003 | CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
-| PILOT-001 | PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004 / P0_R_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_PILOT_NOT_STARTED |
+| PILOT-001 | P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_DRAFT_PENDING_INDEPENDENT_REVIEW / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | ARCH-001 Planning PR | #66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3` |
 | RFC-032 | Adopted |
@@ -58,7 +58,7 @@
 | REL-035 | FINAL_RECONCILED / ARCHIVED |
 
 STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所有权和 v0.36+ 路线基线。
-当前 Product SP 与 Governance Task 均为 None。SP-021 已通过最终独立审查、ACC-021 A～R、PR #68
+当前 Product SP 与 Governance Task 均为 None，当前工作为 PILOT-001-P0R。SP-021 已通过最终独立审查、ACC-021 A～R、PR #68
 Squash Merge 与 main Quality Gate `31311699187`，并完成治理对账和封存。INT-001 已实现
 Shell-neutral Adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
 通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 和 main Quality Gate `31324821391`，
@@ -66,7 +66,9 @@ Shell-neutral Adapter、fail-closed identity/policy authority 与本地 stdio MC
 `PILOT_GRADE_LOCAL_SINGLE_OWNER_BINDING` 与唯一 `user_task.create`。P0-E 的环境连接与工具隔离成功，但
 validation suite 意外执行真实 Provider，因而被 QUALITY-004 阻断；这是本地测试凭据隔离安全缺陷，
 不是 WeCom/MCP compatibility failure。QUALITY-004 Guard 已实现并通过最终独立安全审查，原 safety blocker
-已清除；P0-E 仍需重新验证，P0-R、Phase 1、Phase 2 与实现仍未授权，真实 Pilot 尚未启动。
+已清除；P0-E 已完成重新验证，P0-R 已在授权的 Preview-only 边界实施。真实链路证明 Vanilla Hermes
+传给 AI-Lab 的有效入站字段仍是模型可控 tool arguments，Fresh Owner 入站证据判定为 `UNSUPPORTED`；
+Phase 0 停在 ingress bridge 独立设计之前，Phase 1、Phase 2 与真实业务 mutation 未授权。
 REL-036 未启动，版本、Tag 和 Release 未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
 与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge

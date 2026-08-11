@@ -2,6 +2,20 @@
 
 ## [Unreleased] 未发布
 
+### PILOT-001 P0-R Preview authority 与真实入站证据发现
+
+- 新增独立 `pilot_001_mcp_server` composition，显式注入本地单 Owner binding 与严格
+  `user_task.create` Preview policy；通用 MCP 入口继续 fail closed。
+- 固定 `PILOT_GRADE_LOCAL_SINGLE_OWNER_BINDING`、`pilot-001/user-task-create/v1`、中风险、
+  必须确认、无需审批、必须 canonical commit、零预期外部副作用与 900 秒 Preview TTL。
+- Pilot composition 继续使用 Disabled Execution、Verification、Canonical Commit 与 Approval authority；
+  不接入 Coordinator，不创建 UserTask，不修改 core Interaction contract 或 DB schema。
+- P0-E 已完成 QUALITY-004 后复验。Vanilla Hermes 的 WeCom 入站元数据虽然源自 channel boundary，
+  但到达 AI-Lab 时只存在于模型可重填的 MCP tool arguments；no-new-event replay 因此可再次创建 Preview，
+  Fresh Owner 入站证据判定为 `UNSUPPORTED`。
+- Phase 0 状态收口为 `STOPPED_PENDING_INGRESS_BRIDGE_DESIGN`；本变更不设计或实现 bridge，
+  Phase 1、Phase 2、QUALITY-003 与 REL-036 均未授权。
+
 ### QUALITY-004 真实 Provider 凭据隔离保护
 
 - 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 允许 pytest 导入无副作用的
