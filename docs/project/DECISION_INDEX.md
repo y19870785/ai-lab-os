@@ -1,6 +1,6 @@
 ﻿# AI-Lab Decision Index —— 设计决策索引
 
-> 当前源码版本：v0.35.0 Alpha | 更新日期：2026-08-06
+> 当前源码版本：v0.35.0 Alpha | 更新日期：2026-08-12
 
 ## RFC 列表
 
@@ -125,6 +125,8 @@
 | ADR-070 | Preview 与 Confirmation 作为 AI-Lab Canonical Facts | Accepted | 2026-08-06 |
 | ADR-071 | 最终成功必须先形成 Verified Result | Accepted | 2026-08-06 |
 | ADR-072 | Identity 与 Workspace 映射失败关闭 | Accepted | 2026-08-06 |
+| RFC-033 | 可信入站证据桥合同 | Proposed | 2026-08-12 |
+| ADR-073 | 由 AI-Lab 持有可信入站证据消费事实 | Proposed | 2026-08-12 |
 
 > SP-010 已通过 PR #21 以 Squash Commit `af437afc32dcb17da68d600d6840ec94c8cbe681` 合并，状态为 APPROVED / MERGED / RECONCILED / ARCHIVED。
 

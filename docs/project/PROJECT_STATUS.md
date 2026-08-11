@@ -12,14 +12,16 @@
 | 最近完成的 SP | SP-021 |
 | 当前 Product SP | None |
 | 当前治理任务 | None |
-| 当前工作 | None |
+| 当前工作 | PILOT-001-IBD |
 | INT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED |
 | QUALITY-004 | RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED / PILOT_SAFETY_BLOCKER_CLEARED |
 | QUALITY-003 | CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
-| PILOT-001 | PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED |
+| PILOT-001 | PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / INGRESS_EVIDENCE_BRIDGE_DESIGN_AUTHORIZED / INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT / PENDING_INDEPENDENT_REVIEW / BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | ARCH-001 Planning PR | #66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3` |
 | RFC-032 | Adopted |
+| RFC-033 | Proposed / PENDING_INDEPENDENT_REVIEW |
+| ADR-073 | Proposed / PENDING_INDEPENDENT_REVIEW |
 | ADR-069～072 | Accepted |
 | 下一规划治理项 | None |
 | STRAT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
@@ -58,7 +60,7 @@
 | REL-035 | FINAL_RECONCILED / ARCHIVED |
 
 STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所有权和 v0.36+ 路线基线。
-当前 Product SP、Governance Task 与工作均为 None。SP-021 已通过最终独立审查、ACC-021 A～R、PR #68
+当前 Product SP 与 Governance Task 均为 None；当前工作为 PILOT-001-IBD。SP-021 已通过最终独立审查、ACC-021 A～R、PR #68
 Squash Merge 与 main Quality Gate `31311699187`，并完成治理对账和封存。INT-001 已实现
 Shell-neutral Adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
 通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 和 main Quality Gate `31324821391`，
@@ -167,4 +169,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 - v0.35.0：PRE_RELEASE_PUBLISHED
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP、Current Governance Task 与 Current Work 均为 None。SP-021 已完成合并、main Quality Gate、ACC-021 最终验收、治理对账与封存。INT-001 已完成 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate、治理对账与封存；真实 Hermes/Channel 未接入。PILOT-001 规划基线已获批准并通过最终独立规划审查，实现仍未授权，真实 Pilot 尚未启动。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。
+Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP 与 Current Governance Task 均为 None，Current Work 为 PILOT-001-IBD。SP-021 已完成合并、main Quality Gate、ACC-021 最终验收、治理对账与封存。INT-001 已完成 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate、治理对账与封存。PILOT-001-IBD 仅形成可信入站证据桥 Proposed 设计，等待独立规划审查；Bridge implementation 与 Phase 1 未授权。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。

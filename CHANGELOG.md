@@ -2,6 +2,17 @@
 
 ## [Unreleased] 未发布
 
+### PILOT-001-IBD 可信入站证据桥设计
+
+- 新增中文为主的 Trusted Ingress Evidence Bridge 设计与 IB-A～IB-O acceptance plan，明确
+  Bridge 只证明真实 Owner inbound event，不理解意图、不决定业务 Operation 或推进 canonical state。
+- 提议 RFC-033 与 ADR-073：在 Hermes 模型前 WeCom platform plugin 边界观察渠道事实，由隔离
+  Evidence Issuer 使用专用 Ed25519 私钥签发，AI-Lab 负责验签、持久化、去重、CAS 单次消费与审计。
+- 区分 Fresh Ingress Evidence 与 Confirmation Intent；Message B 必须晚于 Preview，并绑定指定
+  Preview、Owner、channel、conversation、content digest，任何缺失、无效、过期或重放均 fail closed。
+- 当前仅为 `INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT / PENDING_INDEPENDENT_REVIEW`；Bridge implementation、
+  Phase 1/2、真实业务 mutation、QUALITY-003、REL-036 与版本发布均未授权。
+
 ### PILOT-001 P0-R Preview authority 与真实入站证据发现
 
 - 新增独立 `pilot_001_mcp_server` composition，显式注入本地单 Owner binding 与严格

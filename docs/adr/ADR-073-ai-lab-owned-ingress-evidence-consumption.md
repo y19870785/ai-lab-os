@@ -1,0 +1,93 @@
+# ADR-073：由 AI-Lab 持有可信入站证据消费事实
+
+## 状态
+
+- **状态**：Proposed
+- **日期**：2026-08-12
+- **任务**：PILOT-001-IBD
+- **相关 RFC**：RFC-033
+- **实施状态**：`NOT_AUTHORIZED`
+
+## 背景
+
+PILOT-001 已证明 WeCom Owner DM、Hermes → MCP 与 AI-Lab canonical Preview 可工作，但现有链路无法证明某次 MCP Confirmation 对应 Preview 之后新发生的一条真实 Owner inbound event。
+
+Hermes 能观察 channel fact，但 Hermes Agent、LLM、conversation、memory 和 tool response 都不应成为最终 Approval Fact Source。现有 `ShellAssertion` 可由模型影响，现有 `AuditEvidence` 则面向 Interaction lifecycle transition；两者都不能表达一个在模型前产生、可验签、可去重并被原子消费的 channel fact。
+
+## 决策
+
+采用 RFC-033 的可信入站证据桥：
+
+1. 由 Hermes 用户安装型 WeCom platform plugin 在模型前的 adapter inbound boundary 观察真实事件；
+2. plugin 将原始渠道字段通过受限本地 IPC 交给独立 Evidence Issuer helper；
+3. helper 使用专用 Ed25519 私钥签署最小 canonical envelope；
+4. AI-Lab 使用配置的 issuer 公钥验证 evidence，并持久化 `UNUSED / CONSUMED` 状态；
+5. AI-Lab 在 Confirmation 事务中完成 freshness、Preview ordering、binding、content digest 与 CAS consume；
+6. Hermes 只能签发或转交 channel-originated evidence，不能接受 Confirmation、授权 Interaction 或推进 business state。
+
+推荐路径分类为：
+
+```text
+Hermes Source Change:
+NO
+
+Hermes Extension:
+SUPPORTED USER-INSTALLED PLATFORM PLUGIN
+```
+
+若实际 plugin API 无法安全暴露完整模型前事件，必须 fail closed，并另行设计最小 upstream-compatible extension。不得把通用 lifecycle Hook 当作安全 issuer，也不得未经独立授权建立 Hermes fork。
+
+## 权威与密钥归属
+
+- WeCom credentials：仍由 Hermes 部署边界持有；
+- Evidence signing private key：仅由隔离的 Evidence Issuer helper 持有；
+- AI-Lab verification key：由 AI-Lab 配置与部署边界持有，仅包含公钥；
+- replay、consumption 与 audit fact：由 AI-Lab 持久化并最终裁决。
+
+Bridge 密钥不得复用 `WECOM_SECRET`，不得进入 LLM prompt、MCP args、Hermes conversation、Git 或 audit plaintext。raw Owner identity 不写入仓库或 evidence store；使用预配置 binding digest。
+
+## 理由
+
+该选择把可信事实的产生点放在模型之前，同时把最终验证和单次消费留在 AI-Lab。用户安装型 plugin 避免修改 Hermes 核心源码；隔离 helper 避免将签名私钥放入 Agent/LLM 进程；非对称签名避免 AI-Lab verification 端具备伪造新 evidence 的共享密钥能力。
+
+AI-Lab 的持久化 CAS 是 replay safety 的必要条件。只依赖 Hermes session、memory 或 dedupe cache，会在 restart、并发或跨 session 情况下丢失 consumption fact。
+
+## 后果
+
+正面影响：
+
+- LLM 无法选择 Owner、event ID 或受信时间，也无法签发或修改 evidence；
+- 同一 event 只能消费一次，且 restart 后仍保持已消费状态；
+- Preview-before-confirm ordering 可由 AI-Lab 的持久化时间事实证明；
+- Bridge 不保存完整聊天记录，只保存 content digest 与必要审计元数据；
+- MCP success 与 business success 的既有区分不变。
+
+代价与约束：
+
+- 后续实现需要新的 `TrustedIngressEvidence` 合同、持久化记录与 Confirmation contract change；
+- 需要独立 issuer helper、密钥轮换和本地 IPC 部署；
+- plugin/API 能力必须在实现授权后单独做兼容性 spike；
+- issuer、storage 或验证链路故障时 Confirmation 必须 fail closed。
+
+## 未选择方案
+
+- Hermes adapter 源码直连 sidecar：升级耦合更高；
+- Gateway 通用 Hook：字段不足且当前失败语义不是 fail closed；
+- AI-Lab 全面接管 Hermes channel ingress：部署复杂度超过最小目标；
+- Hermes fork：维护成本与供应链风险不可接受；
+- 把模型提供的 `ShellAssertion` 当 evidence：不能建立模型不可伪造性。
+
+## 授权状态
+
+本 ADR 仅记录 Proposed 设计，不代表实现或支持状态：
+
+```text
+ADR-073:
+PROPOSED
+
+BRIDGE_IMPLEMENTATION:
+NOT_AUTHORIZED
+
+PHASE_1:
+NOT_AUTHORIZED
+```
