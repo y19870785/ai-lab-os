@@ -165,8 +165,8 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "int_001_approved_merged_main_quality_gate_passed_post_merge_"
-        "reconciled_archived"
+        "pilot_001_planning_authorized_open_draft_pending_independent_"
+        "review_implementation_not_authorized"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -487,10 +487,10 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "int_001_approved_merged_main_quality_gate_passed_post_merge_"
-        "reconciled_archived"
+        "pilot_001_planning_authorized_open_draft_pending_independent_"
+        "review_implementation_not_authorized"
     )
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert "next_action" not in state
 
     assert sp017 == {
@@ -648,7 +648,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert "next_action" not in state
 
     assert sp018["name"] == "Work Log Query Boundary & Context Closure"
@@ -908,10 +908,10 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
     assert state["development_status"] == (
-        "int_001_approved_merged_main_quality_gate_passed_post_merge_"
-        "reconciled_archived"
+        "pilot_001_planning_authorized_open_draft_pending_independent_"
+        "review_implementation_not_authorized"
     )
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
     assert state["release_status"]["current_version"] == "0.35.0"
     assert "SP-020" in state["sp_records"]
@@ -1380,17 +1380,17 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
-    assert state["updated_at"] == "2026-08-10"
+    assert state["updated_at"] == "2026-08-11"
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["development_status"] == (
-        "int_001_approved_merged_main_quality_gate_passed_post_merge_"
-        "reconciled_archived"
+        "pilot_001_planning_authorized_open_draft_pending_independent_"
+        "review_implementation_not_authorized"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -1993,7 +1993,7 @@ def test_docs001_is_reconciled_and_archived() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert docs001 == {
@@ -2287,10 +2287,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 200
-    assert "- Git 跟踪 Markdown：200" in inventory
-    assert "- 仓库自有且纳入范围：200" in inventory
-    assert "- 新增中文治理文档：25" in inventory
+    assert len(tracked_markdown) == 202
+    assert "- Git 跟踪 Markdown：202" in inventory
+    assert "- 仓库自有且纳入范围：202" in inventory
+    assert "- 新增中文治理文档：27" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -2342,7 +2342,7 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     strat = state["governance_tasks"]["STRAT-001"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert state["current_version"] == "0.35.0"
@@ -2469,7 +2469,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["next_planned_governance_item"] is None
@@ -2513,7 +2513,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
             "POST_MERGE_RECONCILED / ARCHIVED"
         ),
         "PILOT-001": (
-            "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / "
+            "PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / "
             "IMPLEMENTATION_NOT_APPROVED"
         ),
         "REL-036": "NOT_STARTED / NOT_APPROVED",
@@ -2618,7 +2618,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
     acc021 = state["acceptance_records"]["ACC-021"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["next_candidate_sp"] is None
@@ -2657,7 +2657,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
             "POST_MERGE_RECONCILED / ARCHIVED"
         ),
         "PILOT-001": (
-            "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / "
+            "PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / "
             "IMPLEMENTATION_NOT_APPROVED"
         ),
         "REL-036": "NOT_STARTED / NOT_APPROVED",
@@ -2743,7 +2743,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         "POST_MERGE_RECONCILED / ARCHIVED"
     )
     pilot_status = (
-        "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / "
+        "PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / "
         "IMPLEMENTATION_NOT_APPROVED"
     )
 
@@ -2751,7 +2751,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["schema_version"] == 1
@@ -2761,12 +2761,14 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         "current_integration_task",
         "completed_integration_tasks",
         "pilot_tasks",
+        "pilot_records",
+        "current_pilot",
         "route_tasks",
     ):
         assert unauthorized_root not in state
     assert state["development_status"] == (
-        "int_001_approved_merged_main_quality_gate_passed_post_merge_"
-        "reconciled_archived"
+        "pilot_001_planning_authorized_open_draft_pending_independent_"
+        "review_implementation_not_authorized"
     )
     assert arch["follow_up_tasks"]["INT-001"] == final_status
     assert sp021["follow_up_tasks"]["INT-001"] == final_status
@@ -2857,9 +2859,9 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         "当前工作：INT-001",
         "INT-001 / OPEN / DRAFT",
         "INT-001 已获实现授权",
-        "PENDING_INDEPENDENT_REVIEW",
-        "NOT_READY",
-        "NOT_MERGE_AUTHORIZED",
+        "INT-001 / PENDING_INDEPENDENT_REVIEW",
+        "INT-001 / NOT_READY",
+        "INT-001 / NOT_MERGE_AUTHORIZED",
     ):
         assert stale not in current_documents
 
@@ -2873,3 +2875,85 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         "docs/project/INT-001-POST-MERGE-RECONCILIATION.md",
     ):
         assert path in inventory
+
+
+def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authorized() -> None:
+    state = _load_state()
+    arch = state["governance_tasks"]["ARCH-001"]
+    sp021 = state["sp_records"]["SP-021"]
+    pilot_status = (
+        "PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / "
+        "IMPLEMENTATION_NOT_APPROVED"
+    )
+
+    assert state["schema_version"] == 1
+    assert state["current_version"] == "0.35.0"
+    assert state["version"] == "v0.35.0"
+    assert state["latest_merged_sp"] == "SP-021"
+    assert state["latest_completed_sp"] == "SP-021"
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] == "PILOT-001-PLANNING"
+    assert state["development_status"] == (
+        "pilot_001_planning_authorized_open_draft_pending_independent_"
+        "review_implementation_not_authorized"
+    )
+    assert arch["follow_up_tasks"]["PILOT-001"] == pilot_status
+    assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
+    assert arch["follow_up_tasks"]["REL-036"] == "NOT_STARTED / NOT_APPROVED"
+    assert sp021["follow_up_tasks"]["REL-036"] == "NOT_STARTED / NOT_APPROVED"
+
+    for unauthorized_root in (
+        "pilot_tasks",
+        "pilot_records",
+        "current_pilot",
+        "integration_tasks",
+        "integration_records",
+    ):
+        assert unauthorized_root not in state
+
+    quality = state["quality_candidates"]
+    assert quality["QUALITY-003"]["status"] == (
+        "CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / "
+        "NOT_STARTED / NOT_AUTHORIZED"
+    )
+    assert quality["QUALITY-003"]["authorized"] is False
+    assert quality["QUALITY-004"]["status"] == (
+        "CANDIDATE / SAFETY_RELEVANT / NON_BLOCKING_FOR_ARCH_001 / "
+        "NOT_STARTED / NOT_AUTHORIZED"
+    )
+    assert quality["QUALITY-004"]["authorized"] is False
+
+    plan_path = (
+        ROOT / "docs/project/PILOT-001-WECOM-OWNER-TRUSTED-TASK-CAPTURE.md"
+    )
+    acceptance_path = ROOT / "docs/acceptance/PILOT-001-wecom-owner-pilot.md"
+    assert plan_path.is_file()
+    assert acceptance_path.is_file()
+    plan = plan_path.read_text(encoding="utf-8-sig")
+    acceptance = acceptance_path.read_text(encoding="utf-8-sig")
+    combined = f"{plan}\n{acceptance}"
+    for marker in (
+        "PILOT_GRADE_LOCAL_SINGLE_OWNER_BINDING",
+        "NOT_PRODUCTION_IDENTITY_AUTHENTICATION",
+        "user_task.create",
+        "PilotOwnerBindingResolver",
+        "PilotUserTaskExecutionPort",
+        "PilotUserTaskVerificationPort",
+        "PilotUserTaskCanonicalCommitAuthority",
+        "PilotInteractionCoordinator",
+        "Deterministic UserTask Identity",
+        "Real Integration Evidence",
+        "Manual Owner Evidence",
+        "Restart Evidence",
+        "Negative Evidence",
+        "RFC / ADR Required: NO",
+        "IMPLEMENTATION_NOT_AUTHORIZED",
+    ):
+        assert marker in combined
+    for forbidden_domain in (
+        "QuoteRequest",
+        "Pricing Engine",
+        "Enterprise IAM 实现",
+    ):
+        assert forbidden_domain not in combined

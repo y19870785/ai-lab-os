@@ -4,9 +4,9 @@
 > 最近完成的 Product SP：SP-021
 > 当前 Product SP：None
 > 当前治理任务：None
-> 当前工作：None
+> 当前工作：PILOT-001-PLANNING
 > INT-001 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED
-> 下一候选工作：PILOT-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED
+> PILOT-001 状态：PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED
 > 下一候选 Product SP：None
 > ARCH-001 状态：APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED
 > ARCH-001 设计：RFC-032 Adopted；ADR-069～072 Accepted
@@ -42,8 +42,9 @@ canonical Preview/Confirmation、Verified Result、分层 retry/idempotency、Fa
 recovery 语义。当前 Governance Task 为 None；SP-021 已通过最终独立审查、ACC-021 A～R、PR #68 Squash Merge
 与 main Quality Gate，并完成 canonical domain 实施、治理对账和封存；INT-001 已建立 Shell-neutral
 Adapter、fail-closed authority 与本地 stdio MCP reference projection，通过 ACC-INT-001 A～Q、最终
-独立审查、PR #70 Squash Merge 与 main Quality Gate，并完成治理对账和封存。PILOT-001 仅为下一候选，
-未启动且需要独立授权；REL-036 未启动。
+独立审查、PR #70 Squash Merge 与 main Quality Gate，并完成治理对账和封存。PILOT-001 已获规划授权，
+当前 Draft 只定义企业微信单 Owner 私聊、固定 Workspace binding、唯一 `user_task.create`、内部执行、
+独立验证与恢复门禁；实现、真实 Pilot、Ready 与 Merge 均未授权。REL-036 未启动。
 
 ```text
 SP-020:
@@ -309,4 +310,4 @@ assets 为 `0`。REL-035 已最终对账并封存；规划、实施与最终对�
 
 CI-002 已解决：real-provider collection skip 仅作用于 `tests/real`，普通测试在混合集合中正常执行。
 
-SP-016～SP-021 均已完成验收并封存；ACC-016～021 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP、Current Governance Task 与 Current Work 均为 None。INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate 与 post-merge reconciliation 并封存；真实 Hermes/Channel 未接入。PILOT-001 仅为未授权下一候选。当前产品版本仍为 `0.35.0` Alpha GitHub Pre-release；该发布不等于 production-ready。
+SP-016～SP-021 均已完成验收并封存；ACC-016～021 均为 PASSED / FINAL。Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP 与 Current Governance Task 均为 None，Current Work 为 PILOT-001 Planning。INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate 与 post-merge reconciliation 并封存；真实 Hermes/Channel 未接入。PILOT-001 只有规划授权，实现与真实 Pilot 未授权。当前产品版本仍为 `0.35.0` Alpha GitHub Pre-release；该发布不等于 production-ready。

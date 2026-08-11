@@ -6,7 +6,7 @@
 **当前 Product SP：** None
 **当前工作：** None
 **下一规划治理项：** None
-**下一候选工作：** PILOT-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED
+**当前工作：** PILOT-001-PLANNING / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED
 **已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
 **当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
 

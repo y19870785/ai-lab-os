@@ -1,6 +1,6 @@
 # AI-Lab 项目状态
 
-**日期：** 2026-08-09
+**日期：** 2026-08-11
 **源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 **已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
@@ -12,9 +12,9 @@
 | 最近完成的 SP | SP-021 |
 | 当前 Product SP | None |
 | 当前治理任务 | None |
-| 当前工作 | None |
+| 当前工作 | PILOT-001-PLANNING |
 | INT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED |
-| PILOT-001 | NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
+| PILOT-001 | PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | ARCH-001 Planning PR | #66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3` |
 | RFC-032 | Adopted |
@@ -60,7 +60,9 @@ STRAT-001 只建立可信业务操作系统定位、Agent Shell/业务核心所�
 Squash Merge 与 main Quality Gate `31311699187`，并完成治理对账和封存。INT-001 已实现
 Shell-neutral Adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
 通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 和 main Quality Gate `31324821391`，
-并完成治理对账和封存。PILOT-001 仅为未授权下一候选；REL-036 未启动，版本、Tag 和 Release 未改变。
+并完成治理对账和封存。PILOT-001 已获规划授权并处于 Draft，固定为企业微信单 Owner 私聊、
+`PILOT_GRADE_LOCAL_SINGLE_OWNER_BINDING` 与唯一 `user_task.create`；实现、真实 Pilot、Ready 和 Merge
+均未授权。REL-036 未启动，版本、Tag 和 Release 未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
 与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge
 reconciliation 并封存；该结果不构成任何实现授权。
@@ -158,4 +160,4 @@ SP-019 Feature PR #51 已由 Acceptance Evidence Head `420da28664914fda8ccbecadf
 - 外部发布事实：实际 Tag 存在性与目标、Release 发布状态、URL 和时间以 GitHub Tags and GitHub Releases 为权威来源
 - v0.35.0：PRE_RELEASE_PUBLISHED
 
-Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP、Current Governance Task 与 Current Work 均为 None。SP-021 已完成合并、main Quality Gate、ACC-021 最终验收、治理对账与封存。INT-001 已完成 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate、治理对账与封存；真实 Hermes/Channel 未接入。PILOT-001 仅为未授权下一候选。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。
+Latest Merged SP 与 Latest Completed SP 均为 SP-021；Current Product SP 与 Current Governance Task 均为 None，Current Work 为 PILOT-001 Planning。SP-021 已完成合并、main Quality Gate、ACC-021 最终验收、治理对账与封存。INT-001 已完成 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate、治理对账与封存；真实 Hermes/Channel 未接入。PILOT-001 只有规划授权，实现与真实 Pilot 未授权。当前产品版本为 `0.35.0` Alpha GitHub Pre-release；annotated Tag 与 Release 未变化。该发布不等于 production-ready。

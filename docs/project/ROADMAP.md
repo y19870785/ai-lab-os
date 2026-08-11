@@ -1,12 +1,12 @@
 # AI-Lab 路线图
 
-**最后更新：** 2026-08-09
+**最后更新：** 2026-08-11
 **当前版本：** v0.35.0 Alpha / GitHub Pre-release Published
 **当前 Product SP：** None
 **当前 Governance Task：** None
-**当前工作：** None
+**当前工作：** PILOT-001-PLANNING
 **下一规划治理项：** None
-**下一候选工作：** PILOT-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED
+**当前规划：** PILOT-001 / PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED
 
 Roadmap 只描述版本范围、里程碑与候选任务。已完成 SP 的 PR、Head、merge commit 和验收状态以根目录 `project_state.json` 为唯一机器可读来源；用户可见版本变化记录在 `CHANGELOG.md` 和版本化 Release Notes。
 
@@ -92,7 +92,7 @@ STRAT-001 → ARCH-001 → SP-021 → INT-001 → PILOT-001 → REL-036
 | ARCH-001 | 中立 Adapter Contract 与 Trusted Interaction Boundary | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | SP-021 | Canonical Trusted Interaction Domain | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | INT-001 | Shell-neutral Trusted Interaction Adapter / Hermes MCP Projection | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
-| PILOT-001 | 企业微信 Owner Pilot | NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
+| PILOT-001 | 企业微信 Owner 可信任务捕获规划 | PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED |
 | REL-036 | v0.36 独立发布治理 | NOT_STARTED / NOT_APPROVED |
 
 PR #62 已 `CLOSED / NOT_MERGED / SUPERSEDED_BY_STRAT_001 /
@@ -101,7 +101,8 @@ IMPLEMENTATION_NEVER_AUTHORIZED`。其历史设计证据继续保留；ARCH-001 
 ACC-021 A～R、PR #68 合并与 main Quality Gate，并完成对账和封存。INT-001 已完成 Shell-neutral
 Adapter、fail-closed identity/policy authority、本地 stdio MCP reference projection 与 ACC-INT-001
 A～Q，且已通过最终独立审查、PR #70 合并、main Quality Gate、对账和封存。真实 Hermes/Channel
-仍未接入。PILOT-001 只是下一候选，尚未启动且需要独立授权；REL-036 未启动。
+仍未接入。PILOT-001 已获规划授权并处于 Draft，只规划企业微信单 Owner 私聊到既有 UserTask 的可信
+闭环；实现、真实 Phase、Ready 与 Merge 均未授权。REL-036 未启动。
 
 ## v0.37 与 v0.38 候选路线
 
