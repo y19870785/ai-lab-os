@@ -17,8 +17,8 @@
   "next_candidate_sp": null,
   "next_candidate_name": null,
   "next_planned_governance_item": null,
-  "development_status": "pilot_001_planning_authorized_open_draft_pending_independent_review_implementation_not_authorized",
-  "current_work": "PILOT-001-PLANNING",
+  "development_status": "pilot_001_planning_baseline_approved_implementation_not_authorized",
+  "current_work": null,
   "updated_at": "2026-08-11",
   "governance_tasks": {
     "ARCH-001": {
@@ -52,7 +52,7 @@
       "follow_up_tasks": {
         "SP-021": "NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED",
         "INT-001": "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED",
-        "PILOT-001": "PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED",
+        "PILOT-001": "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED",
         "REL-036": "NOT_STARTED / NOT_APPROVED"
       },
       "quality_003": "CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED",
@@ -610,7 +610,7 @@
       "reconciliation": "SP-021A / SELF_CLOSING / NO_RECURSIVE_RECONCILIATION",
       "follow_up_tasks": {
         "INT-001": "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED",
-        "PILOT-001": "PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / IMPLEMENTATION_NOT_APPROVED",
+        "PILOT-001": "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED",
         "REL-036": "NOT_STARTED / NOT_APPROVED"
       },
       "product_code_changed": true,

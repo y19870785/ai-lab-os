@@ -9,8 +9,8 @@
   与 uncertain outcome 禁止重执行。
 - 复用 RFC-031、RFC-032、ADR-067～072、SP-021 与 INT-001，不新增 Quote/Customer domain，
   不新增 RFC/ADR，不修改 Runtime、依赖、版本、Tag 或 Release。
-- 当前仅 `PLANNING_AUTHORIZED / OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW`；实现、真实 Hermes/WeCom
-  Pilot、Ready、Merge 与 REL-036 均未授权。
+- 规划基线已 `PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED`；实现与真实
+  Hermes/WeCom Pilot 均未授权，任何实现需要独立授权，REL-036 仍未启动。
 
 ### INT-001 Shell-neutral Trusted Interaction Adapter 实现
 

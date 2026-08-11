@@ -1,8 +1,8 @@
 # PILOT-001 — 企业微信 Owner 可信任务捕获规划基线
 
 > 英文识别名：WeCom Owner Trusted Task Capture
-> 状态：PLANNING_AUTHORIZED / DESIGN_BASELINE_IN_PROGRESS / IMPLEMENTATION_NOT_AUTHORIZED / REAL_PILOT_NOT_STARTED
-> PR 门禁：OPEN / DRAFT / PENDING_INDEPENDENT_REVIEW / NOT_READY / NOT_MERGE_AUTHORIZED
+> 状态：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_AUTHORIZED / REAL_PILOT_NOT_STARTED
+> 实施门禁：REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / PHASE_0_NOT_AUTHORIZED
 > 唯一规划 Base：`836100b9bb90418203c7237470cb793810b958fa`
 
 ## 1. 任务背景
@@ -510,6 +510,6 @@ PILOT-001 只为既有边界增加一个受控 binding、单 operation policy �
 
 ## 21. 授权边界
 
-本文件只完成规划基线。它不授权配置 Hermes、连接企业微信、运行 Phase 0/1/2、实现 Resolver/Ports/
-Coordinator、修改 runtime、转 Ready、Merge、启动 REL-036 或创建 v0.36。下一步是对 Draft PR 进行独立
-规划审查。
+本文件是已经通过最终独立规划审查的 durable Planning Baseline。它不授权配置 Hermes、连接企业微信、
+运行 Phase 0/1/2、实现 Resolver/Ports/Coordinator、修改 runtime、启动 REL-036 或创建 v0.36。任何实现
+或 Phase 运行都需要独立、明确的后续授权。
