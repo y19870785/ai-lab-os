@@ -2,6 +2,16 @@
 
 ## [Unreleased] 未发布
 
+### PILOT-001 企业微信 Owner 可信任务捕获规划
+
+- 新增中文规划基线与分层验收计划，固定 `SINGLE_OWNER / DM_ONLY / LOCAL_HOST / ALLOWLISTED /
+  TEXT_ONLY`、唯一 `user_task.create`、deterministic UserTask ID、独立 read-back、restart verification
+  与 uncertain outcome 禁止重执行。
+- 复用 RFC-031、RFC-032、ADR-067～072、SP-021 与 INT-001，不新增 Quote/Customer domain，
+  不新增 RFC/ADR，不修改 Runtime、依赖、版本、Tag 或 Release。
+- 规划基线已 `PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED`；实现与真实
+  Hermes/WeCom Pilot 均未授权，任何实现需要独立授权，REL-036 仍未启动。
+
 ### INT-001 Shell-neutral Trusted Interaction Adapter 实现
 
 - 新增 `trusted-interaction/v1` application adapter、fail-closed identity/policy authority、
@@ -12,8 +22,8 @@
   runtime acceptance evidence 与 adapter/transport provenance 五项 blocker。
 - ACC-INT-001 A～Q 已 `PASSED / FINAL / INDEPENDENT_REVIEW_PASSED`；PR #70 Squash Merge 为
   `c3c71c7934e50725e4a82ef745245fcdb502811c`，main Quality Gate `31324821391` 为 SUCCESS。
-- INT-001 已完成 post-merge reconciliation 和封存；PILOT-001 仅为未授权下一候选，版本、Tag 与
-  Release 未改变。
+- INT-001 对账时 PILOT-001 仍为未授权下一候选；本次仅追加 PILOT-001 规划基线，版本、Tag 与
+  Release 仍未改变。
 
 ### SP-021 可信交互领域实施与合并后对账
 

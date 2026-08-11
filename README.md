@@ -4,6 +4,7 @@
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
 > SP-021 已通过 ACC-021 A～R、最终独立审查与 main Quality Gate，并完成合并、对账和封存。INT-001 已通过 ACC-INT-001 A～Q、最终独立审查与 main Quality Gate，并完成合并、对账和封存。
+> PILOT-001 企业微信 Owner 可信任务捕获规划基线已获批准并通过最终独立规划审查；实现仍未授权，真实 Pilot 尚未启动。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
@@ -15,6 +16,7 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **当前 Product SP：None**
 **当前 Governance Task：None**
 **当前工作：None**
+**PILOT-001 规划：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED**
 **下一候选 Product SP：None**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
@@ -30,7 +32,9 @@ Preview、Confirm、Cancel、Modify、Status、Verified Result、Recovery，以�
 canonical domain、持久化、Status/View 与 Fake/Reference port；INT-001 已实现 Shell-neutral
 application adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
 已通过 PR #70 合并、main Quality Gate 并完成治理对账和封存。真实 Hermes/Channel 未接入；
-PILOT-001 仅为下一候选且未获授权，REL-036 未启动。详见
+PILOT-001 规划基线已获批准并通过最终独立规划审查，设计固定 `SINGLE_OWNER / DM_ONLY / LOCAL_HOST / ALLOWLISTED /
+TEXT_ONLY` 与唯一 `user_task.create` Mutation；实现、真实 Phase 与真实 Pilot 均未授权，REL-036
+未启动。详见
 `docs/project/ARCH-001-TRUSTED-INTERACTION-ARCHITECTURE.md` 和
 `docs/project/ARCH-001-POST-MERGE-RECONCILIATION.md`。
 SP-021 实施边界、ACC-021 与合并后对账见 `docs/project/SP-021-CANONICAL-TRUSTED-INTERACTION-DOMAIN.md`、
@@ -41,6 +45,9 @@ INT-001 实现与 MCP 边界见 `docs/project/INT-001-SHELL-NEUTRAL-TRUSTED-INTE
 `docs/acceptance/INT-001-shell-neutral-trusted-interaction-adapter.md`。
 INT-001 合并事实与最终治理状态见
 `docs/project/INT-001-POST-MERGE-RECONCILIATION.md`。
+PILOT-001 规划与分层验收证据要求见
+`docs/project/PILOT-001-WECOM-OWNER-TRUSTED-TASK-CAPTURE.md` 和
+`docs/acceptance/PILOT-001-wecom-owner-pilot.md`。
 
 ## 当前能力
 

@@ -6,7 +6,8 @@
 **当前 Product SP：** None
 **当前工作：** None
 **下一规划治理项：** None
-**下一候选工作：** PILOT-001 / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED
+**当前工作：** None
+**PILOT-001 规划：** PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED
 **已发布 Tag：** `v0.35.0`；上一已发布 Tag：`v0.34.0`
 **当前发布：** `v0.35.0 Alpha — Local Daily Operating Loop` / PRE_RELEASE_PUBLISHED
 
@@ -53,7 +54,7 @@ ADR-069～072 为 Accepted。SP-021 已实现、验证、合并、对账并封�
 v0.35.0 contract。INT-001 已增加并验证 `trusted-interaction/v1` Shell-neutral application adapter
 与官方 MCP stdio reference projection，通过最终独立审查、PR #70 合并、main Quality Gate、对账和
 封存；真实 Hermes、identity/policy authority、external execution 与 Pilot 均未实现。PILOT-001
-仅为未授权下一候选，REL-036 未启动。
+规划基线已获批准并通过最终独立规划审查，但实现仍未授权，真实 Pilot 尚未启动；REL-036 未启动。
 
 ## 兼容性边界
 

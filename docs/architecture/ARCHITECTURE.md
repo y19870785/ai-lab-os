@@ -1,5 +1,9 @@
 # AI-Lab 架构
 
+> PILOT-001 规划复用现有 Trusted Interaction 与 UserTask 架构：企业微信/Hermes 只提供不可信输入与
+> local stdio MCP transport，AI-Lab Pilot Binding Config 决定 actor/Workspace，内部 Ports 通过
+> `UserTaskService` 执行并独立验证。该规划不修改本文件所述 Runtime 架构或依赖方向。
+
 ## 整体架构
 
 采用 **Governance + Core + Memory + Knowledge + Agent + Application** 六层架构。

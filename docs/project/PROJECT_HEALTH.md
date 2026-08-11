@@ -1,11 +1,11 @@
 # AI-Lab 项目健康状态
 
-**最近更新：** 2026-08-06
+**最近更新：** 2026-08-11
 **当前源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 
 ## 摘要
 
-AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-021 已完成合并、ACC-021 最终验收、main Quality Gate、治理对账与封存；INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate、治理对账与封存。`v0.35.0` GitHub Pre-release 保持不变。当前 Product SP、Governance Task 与 Current Work 均为 None；PILOT-001 仅为未授权下一候选。真实 Hermes 与 Channel 未接入。这些能力不等同于 production-ready 或完整多用户平台。
+AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-021 已完成合并、ACC-021 最终验收、main Quality Gate、治理对账与封存；INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、合并、main Quality Gate、治理对账与封存。`v0.35.0` GitHub Pre-release 保持不变。当前 Product SP、Governance Task 与 Current Work 均为 None。PILOT-001 规划基线已获批准并通过最终独立规划审查；真实 Hermes/WeCom、实现与所有 Phase 运行均未授权，真实 Pilot 尚未启动。这些能力不等同于 production-ready 或完整多用户平台。
 
 | 指标 | 当前事实 |
 |---|---|
@@ -23,7 +23,7 @@ AI-Lab 当前是本地优先、单用户导向的 Alpha 系统。SP-021 已完�
 | Current governance task | None |
 | Current work | None |
 | INT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
-| PILOT-001 | NEXT_CANDIDATE / NOT_STARTED / REQUIRES_SEPARATE_AUTHORIZATION / IMPLEMENTATION_NOT_APPROVED |
+| PILOT-001 | PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | RFC-032 / ADR-069～072 | Adopted / Accepted |
 | Next planned governance item | None |
