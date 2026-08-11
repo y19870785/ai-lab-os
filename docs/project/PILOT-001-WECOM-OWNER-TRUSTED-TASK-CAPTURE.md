@@ -58,6 +58,18 @@ NOT_PRODUCTION_IDENTITY_AUTHENTICATION
 该等级依赖本地主机安全、专用 Hermes 实例、企业微信私聊、Owner allowlist 与 AI-Lab 固定绑定配置，
 不宣称 Production Authentication、Enterprise IAM、RBAC、OAuth 或强多租户认证。
 
+Phase 0 必须把 `DM_ONLY / ALLOWLISTED` 落成可验证配置语义：
+
+```yaml
+dm_policy: allowlist
+allow_from:
+  - <single-owner-wecom-user-id>
+group_policy: disabled
+```
+
+禁止 wildcard、all users 与任何 group operation。真实字段名以 Phase 0 安装的 Hermes 版本为准；若字段
+变化，证据必须记录实际字段并证明其安全语义等价，不得为匹配本文而修改 Hermes。
+
 ## 4. 用户旅程与系统链路
 
 用户旅程：
@@ -66,12 +78,13 @@ NOT_PRODUCTION_IDENTITY_AUTHENTICATION
 2. Hermes / LLM 生成临时结构化建议（Provisional Structured Proposal）；
 3. AI-Lab 从本地 Pilot 配置解析权威 actor 与 Workspace，并校验 Shell/Channel 一致性；
 4. AI-Lab 只允许 `user_task.create`，校验结构化时间并生成 Canonical Preview；
-5. Owner 确认、修改或取消准确 Preview；
-6. 确认后由 AI-Lab 内部协调器启动执行，而不是由 MCP Shell 调用 execute；
-7. `UserTaskService.create()` 持久化唯一 UserTask；
-8. 独立 VerificationPort 重新读取业务对象；
-9. Canonical Commit Authority 再次确认持久事实并形成证据；
-10. 只有证据完整时 Interaction 才进入 `SUCCEEDED`，结果再投影给 Hermes。
+5. Owner 看见 Preview 后，通过新的真实 WeCom 入站事件表达确认、修改或取消；
+6. AI-Lab 取得与该新事件绑定的 Owner 新鲜入站证据，再形成 canonical Confirmation；
+7. 确认后由 AI-Lab 内部协调器启动执行，而不是由 MCP Shell 调用 execute；
+8. `UserTaskService.create()` 持久化唯一 UserTask；
+9. 独立 VerificationPort 重新定位业务对象并形成稳定观察证据；
+10. Canonical Commit Authority 用 Preview normalized parameters 逐项确认持久事实；
+11. 只有证据完整时 Interaction 才进入 `SUCCEEDED`，结果再投影给 Hermes。
 
 ```text
 WeCom Owner DM
@@ -83,7 +96,9 @@ WeCom Owner DM
   → PilotOperationPolicyResolver
   → TrustedInteractionAdapter
   → InteractionService / Canonical Preview
-  → Owner Confirmation
+  → Preview shown to Owner
+  → Fresh Owner Ingress Evidence
+  → Canonical Confirmation
   → PilotInteractionCoordinator
   → InteractionService.start_execution()
   → PilotUserTaskExecutionPort
@@ -128,7 +143,42 @@ Resolver 生成现有 `ResolvedShellContext`，其中完整 `WorkspaceKey` 与 `
 Shell 提供的 `channel`、`shell`、`channel_identity` 仅用于与配置做一致性校验；缺失或不一致时 fail
 closed，不猜测、不自动绑定、不回退到 default Workspace。
 
-### 5.3 威胁模型
+永久原则：
+
+```text
+Static Pilot Owner Binding
+!=
+Fresh Owner Confirmation Evidence
+```
+
+静态 binding 只回答“Pilot 配置给哪个 Owner / Workspace”，不能证明当前 Confirm 是 Owner 在看到目标
+Preview 后新发送的入站事件。
+
+### 5.3 Owner 新鲜入站证据（Fresh Owner Ingress Evidence）
+
+每次 Confirm 都必须具有 model-independent 的 Fresh Owner Ingress Evidence，至少证明：
+
+1. 来源于真实 WeCom Owner inbound event；
+2. 事件发生在目标 Canonical Preview 创建以后；
+3. 事件绑定固定 Owner 与 Pilot channel；
+4. 事件可与创建 Preview 的请求事件区分；
+5. 证据不能由 LLM 生成，也不能由 MCP tool 参数伪造；
+6. 只保存稳定 digest/reference 与必要时间、来源边界，不保存 WeCom Secret 或完整聊天文本。
+
+`ShellAssertion`、`message_id`、`channel_identity`、`correlation`、LLM output 与 Hermes conversation
+text 本身都不是可信 Fresh Owner Confirmation Evidence。尤其不得把 `ShellAssertion.message_id` 提升为
+authoritative；它最多是与独立入站证据关联的非权威 correlation。
+
+PILOT-001 v1 禁止同一入站事件或同一 Agent turn 自动完成 Preview 与 Confirm：
+
+```text
+Owner Message A → Preview → Preview shown to Owner
+Owner Message B → fresh trusted ingress evidence → explicit confirm intent
+
+Same Inbound Event / Same Agent Turn Auto-Confirm → DENIED
+```
+
+### 5.4 威胁模型
 
 至少防范：伪造 Owner 文本、LLM 自报 Workspace、错误 Shell/Channel、被转发的群聊消息、跨 Workspace
 访问、stale Preview、旧 Confirmation 重放、重复 execute、崩溃后重复创建、日志或测试夹具泄露凭据。
@@ -193,7 +243,9 @@ revision、Interaction revision、actor、Workspace、expiry 与 idempotency key
 
 ## 9. MCP / Hermes 永久边界与 Phase 0 兼容门禁
 
-MCP 继续只暴露七项既有工具：
+### 9.1 AI-Lab MCP Server 原始白名单
+
+底层 AI-Lab MCP Server 继续保留 INT-001 的七项原始工具：
 
 ```text
 ai_lab_interaction_preview
@@ -209,10 +261,31 @@ ai_lab_interaction_recover
 repository、tool_executor、workflow_runtime 或 agent_runtime tool。Hermes 永远没有直接 Execute、Verify
 或 Commit 权限。
 
+### 9.2 分阶段 Hermes 模型工具暴露（Phase-specific Hermes Tool Exposure）
+
+AI-Lab raw allowlist 不等于 Hermes Model-Exposed Tool Set。规划固定最小暴露面：
+
+| 阶段 | Hermes 模型可见工具 | 不可见工具 |
+|---|---|---|
+| Phase 0 | preview、status、view | modify、confirm、cancel、recover |
+| Phase 1 | preview、modify、cancel、status、view | confirm、recover |
+| Phase 2 | Phase 1 集合；Fresh Owner Evidence 设计通过独立审查后才允许真实 Confirm path | execute、verify、approve、canonical_commit 永久不可见；recover 仅按恢复场景开放 |
+
+Phase 0 若兼容性测试需要，可在普通 Agent 暴露之外直接进行 protocol-level invocation；该测试不能把
+confirm/recover 暴露给模型，也不能形成业务授权。
+
+### 9.3 真实兼容与入站证据能力发现
+
 Phase 0 必须通过真实进程链 `Real Hermes Process → Hermes MCP Client → AI-Lab stdio MCP Server`
 验证 Server Startup、Protocol Negotiation、`tools/list`、Tool Schema、Preview、Status 与 Clean Shutdown。
 文档或 SDK major version 推测不能替代真实运行证据。若不兼容，立即 STOP / REPORT，不擅自降级
 AI-Lab MCP、改 Hermes 依赖/源码、强制升级或加入非标准 compatibility hack。
+
+Phase 0 还必须发现 Vanilla Hermes → MCP 路径能否提供模型不可伪造的真实 WeCom inbound evidence。
+若支持，记录机制、来源与不可伪造边界并提交独立审查；若不支持，状态进入
+`STOPPED_PENDING_INGRESS_BRIDGE_DESIGN`，不得推进 Phase 1/2 实现。后续实现阶段才可评估极薄的 Hermes
+Hook、Plugin、Slash Command Bridge、Channel Adapter 或 gateway-side bridge；本 Planning PR 不选择、
+创建或实现这些机制，也不直接修改 Hermes 源码。
 
 ## 10. 确定性 UserTask 身份（Deterministic UserTask Identity）
 
@@ -256,19 +329,38 @@ Hermes Memory、`ToolExecutor`、`WorkflowRuntime` 或 `AgentRuntime`。
 协调器调用 `InteractionService.start_execution()`；进入 `VERIFYING` 后再由内部协调器调用
 `InteractionService.verify()`。协调器不暴露成 MCP tool。
 
+Phase-specific isolation 是强制门禁：
+
+```text
+Phase 0 Coordinator: DISABLED / UNBOUND
+Phase 1 Coordinator: DISABLED / UNBOUND
+Phase 2 Coordinator: ENABLED only after separate authorization
+```
+
+因此 Phase 0/1 即使意外出现 Confirm 也不得自动调用 `start_execution()`。Phase 2 Coordinator 只处理
+同时具有可信 Fresh Owner Confirmation Evidence 且 canonical state 为 `AUTHORIZED` 的 Interaction。
+
 ### 11.3 验证端口（PilotUserTaskVerificationPort）
 
 VerificationPort 不相信 ExecutionPort 返回 success，而是通过 `UserTaskService.get()` 独立 read-back，
-至少核对对象存在、deterministic `task_id`、固定 Workspace、Preview 中的 title/due_at/priority、
-`source=wecom_owner_pilot` 与 `metadata.interaction_id`。任一不一致都不是 VERIFIED。
+证明真实 UserTask 存在、`task_id` 等于 deterministic expected task ID、对象属于固定 Pilot Workspace、
+`source=wecom_owner_pilot`、`metadata.interaction_id` 匹配当前 Interaction、对象可在重启后重新定位，并
+形成稳定 `evidence_digest`。任一不一致都不是 VERIFIED。
 
 VerificationPort 不依赖进程内 dict、临时 callback、ExecutionPort return object 或 Hermes Session。
 重启后只凭 `interaction_id`、固定 Workspace 与 deterministic ID 即可重查。
 
+现有 `VerificationRequest` 不提供完整 Preview normalized parameters，因此 VerificationPort 不负责完整
+Preview 参数 commit 比较。PILOT-001 v1 不计划修改 `VerificationRequest`，也不计划修改
+`core/interaction/models.py` 或 `core/interaction/service.py`。若实现阶段证明现有 contract 确实无法满足
+上述独立存在性观察，必须 STOP / REPORT 并重新判断架构变更，不能在 Pilot 中偷改 core contract。
+
 ### 11.4 Canonical Commit 权威（PilotUserTaskCanonicalCommitAuthority）
 
-Canonical Commit Authority 不执行写入。它独立读取真实 UserTask，确认持久化事实满足 Preview，才形成
-包含 `canonical_object_id`、`canonical_revision`、outcome 与 `evidence_digest` 的
+Canonical Commit Authority 不执行写入。它从现有 `CanonicalCommitRequest.normalized_parameters` 取得
+canonical Preview 参数，再独立读取真实 UserTask，逐项核对 `task_id`、Workspace、title、description、
+priority、due_at、timezone、source 与 `metadata.interaction_id`。只有全部匹配才可返回
+`outcome=COMMITTED`，并形成包含 `canonical_object_id`、`canonical_revision` 与 `evidence_digest` 的
 `CanonicalCommitEvidence`。缺少 VerifiedResult 或所需 Commit Evidence 时不得进入 `SUCCEEDED`。
 
 ## 12. Composition Root 规划
@@ -318,20 +410,27 @@ verified_outcome
 
 ### Phase 0 — 传输与身份冒烟（Transport / Identity Smoke）
 
-使用真实 WeCom、Hermes、MCP stdio 与 AI-Lab，但 `NO BUSINESS EXECUTION`。验证 allowlist、启动、协议、
-工具白名单、Owner Binding、mismatch fail-closed、Preview、Status 与 Clean Shutdown。
+使用真实 WeCom、Hermes、MCP stdio 与 AI-Lab，但 `ZERO BUSINESS SIDE EFFECT`。允许且要求写入必要的
+Interaction、Preview、AuditEvidence、idempotency 与其他 trusted-interaction canonical facts；必须保持
+UserTask、Reminder、Waiting-For、Inbox resolution、Quote、Customer 与其他 target business facts 不变。
+Hermes 模型只暴露 preview/status/view，Coordinator 为 `DISABLED / UNBOUND`。同时验证 Owner-only DM
+allowlist、group disabled、Fresh Owner Ingress Evidence capability discovery、same-event auto-confirm 不可行、
+协议、Preview、Status 与 Clean Shutdown。
 
 ### Phase 1 — 真实 Preview-Only 流量（Real Preview Only）
 
-使用真实 Owner、WeCom、Hermes 和业务语言，但 `NO USER TASK WRITE`。ExecutionPort 保持 disabled，人工
-核对 title、description、due_at、timezone、priority、Modify 与 Cancel。Phase 1 人工验收完成前，
-Phase 2 为 `NOT_AUTHORIZED`。
+使用真实 Owner、WeCom、Hermes 和业务语言，但 `NO USER TASK WRITE`。Hermes 模型最多暴露 preview、
+modify、cancel、status、view；confirm/recover 不可见，Coordinator 为 `DISABLED / UNBOUND`，ExecutionPort
+保持 disabled。人工核对 title、description、due_at、timezone、priority、Modify 与 Cancel。Phase 1
+人工验收完成前，Phase 2 为 `NOT_AUTHORIZED`。
 
 ### Phase 2 — 单一 Canonical Mutation（One Canonical Mutation）
 
-只开放 `user_task.create`，闭环为 Preview → Owner Confirm → Internal Execute → Independent Verify →
-Canonical Commit Evidence → SUCCEEDED。不得同时开放 update、cancel task、reminder、waiting-for、inbox、
-quote、customer 或 message.send。
+只开放 `user_task.create`。Owner Message A 生成 Preview 并展示给 Owner；不同的 Owner Message B 必须
+产生可信 Fresh Owner Ingress Evidence，才能形成 canonical Confirmation。随后才由内部 Coordinator 执行
+Internal Execute → Independent Verify → Canonical Commit Evidence → SUCCEEDED。必须证明
+`Message A != Message B` 且 LLM 不能伪造 Message B authority。不得同时开放 update、cancel task、
+reminder、waiting-for、inbox、quote、customer 或 message.send。
 
 每一 Phase 的执行都需要后续独立实现/验收授权；本 Planning PR 不授权任何 Phase 运行。
 
@@ -340,7 +439,7 @@ quote、customer 或 message.send。
 正式验收以 `docs/acceptance/PILOT-001-wecom-owner-pilot.md` 为唯一计划。至少覆盖一条真实 Owner 场景、
 restart 与重复请求，以及 wrong channel/shell/identity、缺 binding/policy、unsupported operation、stale/
 expired Preview、旧 Confirmation、Shell execute/approve 不存在、uncertain/recovery no re-execution 与跨
-Workspace 拒绝。
+Workspace 拒绝，以及 `Same Inbound Event / Same Agent Turn Auto-Confirm → DENIED`。
 
 自动化测试通过只能证明合同和实现行为，不等价于真实企业微信 Pilot 通过。真实成功必须同时具备
 Automated Evidence、Real Integration Evidence、Manual Owner Evidence、Restart Evidence 与 Negative
@@ -357,7 +456,8 @@ Rollback：停止 Hermes MCP 入口并禁用 Port Bundle；不删除 Interaction
 
 立即 STOP / REPORT 的条件包括：MCP 真实兼容失败、identity/Workspace 无权威绑定、existing canonical
 contract 存在真实语义缺陷、凭据可能泄露、unexpected business write、duplicate UserTask、verification
-不能独立 read-back、uncertain outcome 被重执行，或实现需要新的永久架构决策。
+不能独立 read-back、Vanilla Hermes 无可信 ingress evidence mechanism、uncertain outcome 被重执行，或
+实现需要新的永久架构决策。
 
 ## 18. 禁止范围与已知限制
 
@@ -366,9 +466,9 @@ RBAC/OAuth/JWT/IAM、Remote/HTTP/Public MCP、Browser/Computer Use、通用 Tool
 Multi-Agent 扩张。AI-Lab 使用 `AI_LAB_PROVIDER_MODE=mock`；允许 Hermes 使用其独立真实 Provider，但
 Hermes LLM 输出仍只是 provisional input。QUALITY-003 / QUALITY-004 与 REL-036 保持未授权、未启动。
 
-已知限制：Pilot 安全依赖单机与专用实例；Phase 0 尚未真实验证 Hermes MCP SDK compatibility；真实
-WeCom 身份可用字段与 Hermes 配置仍需在验收环境核实；AdapterResponse additive projection 尚未实现；
-Pilot Port Bundle 与 Coordinator 尚未实现。
+已知限制：Pilot 安全依赖单机与专用实例；Phase 0 尚未真实验证 Hermes MCP SDK compatibility 与
+Vanilla Hermes 的 Fresh Owner Ingress Evidence 能力；真实 WeCom 配置字段仍需在验收环境核实；
+AdapterResponse additive projection 尚未实现；Pilot Port Bundle 与 Coordinator 尚未实现。
 
 ## 19. 后续实现文件范围建议
 
@@ -379,6 +479,7 @@ applications/pilot_owner/binding.py
 applications/pilot_owner/policy.py
 applications/pilot_owner/ports.py
 applications/pilot_owner/coordinator.py
+applications/pilot_owner/ingress_evidence.py
 tests/applications/pilot_owner/**
 tests/integration/test_pilot_001_*.py
 ```
@@ -386,14 +487,15 @@ tests/integration/test_pilot_001_*.py
 可能需要最小调整：
 
 ```text
-core/system/factory.py
 applications/trusted_interaction_adapter/models.py
 applications/trusted_interaction_adapter/service.py
 applications/trusted_interaction_adapter/mcp_server.py
 ```
 
-不得直接修改 UserTask repository、Interaction repository、数据库 schema、Hermes 源码或 MCP 依赖版本。
-最终文件范围必须由独立实现审查确认。
+`core/interaction/models.py` 与 `core/interaction/service.py` 不在 v1 计划变更范围。不得直接修改 UserTask
+repository、Interaction repository、数据库 schema、Hermes 源码或 MCP 依赖版本。若 Phase 0 证明 Vanilla
+Hermes 不支持所需入站证据，只能 STOP / REPORT 并另行审查极薄 ingress bridge 的文件范围。最终文件范围
+必须由独立实现审查确认。
 
 ## 20. RFC / ADR 判断
 

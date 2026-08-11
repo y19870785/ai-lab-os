@@ -2951,6 +2951,43 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
         "IMPLEMENTATION_NOT_AUTHORIZED",
     ):
         assert marker in combined
+
+    for marker in (
+        "Fresh Owner Ingress Evidence",
+        "Static Pilot Owner Binding",
+        "Fresh Owner Confirmation Evidence",
+        "Same Inbound Event / Same Agent Turn Auto-Confirm → DENIED",
+        "Phase 0 Coordinator: DISABLED / UNBOUND",
+        "Phase 1 Coordinator: DISABLED / UNBOUND",
+        "Phase-specific Hermes Tool Exposure",
+        "dm_policy: allowlist",
+        "group_policy: disabled",
+        "VerificationPort 不负责完整",
+        "Preview 参数 commit 比较",
+        "CanonicalCommitRequest.normalized_parameters",
+        "outcome=COMMITTED",
+        "ZERO BUSINESS SIDE EFFECT",
+        "STOPPED_PENDING_INGRESS_BRIDGE_DESIGN",
+    ):
+        assert marker in combined
+
+    for marker in (
+        "P0-10",
+        "P0-11",
+        "P0-12",
+        "P0-13",
+        "P0-14",
+        "P0-15",
+        "0 UserTask created / 0 target business mutation",
+        "preview、status、view",
+        "dm_policy=allowlist",
+        "group_policy=disabled",
+    ):
+        assert marker in acceptance
+
+    assert "不计划修改 `VerificationRequest`" in plan
+    assert "`core/interaction/models.py` 或 `core/interaction/service.py`" in plan
+    assert "Message A != Message B" in combined
     for forbidden_domain in (
         "QuoteRequest",
         "Pricing Engine",

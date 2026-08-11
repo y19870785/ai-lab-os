@@ -24,32 +24,47 @@
 - `OPENAI_API_KEY=DISABLED`、`AI_LAB_LLM_API_KEY=DISABLED`，不得使用空字符串；
 - Hermes 可使用其独立真实 Provider 配置，但密钥不得进入 AI-Lab、证据包或日志；
 - Pilot Binding Config 明确固定 actor、Workspace、expected shell/channel/WeCom identity；
-- 单 Owner、企业微信私聊、本地主机、allowlist、纯文本；
+- 单 Owner、企业微信私聊、本地主机、allowlist、纯文本；Phase 0 配置语义必须满足
+  `dm_policy=allowlist`、`allow_from=<single Owner WeCom user ID>`、`group_policy=disabled`，无 wildcard；
 - 记录 AI-Lab Head、Hermes version、MCP SDK version、时间、timezone 与脱敏配置摘要；
 - 每一 Phase 开始前具有独立授权；前一 Phase 未通过时不得推进。
 
 ## 3. Phase 0 — 传输与身份冒烟（Transport / Identity Smoke）
 
-Phase 0 使用真实 WeCom、Hermes 与 AI-Lab，但禁止 UserTask write。
+Phase 0 使用真实 WeCom、Hermes 与 AI-Lab，但保持 `ZERO BUSINESS SIDE EFFECT`。允许且要求写入
+Interaction、Preview、AuditEvidence、idempotency 与必要 trusted-interaction canonical facts；禁止任何
+target business mutation。
 
 | ID | 场景 | 预期 | 证据 |
 |---|---|---|---|
 | P0-01 | Hermes 真实进程启动 AI-Lab stdio MCP | Server 正常启动 | 进程与时间戳日志 |
 | P0-02 | Protocol Negotiation | 协商成功，无私有 hack | client/server version 摘要 |
-| P0-03 | `tools/list` | 精确返回七项 allowlisted tools | 原始脱敏响应 |
+| P0-03 | AI-Lab raw `tools/list` | 精确返回七项 INT-001 allowlisted tools | 原始脱敏响应 |
 | P0-04 | Tool Schema | Preview/Status schema 可被 Hermes 解析 | schema digest |
 | P0-05 | Owner DM Preview | 返回 canonical Preview，`final=false` | Interaction/Preview ID |
 | P0-06 | Status | 返回同一 canonical Interaction | status 投影 |
 | P0-07 | Clean Shutdown | client/server 正常退出 | exit code 与日志 |
 | P0-08 | wrong shell/channel/identity | DENIED / fail closed | `FailureInfo` |
 | P0-09 | default/no binding | DENIED，不回退 Workspace | `FailureInfo` |
-| P0-10 | business mutation guard | UserTask 计数与数据库事实不变 | 前后 read-only 证据 |
+| P0-10 | 业务 Mutation 门禁 | 0 个 UserTask 创建、0 个目标业务对象变更；允许且预期写入 Interaction、Preview 与 Audit | 业务对象前后 read-only 与 interaction audit 证据 |
+| P0-11 | Hermes Model-Exposed Tool Set | 精确为 preview、status、view；普通 Agent 看不到 confirm/recover | Hermes 实际工具清单 |
+| P0-12 | WeCom DM policy | `dm_policy=allowlist` 且仅含 Owner WeCom user ID，无 wildcard | 脱敏实际配置与版本 |
+| P0-13 | WeCom group policy | `group_policy=disabled`，无 group operation | 脱敏实际配置与拒绝证据 |
+| P0-14 | Fresh Owner ingress evidence capability discovery | SUPPORTED / UNSUPPORTED，并记录机制、来源与模型不可伪造边界 | discovery report |
+| P0-15 | Same inbound event cannot Preview + Confirm | PROVEN；same event / same Agent turn auto-confirm 被拒绝 | event reference 与 canonical state |
 
-任何 compatibility 失败均 STOP / REPORT；不得现场改依赖或降级安全字段。
+P0-10 的稳定技术语义为 `0 UserTask created / 0 target business mutation`；它不禁止必要的 trusted-
+interaction canonical writes。
+
+Phase 0 Coordinator 固定为 `DISABLED / UNBOUND`。任何 compatibility 失败均 STOP / REPORT；不得现场改
+依赖或降级安全字段。若 P0-14 为 UNSUPPORTED，则状态为
+`STOPPED_PENDING_INGRESS_BRIDGE_DESIGN`，不得进入 Phase 1/2 实现。
 
 ## 4. Phase 1 — 真实 Preview-Only
 
-使用真实 Owner、WeCom、Hermes 与业务语言，ExecutionPort 继续 disabled。
+使用真实 Owner、WeCom、Hermes 与业务语言，ExecutionPort 继续 disabled，
+`PilotInteractionCoordinator=DISABLED / UNBOUND`。Hermes 普通 Agent 最多可见 preview、modify、cancel、
+status、view；confirm 与 recover 不可见，因此工具层不能形成真实业务授权。
 
 | ID | 场景 | 预期 |
 |---|---|---|
@@ -59,6 +74,7 @@ Phase 0 使用真实 WeCom、Hermes 与 AI-Lab，但禁止 UserTask write。
 | P1-04 | 模糊时间 | 明确拒绝或请求修正，不猜测写入 |
 | P1-05 | unsupported operation | DENIED，无新 domain 或业务写入 |
 | P1-06 | Owner 观察可理解性 | Owner 能复述即将创建的对象与时间 |
+| P1-07 | Phase 1 tool exposure | confirm/recover unavailable；Coordinator disabled；0 UserTask write |
 
 Manual Owner Evidence 必须记录 Owner 对 title、description、due_at、timezone、priority 的逐项判断；
 Phase 1 通过前 Phase 2 保持 `NOT_AUTHORIZED`。
@@ -74,22 +90,30 @@ Owner 在企业微信私聊：
 
 验收步骤与预期：
 
-1. Hermes 收到真实 DM 并生成 provisional `UserTask` proposal；
+1. Hermes 收到 Owner Message A 并生成 provisional `UserTask` proposal；
 2. AI-Lab Resolver 从固定配置得到 Owner actor 与 Workspace；
 3. Policy Resolver 只解析为 `user_task.create`；
 4. Canonical Preview 显示准确 title、due_at、timezone 与 priority；
-5. Owner 明确 Confirm exact Preview；
-6. Hermes 没有也不调用 execute tool；
-7. AI-Lab 内部 Coordinator 调用 `start_execution()`；
-8. ExecutionPort 只调用一次 `UserTaskService.create()`；
-9. `task_id` 等于规定 deterministic hash；
-10. VerificationPort 独立 read-back UserTask；
-11. read-back 的 Workspace、title、due_at、priority、source 与 metadata 全部匹配；
-12. Canonical Commit Authority 独立确认持久事实并形成 evidence；
-13. Interaction 只有在 VerifiedResult 与 required Commit Evidence 存在时进入 `SUCCEEDED`；
-14. Shell 结果投影包含 canonical task ID/revision 与 verified result；
-15. AI-Lab 重启后 UserTask 仍存在，Interaction 仍为 `SUCCEEDED`；
-16. 使用相同 Interaction / idempotent request 再次请求，不产生第二个 UserTask。
+5. Preview 已展示给 Owner；
+6. Owner 通过不同的 Message B 表达 explicit confirm intent；
+7. 经独立审查的 model-independent ingress mechanism 形成 Fresh Owner Ingress Evidence，并绑定
+   Message B、Owner、channel 与 Preview 时序；
+8. 证明 `Message A != Message B`，且 LLM 不能伪造 Message B authority；
+9. canonical Confirmation 精确绑定目标 Preview；
+10. Hermes 没有也不调用 execute tool；
+11. 获单独授权的 AI-Lab 内部 Coordinator 调用 `start_execution()`；
+12. ExecutionPort 只调用一次 `UserTaskService.create()`；
+13. `task_id` 等于规定 deterministic hash；
+14. VerificationPort 独立 read-back，证明对象存在、deterministic ID、Workspace、source、metadata、
+    restart relocation 与稳定 `evidence_digest`；
+15. Canonical Commit Authority 从 `CanonicalCommitRequest.normalized_parameters` 取得 Preview 参数，独立
+    read-back 并逐项核对 task_id、Workspace、title、description、priority、due_at、timezone、source、
+    `metadata.interaction_id`；
+16. exact match 后才形成 `outcome=COMMITTED` 与 CanonicalCommitEvidence；
+17. Interaction 只有在 VerifiedResult 与 required Commit Evidence 存在时进入 `SUCCEEDED`；
+18. Shell 结果投影包含 canonical task ID/revision 与 verified result；
+19. AI-Lab 重启后 UserTask 仍存在，Interaction 仍为 `SUCCEEDED`；
+20. 使用相同 Interaction / idempotent request 再次请求，不产生第二个 UserTask。
 
 任一步无证据均不能记为 PASSED。
 
@@ -98,12 +122,17 @@ Owner 在企业微信私聊：
 后续实现至少覆盖：
 
 - Binding Resolver 固定配置与 mismatch fail-closed；
+- Static Pilot Owner Binding 不被当成本次 Confirm authority；
+- Fresh Owner Ingress Evidence 发生在 Preview 后，且不可由 LLM/MCP 参数伪造；
+- same inbound event / same Agent turn auto-confirm 被拒绝；
 - Operation Policy 精确 allowlist 与 Shell 不可设置权威字段；
 - Preview 零业务写、Modify 使旧 consent 失效；
 - deterministic ID 同 Interaction 恒定，不同 Interaction 可区分；
 - ExecutionPort 只依赖 `UserTaskService`，create 调用最多一次；
-- VerificationPort 独立 read-back，不信任 execution return；
-- Canonical Commit Authority 只读并验证，不执行写入；
+- VerificationPort 独立 read-back，不信任 execution return，也不负责完整 Preview 参数 commit 比较；
+- Canonical Commit Authority 使用 `normalized_parameters` 对 UserTask 做 exact matching，只读且不执行写入；
+- `VerificationRequest` 与 `core/interaction/**` 无计划变更；
+- Phase-specific Hermes Tool Exposure 与 Phase 0/1 Coordinator disabled；
 - restart 后仅凭 interaction/workspace/deterministic ID 验证；
 - `RECOVERY_REQUIRED` 不重执行；
 - AdapterResponse additive projection 不伪造结果；
@@ -116,10 +145,11 @@ Owner 在企业微信私聊：
 
 必须来自真实 Hermes Process 与真实企业微信 Owner 私聊，至少包含：
 
-- WeCom message receipt 的脱敏 correlation，不含完整消息或 credential；
+- WeCom Message A 与 Message B 的不同稳定 reference/digest，不含完整消息或 credential；
+- Message B 的 Fresh Owner Ingress Evidence 来源、Preview 后时序、Owner/channel binding 与模型不可伪造边界；
 - Hermes 与 AI-Lab MCP startup、negotiation、`tools/list`、schema digest；
 - Preview/Status 调用的 request ID、trace ID、Interaction ID 与 revision；
-- Confirm 后无 Shell execute/verify/commit call 的证据；
+- Confirm path 不由同一 Agent turn 自动完成，且 Confirm 后无 Shell execute/verify/commit call 的证据；
 - AI-Lab 内部 execution/verification/commit transition audit；
 - Clean Shutdown 与真实进程 exit code。
 
@@ -131,6 +161,7 @@ Owner 手工签认至少包括：
 
 - 消息确实来自其企业微信私聊；
 - Preview 标题、时间、时区、优先级准确；
+- Owner 在看见 Preview 后用新的 Message B 明确确认；
 - 知道 Confirm 会创建 UserTask；
 - Modify 后旧确认无效；
 - Cancel 不创建任务；
@@ -163,6 +194,9 @@ Owner 手工签认至少包括：
 | Wrong Preview Revision | DENIED |
 | Expired Preview | DENIED |
 | Modified Preview + Old Confirmation | DENIED |
+| Same Inbound Event / Same Agent Turn Auto-Confirm | DENIED |
+| LLM fabricates Fresh Owner Ingress Evidence | DENIED / NO CANONICAL CONFIRMATION |
+| MCP parameter supplies authoritative `message_id` | DENIED / CORRELATION ONLY |
 | Shell attempts execute | NO SUCH TOOL |
 | Shell attempts approve | NO SUCH TOOL |
 | Shell 声称“任务已完成” | NO CANONICAL EFFECT |
@@ -189,6 +223,8 @@ Owner 手工签认至少包括：
 
 ```text
 Phase 0 PASSED
+P0-14 Fresh Owner ingress evidence capability = SUPPORTED
+P0-15 Same inbound event auto-confirm denied = PROVEN
 Phase 1 PASSED + Manual Owner Evidence
 Phase 2 PASSED
 Automated Evidence COMPLETE
