@@ -1,31 +1,17 @@
 """CEO Assistant - DeepSeek real end-to-end tests.
 
-Only runs when OPENAI_API_KEY is configured.
-Run separately: python -m pytest tests/real/ -q -m real
+Only runs with explicit two-factor authorization and an available credential.
+Run separately with --run-real-provider and AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1.
 """
 
 import pytest
-import sys
-import os
-import asyncio
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
-
 import pytest_asyncio
-from dotenv import load_dotenv
-load_dotenv()
 
-pytestmark = [
-    pytest.mark.real,
-    pytest.mark.skipif(
-        not os.getenv("OPENAI_API_KEY") or len(os.getenv("OPENAI_API_KEY", "")) < 10,
-        reason="OPENAI_API_KEY not set - skip real provider tests"
-    ),
-]
+pytestmark = pytest.mark.real
 
 
 @pytest_asyncio.fixture
-async def real_app(tmp_path):
+async def real_app(tmp_path, real_provider_environment: dict[str, str]):
     """Create CEOAssistant through the real Composition Root."""
     from core.system import SystemSettings, create_system
 
@@ -34,9 +20,9 @@ async def real_app(tmp_path):
         provider_mode="real",
         data_dir=tmp_path,
         sqlite_dir=tmp_path / "sqlite",
-        api_key=os.getenv("AI_LAB_LLM_API_KEY") or os.getenv("OPENAI_API_KEY", ""),
-        base_url=os.getenv("AI_LAB_LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL", ""),
-        model=os.getenv("AI_LAB_LLM_MODEL") or os.getenv("OPENAI_MODEL", ""),
+        api_key=real_provider_environment["api_key"],
+        base_url=real_provider_environment["base_url"],
+        model=real_provider_environment["model"],
     )
     system = await create_system(settings)
     await system.start()

@@ -1,6 +1,6 @@
 # AI-Lab 项目状态
 
-**日期：** 2026-08-11
+**日期：** 2026-08-12
 **源码版本：** v0.35.0 Alpha / GitHub Pre-release Published
 **已验证发布基线：** `22f88d1da962fb436c48c19e5343fad8bf62f5f6` / Quality Gate run `29855987444`
 
@@ -14,7 +14,9 @@
 | 当前治理任务 | None |
 | 当前工作 | None |
 | INT-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / CLOSED_LOOP_COMPLETE / ARCHIVED |
-| PILOT-001 | PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / IMPLEMENTATION_NOT_APPROVED / REQUIRES_SEPARATE_IMPLEMENTATION_AUTHORIZATION / REAL_PILOT_NOT_STARTED |
+| QUALITY-004 | RESOLVED / IMPLEMENTED / FINAL_INDEPENDENT_REVIEW_PASSED / REAL_PROVIDER_ISOLATION_GUARD_ESTABLISHED / PILOT_SAFETY_BLOCKER_CLEARED |
+| QUALITY-003 | CANDIDATE / NON_BLOCKING / REAL_PROVIDER_ONLY / NOT_STARTED / NOT_AUTHORIZED |
+| PILOT-001 | PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_REVALIDATION_REQUIRED_AFTER_QUALITY_004 / P0_R_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_PILOT_NOT_STARTED |
 | ARCH-001 | APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / POST_MERGE_RECONCILED / ARCHIVED |
 | ARCH-001 Planning PR | #66 / MERGED / CLOSED / `4f9eab191fc0d99898ee69a2b42912017e4740e3` |
 | RFC-032 | Adopted |
@@ -61,7 +63,10 @@ Squash Merge 与 main Quality Gate `31311699187`，并完成治理对账和封�
 Shell-neutral Adapter、fail-closed identity/policy authority 与本地 stdio MCP reference projection，
 通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge 和 main Quality Gate `31324821391`，
 并完成治理对账和封存。PILOT-001 规划基线已获批准并通过最终独立规划审查，固定为企业微信单 Owner 私聊、
-`PILOT_GRADE_LOCAL_SINGLE_OWNER_BINDING` 与唯一 `user_task.create`；实现仍未授权，真实 Pilot 尚未启动。
+`PILOT_GRADE_LOCAL_SINGLE_OWNER_BINDING` 与唯一 `user_task.create`。P0-E 的环境连接与工具隔离成功，但
+validation suite 意外执行真实 Provider，因而被 QUALITY-004 阻断；这是本地测试凭据隔离安全缺陷，
+不是 WeCom/MCP compatibility failure。QUALITY-004 Guard 已实现并通过最终独立安全审查，原 safety blocker
+已清除；P0-E 仍需重新验证，P0-R、Phase 1、Phase 2 与实现仍未授权，真实 Pilot 尚未启动。
 REL-036 未启动，版本、Tag 和 Release 未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
 与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge

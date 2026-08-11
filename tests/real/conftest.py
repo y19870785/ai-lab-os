@@ -1,22 +1,15 @@
-"""Real Provider 测试专用配置。
+"""Real Provider 测试专用的显式授权与环境准备。"""
 
-覆盖全局 conftest 的 API key 隔离。
-"""
+import os
 
 import pytest
-import os
-from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
-
-HOOK_PASSED = False
-_REAL_TEST_ROOT = Path(__file__).resolve().parent
-
-
-def _is_real_test_item(item: pytest.Item) -> bool:
-    """Return whether a collected test belongs to the real-provider tree."""
-    return Path(str(item.path)).resolve().is_relative_to(_REAL_TEST_ROOT)
+_AUTHORIZATION_MESSAGE = (
+    "Real-provider tests require --run-real-provider and "
+    "AI_LAB_ALLOW_REAL_PROVIDER_TESTS=1."
+)
+_CREDENTIAL_MESSAGE = "Real-provider credential is not configured."
 
 
 @pytest.fixture(autouse=True)
@@ -29,10 +22,23 @@ def isolate_api_keys(monkeypatch):
     yield
 
 
-# 模块级别 skip 检查
-def pytest_collection_modifyitems(config, items):
-    api_key = os.getenv("OPENAI_API_KEY") or ""
-    if not api_key or len(api_key) < 10:
-        for item in items:
-            if _is_real_test_item(item):
-                item.add_marker(pytest.mark.skip(reason="API key not configured"))
+@pytest.fixture(scope="session")
+def real_provider_environment(pytestconfig: pytest.Config) -> dict[str, str]:
+    """双授权后才加载 dotenv，并在 Provider 初始化前确认凭据可用。"""
+    if not pytestconfig.getoption("--run-real-provider"):
+        pytest.skip(_AUTHORIZATION_MESSAGE)
+    if os.getenv("AI_LAB_ALLOW_REAL_PROVIDER_TESTS") != "1":
+        pytest.skip(_AUTHORIZATION_MESSAGE)
+
+    load_dotenv()
+
+    api_key = os.getenv("AI_LAB_LLM_API_KEY") or os.getenv("OPENAI_API_KEY", "")
+    if len(api_key) < 10 or api_key == "DISABLED":
+        pytest.skip(_CREDENTIAL_MESSAGE)
+
+    return {
+        "api_key": api_key,
+        "base_url": os.getenv("AI_LAB_LLM_BASE_URL")
+        or os.getenv("OPENAI_BASE_URL", ""),
+        "model": os.getenv("AI_LAB_LLM_MODEL") or os.getenv("OPENAI_MODEL", ""),
+    }
