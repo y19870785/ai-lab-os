@@ -45,7 +45,7 @@
 | `docs/acceptance/INT-001-shell-neutral-trusted-interaction-adapter.md` | Acceptance | 是 | 中英混合 | 是 | INT-001 新增 | — | 完成 |
 | `docs/acceptance/SP-021-canonical-trusted-interaction-domain.md` | Acceptance | 是 | 中英混合 | 是 | SP-021 新增 | — | 完成 |
 | `docs/acceptance/PILOT-001-wecom-owner-pilot.md` | Acceptance | 是 | 中文 | 是 | PILOT-001 新增 | — | 规划中 |
-| `docs/acceptance/PILOT-001-phase0-hermes-wecom-discovery.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-P0R 新增 | — | 待独立审查 |
+| `docs/acceptance/PILOT-001-phase0-hermes-wecom-discovery.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-P0R 新增 | — | 完成 |
 | `docs/adr/000-template.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-001-core-layer-package-structure.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-002-message-bus-interface.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |

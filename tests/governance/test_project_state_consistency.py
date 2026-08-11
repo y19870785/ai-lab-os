@@ -490,7 +490,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         state["development_status"]
         == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp017 == {
@@ -648,7 +648,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp018["name"] == "Work Log Query Boundary & Context Closure"
@@ -911,7 +911,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         state["development_status"]
         == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
     assert state["release_status"]["current_version"] == "0.35.0"
     assert "SP-020" in state["sp_records"]
@@ -1385,7 +1385,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert (
@@ -1993,7 +1993,7 @@ def test_docs001_is_reconciled_and_archived() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert docs001 == {
@@ -2342,7 +2342,7 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     strat = state["governance_tasks"]["STRAT-001"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert state["current_version"] == "0.35.0"
@@ -2469,7 +2469,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["next_planned_governance_item"] is None
@@ -2516,11 +2516,11 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
             "PLANNING_BASELINE_APPROVED / "
             "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
             "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-            "P0_R_DRAFT_PENDING_INDEPENDENT_REVIEW / "
+            "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
+            "PREVIEW_AUTHORITY_ESTABLISHED / "
             "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-            "STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-            "IMPLEMENTATION_NOT_APPROVED_BEYOND_AUTHORIZED_PHASE_0_SCOPE / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
         ),
         "REL-036": "NOT_STARTED / NOT_APPROVED",
@@ -2627,7 +2627,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
     acc021 = state["acceptance_records"]["ACC-021"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["next_candidate_sp"] is None
@@ -2669,11 +2669,11 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
             "PLANNING_BASELINE_APPROVED / "
             "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
             "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-            "P0_R_DRAFT_PENDING_INDEPENDENT_REVIEW / "
+            "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
+            "PREVIEW_AUTHORITY_ESTABLISHED / "
             "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-            "STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-            "IMPLEMENTATION_NOT_APPROVED_BEYOND_AUTHORIZED_PHASE_0_SCOPE / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
         ),
         "REL-036": "NOT_STARTED / NOT_APPROVED",
@@ -2761,11 +2761,11 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     pilot_status = (
         "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
         "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-        "P0_R_DRAFT_PENDING_INDEPENDENT_REVIEW / "
+        "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
+        "PREVIEW_AUTHORITY_ESTABLISHED / "
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-        "STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-        "IMPLEMENTATION_NOT_APPROVED_BEYOND_AUTHORIZED_PHASE_0_SCOPE / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
     )
 
@@ -2773,7 +2773,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["schema_version"] == 1
@@ -2906,11 +2906,11 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     pilot_status = (
         "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
         "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-        "P0_R_DRAFT_PENDING_INDEPENDENT_REVIEW / "
+        "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
+        "PREVIEW_AUTHORITY_ESTABLISHED / "
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-        "STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-        "IMPLEMENTATION_NOT_APPROVED_BEYOND_AUTHORIZED_PHASE_0_SCOPE / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
     )
 
@@ -2921,7 +2921,7 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert (
         state["development_status"]
         == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
@@ -3059,7 +3059,7 @@ def test_quality004_real_provider_isolation_guard_has_durable_approval() -> None
     assert state["schema_version"] == 1
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["development_status"] == (
         "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
@@ -3124,7 +3124,7 @@ def test_quality004_real_provider_isolation_guard_has_durable_approval() -> None
         )
     )
     assert "P0_E_ENVIRONMENT_READY" in documentation
-    assert "P0_R_DRAFT_PENDING_INDEPENDENT_REVIEW" in documentation
+    assert "P0_R_FINAL_INDEPENDENT_REVIEW_PASSED" in documentation
     assert "PILOT_SAFETY_BLOCKER_CLEARED" in documentation
     assert "不是 WeCom/MCP compatibility failure" in documentation
 
@@ -3141,19 +3141,20 @@ def test_pilot001_p0r_preview_and_fresh_ingress_stop_state_are_durable() -> None
 
     assert state["schema_version"] == 1
     assert state["current_version"] == "0.35.0"
-    assert state["current_work"] == "PILOT-001-P0R"
+    assert state["current_work"] is None
     assert state["development_status"] == (
         "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
     for marker in (
         "P0_E_ENVIRONMENT_READY",
         "P0_R_IMPLEMENTATION_AUTHORIZED",
-        "P0_R_DRAFT_PENDING_INDEPENDENT_REVIEW",
+        "P0_R_IMPLEMENTED",
+        "P0_R_FINAL_INDEPENDENT_REVIEW_PASSED",
+        "PREVIEW_AUTHORITY_ESTABLISHED",
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED",
-        "STOPPED_PENDING_INGRESS_BRIDGE_DESIGN",
+        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN",
         "PHASE_1_NOT_AUTHORIZED",
         "PHASE_2_NOT_AUTHORIZED",
-        "IMPLEMENTATION_NOT_APPROVED_BEYOND_AUTHORIZED_PHASE_0_SCOPE",
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED",
     ):
         assert marker in pilot_status
