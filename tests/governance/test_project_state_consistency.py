@@ -490,7 +490,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
         state["development_status"]
         == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp017 == {
@@ -648,7 +648,7 @@ def test_sp018_is_merged_accepted_verified_and_archived() -> None:
     assert state["current_governance_task"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert "next_action" not in state
 
     assert sp018["name"] == "Work Log Query Boundary & Context Closure"
@@ -911,7 +911,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
         state["development_status"]
         == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
     assert state["release_status"]["current_version"] == "0.35.0"
     assert "SP-020" in state["sp_records"]
@@ -1385,7 +1385,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert (
@@ -1993,7 +1993,7 @@ def test_docs001_is_reconciled_and_archived() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert docs001 == {
@@ -2342,7 +2342,7 @@ def test_strat001_strategy_and_ownership_baseline_is_consistent() -> None:
     strat = state["governance_tasks"]["STRAT-001"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_planned_governance_item"] is None
     assert state["current_version"] == "0.35.0"
@@ -2469,7 +2469,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
 
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["next_planned_governance_item"] is None
@@ -2520,9 +2520,9 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
             "PREVIEW_AUTHORITY_ESTABLISHED / "
             "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
         "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_AUTHORIZED / "
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT / "
-        "PENDING_INDEPENDENT_REVIEW / "
+        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+        "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2631,7 +2631,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
     acc021 = state["acceptance_records"]["ACC-021"]
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["next_candidate_sp"] is None
@@ -2677,9 +2677,9 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
             "PREVIEW_AUTHORITY_ESTABLISHED / "
             "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
         "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_AUTHORIZED / "
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT / "
-        "PENDING_INDEPENDENT_REVIEW / "
+        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+        "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2773,9 +2773,9 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         "PREVIEW_AUTHORITY_ESTABLISHED / "
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
             "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-            "INGRESS_EVIDENCE_BRIDGE_DESIGN_AUTHORIZED / "
-            "INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT / "
-            "PENDING_INDEPENDENT_REVIEW / "
+            "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+            "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+            "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
             "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2785,7 +2785,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
     assert state["schema_version"] == 1
@@ -2922,9 +2922,9 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
         "PREVIEW_AUTHORITY_ESTABLISHED / "
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
             "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-            "INGRESS_EVIDENCE_BRIDGE_DESIGN_AUTHORIZED / "
-            "INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT / "
-            "PENDING_INDEPENDENT_REVIEW / "
+            "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+            "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+            "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
             "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2937,7 +2937,7 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert (
         state["development_status"]
         == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
@@ -3075,7 +3075,7 @@ def test_quality004_real_provider_isolation_guard_has_durable_approval() -> None
     assert state["schema_version"] == 1
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["development_status"] == (
         "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
@@ -3157,7 +3157,7 @@ def test_pilot001_p0r_preview_and_fresh_ingress_stop_state_are_durable() -> None
 
     assert state["schema_version"] == 1
     assert state["current_version"] == "0.35.0"
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
     assert state["development_status"] == (
         "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
@@ -3195,29 +3195,37 @@ def test_pilot001_p0r_preview_and_fresh_ingress_stop_state_are_durable() -> None
     assert "QUALITY-003、REL-036" in evidence
 
 
-def test_pilot001_ibd_design_draft_is_scoped_and_reviewable() -> None:
+def test_pilot001_ibd_approved_design_state_is_durable() -> None:
     state = _load_state()
     arch = state["governance_tasks"]["ARCH-001"]
     sp021 = state["sp_records"]["SP-021"]
     pilot_status = arch["follow_up_tasks"]["PILOT-001"]
 
     assert state["schema_version"] == 1
-    assert state["current_work"] == "PILOT-001-IBD"
+    assert state["current_work"] is None
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
+    assert state["next_planned_governance_item"] is None
     assert state["development_status"] == (
         "pilot_001_phase0_stopped_pending_ingress_bridge_design"
     )
     assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
     for marker in (
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED",
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_AUTHORIZED",
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT",
-        "PENDING_INDEPENDENT_REVIEW",
+        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED",
+        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED",
+        "RFC_033_ADOPTED",
+        "ADR_073_ACCEPTED",
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED",
         "PHASE_1_NOT_AUTHORIZED",
         "PHASE_2_NOT_AUTHORIZED",
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED",
     ):
         assert marker in pilot_status
+    assert "INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT" not in pilot_status
+    assert "PENDING_INDEPENDENT_REVIEW" not in pilot_status
 
     paths = {
         "design": ROOT
@@ -3249,7 +3257,13 @@ def test_pilot001_ibd_design_draft_is_scoped_and_reviewable() -> None:
         assert marker in design
     for scenario in tuple(f"IB-{letter}" for letter in "ABCDEFGHIJKLMNOPQRS"):
         assert scenario in acceptance
-    assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
+    assert (
+        "PLANNING_BASELINE_APPROVED / "
+        "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / NOT_EXECUTED"
+        in acceptance
+    )
+    assert "IB-A～IB-S 均为 `DEFINED / NOT_EXECUTED`" in acceptance
+    assert "7042a68c566abf4c99f5f3038b38fd90790f0bfb" in design
     for document in (design, acceptance, rfc, adr):
         for marker in (
             "evidence_version",
@@ -3293,7 +3307,11 @@ def test_pilot001_ibd_design_draft_is_scoped_and_reviewable() -> None:
     assert "preview_confirmation_code" not in rfc
     assert "replay_key`。`evidence_id`" not in rfc
     assert "`replay_key`。`evidence_id`" not in design
-    assert "Status: Accepted" not in rfc
-    assert "Status: Accepted" not in adr
+    assert "**状态**：Adopted" in rfc
+    assert "RFC-033:\nADOPTED" in rfc
+    assert "**状态**：Accepted" in adr
+    assert "ADR-073:\nACCEPTED" in adr
+    for document in (design, acceptance, rfc, adr):
+        assert "PENDING_INDEPENDENT_REVIEW" not in document
     assert "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED" in rfc
     assert "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED" in adr

@@ -1,10 +1,10 @@
 # PILOT-001 — 可信入站证据桥验收计划
 
 - 任务：`PILOT-001-IBD`
-- 状态：`PLANNING_BASELINE / NOT_EXECUTED / PENDING_INDEPENDENT_REVIEW`
+- 状态：`PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / NOT_EXECUTED`
 - 授权 Base：`b22f90c471520052fff04255efba37f5accd9421`
 - 关联设计：`docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md`
-- 关联决策：`RFC-033 / ADR-073 / PROPOSED`
+- 关联决策：`RFC-033 / ADOPTED / ADR-073 / ACCEPTED`
 - Bridge implementation：`NOT_AUTHORIZED`
 - Phase 1 / Phase 2：`NOT_AUTHORIZED / NOT_AUTHORIZED`
 - AI-Lab Real Provider：`0 planned / 0 executed`
@@ -17,6 +17,8 @@
 本计划不验证通用 Channel Platform、Agent Runtime、Workflow Engine、完整 IAM、企业级 PKI、Phase 2、
 Execution、Verification、Canonical Commit 或真实 UserTask creation。没有合法 Message B evidence 时，任何
 Confirmation 与业务 mutation 必须 fail closed。
+
+IB-A～IB-S 均为 `DEFINED / NOT_EXECUTED`，不得将设计批准表述为场景通过。
 
 ## 统一测试夹具
 

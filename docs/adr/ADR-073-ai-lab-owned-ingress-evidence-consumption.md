@@ -2,7 +2,7 @@
 
 ## 状态
 
-- **状态**：Proposed
+- **状态**：Accepted
 - **日期**：2026-08-12
 - **任务**：PILOT-001-IBD
 - **相关 RFC**：RFC-033
@@ -124,11 +124,11 @@ AI-Lab 的持久化 CAS 是 replay safety 的必要条件。只依赖 Hermes ses
 
 ## 授权状态
 
-本 ADR 仅记录 Proposed 设计，不代表实现或支持状态：
+本 ADR 仅记录 Accepted 架构设计，不代表实现或支持状态：
 
 ```text
 ADR-073:
-PROPOSED
+ACCEPTED
 
 BRIDGE_IMPLEMENTATION:
 NOT_AUTHORIZED

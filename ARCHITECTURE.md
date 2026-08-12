@@ -1,7 +1,7 @@
 # AI-Lab 架构文档
 
-> 当前工作：PILOT-001-IBD。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
-> Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`；可信入站证据桥仅处于设计草案和独立规划审查前状态，Bridge 实现与 Phase 1 未授权。
+> 当前工作：None。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
+> PILOT-001-IBD 设计已通过最终独立规划审查；Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。
 
 INT-001 在 `applications/trusted_interaction_adapter` 增加 Shell-neutral application
 boundary，并通过官方 MCP SDK 提供本地 stdio projection。该层只依赖 canonical
@@ -61,7 +61,7 @@ Fresh Owner 入站证据为 `UNSUPPORTED`，不得进入 Phase 1、业务 mutati
 
 ## PILOT-001-IBD 可信入站证据桥设计草案
 
-RFC-033 与 ADR-073 提议在 Hermes 的模型前 WeCom inbound boundary 使用受支持的用户安装型 platform plugin
+已 Adopted 的 RFC-033 与已 Accepted 的 ADR-073 在 Hermes 的模型前 WeCom inbound boundary 使用受支持的用户安装型 platform plugin
 观察真实 channel event，再由隔离的 Evidence Issuer helper 使用专用 Ed25519 私钥签发最小 canonical envelope。
 AI-Lab 是唯一 Evidence Verification Authority 和 replay/consumption owner：它验证 issuer、签名、Owner/channel/
 conversation binding、content digest、freshness 与 Preview ordering，并在持久化事务中以 CAS 单次消费 evidence。
@@ -79,8 +79,8 @@ message ID/UUID、session/correlation、MCP 与 LLM fallback。AI-Lab 在 Previe
 该设计严格区分 Fresh Ingress Evidence 与 Confirmation Intent。Evidence 只证明真实新 Owner 消息存在；受控逻辑仍需
 判断 Message B 是否明确确认指定 Preview。Message A 不能在同一 Agent turn 自动确认。MCP 未来只传 opaque
 
-`evidence_id` 与待校验 confirmation text；MCP success 仍不等于 business success。当前 RFC/ADR 均为 Proposed，
-`BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PENDING_INDEPENDENT_REVIEW`。
+`evidence_id` 与待校验 confirmation text；MCP success 仍不等于 business success。设计 baseline 已批准，但
+`FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED`。
 
 ## v0.35.0 Alpha 产品基线
 

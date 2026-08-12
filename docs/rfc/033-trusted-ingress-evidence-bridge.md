@@ -2,7 +2,7 @@
 
 ## 状态
 
-- **状态**：Proposed
+- **状态**：Adopted
 - **任务**：PILOT-001-IBD
 - **日期**：2026-08-12
 - **唯一设计 Base**：`b22f90c471520052fff04255efba37f5accd9421`
@@ -176,7 +176,7 @@ business mutation，才可另行申请 Phase 1 授权。
 
 ```text
 RFC-033:
-PROPOSED
+ADOPTED
 
 BRIDGE_IMPLEMENTATION:
 NOT_AUTHORIZED

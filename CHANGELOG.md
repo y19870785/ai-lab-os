@@ -4,6 +4,10 @@
 
 ### PILOT-001-IBD 可信入站证据桥设计
 
+- 最终独立规划审查已批准 Approved Design Head `7042a68c566abf4c99f5f3038b38fd90790f0bfb`；
+  RFC-033 已 Adopted，ADR-073 已 Accepted，IB-A～IB-S 保持 Defined / Not Executed。
+- durable governance state 已收口为设计批准与最终独立审查通过；Current Work 恢复为 None。Fresh Owner
+  Ingress Evidence 仍为 `UNSUPPORTED`，Bridge implementation 与 Phase 1/2 仍未授权。
 - R2 将 authoritative channel event ID 锁定为 authenticated WeCom callback `body.msgid`；拒绝
   `headers.req_id`、Hermes `MessageEvent.message_id`/UUID、session/correlation、MCP 与 LLM fallback。
 - 稳定 `evidence_id` scope 增加 Owner 与 conversation opaque binding，仍排除 `received_at`、content 与 signing
@@ -22,8 +26,7 @@
   Evidence Issuer 使用专用 Ed25519 私钥签发，AI-Lab 负责验签、持久化、去重、CAS 单次消费与审计。
 - 区分 Fresh Ingress Evidence 与 Confirmation Intent；Message B 必须晚于 Preview，并绑定指定
   Preview、Owner、channel、conversation、content digest，任何缺失、无效、过期或重放均 fail closed。
-- 当前仅为 `INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT / PENDING_INDEPENDENT_REVIEW`；Bridge implementation、
-  Phase 1/2、真实业务 mutation、QUALITY-003、REL-036 与版本发布均未授权。
+- 设计 baseline 已批准；Bridge implementation、Phase 1/2、真实业务 mutation、QUALITY-003、REL-036 与版本发布均未授权。
 
 ### PILOT-001 P0-R Preview authority 与真实入站证据发现
 

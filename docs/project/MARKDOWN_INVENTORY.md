@@ -46,7 +46,7 @@
 | `docs/acceptance/SP-021-canonical-trusted-interaction-domain.md` | Acceptance | 是 | 中英混合 | 是 | SP-021 新增 | — | 完成 |
 | `docs/acceptance/PILOT-001-wecom-owner-pilot.md` | Acceptance | 是 | 中文 | 是 | PILOT-001 新增 | — | 规划中 |
 | `docs/acceptance/PILOT-001-phase0-hermes-wecom-discovery.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-P0R 新增 | — | 完成 |
-| `docs/acceptance/PILOT-001-ingress-evidence-bridge.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 待独立审查 |
+| `docs/acceptance/PILOT-001-ingress-evidence-bridge.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 完成 |
 | `docs/adr/000-template.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-001-core-layer-package-structure.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-002-message-bus-interface.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
@@ -120,7 +120,7 @@
 | `docs/adr/ADR-070-preview-confirmation-ai-lab-canonical-facts.md` | ADR | 是 | 中文 | 是 | ARCH-001 新增 | — | 完成 |
 | `docs/adr/ADR-071-verified-result-required-before-final-success.md` | ADR | 是 | 中文 | 是 | ARCH-001 新增 | — | 完成 |
 | `docs/adr/ADR-072-identity-workspace-mapping-fail-closed.md` | ADR | 是 | 中文 | 是 | ARCH-001 新增 | — | 完成 |
-| `docs/adr/ADR-073-ai-lab-owned-ingress-evidence-consumption.md` | ADR | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 待独立审查 |
+| `docs/adr/ADR-073-ai-lab-owned-ingress-evidence-consumption.md` | ADR | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 完成 |
 | `docs/architecture/ARCHITECTURE.md` | Architecture | 是 | 中文 | 否 | 保持原样 | — | 完成 |
 | `docs/architecture/DATABASE_CONNECTION_OWNERSHIP.md` | Architecture | 是 | 中文 | 否 | 保持原样 | — | 完成 |
 | `docs/architecture/FAILURE_SEMANTICS.md` | Architecture | 是 | 中文 | 否 | 保持原样 | — | 完成 |
@@ -178,7 +178,7 @@
 | `docs/project/SP-021-CANONICAL-TRUSTED-INTERACTION-DOMAIN.md` | Project | 是 | 中英混合 | 是 | SP-021 新增 | — | 完成 |
 | `docs/project/SP-021-POST-MERGE-RECONCILIATION.md` | Project | 是 | 中英混合 | 是 | SP-021A 新增 | — | 完成 |
 | `docs/project/PILOT-001-WECOM-OWNER-TRUSTED-TASK-CAPTURE.md` | Project | 是 | 中文 | 是 | PILOT-001 新增 | — | 规划中 |
-| `docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md` | Project | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 待独立审查 |
+| `docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md` | Project | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 完成 |
 | `docs/project/TECHNICAL_DEBT.md` | Project | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/project/TERMINOLOGY_GLOSSARY.md` | Project | 是 | 中文 | 否 | 保持原样 | — | 完成 |
 | `docs/project/TEST_MATRIX.md` | Project | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
@@ -221,7 +221,7 @@
 | `docs/rfc/029-local-daily-operating-loop-review-to-action.md` | RFC | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/rfc/031-agent-shell-trusted-business-core-separation.md` | RFC | 是 | 中文 | 是 | STRAT-001 新增 | — | 完成 |
 | `docs/rfc/032-trusted-interaction-boundary-adapter-contract.md` | RFC | 是 | 中文 | 是 | ARCH-001 新增 | — | 完成 |
-| `docs/rfc/033-trusted-ingress-evidence-bridge.md` | RFC | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 待独立审查 |
+| `docs/rfc/033-trusted-ingress-evidence-bridge.md` | RFC | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 完成 |
 | `docs/rfc/RFC-013-multi-agent-architecture.md` | RFC | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/rfc/RFC-014-application-foundation.md` | RFC | 是 | 中英混合 | 是 | 术语统一 | — | 完成 |
 | `docs/todo/TECHNICAL_DEBT.md` | Other | 是 | 英文为主 | 否 | 中文化 | — | 完成 |
