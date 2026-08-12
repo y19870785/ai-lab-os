@@ -55,6 +55,8 @@ PILOT-001-IBD 正在以设计草案形式定义模型前签发、AI-Lab 验证�
 Trusted Ingress Evidence Bridge；RFC-033 与 ADR-073 均为 Proposed，等待独立规划审查。
 R1 已明确 issuer 只接受 non-inheritable anonymous IPC capability 上的可信 adapter frame，并将
 `evidence_id` 固定为跨 restart/key rotation 稳定的唯一 event identity；V1 signature 使用 RFC 8785/JCS。
+R2 进一步锁定 authoritative event ID 为 WeCom callback `body.msgid`，拒绝所有 Hermes fallback，并要求
+AI-Lab 在 Preview 后生成不可预测 one-time challenge；`accepted_at` 单独不足以证明 event ordering。
 设计与验收计划见 `docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md` 和
 `docs/acceptance/PILOT-001-ingress-evidence-bridge.md`。Bridge 实现与 Phase 1 均未授权。
 

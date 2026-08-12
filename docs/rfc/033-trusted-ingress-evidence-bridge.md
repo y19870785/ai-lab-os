@@ -67,13 +67,22 @@ evidence store 或公开报告。
 identity_input = UTF8("ai-lab/trusted-ingress-event/v1")
   || LP_UTF8(channel)
   || LP_UTF8(channel_account_binding_id)
-  || LP_UTF8(raw_channel_event_id)
+  || LP_UTF8(owner_binding_id)
+  || LP_UTF8(conversation_binding_id)
+  || LP_UTF8(raw_wecom_msgid)
 evidence_id = "tie_" + base32_lower_no_pad(
   HMAC-SHA256(event_identity_key, identity_input)
 )
 ```
 
-`LP_UTF8` 为 4-byte unsigned big-endian length + UTF-8 bytes。raw event ID 只在 adapter/issuer TCB 内使用。
+`LP_UTF8` 为 4-byte unsigned big-endian length + UTF-8 bytes。PILOT-001 V1 的 `raw_wecom_msgid` 只能直接来自
+authenticated WeCom inbound callback `body.msgid`。plugin 可复制/规范化但不得合成；Hermes
+`MessageEvent.message_id`、`headers.req_id`、Hermes UUID、session/correlation ID、MCP `message_id` 和 LLM ID
+全部禁止作为 evidence identity fallback。`body.msgid` 缺失/blank 时不签发 evidence，返回
+`trusted_ingress.channel_event_id_unavailable`，Confirmation denied，business mutation 0。
+
+raw `body.msgid` 只在 authenticated callback frame 与 adapter/issuer TCB 内使用，不进入 envelope、MCP、prompt
+authority fields、Git、普通 audit 或公开报告；只持久化 derived `evidence_id`。
 `received_at`、`expires_at`、`issuer_key_id`、Owner、conversation 与 content 均不参与 identity；同一 event 跨
 Hermes/issuer/MCP restart、redelivery 和 signing-key rotation 必须得到相同 `evidence_id`。
 
@@ -99,12 +108,16 @@ redelivery（含 key rotation 后）只返回原 envelope，不用新 key 重签
 - 指定 Interaction 已存在有效 Preview；
 - 新 evidence 的 AI-Lab `accepted_at` 晚于该 Preview 的 `created_at`；
 - evidence 属于预期 WeCom account、唯一 Owner、conversation 与 Interaction；
-- owner-facing Message B 明确包含该 Preview 的短期 `preview_confirmation_code`；
+- owner-facing Message B 是单一 raw WeCom event，精确内容为
+  `确认 <preview_confirmation_challenge>`；
 - 受控 confirmation parser 判定 Message B 是对该 Preview 的显式确认；
 - content digest 与本次提交给受控 parser 的规范化文本一致；
+- challenge 由 AI-Lab 在 Preview 创建后用 CSPRNG 生成，绑定 preview ID/revision、one-time、未过期；
 - evidence 尚未消费且未过期。
 
-`preview_confirmation_code` 负责把意图绑定到指定 Preview，但它本身不是 authority。Message A 只产生 Preview；同一 Agent turn 不得用 Message A 自动确认。Message B 必须是 Preview 之后发生的新 Owner inbound event。
+`preview_confirmation_challenge` 是 AI-Lab canonical Preview fact，不可在 Preview 前预测，不由 Hermes/LLM 选择，
+也不从 predictable preview ID/revision 派生；它本身不是 authority。不得拼接多条消息，不接受 paraphrase、semantic
+equivalent 或“yes/好的/确认了”fallback。Message A 只产生 Preview；同一 turn 不得自动确认。
 
 ## Freshness、Replay 与恢复
 
@@ -113,9 +126,13 @@ Freshness 至少要求：
 - `received_at <= now + allowed_clock_skew`；
 - `now - received_at <= freshness_window`；
 - AI-Lab `accepted_at > preview.created_at`；
+- exact Message B 包含该 Preview 创建后生成的 one-time challenge；
 - binding 与 expected channel、Owner、conversation、Interaction 一致；
 - evidence 状态为 `UNUSED`；
 - `expires_at > now`。
+
+`accepted_at > preview.created_at` 只是必要的 deposit ordering，不单独证明 event 在 Preview 后发生；Preview 前 event
+可能延迟 deposit。不可预测 causal challenge 才是主要 ordering proof。
 
 AI-Lab 必须持久化 `evidence_id`、envelope payload digest、状态、revision、accepted/consumed 时间与消费目标。
 durable uniqueness 为 `PRIMARY KEY (evidence_id)`；相同 ID/相同 payload 返回既有记录，相同 ID/不同 payload
@@ -151,7 +168,7 @@ AI-Lab、Hermes 或 MCP 重启后，已持久化的 `CONSUMED` 状态仍然生�
 
 ## Phase 1 解锁条件
 
-只有 IB-A 至 IB-Q 的独立验收全部通过，且证明 signing-oracle denied、stable event identity、model-non-forgeable、
+只有 IB-A 至 IB-S 的独立验收全部通过，且证明 body.msgid-only provenance、causal challenge、signing-oracle denied、stable event identity、model-non-forgeable、
 single-use/replay-safe、restart-safe、Preview-before-confirm ordering、wrong owner/event denial 以及有效确认前零
 business mutation，才可另行申请 Phase 1 授权。
 

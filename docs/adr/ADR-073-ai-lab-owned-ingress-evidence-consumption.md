@@ -62,9 +62,16 @@ evidence_id = "tie_" + base32_lower_no_pad(HMAC-SHA256(
   UTF8("ai-lab/trusted-ingress-event/v1")
     || LP_UTF8(channel)
     || LP_UTF8(channel_account_binding_id)
-    || LP_UTF8(raw_channel_event_id)
+    || LP_UTF8(owner_binding_id)
+    || LP_UTF8(conversation_binding_id)
+    || LP_UTF8(raw_wecom_msgid)
 ))
 ```
+
+PILOT-001 V1 的 `raw_wecom_msgid` 只允许来自 authenticated WeCom callback `body.msgid`。plugin 不得合成；
+Hermes `MessageEvent.message_id`、`headers.req_id`、Hermes UUID、session/correlation ID、MCP/LLM ID 均不得 fallback。
+`body.msgid` 缺失/blank 时返回 `trusted_ingress.channel_event_id_unavailable`，不签发 evidence，不产生 Confirmation
+或 business mutation。raw msgid 只留在 callback/issuer TCB，只持久化 derived `evidence_id`。
 
 `received_at` 与 `issuer_key_id` 不参与 identity；不存在 `replay_key`。AI-Lab durable uniqueness 是
 `PRIMARY KEY (evidence_id)`，并通过 `UNIQUE (evidence_id)` consumption fact 与 revision CAS 保证最多一次。
@@ -76,6 +83,12 @@ issuer 另以 `evidence_id` 为 key 维护 OS-protected durable issuance journal
 `message_content_digest`、`expires_at`、`signature`。`received_at` 是 adapter 首次接受时间；
 `expires_at = received_at + issuer_ttl`，redelivery 不刷新。验证器拒绝 unknown/extra fields，移除 signature 后按
 RFC 8785/JCS 生成 exact UTF-8 payload bytes并执行 Ed25519 verification。
+
+Preview 创建后，AI-Lab 使用 CSPRNG 生成不可预测的 `preview_confirmation_challenge`，作为绑定
+preview ID/revision、one-time、随 Preview 过期的 canonical Preview fact。合法 Message B 必须在单一 raw WeCom
+event 中精确为 `确认 <preview_confirmation_challenge>`；禁止多消息拼接、LLM paraphrase、semantic equivalent
+与普通“yes/好的/确认了”。`accepted_at > preview.created_at` 仅是必要 deposit ordering，不单独证明 event ordering；post-Preview challenge
+才是 event 不可能早于 Preview 的主要因果证明。
 
 ## 理由
 
@@ -90,6 +103,7 @@ AI-Lab 的持久化 CAS 是 replay safety 的必要条件。只依赖 Hermes ses
 - LLM 无法选择 Owner、event ID 或受信时间，也无法签发或修改 evidence；
 - 同一 event 跨 restart、redelivery 与 signing-key rotation 保持同一 `evidence_id`，且只能消费一次；
 - Preview-before-confirm ordering 可由 AI-Lab 的持久化时间事实证明；
+- Preview-before-event causality 由 post-Preview unpredictable challenge 证明，不能只依赖 accepted_at；
 - Bridge 不保存完整聊天记录，只保存 content digest 与必要审计元数据；
 - MCP success 与 business success 的既有区分不变。
 

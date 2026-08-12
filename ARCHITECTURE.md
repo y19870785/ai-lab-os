@@ -71,6 +71,11 @@ R1 将 plugin → issuer 边界收紧为 privileged supervisor 建立的 non-inh
 `received_at` 与 `issuer_key_id`；签名采用 RFC 8785/JCS exact bytes，identifier 使用 operator-provisioned opaque
 binding IDs。若 future spike 无法证明 signing-oracle isolation，必须停止实现。
 
+R2 将唯一 authoritative channel event ID 固定为 authenticated WeCom callback `body.msgid`，拒绝 req_id、Hermes
+message ID/UUID、session/correlation、MCP 与 LLM fallback。AI-Lab 在 Preview 创建后生成不可预测 one-time
+`preview_confirmation_challenge`；单一真实 WeCom event 必须包含完整精确 command。`accepted_at` 只证明 deposit
+顺序，不能单独证明 event causality。
+
 该设计严格区分 Fresh Ingress Evidence 与 Confirmation Intent。Evidence 只证明真实新 Owner 消息存在；受控逻辑仍需
 判断 Message B 是否明确确认指定 Preview。Message A 不能在同一 Agent turn 自动确认。MCP 未来只传 opaque
 

@@ -228,15 +228,24 @@ V1 顶层必须且只能出现上述 12 个字段。验证器先按精确 schema
 identity_input = UTF8("ai-lab/trusted-ingress-event/v1")
   || LP_UTF8(channel)
   || LP_UTF8(channel_account_binding_id)
-  || LP_UTF8(raw_channel_event_id)
+  || LP_UTF8(owner_binding_id)
+  || LP_UTF8(conversation_binding_id)
+  || LP_UTF8(raw_wecom_msgid)
 
 evidence_id = "tie_" + base32_lower_no_pad(
   HMAC-SHA256(event_identity_key, identity_input)
 )
 ```
 
-`LP_UTF8(x)` 是 4-byte unsigned big-endian byte length 后接 UTF-8 bytes。`raw_channel_event_id` 仅存在于可信
-adapter/issuer TCB；不进入 envelope、Git、MCP、普通 audit 或公开报告。`received_at`、`expires_at`、
+`LP_UTF8(x)` 是 4-byte unsigned big-endian byte length 后接 UTF-8 bytes。PILOT-001 V1 的
+`raw_wecom_msgid` 只能是 authenticated WeCom inbound callback body 的非空 `msgid`。可信 plugin 可以从原始
+callback frame 复制/规范化 `body.msgid`，但不能合成或回退到 Hermes `MessageEvent.message_id`、callback
+`headers.req_id`、Hermes UUID、session/correlation ID、MCP `message_id` 或 LLM-provided ID。`body.msgid` 缺失或
+blank 时 issuer 返回 `trusted_ingress.channel_event_id_unavailable`，不签发 evidence，Confirmation denied，
+business mutation 0。
+
+raw `body.msgid` 只存在于 authenticated callback frame 与 adapter/issuer TCB；不进入 envelope、Git、MCP、prompt
+authority fields、普通 audit 或公开报告。只有 derived `evidence_id` 作为 event identity 被持久化。`received_at`、`expires_at`、
 `issuer_key_id`、Owner、conversation 与 content 均不参与 identity。同一 account 下同一真实 WeCom event 跨
 restart、redelivery 与 signing-key rotation 必须得到相同 `evidence_id`。不存在 `replay_key` 或第二 event identity。
 
@@ -348,34 +357,42 @@ Fresh Ingress Evidence 与 Confirmation Intent 是两个事实：
 - Evidence 证明“这是一条新的真实 Owner 消息”；
 - Confirmation Intent 证明“该真实消息明确确认指定 Preview”。
 
-为避免把任意“确认”映射到多个 Preview，Preview UI/response 未来必须生成非秘密、human-visible 的
-`preview_confirmation_code`，例如从 `preview_id + preview_revision` 派生的短码。合法 Message B 必须包含明确形式：
+为建立 channel event 发生在 Preview 之后的因果证明，AI-Lab 必须在 Preview 已创建后使用 CSPRNG 生成
+不可预测、human-visible、one-time 的 `preview_confirmation_challenge`。它是 AI-Lab canonical Preview fact，绑定
+`preview_id + preview_revision`，随 Preview/confirmation policy 过期；不得由 Hermes/LLM 选择，也不得只从可预测的
+`preview_id + preview_revision` 确定性派生。challenge 本身不是 business authority。
+
+PILOT-001 V1 合法 Message B 只有一个精确形式：
 
 ```text
-确认 <preview_confirmation_code>
+确认 <preview_confirmation_challenge>
 ```
 
-AI-Lab 使用 deterministic parser 验证 exact content 与 Preview code；LLM 只转发文本，不能替 AI-Lab决定 intent。
-短码不是 authority，真正 authority 仍是签名 evidence、AI-Lab ordering 与单次消费。
+完整 command 必须包含在同一个独立 raw WeCom inbound event 中。不得拼接“确认”与后续 challenge 两条消息，
+不得接受 LLM paraphrase、semantic equivalent 或“yes/好的/确认了”fallback。AI-Lab 使用 deterministic exact parser
+验证整条文本与 challenge；LLM 只转发，不能决定 intent。
 
 ## Message A、Message B 与顺序证明
 
 ```text
 Message A (real Owner event A)
   -> Preview created (zero business mutation)
-  -> AI-Lab persists preview.created_at / preview_revision / confirmation code
+  -> AI-Lab generates random challenge after Preview creation
+  -> AI-Lab persists preview.created_at / preview_revision / one-time challenge
 
 Message B (different real Owner event B)
   -> issuer signs event B before Agent
   -> AI-Lab receiver persists evidence.accepted_at
   -> Agent interprets and submits evidence_id + exact text
-  -> AI-Lab proves accepted_at > preview.created_at
-  -> AI-Lab verifies intent/code and atomically consumes evidence with Confirmation
+  -> AI-Lab checks accepted_at > preview.created_at (necessary, not sufficient)
+  -> AI-Lab verifies exact one-event command contains that post-Preview challenge
+  -> AI-Lab atomically consumes challenge + evidence with Confirmation
 ```
 
-AI-Lab 不相信 LLM 自报时间。ordering 以 AI-Lab 自己的 `preview.created_at` 与 receiver `accepted_at` 为主；签名
-`received_at` 只用于 channel-side age/skew 检查。Message A 与 Message B 必须具有不同 `evidence_id`，且 Message B
-必须在 Preview 已存在后才被 AI-Lab receiver 接受。same-turn auto-confirm 必然缺少合法的 post-Preview event B。
+AI-Lab 不相信 LLM 自报时间。`accepted_at > preview.created_at` 只是必要的 deposit ordering，不单独证明 channel
+event 在 Preview 后发生：Preview 前签发的 event 可能延迟 deposit。主要因果证明是 Message B 的单一真实 event
+包含 Preview 创建后才生成的不可预测 challenge。签名 `received_at` 只用于 age/skew 检查。Message A 与 B 必须具有
+不同 `evidence_id`；same-turn auto-confirm 和 delayed-deposit event 都无法包含合法 post-Preview challenge。
 
 ## Freshness 与单次消费
 
@@ -393,7 +410,9 @@ now < expires_at
 accepted_at > preview.created_at
 evidence_id != Message A evidence_id
 content digest matches exact confirmation_text
-confirmation code binds the expected preview_id/revision
+exact single-event command contains the one-time challenge
+challenge generated after Preview creation
+challenge binds expected preview_id/revision and is unexpired
 consumption_status == UNUSED
 expected Interaction revision/CAS matches
 ```
@@ -473,11 +492,12 @@ internal credential。失败不能修改 UserTask，也不能把 Preview 升级�
 - Agent/LLM/tool/shell 无法取得 issuer IPC capability 或把 issuer 当作 signing oracle；
 - 同一 evidence/event single-use、dedupe、CAS 与 restart-safe；
 - 同一 event 跨 restart、redelivery 与 signing-key rotation 保持稳定 `evidence_id`；
-- AI-Lab 可证明 Message B evidence `accepted_at > preview.created_at`；
+- `body.msgid` 是唯一 authoritative channel event ID；所有 Hermes/req_id/UUID fallback 均 deny；
+- `accepted_at > preview.created_at` 仅作必要条件，post-Preview random challenge 提供主要因果证明；
 - wrong owner/channel/conversation/interaction/preview/content 全部 deny；
 - same-event replay 与 Message A same-turn auto-confirm deny；
 - evidence/issuer/storage 不可用时 fail closed；
-- Confirmation intent 与指定 Preview code 确定性绑定；
+- 单一 raw WeCom event 的 exact command 与指定 Preview one-time challenge 确定性绑定；
 - valid Confirmation 前 UserTask business mutation 保持 0；
 - 不依赖真实 Provider；MCP success 不升级为 business success；
 - secret、raw Owner ID 与 raw chat content 不进入 Git/audit plaintext。
@@ -492,7 +512,7 @@ REL-036 或 v0.36.0。
 1. `IB-IMP-A`：Hermes user-installed platform plugin/issuer helper spike，只证明 pre-Agent envelope 与 key isolation；
 2. `IB-IMP-B`：AI-Lab verifier/receiver/persistence 与 restart/replay contract；
 3. `IB-IMP-C`：future confirm evidence reference、deterministic intent、atomic consumption；
-4. `IB-ACC`：执行 IB-A～IB-Q acceptance，独立安全/架构审查；
+4. `IB-ACC`：执行 IB-A～IB-S acceptance，独立安全/架构审查；
 5. 只有全部通过后，才可单独申请 Phase 1 authorization。
 
 任何切片都必须从新的精确 Base、独立任务与独立授权开始。本 Draft 不创建代码、Schema、endpoint、plugin、Hook、

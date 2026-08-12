@@ -4,13 +4,19 @@
 
 ### PILOT-001-IBD 可信入站证据桥设计
 
+- R2 将 authoritative channel event ID 锁定为 authenticated WeCom callback `body.msgid`；拒绝
+  `headers.req_id`、Hermes `MessageEvent.message_id`/UUID、session/correlation、MCP 与 LLM fallback。
+- 稳定 `evidence_id` scope 增加 Owner 与 conversation opaque binding，仍排除 `received_at`、content 与 signing
+  key；V1 envelope 字段集合、R1 anonymous capability IPC、issuance journal 与 JCS 合同不变。
+- 用 Preview 创建后由 AI-Lab CSPRNG 生成的 one-time `preview_confirmation_challenge` 替代 predictable code；
+  Confirmation 只接受一个 raw WeCom event 中的精确 command，并新增 IB-R/IB-S 因果性与 fallback 拒绝验收。
 - R1 收紧 issuer input authenticity：只允许 privileged supervisor 建立的 non-inheritable anonymous IPC
   capability，禁止具名 listener、共享 token 与通用 mint/sign API；无法证明隔离时必须停止 future implementation。
 - 将 `evidence_id` 固定为唯一稳定 event identity，使用独立 event identity key 对 channel/account/raw event ID 做
   length-prefixed HMAC-SHA256；移除 `replay_key`，且 signing-key rotation、restart 与 redelivery 不改变身份。
 - 统一四份规划文档的 V1 envelope、RFC 8785/JCS signature bytes、opaque binding IDs、keyed content digest 与
   AI-Lab `PRIMARY KEY (evidence_id)` durable uniqueness，并新增 IB-P/IB-Q acceptance。
-- 新增中文为主的 Trusted Ingress Evidence Bridge 设计与 IB-A～IB-Q acceptance plan，明确
+- 新增中文为主的 Trusted Ingress Evidence Bridge 设计与 IB-A～IB-S acceptance plan，明确
   Bridge 只证明真实 Owner inbound event，不理解意图、不决定业务 Operation 或推进 canonical state。
 - 提议 RFC-033 与 ADR-073：在 Hermes 模型前 WeCom platform plugin 边界观察渠道事实，由隔离
   Evidence Issuer 使用专用 Ed25519 私钥签发，AI-Lab 负责验签、持久化、去重、CAS 单次消费与审计。

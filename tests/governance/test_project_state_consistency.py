@@ -3247,7 +3247,7 @@ def test_pilot001_ibd_design_draft_is_scoped_and_reviewable() -> None:
         "PHASE_1:\nNOT_AUTHORIZED",
     ):
         assert marker in design
-    for scenario in tuple(f"IB-{letter}" for letter in "ABCDEFGHIJKLMNOPQ"):
+    for scenario in tuple(f"IB-{letter}" for letter in "ABCDEFGHIJKLMNOPQRS"):
         assert scenario in acceptance
     assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
     for document in (design, acceptance, rfc, adr):
@@ -3273,6 +3273,24 @@ def test_pilot001_ibd_design_draft_is_scoped_and_reviewable() -> None:
         assert "不参与 identity" in document
     assert "SIGNING_ORACLE_DENIED" in acceptance
     assert "DUPLICATE_EVENT_STABLE_IDENTITY" in acceptance
+    assert "PREVIEW_BEFORE_EVENT_CAUSALITY" in acceptance
+    assert "CHANNEL_EVENT_ID_FALLBACK_DENIED" in acceptance
+    assert "trusted_ingress.channel_event_id_unavailable" in acceptance
+    for document in (design, acceptance, rfc, adr):
+        for marker in (
+            "body.msgid",
+            "headers.req_id",
+            "raw_wecom_msgid",
+            "preview_confirmation_challenge",
+            "accepted_at",
+            "不单独证明",
+        ):
+            assert marker in document
+        assert "MessageEvent.message_id" in document
+        assert "owner_binding_id" in document
+        assert "conversation_binding_id" in document
+    assert "preview_confirmation_code" not in design
+    assert "preview_confirmation_code" not in rfc
     assert "replay_key`。`evidence_id`" not in rfc
     assert "`replay_key`。`evidence_id`" not in design
     assert "Status: Accepted" not in rfc
