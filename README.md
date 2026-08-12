@@ -16,7 +16,7 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **当前 Product SP：None**
 **当前 Governance Task：None**
 **当前工作：None**
-**PILOT-001：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED**
+**PILOT-001：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / RFC_033_ADOPTED / ADR_073_ACCEPTED / BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED**
 **下一候选 Product SP：None**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
@@ -51,6 +51,14 @@ PILOT-001 规划与分层验收证据要求见
 `docs/project/PILOT-001-WECOM-OWNER-TRUSTED-TASK-CAPTURE.md` 和
 `docs/acceptance/PILOT-001-wecom-owner-pilot.md` 和
 `docs/acceptance/PILOT-001-phase0-hermes-wecom-discovery.md`。
+PILOT-001-IBD 可信入站证据桥设计已通过最终独立规划审查；RFC-033 已 Adopted，ADR-073 已 Accepted。
+R1 已明确 issuer 只接受 non-inheritable anonymous IPC capability 上的可信 adapter frame，并将
+`evidence_id` 固定为跨 restart/key rotation 稳定的唯一 event identity；V1 signature 使用 RFC 8785/JCS。
+R2 进一步锁定 authoritative event ID 为 WeCom callback `body.msgid`，拒绝所有 Hermes fallback，并要求
+AI-Lab 在 Preview 后生成不可预测 one-time challenge；`accepted_at` 单独不足以证明 event ordering。
+设计与验收计划见 `docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md` 和
+`docs/acceptance/PILOT-001-ingress-evidence-bridge.md`。IB-A～IB-S 仅为 Defined / Not Executed；
+Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。
 
 QUALITY-004 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 可导入无副作用的
 conftest/module 定义，但未经双授权的 real item 会在执行前 fail-closed skip。真实 Provider 环境只有在同时提供

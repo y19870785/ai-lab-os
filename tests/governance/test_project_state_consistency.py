@@ -2287,10 +2287,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 203
-    assert "- Git 跟踪 Markdown：203" in inventory
-    assert "- 仓库自有且纳入范围：203" in inventory
-    assert "- 新增中文治理文档：28" in inventory
+    assert len(tracked_markdown) == 207
+    assert "- Git 跟踪 Markdown：207" in inventory
+    assert "- 仓库自有且纳入范围：207" in inventory
+    assert "- 新增中文治理文档：32" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -2519,7 +2519,11 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
             "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
             "PREVIEW_AUTHORITY_ESTABLISHED / "
             "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+        "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+        "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
         ),
@@ -2672,7 +2676,11 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
             "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
             "PREVIEW_AUTHORITY_ESTABLISHED / "
             "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+        "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+        "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
         ),
@@ -2764,7 +2772,11 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
         "PREVIEW_AUTHORITY_ESTABLISHED / "
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+            "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+            "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+            "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+            "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
     )
@@ -2909,7 +2921,11 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
         "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
         "PREVIEW_AUTHORITY_ESTABLISHED / "
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+            "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+            "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+            "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+            "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
     )
@@ -3177,3 +3193,125 @@ def test_pilot001_p0r_preview_and_fresh_ingress_stop_state_are_durable() -> None
         assert marker in evidence
     assert "Owner raw WeCom ID" in evidence
     assert "QUALITY-003、REL-036" in evidence
+
+
+def test_pilot001_ibd_approved_design_state_is_durable() -> None:
+    state = _load_state()
+    arch = state["governance_tasks"]["ARCH-001"]
+    sp021 = state["sp_records"]["SP-021"]
+    pilot_status = arch["follow_up_tasks"]["PILOT-001"]
+
+    assert state["schema_version"] == 1
+    assert state["current_work"] is None
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["next_candidate_sp"] is None
+    assert state["next_candidate_name"] is None
+    assert state["next_planned_governance_item"] is None
+    assert state["development_status"] == (
+        "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+    )
+    assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
+    for marker in (
+        "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED",
+        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED",
+        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED",
+        "RFC_033_ADOPTED",
+        "ADR_073_ACCEPTED",
+        "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED",
+        "PHASE_1_NOT_AUTHORIZED",
+        "PHASE_2_NOT_AUTHORIZED",
+        "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED",
+    ):
+        assert marker in pilot_status
+    assert "INGRESS_EVIDENCE_BRIDGE_DESIGN_DRAFT" not in pilot_status
+    assert "PENDING_INDEPENDENT_REVIEW" not in pilot_status
+
+    paths = {
+        "design": ROOT
+        / "docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md",
+        "acceptance": ROOT
+        / "docs/acceptance/PILOT-001-ingress-evidence-bridge.md",
+        "rfc": ROOT / "docs/rfc/033-trusted-ingress-evidence-bridge.md",
+        "adr": ROOT
+        / "docs/adr/ADR-073-ai-lab-owned-ingress-evidence-consumption.md",
+    }
+    for path in paths.values():
+        assert path.is_file()
+
+    design = paths["design"].read_text(encoding="utf-8-sig")
+    acceptance = paths["acceptance"].read_text(encoding="utf-8-sig")
+    rfc = paths["rfc"].read_text(encoding="utf-8-sig")
+    adr = paths["adr"].read_text(encoding="utf-8-sig")
+    for marker in (
+        "Recommended Architecture:",
+        "Trusted Evidence Issuer:",
+        "Evidence Verification Authority:",
+        "Replay Ownership:",
+        "Hermes Source Change:",
+        "New AI-Lab Core Contract Required:",
+        "MCP Contract Change Required:",
+        "Implementation:\nREQUIRES_SEPARATE_AUTHORIZATION",
+        "PHASE_1:\nNOT_AUTHORIZED",
+    ):
+        assert marker in design
+    for scenario in tuple(f"IB-{letter}" for letter in "ABCDEFGHIJKLMNOPQRS"):
+        assert scenario in acceptance
+    assert (
+        "PLANNING_BASELINE_APPROVED / "
+        "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / NOT_EXECUTED"
+        in acceptance
+    )
+    assert "IB-A～IB-S 均为 `DEFINED / NOT_EXECUTED`" in acceptance
+    assert "7042a68c566abf4c99f5f3038b38fd90790f0bfb" in design
+    for document in (design, acceptance, rfc, adr):
+        for marker in (
+            "evidence_version",
+            "evidence_id",
+            "issuer_key_id",
+            "channel_account_binding_id",
+            "owner_binding_id",
+            "conversation_binding_id",
+            "received_at",
+            "event_type",
+            "message_content_digest",
+            "expires_at",
+            "signature",
+            "RFC 8785",
+            "event_identity_key",
+            "PRIMARY KEY (evidence_id)",
+        ):
+            assert marker in document
+        assert "received_at" in document
+        assert "issuer_key_id" in document
+        assert "不参与 identity" in document
+    assert "SIGNING_ORACLE_DENIED" in acceptance
+    assert "DUPLICATE_EVENT_STABLE_IDENTITY" in acceptance
+    assert "PREVIEW_BEFORE_EVENT_CAUSALITY" in acceptance
+    assert "CHANNEL_EVENT_ID_FALLBACK_DENIED" in acceptance
+    assert "trusted_ingress.channel_event_id_unavailable" in acceptance
+    for document in (design, acceptance, rfc, adr):
+        for marker in (
+            "body.msgid",
+            "headers.req_id",
+            "raw_wecom_msgid",
+            "preview_confirmation_challenge",
+            "accepted_at",
+            "不单独证明",
+        ):
+            assert marker in document
+        assert "MessageEvent.message_id" in document
+        assert "owner_binding_id" in document
+        assert "conversation_binding_id" in document
+    assert "preview_confirmation_code" not in design
+    assert "preview_confirmation_code" not in rfc
+    assert "replay_key`。`evidence_id`" not in rfc
+    assert "`replay_key`。`evidence_id`" not in design
+    assert "**状态**：Adopted" in rfc
+    assert "RFC-033:\nADOPTED" in rfc
+    assert "**状态**：Accepted" in adr
+    assert "ADR-073:\nACCEPTED" in adr
+    for document in (design, acceptance, rfc, adr):
+        assert "PENDING_INDEPENDENT_REVIEW" not in document
+    assert "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED" in rfc
+    assert "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED" in adr

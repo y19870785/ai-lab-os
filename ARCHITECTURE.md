@@ -1,7 +1,7 @@
 # AI-Lab 架构文档
 
 > 当前工作：None。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
-> Fresh Owner Ingress Evidence 为 `UNSUPPORTED`，Phase 0 已按设计停止在 ingress bridge 设计之前。
+> PILOT-001-IBD 设计已通过最终独立规划审查；Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。
 
 INT-001 在 `applications/trusted_interaction_adapter` 增加 Shell-neutral application
 boundary，并通过官方 MCP SDK 提供本地 stdio projection。该层只依赖 canonical
@@ -58,6 +58,29 @@ INT-001 已通过 ACC-INT-001 A～Q、最终独立审查、PR #70 Squash Merge �
 `NOT_PRODUCTION_IDENTITY_AUTHENTICATION`；Vanilla Hermes 的 MCP client 只转发模型生成的 tool
 arguments，没有把 channel event metadata 作为模型不可伪造的 provenance 注入 AI-Lab。因此
 Fresh Owner 入站证据为 `UNSUPPORTED`，不得进入 Phase 1、业务 mutation 或 Coordinator；REL-036 未启动。
+
+## PILOT-001-IBD 可信入站证据桥设计草案
+
+已 Adopted 的 RFC-033 与已 Accepted 的 ADR-073 在 Hermes 的模型前 WeCom inbound boundary 使用受支持的用户安装型 platform plugin
+观察真实 channel event，再由隔离的 Evidence Issuer helper 使用专用 Ed25519 私钥签发最小 canonical envelope。
+AI-Lab 是唯一 Evidence Verification Authority 和 replay/consumption owner：它验证 issuer、签名、Owner/channel/
+conversation binding、content digest、freshness 与 Preview ordering，并在持久化事务中以 CAS 单次消费 evidence。
+
+R1 将 plugin → issuer 边界收紧为 privileged supervisor 建立的 non-inheritable anonymous IPC capability；issuer
+没有具名 listener、共享 token 或通用 mint/sign API。`evidence_id` 是唯一稳定 event identity，独立于
+`received_at` 与 `issuer_key_id`；签名采用 RFC 8785/JCS exact bytes，identifier 使用 operator-provisioned opaque
+binding IDs。若 future spike 无法证明 signing-oracle isolation，必须停止实现。
+
+R2 将唯一 authoritative channel event ID 固定为 authenticated WeCom callback `body.msgid`，拒绝 req_id、Hermes
+message ID/UUID、session/correlation、MCP 与 LLM fallback。AI-Lab 在 Preview 创建后生成不可预测 one-time
+`preview_confirmation_challenge`；单一真实 WeCom event 必须包含完整精确 command。`accepted_at` 只证明 deposit
+顺序，不能单独证明 event causality。
+
+该设计严格区分 Fresh Ingress Evidence 与 Confirmation Intent。Evidence 只证明真实新 Owner 消息存在；受控逻辑仍需
+判断 Message B 是否明确确认指定 Preview。Message A 不能在同一 Agent turn 自动确认。MCP 未来只传 opaque
+
+`evidence_id` 与待校验 confirmation text；MCP success 仍不等于 business success。设计 baseline 已批准，但
+`FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED`。
 
 ## v0.35.0 Alpha 产品基线
 
