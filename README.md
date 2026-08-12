@@ -53,6 +53,8 @@ PILOT-001 规划与分层验收证据要求见
 `docs/acceptance/PILOT-001-phase0-hermes-wecom-discovery.md`。
 PILOT-001-IBD 正在以设计草案形式定义模型前签发、AI-Lab 验证和持久化单次消费的
 Trusted Ingress Evidence Bridge；RFC-033 与 ADR-073 均为 Proposed，等待独立规划审查。
+R1 已明确 issuer 只接受 non-inheritable anonymous IPC capability 上的可信 adapter frame，并将
+`evidence_id` 固定为跨 restart/key rotation 稳定的唯一 event identity；V1 signature 使用 RFC 8785/JCS。
 设计与验收计划见 `docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md` 和
 `docs/acceptance/PILOT-001-ingress-evidence-bridge.md`。Bridge 实现与 Phase 1 均未授权。
 

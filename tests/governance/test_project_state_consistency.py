@@ -3247,9 +3247,34 @@ def test_pilot001_ibd_design_draft_is_scoped_and_reviewable() -> None:
         "PHASE_1:\nNOT_AUTHORIZED",
     ):
         assert marker in design
-    for scenario in tuple(f"IB-{letter}" for letter in "ABCDEFGHIJKLMNO"):
+    for scenario in tuple(f"IB-{letter}" for letter in "ABCDEFGHIJKLMNOPQ"):
         assert scenario in acceptance
     assert "PLANNING_BASELINE / NOT_EXECUTED" in acceptance
+    for document in (design, acceptance, rfc, adr):
+        for marker in (
+            "evidence_version",
+            "evidence_id",
+            "issuer_key_id",
+            "channel_account_binding_id",
+            "owner_binding_id",
+            "conversation_binding_id",
+            "received_at",
+            "event_type",
+            "message_content_digest",
+            "expires_at",
+            "signature",
+            "RFC 8785",
+            "event_identity_key",
+            "PRIMARY KEY (evidence_id)",
+        ):
+            assert marker in document
+        assert "received_at" in document
+        assert "issuer_key_id" in document
+        assert "不参与 identity" in document
+    assert "SIGNING_ORACLE_DENIED" in acceptance
+    assert "DUPLICATE_EVENT_STABLE_IDENTITY" in acceptance
+    assert "replay_key`。`evidence_id`" not in rfc
+    assert "`replay_key`。`evidence_id`" not in design
     assert "Status: Accepted" not in rfc
     assert "Status: Accepted" not in adr
     assert "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED" in rfc

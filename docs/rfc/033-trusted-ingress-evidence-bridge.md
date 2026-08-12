@@ -27,36 +27,70 @@ PILOT-001 Phase 0 已证明 WeCom Owner DM、Hermes → MCP、AI-Lab canonical P
 采用以下最小组合：
 
 1. Hermes 用户安装型 WeCom platform plugin 在模型前入站边界观察已经通过 WeCom adapter 校验的事件；
-2. plugin 通过受限本地 IPC 把不可删改的渠道字段转交给独立 Evidence Issuer helper；
+2. privileged supervisor 建立 plugin → issuer 的单一、预连接、不可继承 anonymous IPC capability；issuer 不监听
+   具名 socket/port，不接受 bearer token，不提供 mint/sign API；
 3. helper 持有专用 Ed25519 私钥，签署 canonical envelope；
 4. AI-Lab 内部 receiver 只接受受信 issuer 的 evidence，验证签名和 binding 后持久化为 `UNUSED`；
 5. 后续 Confirmation 请求只携带 opaque `evidence_id` 与 owner-facing confirmation text；
 6. AI-Lab 在一个事务中验证 Preview ordering、freshness、identity、channel、content digest 和 interaction binding，并以 CAS 将 evidence 从 `UNUSED` 变为 `CONSUMED`。
 
-推荐路径不修改 Hermes 源码，不使用通用 lifecycle Hook 充当安全 issuer。若当前 platform plugin API 无法在模型前暴露完整 event ID、时间与原始消息，则必须停止实现，并另行提出最小 upstream-compatible extension；不得静默降级，也不得直接 fork。
+推荐路径不修改 Hermes 源码，不使用通用 lifecycle Hook 充当安全 issuer。只有可信 adapter callback 持有 capability
+handle，handle 不进入 env/file/prompt/tool registry 且不被 Agent tool/shell 子进程继承。issuer 只接受该既有连接上的
+严格 V1 frame，并拒绝新连接、未知字段与任意字段签名请求。若 compatibility/security spike 不能证明这些属性，
+必须 `STOP_IMPLEMENTATION / SIGNING_ORACLE_ISOLATION_UNPROVEN`；不得静默降级，也不得直接 fork。
 
 ## 最小证据合同
 
-建议的 canonical envelope 包含：
+唯一 `TrustedIngressEvidenceEnvelopeV1` 顶层必须且只能包含：
 
 - `evidence_version`
 - `evidence_id`
-- `issuer_id`
+- `issuer_key_id`
 - `channel = "wecom"`
-- `channel_account_binding_digest`
-- `channel_owner_binding_digest`
-- `channel_event_id`
-- `conversation_binding_digest`
+- `channel_account_binding_id`
+- `owner_binding_id`
+- `conversation_binding_id`
 - `event_type`
 - `received_at`
 - `message_content_digest`
-- `replay_key`
 - `expires_at`
 - `signature`
 
-不保存 raw Owner ID、WeCom credential 或完整聊天内容。`evidence_id` 是 envelope 的稳定标识；`replay_key` 从 issuer、channel account 与 channel event ID 的规范化组合派生，用于渠道级 dedupe。`received_at` 必须来自受信入站边界，不能来自模型参数。
+`channel_account_binding_id`、`owner_binding_id` 与 `conversation_binding_id` 是 operator-provisioned random opaque
+IDs，不是 raw identifier 的普通 SHA-256。raw Owner/account/chat ID 不进入 Git、MCP authority fields、普通 audit、
+evidence store 或公开报告。
 
-签名覆盖除 `signature` 外的整个 canonical envelope。私钥仅由 Evidence Issuer helper 持有；AI-Lab 只持有公钥和允许的 `issuer_id`。不得复用 `WECOM_SECRET`，也不得把私钥暴露到 prompt、MCP tool args、Hermes conversation、Git 或 audit plaintext。
+唯一 event identity 是 `evidence_id`，不存在 `replay_key`。issuer 使用独立且跨 signing-key rotation 稳定的
+`event_identity_key`：
+
+```text
+identity_input = UTF8("ai-lab/trusted-ingress-event/v1")
+  || LP_UTF8(channel)
+  || LP_UTF8(channel_account_binding_id)
+  || LP_UTF8(raw_channel_event_id)
+evidence_id = "tie_" + base32_lower_no_pad(
+  HMAC-SHA256(event_identity_key, identity_input)
+)
+```
+
+`LP_UTF8` 为 4-byte unsigned big-endian length + UTF-8 bytes。raw event ID 只在 adapter/issuer TCB 内使用。
+`received_at`、`expires_at`、`issuer_key_id`、Owner、conversation 与 content 均不参与 identity；同一 event 跨
+Hermes/issuer/MCP restart、redelivery 和 signing-key rotation 必须得到相同 `evidence_id`。
+
+issuer 必须以 `evidence_id` 为 key 原子持久化 OS-protected issuance journal，保存首次时间和完整 signed envelope。
+redelivery（含 key rotation 后）只返回原 envelope，不用新 key 重签、不刷新 expiry；journal 不可用或同 ID payload
+不一致时 fail closed。旧 verification public key 至少保留到 envelope 过期。
+
+`received_at` 是可信 adapter 首次接受事件的时间，格式固定为 UTC RFC3339、毫秒精度、`Z`；redelivery 复用首次值。
+`expires_at = received_at + issuer_ttl`，TTL 是受控静态配置，caller 不可指定，redelivery 不可刷新。
+`message_content_digest` 为
+`HMAC-SHA256(content_binding_key, UTF8("ai-lab/message-content/v1") || LP_UTF8(NFC(CRLF_TO_LF(text))))`，
+以 `hmac-sha256:<lowercase hex>` 表示；该 key 只属于 issuer 与 AI-Lab verifier secret config。
+
+验证器先按 exact V1 schema 拒绝 missing/unknown/duplicate fields、错误类型、非 NFC string、非法 enum 与非规范
+时间；移除 `signature` 后，使用 RFC 8785/JCS 生成其余 11 字段的 exact UTF-8 payload bytes。Ed25519 签名覆盖且
+只覆盖这些 bytes。私钥仅由 issuer 持有；AI-Lab 只持有公钥和 `issuer_key_id` allowlist。不得复用
+`WECOM_SECRET`，也不得把任何 secret 暴露到 prompt、MCP args、conversation、Git 或 audit plaintext。
 
 ## Evidence 与 Confirmation Intent
 
@@ -83,7 +117,10 @@ Freshness 至少要求：
 - evidence 状态为 `UNUSED`；
 - `expires_at > now`。
 
-AI-Lab 必须持久化 `evidence_id`、`replay_key`、envelope digest、状态、revision、accepted/consumed 时间与消费目标。在数据库事务中以 `state = UNUSED AND revision = expected_revision` 执行 CAS；唯一约束阻止同一 `replay_key` 重入。Hermes dedupe cache 只能作为优化，不能作为消费事实来源。
+AI-Lab 必须持久化 `evidence_id`、envelope payload digest、状态、revision、accepted/consumed 时间与消费目标。
+durable uniqueness 为 `PRIMARY KEY (evidence_id)`；相同 ID/相同 payload 返回既有记录，相同 ID/不同 payload
+collision/conflict 并告警。消费以 `UNIQUE (evidence_id)` 和
+`state = UNUSED AND revision = expected_revision` CAS 保证最多一次。Hermes dedupe cache 只能作为优化。
 
 AI-Lab、Hermes 或 MCP 重启后，已持久化的 `CONSUMED` 状态仍然生效。存储不可用、issuer 不可用或事务不确定时全部 fail closed，不得退回普通模型确认。
 
@@ -114,7 +151,9 @@ AI-Lab、Hermes 或 MCP 重启后，已持久化的 `CONSUMED` 状态仍然生�
 
 ## Phase 1 解锁条件
 
-只有 IB-A 至 IB-O 的独立验收全部通过，且证明 model-non-forgeable、single-use/replay-safe、restart-safe、Preview-before-confirm ordering、wrong owner/event denial 以及有效确认前零 business mutation，才可另行申请 Phase 1 授权。
+只有 IB-A 至 IB-Q 的独立验收全部通过，且证明 signing-oracle denied、stable event identity、model-non-forgeable、
+single-use/replay-safe、restart-safe、Preview-before-confirm ordering、wrong owner/event denial 以及有效确认前零
+business mutation，才可另行申请 Phase 1 授权。
 
 当前结论：
 
@@ -127,4 +166,16 @@ NOT_AUTHORIZED
 
 PHASE_1:
 NOT_AUTHORIZED
+
+PHASE_2:
+NOT_AUTHORIZED
+
+QUALITY-003:
+NOT_AUTHORIZED
+
+REL-036:
+NOT_AUTHORIZED
+
+VERSION:
+0.35.0
 ```

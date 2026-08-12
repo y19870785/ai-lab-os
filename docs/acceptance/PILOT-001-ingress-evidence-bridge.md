@@ -32,7 +32,7 @@ interaction_id
 preview_id / preview_revision
 evidence_id
 issuer_key_id
-channel/account/owner/conversation digest match result
+channel/account/owner/conversation opaque binding match result
 received_at / accepted_at / preview.created_at
 signature/content/intent result
 consumption state before/after
@@ -43,8 +43,30 @@ raw secret / raw Owner ID leakage scan
 AI-Lab Real Provider Called
 ```
 
-证据输出只使用 canonical ID、digest、时间与脱敏状态；不得记录 raw Owner ID、WECOM_SECRET、issuer private key、
+证据输出只使用 canonical ID、opaque binding ID、keyed digest、时间与脱敏状态；不得记录 raw Owner/account/chat ID、WECOM_SECRET、issuer private key、
 full raw event、完整聊天记录或 Provider credential。
+
+四份规划文档共同采用唯一 V1 envelope：
+
+```text
+evidence_version
+evidence_id
+issuer_key_id
+channel
+channel_account_binding_id
+owner_binding_id
+conversation_binding_id
+received_at
+event_type
+message_content_digest
+expires_at
+signature
+```
+
+不得出现 `issuer_id`、`channel_event_id`、`channel_event_id_digest` 或 `replay_key`。`evidence_id` 是唯一稳定 event
+identity，由 issuer 的独立 `event_identity_key` 对 domain + channel + opaque account binding + raw channel event ID
+执行 length-prefixed HMAC-SHA256 派生；`received_at` 与 `issuer_key_id` 不参与 identity。签名 payload 必须使用
+RFC 8785/JCS exact UTF-8 bytes；unknown/extra/duplicate fields fail closed。
 
 ## IB-A 真实 Owner 证据接受
 
@@ -54,7 +76,7 @@ confirmation code 的 Message B。
 验证：
 
 - evidence 在 Agent/LLM 前产生并由 AI-Lab receiver 验签持久化；
-- `channel=wecom`、account/owner/conversation digest 与 Pilot binding 匹配；
+- `channel=wecom`、account/owner/conversation opaque binding IDs 与 Pilot binding 匹配；
 - `accepted_at > preview.created_at`；
 - exact Message B content digest 与 deterministic confirmation intent 匹配；
 - AI-Lab 在同一 transaction/CAS 中形成 Confirmation 并把 evidence 标为 `CONSUMED`；
@@ -70,13 +92,13 @@ confirmation code 的 Message B。
 
 ## IB-C 错误 Owner 拒绝
 
-使用另一 WeCom user 或 owner digest 不匹配的有效签名 evidence。
+使用另一 WeCom user 或 owner opaque binding ID 不匹配的有效签名 evidence。
 
 预期：`trusted_ingress.binding_mismatch`；不消费到目标 Preview；Confirmation 0；UserTask mutation 0。
 
 ## IB-D 错误 Channel 拒绝
 
-使用非 `wecom` channel 或错误 bot/account digest 的有效签名 evidence。
+使用非 `wecom` channel 或错误 bot/account opaque binding ID 的有效签名 evidence。
 
 预期：`trusted_ingress.binding_mismatch`；Confirmation 0；UserTask mutation 0。
 
@@ -105,7 +127,7 @@ AI-Lab receiver 先接受 evidence，随后才创建 Preview；即使 issuer `re
 
 - `UNUSED` evidence 重启后仍可在窗口内验证一次；
 - `CONSUMED` evidence 重启后仍拒绝重放；
-- key rotation/reload 不改变 evidence ID；
+- key rotation/reload 不改变 evidence ID；`received_at`/expiry 不因 redelivery 刷新；
 - Hermes/MCP restart 不重置 AI-Lab consumption fact。
 
 预期：`RESTART_SAFE / SINGLE_USE_PRESERVED`。
@@ -114,7 +136,8 @@ AI-Lab receiver 先接受 evidence，随后才创建 Preview；即使 issuer `re
 
 扫描 Git diff、日志、FailureInfo、AuditEvidence、MCP response、test report 与持久化 payload。
 
-预期：只出现 `owner_binding_digest`/canonical actor；raw Owner ID、WeCom Secret、private key 与完整 raw event 为 0。
+预期：只出现 operator-provisioned random opaque binding IDs/canonical actor；raw Owner/account/chat ID、普通
+SHA-256 identifier pseudonym、WeCom Secret、private key 与完整 raw event 为 0。
 
 ## IB-J 消息摘要不匹配拒绝
 
@@ -125,7 +148,8 @@ AI-Lab receiver 先接受 evidence，随后才创建 Preview；即使 issuer `re
 
 ## IB-K 无效签名或 MAC 拒绝
 
-覆盖 bit flip、未知 `issuer_key_id`、撤销 key、错误 public key、canonical JSON 额外字段与非 canonical 时间格式。
+覆盖 bit flip、未知 `issuer_key_id`、撤销 key、错误 public key、RFC 8785/JCS 非规范 bytes、额外/未知/重复字段与
+非规范时间格式。
 
 预期：`trusted_ingress.signature_invalid`；不得回退到 HMAC/明文 assertion 或普通模型确认。
 
@@ -157,6 +181,30 @@ Preview response 不得标记 business success。
 预期：结果完全一致；`--run-real-provider` 不提供；`AI_LAB_ALLOW_REAL_PROVIDER_TESTS` 未设置；AI-Lab Real
 Provider executed 为 0。
 
+## IB-P Signing Oracle 拒绝
+
+分别从 Agent/LLM、MCP tool、Hermes tool、local shell 与同一 OS user 的非可信进程尝试：连接 issuer、传入任意
+Owner/event/time/content fields、调用 mint/sign method、读取或继承 IPC handle。
+
+验证：issuer 没有具名 listener 或通用 API；只有 supervisor 预连接且 non-inheritable 的 capability handle 可用；
+handle 不在 env/file/prompt/tool registry；非可信子进程没有 inherited handle；错误 frame/新连接全部拒绝且不签名。
+
+预期：`SIGNING_ORACLE_DENIED / trusted_ingress.issuer_input_unauthenticated`；valid envelope 0；Confirmation mutation 0；
+UserTask mutation 0。若任一 caller 能取得有效签名，implementation spike 必须停止，不能进入 Phase 1。
+
+## IB-Q 重复事件稳定身份
+
+将同一 raw WeCom channel event 在 Hermes restart、issuer restart、MCP restart、redelivery 与 signing-key rotation
+之后再次送达；同时改变 delivery time，但保持 channel、opaque account binding 与 raw event ID 不变。
+
+验证：每次均按
+`HMAC-SHA256(event_identity_key, domain || LP(channel) || LP(account_binding) || LP(raw_event_id))`
+得到相同 `evidence_id`；`received_at` 与 `issuer_key_id` 不进入 identity；不存在 `replay_key`；AI-Lab
+`PRIMARY KEY (evidence_id)` 返回既有记录或拒绝 payload conflict。issuer durable issuance journal 必须返回首次
+signed envelope，不得因 restart/key rotation 重签或刷新时间；绝不创建第二个 `UNUSED` fact。
+
+预期：`DUPLICATE_EVENT_STABLE_IDENTITY / SINGLE_CONSUMABLE_FACT`；重复 Confirmation mutation 0；UserTask mutation 0。
+
 ## 失败矩阵
 
 | 失败条件 | 预期 FailureInfo | Confirmation 数量 | 业务 mutation 数量 |
@@ -171,12 +219,14 @@ Provider executed 为 0。
 | content digest mismatch | `trusted_ingress.content_mismatch` | 0 | 0 |
 | storage/issuer unavailable | `trusted_ingress.storage_unavailable/issuer_unavailable` | 0 | 0 |
 | revision/CAS conflict | `interaction.confirmation_conflict` | 0 | 0 |
+| untrusted issuer caller/signing oracle | `trusted_ingress.issuer_input_unauthenticated` | 0 | 0 |
+| duplicate event after restart/key rotation | `trusted_ingress.evidence_replayed/conflict` | 不增加 | 0 |
 
 全部失败必须 fail closed，不得降级成普通模型确认。
 
 ## Phase 1 验收门禁
 
-IB-A～IB-O 全部获得自动证据、必要真实边界证据与独立安全/架构复核前：
+IB-A～IB-Q 全部获得自动证据、必要真实边界证据与独立安全/架构复核前：
 
 ```text
 FRESH_OWNER_INGRESS_EVIDENCE:
@@ -190,6 +240,18 @@ NOT_AUTHORIZED
 
 REAL_BUSINESS_MUTATION:
 NOT_AUTHORIZED
+
+PHASE_2:
+NOT_AUTHORIZED
+
+QUALITY-003:
+NOT_AUTHORIZED
+
+REL-036:
+NOT_AUTHORIZED
+
+VERSION:
+0.35.0
 ```
 
 本文件只定义未来 acceptance contract，不构成任何 `PASSED`、`SUPPORTED`、`IMPLEMENTED`、`MERGED` 或

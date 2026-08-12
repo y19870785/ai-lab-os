@@ -66,6 +66,11 @@ RFC-033 与 ADR-073 提议在 Hermes 的模型前 WeCom inbound boundary 使用�
 AI-Lab 是唯一 Evidence Verification Authority 和 replay/consumption owner：它验证 issuer、签名、Owner/channel/
 conversation binding、content digest、freshness 与 Preview ordering，并在持久化事务中以 CAS 单次消费 evidence。
 
+R1 将 plugin → issuer 边界收紧为 privileged supervisor 建立的 non-inheritable anonymous IPC capability；issuer
+没有具名 listener、共享 token 或通用 mint/sign API。`evidence_id` 是唯一稳定 event identity，独立于
+`received_at` 与 `issuer_key_id`；签名采用 RFC 8785/JCS exact bytes，identifier 使用 operator-provisioned opaque
+binding IDs。若 future spike 无法证明 signing-oracle isolation，必须停止实现。
+
 该设计严格区分 Fresh Ingress Evidence 与 Confirmation Intent。Evidence 只证明真实新 Owner 消息存在；受控逻辑仍需
 判断 Message B 是否明确确认指定 Preview。Message A 不能在同一 Agent turn 自动确认。MCP 未来只传 opaque
 

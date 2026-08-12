@@ -127,9 +127,21 @@ Agent/LLM 的 platform-adapter inbound boundary。
 
 1. 用户安装的 Hermes WeCom platform plugin 采用受支持的 extension point，负责把真实 channel event 交给
    privileged issuer helper，并在 evidence deposit 成功后才继续普通 Agent dispatch；
-2. issuer helper 位于模型前，拥有独立签名私钥；它只接受 adapter 内部事件，不暴露通用 mint tool/API；
-3. AI-Lab internal evidence receiver 验签并持久化，再返回 opaque `evidence_id`。该 receiver 不是 MCP tool，
+2. privileged supervisor 为 plugin 与 issuer 建立单一、预连接、不可继承的 anonymous IPC capability handle；
+   issuer 不监听具名 socket/port，不接受 bearer token，也不暴露通用 mint/sign tool/API；
+3. plugin 的可信 adapter callback 是唯一持有该 handle 的代码路径，只能把刚收到的 immutable `MessageEvent`
+   frame 写入 IPC；handle 不进入环境变量、文件、prompt、tool registry 或子进程继承表；
+4. issuer 只接受该 capability 上的严格 V1 frame，验证固定 channel/account、schema、event type 与单调 sequence，
+   拒绝未知字段、重复 frame 和任何新连接；
+5. AI-Lab internal evidence receiver 验签并持久化，再返回 opaque `evidence_id`。该 receiver 不是 MCP tool，
    Agent/LLM 无权提交 envelope 字段或签名。
+
+这里的安全属性来自“唯一预连接 capability + 非继承 handle + 可信 plugin callback”共同组成的 TCB，而不是“调用者
+在本机”或“知道某个 socket 名称”。Agent/LLM/tool/shell 拿不到 parent process 内存中的 handle，也不能连接一个
+不存在的 listener。若 future compatibility/security spike 不能证明 Hermes plugin 生命周期支持该隔离、callback
+不可被 tool 路由调用、子进程不继承 handle，则必须
+`STOP_IMPLEMENTATION / SIGNING_ORACLE_ISOLATION_UNPROVEN`；不得退回具名 local socket、共享 token、
+lifecycle Hook 或“相信本地 caller”。
 
 ## 完整信任边界
 
@@ -170,14 +182,14 @@ Preview 由 AI-Lab 的 owner/channel/content/freshness/ordering/consumption 验�
 | `evidence_version` | 是 | 固定 canonical serialization 与验证规则 |
 | `evidence_id` | 是 | 全局引用与单次消费主键 |
 | `channel` | 是 | Pilot 固定为 `wecom`，拒绝跨 channel |
-| `channel_account / bot binding digest` | 是 | 绑定配置 bot/account，不暴露原值 |
-| `channel_user_binding digest` | 是 | 绑定唯一 Owner，不暴露 raw Owner ID |
-| `channel_event_id` | 使用 digest | 唯一性需要；raw ID 不进入持久化/audit |
-| `conversation_id` | 使用 digest | 限制事件所在 DM conversation，不保存 raw chat ID |
+| `channel_account / bot binding` | 使用 opaque ID | operator 随机配置，不由 raw ID hash 得到 |
+| `channel_user_binding` | 使用 opaque ID | operator 随机配置，不由 raw Owner ID hash 得到 |
+| `channel_event_id` | 不直接进入 | 只在 issuer TCB 内参与稳定 `evidence_id` 派生 |
+| `conversation_id` | 使用 opaque ID | operator 随机配置，不由 raw chat ID hash 得到 |
 | `received_at` | 是 | issuer-side channel receive time 与 expiry 边界 |
 | `event_type` | 是 | 仅允许 Owner DM text confirmation event |
-| `message_content_digest` | 是 | 绑定真实文本而不保存完整聊天记录 |
-| `nonce / replay key` | 否 | `evidence_id + event_id_digest + AI-Lab consumption` 已充分，额外 nonce 无新安全性 |
+| `message_content_digest` | 是 | domain-separated keyed HMAC，绑定文本并降低低熵消息离线枚举风险 |
+| `nonce / replay key` | 否 | `evidence_id` 是唯一 replay/dedupe identity；第二概念无安全收益 |
 | `issuer` | 合并为 `issuer_key_id` | 选择受信 public key 与轮换版本 |
 | `signature / MAC` | 使用 signature | Ed25519 asymmetric signature，避免 AI-Lab 持有共享 mint secret |
 | `expires_at` | 是 | 明确 issuer 上限；AI-Lab 还应用更短本地 freshness window |
@@ -188,31 +200,63 @@ Preview 由 AI-Lab 的 owner/channel/content/freshness/ordering/consumption 验�
 TrustedIngressEvidenceEnvelopeV1
 
 evidence_version: trusted-ingress-evidence/v1
-evidence_id: tie_<base32 sha256>
+evidence_id: tie_<lowercase base32 hmac-sha256 without padding>
 issuer_key_id: pilot001-wecom-issuer-<rotation>
 channel: wecom
-channel_account_digest: sha256:<hex>
-owner_binding_digest: sha256:<hex>
-channel_event_id_digest: sha256:<hex>
-conversation_digest: sha256:<hex>
-received_at: <UTC RFC3339>
+channel_account_binding_id: acct_<operator-random-opaque-id>
+owner_binding_id: owner_<operator-random-opaque-id>
+conversation_binding_id: conv_<operator-random-opaque-id>
+received_at: <UTC RFC3339 with exactly millisecond precision and Z>
 event_type: owner_dm_text
-message_content_digest: sha256:<hex>
-expires_at: <UTC RFC3339>
-signature: ed25519:<base64url>
+message_content_digest: hmac-sha256:<lowercase hex>
+expires_at: <UTC RFC3339 with exactly millisecond precision and Z>
+signature: ed25519:<base64url without padding>
 ```
 
-签名覆盖除 `signature` 外的全部字段，采用固定字段顺序、UTF-8、无浮点数、UTC `Z`、禁止额外字段的 canonical
-JSON。`evidence_id` 由 version、issuer key、account/owner/event/conversation digest 与 `received_at` 的 canonical
-bytes 派生。重复 channel event 必须生成同一个 `evidence_id`，不能靠新 nonce 绕过 dedupe。
+V1 顶层必须且只能出现上述 12 个字段。验证器先按精确 schema 拒绝 missing/unknown/duplicate fields、错误类型、
+非 NFC string、非法 enum 与非规范时间，再移除 `signature`，按 RFC 8785 JSON Canonicalization Scheme（JCS）把
+其余 11 个字段编码成 UTF-8 bytes；Ed25519 签名覆盖且只覆盖这些 exact JCS payload bytes。
+
+`received_at` 是可信 adapter 首次接受该 WeCom event 的 wall-clock 时间；redelivery 必须复用首次值。
+`expires_at = received_at + issuer_ttl`，其中 `issuer_ttl` 是受控静态配置，不能由 caller 指定，redelivery 不能刷新。
+两者都不参与 event identity。
+
+稳定 event identity 只有一个：`evidence_id`。issuer TCB 持有独立且跨 signing-key rotation 保留的
+`event_identity_key`，按以下 length-prefixed bytes 计算：
+
+```text
+identity_input = UTF8("ai-lab/trusted-ingress-event/v1")
+  || LP_UTF8(channel)
+  || LP_UTF8(channel_account_binding_id)
+  || LP_UTF8(raw_channel_event_id)
+
+evidence_id = "tie_" + base32_lower_no_pad(
+  HMAC-SHA256(event_identity_key, identity_input)
+)
+```
+
+`LP_UTF8(x)` 是 4-byte unsigned big-endian byte length 后接 UTF-8 bytes。`raw_channel_event_id` 仅存在于可信
+adapter/issuer TCB；不进入 envelope、Git、MCP、普通 audit 或公开报告。`received_at`、`expires_at`、
+`issuer_key_id`、Owner、conversation 与 content 均不参与 identity。同一 account 下同一真实 WeCom event 跨
+restart、redelivery 与 signing-key rotation 必须得到相同 `evidence_id`。不存在 `replay_key` 或第二 event identity。
+
+issuer 在首次签发前以 `evidence_id` 为 key 原子写入 OS-protected durable issuance journal，保存首次
+`received_at`、`expires_at` 与完整 signed envelope。redelivery（包括 signing-key rotation 后）只能返回该原 envelope，
+不得用新 key 重签或刷新时间；journal 不可用或同 ID 的 channel/content/binding 不一致时 fail closed。旧 verification
+public key 至少保留到该 envelope 过期。这样 key rotation 不会制造不同 payload，也不会生成第二个 consumable fact。
+
+AI-Lab durable uniqueness contract：`PRIMARY KEY (evidence_id)`；重复 accept 只有在已存 payload digest 完全一致时
+返回既有记录，同 `evidence_id` 不同 payload 必须 collision/conflict 并告警。消费使用 `UNIQUE (evidence_id)` 与
+`state = UNUSED AND revision = expected_revision` CAS，保证最多一次。
 
 ## 模型不可伪造保证
 
-- LLM 不能 mint：私钥只在 privileged issuer helper 内存与 OS-protected credential 中；无 MCP mint tool；
+- LLM 不能 mint：私钥只在 issuer helper 内存与 OS-protected credential 中；issuer 只读预连接 capability，
+  无 listener、MCP mint tool、shell API 或任意字段签名入口；
 - LLM 不能 alter：任何字段变化都会导致 Ed25519 验签失败；
-- LLM 不能选择任意 Owner：Owner raw ID 在 adapter allowlist 后被转换为预配置 binding digest；
+- LLM 不能选择任意 Owner：Owner raw ID 在 adapter allowlist 后映射为 operator-provisioned opaque binding ID；
 - LLM 不能选择任意 timestamp：`received_at` 由 issuer clock 产生并签名，ordering 还使用 AI-Lab `accepted_at`；
-- LLM 不能选择任意 event ID：digest 来自真实 adapter event；
+- LLM 不能选择任意 event ID：raw event ID 只从可信 adapter callback 进入 issuer TCB；
 - LLM 即使猜到或读取合法 `evidence_id`，也不能改变其 owner/channel/content/ordering/consumption facts。
 
 证据信封、私钥、credential path 与 internal receiver credential 都不得进入 prompt、MCP tool args、Hermes
@@ -225,7 +269,10 @@ conversation、Git 或 audit plaintext。MCP 未来只承载 `evidence_id` 和 e
 | WeCom credentials | Hermes operator / privileged WeCom plugin helper | 继续属于 Hermes channel integration；不交给 AI-Lab、LLM 或 Git |
 | Evidence signing private key | privileged ingress issuer helper | 独立 Ed25519 key；不得复用 `WECOM_SECRET`，不得进入 Agent process/tool env |
 | AI-Lab verification key | AI-Lab trust configuration | 仅保存 public key 与 `issuer_key_id` allowlist；不能 mint evidence |
-| Owner raw identity | Hermes adapter secret/config boundary | AI-Lab 只保存预配置 binding digest 与 canonical actor mapping |
+| Event identity key | privileged ingress issuer helper | 独立 HMAC key；跨 signing-key rotation 稳定，不进入 AI-Lab/Agent/Git |
+| Content binding key | issuer helper 与 AI-Lab verifier secret config | domain-separated HMAC key；不进入 MCP/Agent/Git/audit |
+| Issuance journal | privileged ingress issuer helper | OS-protected durable store；按 evidence ID 复用首次 envelope，restart/rotation 不重签 |
+| Owner/account/conversation raw identity | Hermes adapter secret/config boundary | AI-Lab 只保存 operator-provisioned opaque binding ID 与 canonical actor mapping |
 
 密钥轮换必须允许旧 public key 在未过期 evidence 的短窗口内验证；撤销 key 后新 evidence 立即拒绝。Provider API
 Key 与本设计无关，也不得被加载或调用。
@@ -281,9 +328,17 @@ confirmation_text: str
 
 ## 内容绑定与确认意图
 
-Bridge 原则上不持久化完整聊天记录。issuer 对规范化后的 Message B 文本计算 `message_content_digest`；AI-Lab
-持久化 digest，不持久化 raw message。未来 confirm request 提交模型看到的 exact `confirmation_text`，AI-Lab
-按同一规则规范化并比较 digest，不一致即拒绝。
+Bridge 原则上不持久化完整聊天记录。issuer 与 AI-Lab verifier 使用独立 `content_binding_key` 计算：
+
+```text
+message_content_digest = "hmac-sha256:" + lowercase_hex(HMAC-SHA256(
+  content_binding_key,
+  UTF8("ai-lab/message-content/v1") || LP_UTF8(NFC(CRLF_TO_LF(text)))
+))
+```
+
+AI-Lab 持久化 keyed digest，不持久化 raw message。future confirm request 提交 exact `confirmation_text`，AI-Lab
+按同一规则计算并比较；不一致即拒绝。该 digest 是 content binding，不声称是不可逆匿名化。
 
 规范化规则必须窄且可复现：UTF-8、Unicode NFC、CRLF→LF；不 trim、不改标点、不改大小写、不做自然语言改写。
 任何模型摘要、同义改写或省略都不能通过 digest。
@@ -319,7 +374,7 @@ Message B (different real Owner event B)
 ```
 
 AI-Lab 不相信 LLM 自报时间。ordering 以 AI-Lab 自己的 `preview.created_at` 与 receiver `accepted_at` 为主；签名
-`received_at` 只用于 channel-side age/skew 检查。Message A 与 Message B 必须具有不同 event digest，且 Message B
+`received_at` 只用于 channel-side age/skew 检查。Message A 与 Message B 必须具有不同 `evidence_id`，且 Message B
 必须在 Preview 已存在后才被 AI-Lab receiver 接受。same-turn auto-confirm 必然缺少合法的 post-Preview event B。
 
 ## Freshness 与单次消费
@@ -330,13 +385,13 @@ Fresh 的必要条件全部成立才为 true：
 signature valid
 issuer_key_id trusted
 channel == wecom
-account/owner/conversation digest matches expected Pilot binding
+account/owner/conversation opaque binding IDs match expected Pilot binding
 event_type == owner_dm_text
 received_at <= accepted_at + allowed_clock_skew
 now - accepted_at <= configured_freshness_window
 now < expires_at
 accepted_at > preview.created_at
-channel_event_id_digest != Message A event digest
+evidence_id != Message A evidence_id
 content digest matches exact confirmation_text
 confirmation code binds the expected preview_id/revision
 consumption_status == UNUSED
@@ -346,7 +401,7 @@ expected Interaction revision/CAS matches
 `message_id changed` 单独不构成 freshness。建议 Pilot freshness window 默认为 5 分钟，但它是未来受控配置，不在
 本设计写死 Runtime 值；issuer `expires_at` 不能延长 AI-Lab 本地窗口。
 
-AI-Lab 以 `evidence_id` 与 `channel_event_id_digest` 双唯一约束 dedupe，并在 Confirmation transaction 中以 CAS 将
+AI-Lab 只以稳定 `evidence_id` 作为 event replay/dedupe identity，并在 Confirmation transaction 中以 CAS 将
 `UNUSED -> CONSUMED`。相同 idempotency key、相同 Interaction/Preview/payload 的响应丢失可返回既有结果；不同
 payload、Preview、Interaction 或 key 必须 conflict。Hermes dedupe cache 只优化 channel delivery，绝不是消费事实源。
 
@@ -402,6 +457,8 @@ Conversation、Memory、Tool Response 继续不具备 Approval/Business/Success 
 | message digest mismatch | `trusted_ingress.content_mismatch` | 否 |
 | storage unavailable | `trusted_ingress.storage_unavailable` | 否 |
 | issuer unavailable | `trusted_ingress.issuer_unavailable` | 否 |
+| untrusted issuer caller/signing oracle | `trusted_ingress.issuer_input_unauthenticated` | 否 |
+| duplicate event payload conflict | `trusted_ingress.evidence_collision` | 否 |
 | revision/CAS conflict | `interaction.confirmation_conflict` | 否 |
 
 所有失败都返回脱敏 `FailureInfo`，不记录 raw Owner ID、raw event ID、raw content、signature private material 或
@@ -413,7 +470,9 @@ internal credential。失败不能修改 UserTask，也不能把 Preview 升级�
 
 - Fresh Owner Evidence 为 supported，且证据在模型前产生；
 - LLM 不能 mint/alter/选择 Owner、event ID 或 timestamp；
+- Agent/LLM/tool/shell 无法取得 issuer IPC capability 或把 issuer 当作 signing oracle；
 - 同一 evidence/event single-use、dedupe、CAS 与 restart-safe；
+- 同一 event 跨 restart、redelivery 与 signing-key rotation 保持稳定 `evidence_id`；
 - AI-Lab 可证明 Message B evidence `accepted_at > preview.created_at`；
 - wrong owner/channel/conversation/interaction/preview/content 全部 deny；
 - same-event replay 与 Message A same-turn auto-confirm deny；
@@ -433,7 +492,7 @@ REL-036 或 v0.36.0。
 1. `IB-IMP-A`：Hermes user-installed platform plugin/issuer helper spike，只证明 pre-Agent envelope 与 key isolation；
 2. `IB-IMP-B`：AI-Lab verifier/receiver/persistence 与 restart/replay contract；
 3. `IB-IMP-C`：future confirm evidence reference、deterministic intent、atomic consumption；
-4. `IB-ACC`：执行 IB-A～IB-O acceptance，独立安全/架构审查；
+4. `IB-ACC`：执行 IB-A～IB-Q acceptance，独立安全/架构审查；
 5. 只有全部通过后，才可单独申请 Phase 1 authorization。
 
 任何切片都必须从新的精确 Base、独立任务与独立授权开始。本 Draft 不创建代码、Schema、endpoint、plugin、Hook、
@@ -456,6 +515,15 @@ NOT_AUTHORIZED
 
 BRIDGE_IMPLEMENTATION:
 NOT_AUTHORIZED
+
+QUALITY-003:
+NOT_AUTHORIZED
+
+REL-036:
+NOT_AUTHORIZED
+
+VERSION:
+0.35.0
 
 REAL_BUSINESS_MUTATION:
 NOT_AUTHORIZED
