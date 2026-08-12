@@ -14,6 +14,8 @@
 - 当前 Pilot WSL2/same-UID 部署分类为 `UNSUPPORTED`；Option D 设计基线、RFC-033 Adopted 与 ADR-073 Accepted
   保持不变，process isolation unresolved。真实 Owner callback/Message B 未继续，业务 mutation 0，Fresh Owner
   Evidence、Bridge implementation、Phase 1/2、QUALITY-003 与 REL-036 均未授权。
+- Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence
+  baseline 已批准；本轮只完成治理收口，没有测试或实现 process-isolation mitigation。
 
 ### PILOT-001-IBD 可信入站证据桥设计
 

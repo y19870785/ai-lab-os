@@ -5,6 +5,7 @@
 `v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
 Current Product SP、Governance Task 与工作均为 None。P0-R 已实现并通过最终独立审查，Preview authority 已建立；PILOT-001-IBD 设计已通过最终独立规划审查，RFC-033 已 Adopted，ADR-073 已 Accepted。IB-IMP-A 在已测试的 WSL2 同 UID topology 下因 `pidfd_getfd` 可复制 issuer capability 而停止；当前 Pilot 部署为 `UNSUPPORTED`。Option D 设计基线保留，process isolation unresolved，完整实现未授权。Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 尚未实现且未授权。SP-021 已通过最终独立审查、合并、main Quality Gate、
 ACC-021 最终验收与治理对账，并已封存。
+IB-IMP-A Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence baseline 已批准；尚未测试任何 isolation mitigation。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
