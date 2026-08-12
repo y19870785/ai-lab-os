@@ -3,8 +3,9 @@
 > 当前源码版本：`v0.35.0` Alpha / GitHub Pre-release Published | 更新日期：2026-08-12
 
 `v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
-Current Product SP、Governance Task 与工作均为 None。P0-R 已实现并通过最终独立审查，Preview authority 已建立；PILOT-001-IBD 设计已通过最终独立规划审查，RFC-033 已 Adopted，ADR-073 已 Accepted。Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 尚未实现且未授权。SP-021 已通过最终独立审查、合并、main Quality Gate、
+Current Product SP、Governance Task 与工作均为 None。P0-R 已实现并通过最终独立审查，Preview authority 已建立；PILOT-001-IBD 设计已通过最终独立规划审查，RFC-033 已 Adopted，ADR-073 已 Accepted。IB-IMP-A 在已测试的 WSL2 同 UID topology 下因 `pidfd_getfd` 可复制 issuer capability 而停止；当前 Pilot 部署为 `UNSUPPORTED`。Option D 设计基线保留，process isolation unresolved，完整实现未授权。Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 尚未实现且未授权。SP-021 已通过最终独立审查、合并、main Quality Gate、
 ACC-021 最终验收与治理对账，并已封存。
+IB-IMP-A Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence baseline 已批准；尚未测试任何 isolation mitigation。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
 
@@ -43,7 +44,7 @@ general availability。
 | 强 Identity / Workspace mapping 未实现 | 当前 bearer token 与 header/profile scope 不能证明 Channel User、Owner、Operator 或 Approver；Pilot 前必须 fail closed |
 | Interaction recovery 尚无自动 worker | SP-021 已持久化 Interaction / Execution / Verification / Recovery 并提供显式 recover；未实现 poll/webhook/background reconciliation |
 | Approval 尚无完整 Policy/RBAC | SP-021 将 Approval 与 Confirmation 分离并持久化，但正式 Policy engine、角色目录与多主体审批不在本 SP |
-| 企业微信 Owner Pilot 仅到 Preview | P0-E 已完成复验，P0-R 已实现并通过最终独立审查，本地单 Owner Preview authority 已建立；该 static binding 不是生产身份认证。Vanilla Hermes 未把 channel-originated event metadata 以模型不可伪造的旁路传给 AI-Lab，Fresh Owner 入站证据仍为 `UNSUPPORTED`。PILOT-001-IBD 的模型前 issuer、AI-Lab 验签与持久化单次消费设计已批准，但 Bridge 未实现且未授权，Phase 1 未授权 |
+| 企业微信 Owner Pilot 仅到 Preview | P0-E 已完成复验，P0-R 已实现并通过最终独立审查，本地单 Owner Preview authority 已建立；该 static binding 不是生产身份认证。PILOT-001-IBD 设计已批准，但 IB-IMP-A 证明当前 Ubuntu/WSL2 同 UID topology 可用 `pidfd_getfd` 复制并调用预连接 issuer capability，signing-oracle isolation 失败。该结论不否定 Option D、RFC-033 或 ADR-073；process isolation unresolved。失败 plugin 已从 live discovery path 删除，仅保留惰性测试 fixture。Fresh Owner 入站证据仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权 |
 | PR #62 已关闭且被取代 | 保留分支、commit、discussion 与历史设计证据；Implementation 从未获授权 |
 | 通用平台扩张已冻结但未删除 | Agent/Tool/Workflow/Coordination 重叠代码仍存在，弃用需要独立审计与授权 |
 

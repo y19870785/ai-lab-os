@@ -4,7 +4,7 @@
 >
 > SP-020 已通过正式 ACC-020 A～V、独立证据复核与 main Quality Gate，并完成合并、对账和封存。
 > SP-021 已通过 ACC-021 A～R、最终独立审查与 main Quality Gate，并完成合并、对账和封存。INT-001 已通过 ACC-INT-001 A～Q、最终独立审查与 main Quality Gate，并完成合并、对账和封存。
-> PILOT-001 P0-E 已完成 QUALITY-004 后复验；P0-R 已实现并通过最终独立审查，Preview authority 已建立。Fresh Owner 入站证据判定为 `UNSUPPORTED`，Phase 0 已按设计停止在 ingress bridge 独立设计之前。
+> PILOT-001 P0-E 已完成 QUALITY-004 后复验；P0-R 已实现并通过最终独立审查，Preview authority 已建立。当前 Pilot 部署的 Fresh Owner 入站证据仍为 `UNSUPPORTED`，Phase 0 已停止并等待 ingress process isolation resolution。
 > `v0.35.0` 已发布为 GitHub Pre-release，annotated Tag 指向冻结 Release Head。
 
 AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信业务操作系统：长期保存业务
@@ -16,7 +16,7 @@ AI-Lab OS 正式定位为面向个人经营者和企业真实工作流的可信�
 **当前 Product SP：None**
 **当前 Governance Task：None**
 **当前工作：None**
-**PILOT-001：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / RFC_033_ADOPTED / ADR_073_ACCEPTED / BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED**
+**PILOT-001：PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / RFC_033_ADOPTED / ADR_073_ACCEPTED / PILOT_001_IB_IMP_A_AUTHORIZED / PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / PILOT_001_IB_IMP_A_FINAL_INDEPENDENT_SECURITY_REVIEW_PASSED / PILOT_001_IB_IMP_A_NEGATIVE_EVIDENCE_BASELINE_APPROVED / INGRESS_PROCESS_ISOLATION_UNRESOLVED / BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED**
 **下一候选 Product SP：None**
 
 `v0.35.0` 已发布为 **Pre-release**，Tag `v0.35.0` 指向冻结 Release Head
@@ -59,6 +59,11 @@ AI-Lab 在 Preview 后生成不可预测 one-time challenge；`accepted_at` 单�
 设计与验收计划见 `docs/project/PILOT-001-TRUSTED-INGRESS-EVIDENCE-BRIDGE.md` 和
 `docs/acceptance/PILOT-001-ingress-evidence-bridge.md`。IB-A～IB-S 仅为 Defined / Not Executed；
 Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。
+IB-IMP-A 在真实 Ubuntu/WSL2 Pilot 环境验证了 project platform plugin 可加载、`body.msgid` 位于模型前 adapter
+callback，但同 UID 独立进程能通过 `pidfd_getfd` 复制并调用 anonymous issuer capability。当前 Pilot 部署因
+`SIGNING_ORACLE_ISOLATION_FAILED` 判定为 `UNSUPPORTED`；Option D 设计基线仍保留，但 process isolation unresolved，
+完整实现未授权。失败 plugin 已移出 live `.hermes/plugins/`，仅保留于惰性测试 fixture；没有继续真实 callback、Bridge 或业务实现。
+Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，负面证据基线已批准；该治理结论不代表 mitigation 已测试。
 
 QUALITY-004 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 可导入无副作用的
 conftest/module 定义，但未经双授权的 real item 会在执行前 fail-closed skip。真实 Provider 环境只有在同时提供
@@ -67,8 +72,8 @@ conftest/module 定义，但未经双授权的 real item 会在执行前 fail-cl
 意外执行真实 Provider，因此首次环境验收未获最终通过；这是本地测试凭据隔离安全缺陷，不是 WeCom/MCP
 compatibility failure。QUALITY-004 Guard 已实现并通过最终独立安全审查，Pilot safety blocker 已清除；
 P0-E 已在 QUALITY-004 后完成复验。P0-R 已实现并通过最终独立审查，Preview authority 已建立；Vanilla Hermes 最终只通过模型可控的
-tool arguments 向 AI-Lab 传递入站字段，故 Fresh Owner 入站证据为 `UNSUPPORTED`，Phase 0 已停止并等待
-独立 ingress bridge 设计。
+tool arguments 向 AI-Lab 传递入站字段，故当前 Pilot 部署的 Fresh Owner 入站证据为 `UNSUPPORTED`。Ingress bridge
+设计已批准；Phase 0 现停止并等待 ingress process isolation resolution。
 
 ## 当前能力
 

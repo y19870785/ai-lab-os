@@ -2,6 +2,21 @@
 
 ## [Unreleased] 未发布
 
+### PILOT-001 IB-IMP-A Hermes Capability 安全 Spike
+
+- 在真实 Hermes Agent v0.20.0、Ubuntu 24.04.4 / WSL2 环境验证 user/project platform plugin loader；无需
+  Hermes core patch 即可覆盖 WeCom adapter registration，`body.msgid` 位于 Agent dispatch 前。
+- 将 `EXPERIMENTAL / PILOT_SPIKE_ONLY / NOT_PRODUCT_RUNTIME` 失败 project plugin 从 live `.hermes/plugins/`
+  discovery path 移除，原型仅保留为惰性 test fixture；anonymous `socketpair()` supervisor、test issuer stub 与
+  主动攻击 harness 继续保留，未新增生产签名、AI-Lab receiver、DB 或 MCP confirm。
+- 普通 Agent/tool child 在 close-on-exec 后不能继承 capability，但独立同 UID 进程可通过 `pidfd_getfd` 复制
+  gateway endpoint，并用伪造 frame 获得 issuer receipt；命中 `SIGNING_ORACLE_ISOLATION_FAILED` Stop Condition。
+- 当前 Pilot WSL2/same-UID 部署分类为 `UNSUPPORTED`；Option D 设计基线、RFC-033 Adopted 与 ADR-073 Accepted
+  保持不变，process isolation unresolved。真实 Owner callback/Message B 未继续，业务 mutation 0，Fresh Owner
+  Evidence、Bridge implementation、Phase 1/2、QUALITY-003 与 REL-036 均未授权。
+- Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence
+  baseline 已批准；本轮只完成治理收口，没有测试或实现 process-isolation mitigation。
+
 ### PILOT-001-IBD 可信入站证据桥设计
 
 - 最终独立规划审查已批准 Approved Design Head `7042a68c566abf4c99f5f3038b38fd90790f0bfb`；

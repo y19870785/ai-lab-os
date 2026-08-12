@@ -1,0 +1,8 @@
+name: wecom-platform
+label: WeCom Trusted Ingress Capability Spike
+kind: platform
+version: 0.0.1-spike
+description: >
+  EXPERIMENTAL / PILOT_SPIKE_ONLY / NOT_PRODUCT_RUNTIME. Inert fixture for
+  reproducing the IB-IMP-A loader and capability-boundary security finding.
+author: AI-Lab PILOT-001

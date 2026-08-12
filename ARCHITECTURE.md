@@ -2,6 +2,8 @@
 
 > 当前工作：None。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
 > PILOT-001-IBD 设计已通过最终独立规划审查；Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。
+> PILOT-001-IB-IMP-A 已验证普通 child 不继承匿名 capability，但当前 WSL2/same-UID topology 下进程可经 `pidfd_getfd` 复制并调用 endpoint；因此当前 Pilot 部署的 signing-oracle isolation 失败。Option D、RFC-033 与 ADR-073 设计基线保留，process isolation unresolved，Bridge 实现未授权；失败 plugin 已从 live discovery path 移入惰性 test fixture。
+> Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，负面证据基线已批准；此状态不包含任何 process-isolation mitigation 验证。
 
 INT-001 在 `applications/trusted_interaction_adapter` 增加 Shell-neutral application
 boundary，并通过官方 MCP SDK 提供本地 stdio projection。该层只依赖 canonical
