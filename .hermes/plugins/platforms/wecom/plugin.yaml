@@ -1,0 +1,8 @@
+name: wecom-platform
+label: WeCom Trusted Ingress Capability Spike
+kind: platform
+version: 0.0.1-spike
+description: >
+  EXPERIMENTAL / PILOT_SPIKE_ONLY / NOT_PRODUCT_RUNTIME. Overrides the bundled
+  WeCom adapter only while IB-IMP-A runs under its dedicated supervisor.
+author: AI-Lab PILOT-001

@@ -2287,10 +2287,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 207
-    assert "- Git 跟踪 Markdown：207" in inventory
-    assert "- 仓库自有且纳入范围：207" in inventory
-    assert "- 新增中文治理文档：32" in inventory
+    assert len(tracked_markdown) == 208
+    assert "- Git 跟踪 Markdown：208" in inventory
+    assert "- 仓库自有且纳入范围：208" in inventory
+    assert "- 新增中文治理文档：33" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -2523,6 +2523,9 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
         "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
         "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
         "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+        "PILOT_001_IB_IMP_A_AUTHORIZED / "
+        "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
+        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2680,6 +2683,9 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
         "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
         "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
         "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+        "PILOT_001_IB_IMP_A_AUTHORIZED / "
+        "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
+        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2776,6 +2782,9 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
             "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
             "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
             "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+            "PILOT_001_IB_IMP_A_AUTHORIZED / "
+            "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
+            "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
             "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2925,6 +2934,9 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
             "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
             "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
             "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
+            "PILOT_001_IB_IMP_A_AUTHORIZED / "
+            "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
+            "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
             "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -3218,6 +3230,9 @@ def test_pilot001_ibd_approved_design_state_is_durable() -> None:
         "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED",
         "RFC_033_ADOPTED",
         "ADR_073_ACCEPTED",
+        "PILOT_001_IB_IMP_A_AUTHORIZED",
+        "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED",
+        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED",
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED",
         "PHASE_1_NOT_AUTHORIZED",
         "PHASE_2_NOT_AUTHORIZED",
@@ -3315,3 +3330,50 @@ def test_pilot001_ibd_approved_design_state_is_durable() -> None:
         assert "PENDING_INDEPENDENT_REVIEW" not in document
     assert "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED" in rfc
     assert "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED" in adr
+
+
+def test_pilot001_ib_imp_a_stopped_security_spike_is_durable() -> None:
+    state = _load_state()
+    arch = state["governance_tasks"]["ARCH-001"]
+    sp021 = state["sp_records"]["SP-021"]
+    pilot_status = arch["follow_up_tasks"]["PILOT-001"]
+    evidence_path = (
+        ROOT
+        / "docs/acceptance/PILOT-001-IB-IMP-A-hermes-capability-spike.md"
+    )
+
+    assert state["schema_version"] == 1
+    assert state["current_work"] is None
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["development_status"] == (
+        "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+    )
+    assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
+    for marker in (
+        "PILOT_001_IB_IMP_A_AUTHORIZED",
+        "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED",
+        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED",
+        "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED",
+        "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED",
+        "PHASE_1_NOT_AUTHORIZED",
+        "PHASE_2_NOT_AUTHORIZED",
+        "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED",
+    ):
+        assert marker in pilot_status
+
+    assert evidence_path.is_file()
+    evidence = evidence_path.read_text(encoding="utf-8-sig")
+    for marker in (
+        "STOPPED_SIGNING_ORACLE_ISOLATION_FAILED",
+        "UNSUPPORTED",
+        "pidfd_getfd",
+        "duplicated=true / invoked=true",
+        "CHANNEL_EVENT_ID_CONTRACT_UNPROVEN",
+        "业务 mutation：`0`",
+        "Real Provider：`0`",
+        "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED",
+        "PHASE_1:\nNOT_AUTHORIZED",
+        "PHASE_2:\nNOT_AUTHORIZED",
+    ):
+        assert marker in evidence
