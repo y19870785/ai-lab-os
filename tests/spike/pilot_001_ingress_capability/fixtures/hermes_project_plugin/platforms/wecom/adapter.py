@@ -1,4 +1,4 @@
-"""Spike-only WeCom adapter override for the pre-Agent capability boundary."""
+"""Inert WeCom adapter fixture for the pre-Agent capability boundary Spike."""
 
 from __future__ import annotations
 

@@ -166,7 +166,7 @@ def test_sp015a_sp015r_and_sp016_implementation_state_is_consistent() -> None:
     assert state["current_governance_task"] is None
     assert (
         state["development_status"]
-        == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        == "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert state["next_candidate_sp"] is None
     assert state["next_candidate_name"] is None
@@ -488,7 +488,7 @@ def test_sp017_is_accepted_reconciled_and_archived() -> None:
     assert state["next_candidate_name"] is None
     assert (
         state["development_status"]
-        == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        == "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert state["current_work"] is None
     assert "next_action" not in state
@@ -909,7 +909,7 @@ def test_sp019_daily_review_is_merged_verified_reconciled_and_archived() -> None
     assert state["version"] == "v0.35.0"
     assert (
         state["development_status"]
-        == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        == "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert state["current_work"] is None
     assert state["release_status"]["previous_published_tag"] == "v0.34.0"
@@ -1390,7 +1390,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     assert state["next_candidate_name"] is None
     assert (
         state["development_status"]
-        == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        == "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert state["current_version"] == "0.35.0"
     assert state["version"] == "v0.35.0"
@@ -2526,6 +2526,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
         "PILOT_001_IB_IMP_A_AUTHORIZED / "
         "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
         "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
+        "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2686,6 +2687,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
         "PILOT_001_IB_IMP_A_AUTHORIZED / "
         "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
         "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
+        "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
             "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
             "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2785,6 +2787,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
             "PILOT_001_IB_IMP_A_AUTHORIZED / "
             "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
             "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
+            "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
             "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2811,7 +2814,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         assert unauthorized_root not in state
     assert (
         state["development_status"]
-        == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        == "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert arch["follow_up_tasks"]["INT-001"] == final_status
     assert sp021["follow_up_tasks"]["INT-001"] == final_status
@@ -2937,6 +2940,7 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
             "PILOT_001_IB_IMP_A_AUTHORIZED / "
             "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
             "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
+            "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
             "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
         "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
         "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
@@ -2952,7 +2956,7 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     assert state["current_work"] is None
     assert (
         state["development_status"]
-        == "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        == "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert arch["follow_up_tasks"]["PILOT-001"] == pilot_status
     assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
@@ -3089,7 +3093,7 @@ def test_quality004_real_provider_isolation_guard_has_durable_approval() -> None
     assert state["current_governance_task"] is None
     assert state["current_work"] is None
     assert state["development_status"] == (
-        "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
@@ -3171,7 +3175,7 @@ def test_pilot001_p0r_preview_and_fresh_ingress_stop_state_are_durable() -> None
     assert state["current_version"] == "0.35.0"
     assert state["current_work"] is None
     assert state["development_status"] == (
-        "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     for marker in (
         "P0_E_ENVIRONMENT_READY",
@@ -3221,7 +3225,7 @@ def test_pilot001_ibd_approved_design_state_is_durable() -> None:
     assert state["next_candidate_name"] is None
     assert state["next_planned_governance_item"] is None
     assert state["development_status"] == (
-        "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
     for marker in (
@@ -3233,6 +3237,7 @@ def test_pilot001_ibd_approved_design_state_is_durable() -> None:
         "PILOT_001_IB_IMP_A_AUTHORIZED",
         "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED",
         "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED",
+        "INGRESS_PROCESS_ISOLATION_UNRESOLVED",
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED",
         "PHASE_1_NOT_AUTHORIZED",
         "PHASE_2_NOT_AUTHORIZED",
@@ -3341,19 +3346,26 @@ def test_pilot001_ib_imp_a_stopped_security_spike_is_durable() -> None:
         ROOT
         / "docs/acceptance/PILOT-001-IB-IMP-A-hermes-capability-spike.md"
     )
+    live_plugin_path = ROOT / ".hermes/plugins/platforms/wecom"
+    fixture_path = (
+        ROOT
+        / "tests/spike/pilot_001_ingress_capability/fixtures/"
+        "hermes_project_plugin/platforms/wecom"
+    )
 
     assert state["schema_version"] == 1
     assert state["current_work"] is None
     assert state["current_sp"] is None
     assert state["current_governance_task"] is None
     assert state["development_status"] == (
-        "pilot_001_phase0_stopped_pending_ingress_bridge_design"
+        "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution"
     )
     assert sp021["follow_up_tasks"]["PILOT-001"] == pilot_status
     for marker in (
         "PILOT_001_IB_IMP_A_AUTHORIZED",
         "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED",
         "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED",
+        "INGRESS_PROCESS_ISOLATION_UNRESOLVED",
         "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED",
         "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED",
         "PHASE_1_NOT_AUTHORIZED",
@@ -3363,6 +3375,11 @@ def test_pilot001_ib_imp_a_stopped_security_spike_is_durable() -> None:
         assert marker in pilot_status
 
     assert evidence_path.is_file()
+    assert not live_plugin_path.exists()
+    assert fixture_path.is_dir()
+    fixture_manifest = (fixture_path / "plugin.yaml").read_text(encoding="utf-8")
+    assert "PILOT_SPIKE_ONLY" in fixture_manifest
+    assert "NOT_PRODUCT_RUNTIME" in fixture_manifest
     evidence = evidence_path.read_text(encoding="utf-8-sig")
     for marker in (
         "STOPPED_SIGNING_ORACLE_ISOLATION_FAILED",
@@ -3370,6 +3387,9 @@ def test_pilot001_ib_imp_a_stopped_security_spike_is_durable() -> None:
         "pidfd_getfd",
         "duplicated=true / invoked=true",
         "CHANNEL_EVENT_ID_CONTRACT_UNPROVEN",
+        "CURRENT_PILOT_DEPLOYMENT:\nUNSUPPORTED",
+        "DESIGN_BASELINE_RETAINED /\nPROCESS_ISOLATION_UNRESOLVED",
+        "SPIKE-M `FAILED_PLUGIN_NOT_LIVE_DISCOVERABLE` | PASS",
         "业务 mutation：`0`",
         "Real Provider：`0`",
         "BRIDGE_IMPLEMENTATION:\nNOT_AUTHORIZED",

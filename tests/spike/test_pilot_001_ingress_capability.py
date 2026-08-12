@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -20,7 +21,13 @@ from tests.spike.pilot_001_ingress_capability.protocol import (
 from tests.spike.pilot_001_ingress_capability.supervisor import spawn_with_capability
 
 ROOT = Path(__file__).resolve().parents[2]
-PLUGIN = ROOT / ".hermes/plugins/platforms/wecom/adapter.py"
+FIXTURE_PLUGIN = (
+    ROOT
+    / "tests/spike/pilot_001_ingress_capability/fixtures/"
+    "hermes_project_plugin/platforms/wecom"
+)
+PLUGIN = FIXTURE_PLUGIN / "adapter.py"
+LIVE_PLUGIN = ROOT / ".hermes/plugins/platforms/wecom"
 HERMES_CORE = ROOT / "hermes_core"
 
 
@@ -33,13 +40,32 @@ def _valid_frame() -> dict[str, str]:
     }
 
 
-def test_spike_a_project_plugin_is_explicitly_non_product() -> None:
-    manifest = (PLUGIN.parent / "plugin.yaml").read_text(encoding="utf-8")
-    source = PLUGIN.read_text(encoding="utf-8")
+def test_spike_a_project_plugin_loads_only_from_projected_fixture(
+    tmp_path: Path,
+) -> None:
+    projected_root = tmp_path / ".hermes/plugins"
+    projected_plugin = projected_root / "platforms/wecom"
+    shutil.copytree(FIXTURE_PLUGIN, projected_plugin)
+
+    manifest = (projected_plugin / "plugin.yaml").read_text(encoding="utf-8")
+    source = (projected_plugin / "adapter.py").read_text(encoding="utf-8")
+    assert projected_plugin.is_dir()
     assert "PILOT_SPIKE_ONLY" in manifest
     assert "NOT_PRODUCT_RUNTIME" in manifest
     assert "def register(ctx" in source
     assert "bundled.register(ctx)" in source
+
+    if os.environ.get("PILOT001_RUN_HERMES_LOADER_PROBE") == "1":
+        from hermes_cli.plugins import PluginManager
+
+        manager = PluginManager()
+        discovered = manager._scan_directory(projected_root, source="project")
+        matches = [item for item in discovered if item.key == "platforms/wecom"]
+        assert len(matches) == 1
+        manager._load_plugin(matches[0])
+        loaded = manager._plugins["platforms/wecom"]
+        assert loaded.enabled is True
+        assert loaded.error is None
 
 
 def test_spike_b_authoritative_id_is_body_msgid_only() -> None:
@@ -181,3 +207,11 @@ def test_spike_k_l_no_business_or_hermes_core_implementation() -> None:
         "Ed25519",
     ):
         assert forbidden not in plugin
+
+
+def test_spike_m_failed_plugin_is_not_live_discoverable() -> None:
+    assert not LIVE_PLUGIN.exists()
+    assert FIXTURE_PLUGIN.is_dir()
+    manifest = (FIXTURE_PLUGIN / "plugin.yaml").read_text(encoding="utf-8")
+    assert "PILOT_SPIKE_ONLY" in manifest
+    assert "NOT_PRODUCT_RUNTIME" in manifest

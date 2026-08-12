@@ -1,4 +1,4 @@
-"""Self-contained anonymous capability client for the spike project plugin."""
+"""Self-contained anonymous capability client for the inert plugin fixture."""
 
 from __future__ import annotations
 

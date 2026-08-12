@@ -3,13 +3,16 @@
 - 任务：`PILOT-001-IB-IMP-A`
 - Base：`2e099aaf56b2160473e4db54397ec3864f9433ae`
 - 性质：`SECURITY / COMPATIBILITY SPIKE / LIMITED IMPLEMENTATION`
-- 结果：`STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / UNSUPPORTED`
+- 结果：`STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / CURRENT_PILOT_DEPLOYMENT_UNSUPPORTED`
 - 业务 mutation：`0`
 - Real Provider：`0`
 
 ## 最终结论
 
-当前真实 Pilot 部署不支持 RFC-033 / ADR-073 要求的同 OS 用户 signing-oracle isolation。虽然受信 supervisor
+当前真实 Pilot 部署不支持 RFC-033 / ADR-073 要求的同 OS 用户 signing-oracle isolation。该结论限定于已测试的
+Ubuntu/WSL2、same-UID 与当前 process-hardening topology，不表示 Option D 永久不可行、Linux 同 UID isolation
+普遍不可行或 RFC-033 / ADR-073 无效。RFC-033 保持 Adopted，ADR-073 保持 Accepted；Option D 设计基线保留，
+process isolation unresolved，完整实现未授权。虽然受信 supervisor
 可以用 `socketpair()` 建立单一、预连接、无名字、无 bearer 的 capability，且 gateway/plugin 在接管后设置
 close-on-exec，使普通 Agent/tool child 不继承该 FD；但 Ubuntu 24.04.4 WSL2 当前 kernel 没有 Yama LSM，独立启动的
 同 UID 进程可执行 `pidfd_open(gateway_pid)` + `pidfd_getfd(pidfd, capability_fd, 0)`，复制 gateway 持有的 endpoint，
@@ -41,7 +44,7 @@ bundled WeCom `_on_message()` 源码中位于 Agent dispatch 前，但 SPIKE-B �
 | Hermes 安装方式 | editable package `hermes-agent 0.20.0` |
 | Plugin discovery | bundled `<HERMES_INSTALL>/plugins/`; user `$HERMES_HOME/plugins/`; opt-in project `./.hermes/plugins/` |
 | 实际 bundled WeCom path | `<HERMES_INSTALL>/plugins/platforms/wecom/adapter.py` |
-| Spike project plugin | `./.hermes/plugins/platforms/wecom/adapter.py` |
+| Spike plugin 惰性 fixture | `tests/spike/pilot_001_ingress_capability/fixtures/hermes_project_plugin/platforms/wecom/` |
 | Gateway topology | systemd user manager → Hermes gateway → MCP watchdog → mock AI-Lab MCP |
 | Provider | mock / disabled credentials |
 
@@ -51,7 +54,8 @@ bundled WeCom `_on_message()` 源码中位于 Agent dispatch 前，但 SPIKE-B �
 
 Hermes v0.20.0 的 `kind: platform` user/project plugin 是正式 loader 路径；`PlatformRegistry.register()` 明确采用
 last-writer-wins。项目 plugin dry-run 在未修改 Hermes core、未修改 site-packages、未持久化更改现有 Hermes config 的
-条件下加载成功：
+条件下加载成功。R1 已从 live `./.hermes/plugins/platforms/wecom/` 删除失败 prototype；loader regression 只在临时
+目录中把惰性 fixture 显式投影为 `.hermes/plugins/platforms/wecom/`，随后调用真实 Hermes `PluginManager` 扫描和加载：
 
 ```text
 enabled=True
@@ -102,7 +106,8 @@ PILOT001_RUN_REAL_CAPABILITY_ATTACK=1 \
 <HERMES_PYTHON> -m pytest tests/spike/test_pilot_001_ingress_capability.py -q
 ```
 
-实际：`9 passed`。测试把“攻击成功”作为预期负面事实锁定，避免未来把 exploit 消失或复现失败误报成证据。
+Previous Security Evidence Head 实际：`9 passed`。R1 quarantine 后的真实 Hermes loader + active attack suite：
+`10 passed`。测试把“攻击成功”作为预期负面事实锁定，避免未来把 exploit 消失或复现失败误报成证据。
 
 | 攻击面 | 预期安全属性 | 实际 |
 |---|---|---|
@@ -119,7 +124,7 @@ PILOT001_RUN_REAL_CAPABILITY_ATTACK=1 \
 kernel headers 确认 `pidfd_open=434`、`pidfd_getfd=438`；`/proc/sys/kernel/yama/ptrace_scope` 不存在，说明当前 kernel
 没有 Yama 限制面。本任务不获授权修改 kernel、systemd sandbox、UID、namespace 或 LSM 配置来规避结果。
 
-## SPIKE-A 至 SPIKE-L
+## SPIKE-A 至 SPIKE-M
 
 | 场景 | 结果 | 证据结论 |
 |---|---|---|
@@ -135,12 +140,27 @@ kernel headers 确认 `pidfd_open=434`、`pidfd_getfd=438`；`/proc/sys/kernel/y
 | SPIKE-J `CAPABILITY_RESTART_INVALIDATES_OLD_ENDPOINT` | PASS / HARNESS | old pair 关闭后不可用；未重启真实 Hermes |
 | SPIKE-K `NO_BUSINESS_MUTATION` | PASS | mutation 0 |
 | SPIKE-L `NO_HERMES_CORE_SOURCE_CHANGE` | PASS | Hermes install/source 未修改 |
+| SPIKE-M `FAILED_PLUGIN_NOT_LIVE_DISCOVERABLE` | PASS | live `.hermes/plugins/platforms/wecom` 不存在；prototype 仅存于带双重非产品标记的惰性 fixture |
+
+## R1 失败 prototype 隔离
+
+普通 repository checkout 不再暴露可由 Hermes 自动发现的 WeCom override。保留的 fixture 明确标记
+`PILOT_SPIKE_ONLY / NOT_PRODUCT_RUNTIME`；只有测试显式复制到临时 project plugin root 时才参与 loader probe。
+攻击 harness、supervisor、issuer stub、gateway probe、FD bootstrap 与 protocol 均保留，以便复现已接受的负面安全事实。
 
 ## 禁止边界与最终状态
 
 ```text
 FINAL_CLASSIFICATION:
 UNSUPPORTED
+
+CURRENT_PILOT_DEPLOYMENT:
+UNSUPPORTED
+
+OPTION_D:
+DESIGN_BASELINE_RETAINED /
+PROCESS_ISOLATION_UNRESOLVED /
+FULL_IMPLEMENTATION_NOT_AUTHORIZED
 
 SIGNING_ORACLE_ISOLATION:
 NOT_PROVEN / FAILED_IN_REAL_PILOT_OS
