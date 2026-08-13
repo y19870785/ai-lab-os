@@ -1,11 +1,11 @@
 # Markdown 文档治理清单
 
-> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；DOCS-001 新增 3 份治理文档，REL-035 新增 4 份发布治理文档，STRAT-001 新增 5 份战略治理文档，STRAT-001A 新增 1 份对账文档，ARCH-001 新增 6 份架构规划文档，ARCH-001A、SP-021A 与 INT-001A 各新增 1 份自闭环对账文档，INT-001 新增 3 份实现与验收文档，PILOT-001 新增 3 份中文规划、验收与发现证据文档，PILOT-001-IBD 新增 4 份中文设计、验收与决策文档，PILOT-001-IB-IMP-A 新增 1 份中文安全 Spike 证据文档。标题、表格、乱码、长篇叙述和链接由治理测试动态扫描，当前没有排除项或未解决问题。
+> DOCS-001 使用 `git ls-files "*.md" "*.markdown"` 生成并核对本清单。初始语言统计保留任务开始时的 173 个文件基线；DOCS-001 新增 3 份治理文档，REL-035 新增 4 份发布治理文档，STRAT-001 新增 5 份战略治理文档，STRAT-001A 新增 1 份对账文档，ARCH-001 新增 6 份架构规划文档，ARCH-001A、SP-021A 与 INT-001A 各新增 1 份自闭环对账文档，INT-001 新增 3 份实现与验收文档，PILOT-001 新增 3 份中文规划、验收与发现证据文档，PILOT-001-IBD 新增 4 份中文设计、验收与决策文档，PILOT-001-IB-IMP-A 新增 1 份中文安全 Spike 证据文档，PILOT-001-P1A 新增 1 份中文内部可信确认验收文档。标题、表格、乱码、长篇叙述和链接由治理测试动态扫描，当前没有排除项或未解决问题。
 
 ## 汇总
 
-- Git 跟踪 Markdown：208
-- 仓库自有且纳入范围：208
+- Git 跟踪 Markdown：209
+- 仓库自有且纳入范围：209
 - 排除：0
 - 初始中文：93
 - 初始中英混合：41
@@ -48,6 +48,7 @@
 | `docs/acceptance/PILOT-001-phase0-hermes-wecom-discovery.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-P0R 新增 | — | 完成 |
 | `docs/acceptance/PILOT-001-ingress-evidence-bridge.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-IBD 新增 | — | 完成 |
 | `docs/acceptance/PILOT-001-IB-IMP-A-hermes-capability-spike.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-IB-IMP-A 新增 | — | 完成 |
+| `docs/acceptance/PILOT-001-P1A-internal-trusted-ingress-confirmation.md` | Acceptance | 是 | 中文 | 是 | PILOT-001-P1A 新增 | — | 完成 |
 | `docs/adr/000-template.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-001-core-layer-package-structure.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |
 | `docs/adr/ADR-002-message-bus-interface.md` | ADR | 是 | 中文 | 是 | 事实对账 | — | 完成 |

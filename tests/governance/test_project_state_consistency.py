@@ -2307,9 +2307,9 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 208
-    assert "- Git 跟踪 Markdown：208" in inventory
-    assert "- 仓库自有且纳入范围：208" in inventory
+    assert len(tracked_markdown) == 209
+    assert "- Git 跟踪 Markdown：209" in inventory
+    assert "- 仓库自有且纳入范围：209" in inventory
     assert "- 新增中文治理文档：33" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
