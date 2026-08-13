@@ -21,15 +21,19 @@ same-UID process 排除在内部测试威胁模型之外。
 - 默认 `.hermes/plugins/platforms/wecom/` 必须不存在。
 - Pilot plugin 只投影到临时 Hermes project，停止后删除。
 - WeCom event authority 只接受 `body.msgid`，缺失时不签发 Evidence。
-- issuer 独立持有 Ed25519 private key、event identity key、public key 与 content
-  binding key；MCP/AI-Lab verifier 只加载 public key、content binding key、可信
-  `issuer_key_id` 与 operator-provisioned opaque binding config，不具备 `issue()`。
+- issuer root 独立持有 Ed25519 private key、event identity key、issuance journal、public key 与
+  content binding key；MCP/AI-Lab runtime 只配置独立 verifier projection root。该 projection
+  仅包含 retained public verification keys、content binding key、trusted issuer allowlist 与
+  operator-provisioned opaque binding config，不包含 issuer root path，也不具备 `issue()`。
 - `TrustedIngressEvidenceEnvelopeV1` 使用 RFC 8785/JCS 签名，字段集合固定。
 - V1 wire value contract 固定为 `trusted-ingress-evidence/v1`、毫秒精度 UTC `Z`
   时间、`hmac-sha256:<lowercase hex>` 摘要与 `ed25519:<base64url-no-pad>` 签名；
   duplicate/unknown/missing field 与非 canonical value 均 fail closed。
 - issuer 以 `evidence_id` 为 key 保存最小 durable issuance journal；同一 event 重投和
   issuer restart 均返回首次 envelope，不刷新时间、不重签，冲突 payload fail closed。
+- signing-key rotation 只轮换 active signing key；event identity key、content binding、opaque
+  bindings 与 issuance journal 保持稳定。旧 public key 保留在 verifier allowlist；旧 event
+  redelivery 仍返回原 key 签发的 exact envelope，新 event 才使用新 active key。
 - Preview commit 后由 AI-Lab CSPRNG 生成一次性 challenge。
 - Evidence consume、challenge consume、Confirmation fact 与 Interaction CAS
   在同一 SQLite transaction 中完成。
@@ -77,6 +81,7 @@ exact four-tool assertion 后才执行 `python -m gateway.run`。底层 MCP cont
 | P1A-N | verifier 不加载 issuer private/identity key 且不能 mint Evidence |
 | P1A-O | 同一 event redelivery 返回首次 exact envelope，冲突 payload 拒绝 |
 | P1A-P | issuance journal 跨 issuer restart 返回首次 exact envelope |
+| P1A-Q | signing-key rotation 后旧 event 返回原 envelope，旧/新 key 均可验证 |
 
 R1 还覆盖 exact schema 对 unknown、missing、duplicate JSON field、wrong version、非 canonical
 timestamp、错误 digest 与 signature encoding 的拒绝。opaque binding 由 operator 执行 key
@@ -133,6 +138,42 @@ Signature: ed25519:<base64url without padding>
 Evidence verification: VERIFIED
 Evidence consumption: CONSUMED
 Confirmation: cnf_1948eb2a1198445cb0f3318022b9ce7b
+Interaction final state: AUTHORIZED / revision 3
+Canonical object: null
+Execution: NOT_STARTED
+UserTask: 3 -> 3
+AI-Lab Real Provider: 0
+```
+
+R1-REV1 将 MCP/AI-Lab verifier 改为独立 material projection root，并增加 signing-key rotation
+兼容性，因此再次执行一次真实内部 Message A/B 复验。第一次自然语言 Message A 因模型未能
+推断严格 UserTask schema 而被 policy 拒绝，未生成 Interaction、Confirmation 或 UserTask；
+随后使用明确的五字段 acceptance input 完成有效复验。该输入修正不属于安全边界降级。
+
+```text
+R1-REV1 Real Revalidation: PASSED
+Hermes actual model namespace: EXACT FOUR TOOLS
+MCP issuer root configured: NO
+MCP verifier projection root configured: YES
+Verifier projection forbidden material: ABSENT
+WeCom Pilot gateway after gate: CONNECTED
+Initial ambiguous Message A: INVALID_ACCEPTANCE_INPUT / ZERO MUTATION
+Valid Message A: PASS
+Interaction: int_8d9a16d7e8014ea9ad03abe4c655d063
+Preview: prv_2afc9304157b4b12b4bd9d46c5c814a4 / revision 1
+Canonical due_at: 2026-08-14T07:00:00+00:00
+Owner local presentation: 2026-08-14 15:00 Asia/Shanghai
+
+Fresh Message B: PASS
+Evidence: tie_szo5d6hbx25lbjggkzmvuiyhteyrangyriy72rnpblgqkin6xygq
+Evidence version: trusted-ingress-evidence/v1
+Timestamp wire: UTC / millisecond precision / Z
+Opaque bindings: acct_ / owner_ / conv_
+Content digest: hmac-sha256:<lowercase hex>
+Signature: ed25519:<base64url without padding>
+Evidence verification: VERIFIED
+Evidence consumption: CONSUMED
+Confirmation: cnf_3d40a10b45034774934035251476733b
 Interaction final state: AUTHORIZED / revision 3
 Canonical object: null
 Execution: NOT_STARTED

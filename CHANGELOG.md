@@ -2,6 +2,12 @@
 
 ### PILOT-001-P1A 内部可信入站确认 Pilot
 
+- R1-REV1 将 MCP/AI-Lab runtime 从 issuer secret root 移到独立 verifier projection root；
+  projection 只包含 retained public keys、content binding key、trusted issuer allowlist 与 opaque
+  bindings，不包含 signing private key、event identity key、issuance journal 或 issuer root path。
+- 完成 RFC-033 signing-key rotation replay：event identity/content/bindings/journal 跨 rotation
+  稳定；旧 event 返回原 key 签发的 exact envelope，旧 public key 保留用于验证，新 event 使用新
+  active key。该 closure 不改变 `FAILED_FOR_TESTED_TOPOLOGY / PROCESS_ISOLATION_UNRESOLVED`。
 - R1 按 Adopted V1 contract 拆分 `PilotIngressIssuerKeys` 与
   `PilotIngressVerifierKeys`：MCP/confirmation verifier 不加载 signing private key 或 event
   identity key，也不提供 mint API；account/Owner/conversation binding 改为 operator-provisioned

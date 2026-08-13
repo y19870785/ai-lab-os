@@ -82,6 +82,10 @@ Gateway startup fail-closed 路径。由于修改影响实际 startup/tool profi
 为 `VERIFIED / CONSUMED`；未启动 Execution/UserTask。
 Evidence 与 one-time challenge 原子单次消费，Interaction 仅到 `AUTHORIZED / NOT_STARTED`，
 UserTask 保持 `3 → 3`。该结论不解决同 UID process isolation，也不支持 Phase 1 Full。
+R1-REV1 进一步将 MCP runtime 配置改为独立 verifier-only projection root，并补齐 RFC-033
+signing-key rotation replay；旧 event 不重签，retained old public key 与 active new public key 均由
+verifier allowlist 验证。`SIGNING_ORACLE_ISOLATION = FAILED_FOR_TESTED_TOPOLOGY` 与
+`PROCESS_ISOLATION = UNRESOLVED` 保持不变。
 REL-036 未启动，版本、Tag 和 Release 未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
 与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge

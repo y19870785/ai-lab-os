@@ -52,6 +52,8 @@ def main() -> None:
     parser.add_argument("--ai-lab-env", type=Path, required=True)
     parser.add_argument("--hermes-env", type=Path, required=True)
     parser.add_argument("--data-dir", type=Path, required=True)
+    parser.add_argument("--issuer-root", type=Path)
+    parser.add_argument("--verifier-root", type=Path, required=True)
     parser.add_argument("--actor-id", required=True)
     parser.add_argument("--tenant-id", required=True)
     parser.add_argument("--workspace-id", required=True)
@@ -59,6 +61,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=0)
     args = parser.parse_args()
     os.environ["AI_LAB_DATA_DIR"] = str(args.data_dir)
+    os.environ["AI_LAB_PILOT_001_VERIFIER_ROOT"] = str(args.verifier_root)
     os.environ.update(
         {
             "AI_LAB_PILOT_001_ACTOR_ID": args.actor_id,
@@ -67,17 +70,26 @@ def main() -> None:
             "AI_LAB_PILOT_001_NAMESPACE": args.namespace,
         }
     )
-    data_dir = _load_pilot_environment(args.ai_lab_env, args.hermes_env)
+    _load_pilot_environment(args.ai_lab_env, args.hermes_env)
     if args.command == "init-keys":
         from applications.pilot_001_ingress_bridge.crypto import (
             PilotIngressIssuerKeys,
         )
 
-        keys = PilotIngressIssuerKeys.bootstrap(data_dir)
+        if args.issuer_root is None:
+            parser.error("init-keys requires --issuer-root")
+        os.environ["AI_LAB_PILOT_001_ISSUER_ROOT"] = str(args.issuer_root)
+        keys = PilotIngressIssuerKeys.bootstrap(
+            issuer_root=args.issuer_root,
+            verifier_root=args.verifier_root,
+        )
         print(f"Pilot ingress keys initialized: {keys.issuer_key_id}")
     elif args.command == "serve-issuer":
         from applications.pilot_001_ingress_bridge.issuer import _run_issuer
 
+        if args.issuer_root is None:
+            parser.error("serve-issuer requires --issuer-root")
+        os.environ["AI_LAB_PILOT_001_ISSUER_ROOT"] = str(args.issuer_root)
         asyncio.run(_run_issuer(None, port=args.port))
     else:
         from applications.pilot_001_ingress_bridge.mcp_server import _serve_stdio

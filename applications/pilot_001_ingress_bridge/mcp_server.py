@@ -106,7 +106,7 @@ def build_p1a_service(system, environ: dict[str, str] | None = None):
     if any(not value.strip() for value in required.values()):
         raise RuntimeError("P1A account, Owner, and conversation bindings are required")
     keys = PilotIngressVerifierKeys(
-        Path(source["AI_LAB_DATA_DIR"]) / "pilot-001" / "trusted-ingress"
+        Path(source["AI_LAB_PILOT_001_VERIFIER_ROOT"])
     )
     return Pilot001IngressConfirmationService(
         adapter=adapter,

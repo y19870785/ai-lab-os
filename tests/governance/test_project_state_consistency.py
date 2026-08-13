@@ -3199,8 +3199,11 @@ def test_pilot001_p1a_internal_confirmation_evidence_is_durable() -> None:
         "P1A-N",
         "P1A-O",
         "P1A-P",
+        "P1A-Q",
         "operator-provisioned opaque",
         "durable issuance journal",
+        "verifier projection root",
+        "signing-key rotation",
         "正式 `start-gateway` 路径",
     ):
         assert marker in acceptance

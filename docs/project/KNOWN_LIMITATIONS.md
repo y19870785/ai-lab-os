@@ -14,6 +14,9 @@ WeCom 验收停在 `AUTHORIZED / NOT_STARTED`，未创建 UserTask。它不改�
 `UNSUPPORTED`、process isolation unresolved 与通用 Fresh Owner Evidence unsupported。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或
 general availability。
+R1-REV1 的 verifier-only deployment projection 与 signing-key rotation replay 只关闭
+configuration/key-projection ownership 及 RFC-033 replay contract；它不隔离 hostile same-UID
+process，不改变 `FAILED_FOR_TESTED_TOPOLOGY / PROCESS_ISOLATION_UNRESOLVED`。
 
 ## 产品与数据边界
 

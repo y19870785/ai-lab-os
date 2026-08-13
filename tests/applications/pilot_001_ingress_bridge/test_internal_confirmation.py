@@ -23,6 +23,7 @@ from applications.pilot_001_ingress_bridge.launcher import (
 from applications.pilot_001_ingress_bridge.mcp_server import (
     PILOT_TOOL_NAMES,
     build_p1a_mcp_server,
+    build_p1a_service,
 )
 from applications.pilot_001_ingress_bridge.models import (
     ENVELOPE_FIELDS,
@@ -47,6 +48,7 @@ CONVERSATION = "owner-dm-secret"
 
 
 def environment(data_dir) -> dict[str, str]:
+    verifier_root = data_dir / "pilot-001" / "trusted-ingress-verifier"
     return {
         "AI_LAB_PILOT_001_MODE": "internal_trusted_ingress_confirmation",
         "AI_LAB_PILOT_001_EXPECTED_SHELL": "hermes",
@@ -59,7 +61,24 @@ def environment(data_dir) -> dict[str, str]:
         "AI_LAB_PILOT_001_CHANNEL_ACCOUNT_ID": ACCOUNT,
         "AI_LAB_PILOT_001_CONVERSATION_ID": CONVERSATION,
         "AI_LAB_DATA_DIR": str(data_dir),
+        "AI_LAB_PILOT_001_VERIFIER_ROOT": str(verifier_root),
     }
+
+
+def key_roots(data_dir):
+    return (
+        data_dir / "pilot-001" / "trusted-ingress-issuer",
+        data_dir / "pilot-001" / "trusted-ingress-verifier",
+    )
+
+
+def bootstrap_keys(data_dir):
+    issuer_root, verifier_root = key_roots(data_dir)
+    issuer = PilotIngressIssuerKeys.bootstrap(
+        issuer_root=issuer_root,
+        verifier_root=verifier_root,
+    )
+    return issuer, PilotIngressVerifierKeys(verifier_root)
 
 
 def parameters() -> dict[str, object]:
@@ -76,8 +95,7 @@ async def composition(tmp_path):
     system = await create_system(make_test_settings(tmp_path))
     await system.start()
     env = environment(tmp_path)
-    issuer_keys = PilotIngressIssuerKeys.bootstrap(tmp_path)
-    verifier_keys = PilotIngressVerifierKeys(issuer_keys.root)
+    issuer_keys, verifier_keys = bootstrap_keys(tmp_path)
     service = Pilot001IngressConfirmationService(
         adapter=build_pilot_001_adapter(system.interaction_service, env),
         interactions=system.interaction_service,
@@ -306,12 +324,24 @@ async def test_p1a_k_consumption_survives_ai_lab_restart(tmp_path):
 
 
 async def test_p1a_n_verifier_cannot_mint_or_load_issuer_secrets(tmp_path):
-    issuer = PilotIngressIssuerKeys.bootstrap(tmp_path)
-    verifier = PilotIngressVerifierKeys(issuer.root)
+    issuer, verifier = bootstrap_keys(tmp_path)
+    issuer_root, verifier_root = key_roots(tmp_path)
+    assert issuer.root == issuer_root
+    assert verifier.root == verifier_root
+    assert issuer.root != verifier.root
+    assert {path.name for path in verifier.root.iterdir()} == {
+        "bindings.json",
+        "content_binding.key",
+        "public_keys",
+        "trusted_issuers.json",
+    }
+    assert not (verifier.root / "signing_private.key").exists()
+    assert not (verifier.root / "event_identity.key").exists()
+    assert not (verifier.root / "issuance.sqlite3").exists()
     assert not hasattr(verifier, "issue")
     assert not hasattr(verifier, "private_key")
     assert not hasattr(verifier, "event_identity_key")
-    assert verifier.trusted_issuer_key_id == issuer.issuer_key_id
+    assert verifier.active_issuer_key_id == issuer.issuer_key_id
     assert ACCOUNT not in verifier.bindings.channel_account_binding_id
     assert OWNER not in verifier.bindings.owner_binding_id
     assert CONVERSATION not in verifier.bindings.conversation_binding_id
@@ -321,6 +351,8 @@ async def test_p1a_n_verifier_cannot_mint_or_load_issuer_secrets(tmp_path):
     assert "PilotIngressIssuerKeys" not in mcp_source
     assert "signing_private.key" not in mcp_source
     assert "event_identity.key" not in mcp_source
+    assert "AI_LAB_PILOT_001_VERIFIER_ROOT" in mcp_source
+    assert "trusted-ingress\"" not in mcp_source
     runtime_source = __import__("pathlib").Path(
         "applications/pilot_001_ingress_bridge/runtime.py"
     ).read_text(encoding="utf-8")
@@ -331,9 +363,19 @@ async def test_p1a_n_verifier_cannot_mint_or_load_issuer_secrets(tmp_path):
         "PilotIngressIssuerKeys"
     )
 
+    system = await create_system(make_test_settings(tmp_path / "runtime"))
+    await system.start()
+    try:
+        runtime = build_p1a_service(system, environment(tmp_path))
+        assert runtime._keys.root == verifier_root
+        assert runtime._keys.root != issuer_root
+        assert not hasattr(runtime._keys, "issue")
+    finally:
+        await system.shutdown()
+
 
 async def test_p1a_v1_exact_wire_contract_rejects_noncanonical_inputs(tmp_path):
-    issuer = PilotIngressIssuerKeys.bootstrap(tmp_path)
+    issuer, _ = bootstrap_keys(tmp_path)
     envelope = issuer.issue(raw_wecom_msgid="wire-1", text="确认 A1B2-C3D4")
     wire = envelope.model_dump_json()
     assert parse_envelope_json(wire) == envelope
@@ -363,7 +405,7 @@ async def test_p1a_v1_exact_wire_contract_rejects_noncanonical_inputs(tmp_path):
 
 
 async def test_p1a_o_duplicate_event_returns_original_envelope(tmp_path):
-    issuer = PilotIngressIssuerKeys.bootstrap(tmp_path)
+    issuer, _ = bootstrap_keys(tmp_path)
     first = issuer.issue(
         raw_wecom_msgid="redelivery", text="确认 A1B2-C3D4", received_at=datetime.now(UTC)
     )
@@ -378,7 +420,7 @@ async def test_p1a_o_duplicate_event_returns_original_envelope(tmp_path):
 
 
 async def test_p1a_p_issuance_journal_restart_safe(tmp_path):
-    first_issuer = PilotIngressIssuerKeys.bootstrap(tmp_path)
+    first_issuer, _ = bootstrap_keys(tmp_path)
     first = first_issuer.issue(raw_wecom_msgid="journal-restart", text="确认 E5F6-A7B8")
     restarted_issuer = PilotIngressIssuerKeys(first_issuer.root)
     restarted = restarted_issuer.issue(
@@ -387,6 +429,42 @@ async def test_p1a_p_issuance_journal_restart_safe(tmp_path):
         received_at=datetime.now(UTC) + timedelta(minutes=2),
     )
     assert restarted.model_dump_json() == first.model_dump_json()
+
+
+async def test_p1a_q_signing_key_rotation_returns_original_envelope(tmp_path):
+    issuer_a, verifier = bootstrap_keys(tmp_path)
+    issuer_root, verifier_root = key_roots(tmp_path)
+    first = issuer_a.issue(raw_wecom_msgid="rotation-old", text="确认 A1B2-C3D4")
+    verifier.verify(first)
+
+    identity_before = (issuer_root / "event_identity.key").read_bytes()
+    content_before = (issuer_root / "content_binding.key").read_bytes()
+    bindings_before = (issuer_root / "bindings.json").read_bytes()
+    journal_before = issuer_a._journal_path
+    issuer_b = issuer_a.rotate_signing_key(verifier_root)
+
+    assert issuer_b.issuer_key_id != issuer_a.issuer_key_id
+    assert (issuer_root / "event_identity.key").read_bytes() == identity_before
+    assert (issuer_root / "content_binding.key").read_bytes() == content_before
+    assert (issuer_root / "bindings.json").read_bytes() == bindings_before
+    assert issuer_b._journal_path == journal_before
+
+    redelivery = issuer_b.issue(
+        raw_wecom_msgid="rotation-old",
+        text="确认 A1B2-C3D4",
+        received_at=datetime.now(UTC) + timedelta(minutes=1),
+    )
+    assert redelivery.model_dump_json() == first.model_dump_json()
+    assert redelivery.issuer_key_id == issuer_a.issuer_key_id
+
+    verifier.verify(first)
+    new = issuer_b.issue(raw_wecom_msgid="rotation-new", text="确认 E5F6-A7B8")
+    assert new.issuer_key_id == issuer_b.issuer_key_id
+    verifier.verify(new)
+    assert set(verifier.public_keys) == {
+        issuer_a.issuer_key_id,
+        issuer_b.issuer_key_id,
+    }
 
 
 async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(

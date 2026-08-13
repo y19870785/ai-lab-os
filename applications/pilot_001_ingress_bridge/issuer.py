@@ -23,9 +23,7 @@ async def _run_issuer(
     system = await create_system(settings)
     await system.start()
     pilot = build_p1a_service(system)
-    keys = PilotIngressIssuerKeys(
-        Path(os.environ["AI_LAB_DATA_DIR"]) / "pilot-001" / "trusted-ingress"
-    )
+    keys = PilotIngressIssuerKeys(Path(os.environ["AI_LAB_PILOT_001_ISSUER_ROOT"]))
 
     async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         try:
@@ -83,9 +81,11 @@ def main() -> None:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=0)
     args = parser.parse_args()
-    data_dir = Path(os.environ["AI_LAB_DATA_DIR"])
     if args.command == "init-pilot-ingress-keys":
-        keys = PilotIngressIssuerKeys.bootstrap(data_dir)
+        keys = PilotIngressIssuerKeys.bootstrap(
+            issuer_root=Path(os.environ["AI_LAB_PILOT_001_ISSUER_ROOT"]),
+            verifier_root=Path(os.environ["AI_LAB_PILOT_001_VERIFIER_ROOT"]),
+        )
         print(f"Pilot ingress keys initialized: {keys.issuer_key_id}")
         return
     if args.socket is None and args.port <= 0:
