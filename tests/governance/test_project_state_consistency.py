@@ -3195,6 +3195,13 @@ def test_pilot001_p1a_internal_confirmation_evidence_is_durable() -> None:
         "AI-Lab Real Provider: 0",
         "trusted_confirmation.validation_denied",
         "INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN",
+        "PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED",
+        "P1A-N",
+        "P1A-O",
+        "P1A-P",
+        "operator-provisioned opaque",
+        "durable issuance journal",
+        "正式 `start-gateway` 路径",
     ):
         assert marker in acceptance
     assert not (ROOT / ".hermes/plugins/platforms/wecom").exists()

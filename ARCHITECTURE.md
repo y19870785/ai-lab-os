@@ -7,7 +7,12 @@
 > same-UID process，IB-IMP-A 的 `INGRESS_PROCESS_ISOLATION_UNRESOLVED` 保持有效。
 > 2026-08-13 的真实内部链路已证明 Preview-before-event、内容绑定、过期/拼错
 > challenge fail-closed，以及 Evidence/challenge/Confirmation/CAS 原子提交；最终状态仅为
-> `AUTHORIZED / NOT_STARTED`，不构成生产或通用可信入站支持。
+> `AUTHORIZED / NOT_STARTED`。原结果保留为 `PRE_R1_REAL_EVIDENCE`；R1 将 issuer private/
+> identity key 与 MCP verifier 物理拆分，binding 改为 operator-provisioned opaque ID，
+> 以 durable journal 固定首次 envelope，并在 Gateway 启动前调用 Hermes 自身 resolver
+> 验证 exact four-tool namespace。由于 R1 影响实际 startup 与 wire compatibility，已追加一次
+> 真实内部 Message A/B 复验：strict V1 Evidence 为 `VERIFIED / CONSUMED`，Interaction 仍只到
+> `AUTHORIZED / NOT_STARTED`，UserTask 零增量。它仍不构成生产或通用可信入站支持。
 
 > 当前工作：None。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
 > PILOT-001-IBD 设计已通过最终独立规划审查；Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。

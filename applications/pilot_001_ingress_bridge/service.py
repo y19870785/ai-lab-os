@@ -10,12 +10,11 @@ from datetime import UTC, datetime, timedelta
 from applications.pilot_001_ingress_bridge.crypto import (
     CHANNEL,
     EVENT_TYPE,
-    PilotIngressKeys,
+    PilotIngressVerifierKeys,
     content_digest,
+    parse_timestamp,
 )
-from applications.pilot_001_ingress_bridge.models import (
-    TrustedIngressEvidenceEnvelopeV1,
-)
+from applications.pilot_001_ingress_bridge.models import parse_envelope_json
 from applications.trusted_interaction_adapter.models import ShellAssertion
 from applications.trusted_interaction_adapter.pilot_001 import ALLOWED_OPERATION
 from applications.trusted_interaction_adapter.service import TrustedInteractionAdapter
@@ -35,7 +34,7 @@ class Pilot001IngressConfirmationService:
 
     def __init__(
         self, *, adapter: TrustedInteractionAdapter,
-        interactions: InteractionService, keys: PilotIngressKeys,
+        interactions: InteractionService, keys: PilotIngressVerifierKeys,
         authority: PilotIngressAuthority,
     ) -> None:
         self._adapter = adapter
@@ -68,9 +67,10 @@ class Pilot001IngressConfirmationService:
         )
 
     async def accept_evidence(
-        self, envelope: TrustedIngressEvidenceEnvelopeV1,
+        self, envelope_wire: str,
     ) -> str:
         try:
+            envelope = parse_envelope_json(envelope_wire)
             self._keys.verify(envelope)
         except Exception as exc:
             raise self._failure(
@@ -78,11 +78,7 @@ class Pilot001IngressConfirmationService:
                 "Trusted ingress signature validation failed",
                 "accept_evidence",
             ) from exc
-        expected = self._keys.expected_bindings(
-            raw_account_id=self._authority.raw_account_id,
-            raw_owner_id=self._authority.raw_owner_id,
-            raw_conversation_id=self._authority.raw_conversation_id,
-        )
+        expected = self._keys.bindings.tuple()
         actual = (
             envelope.channel_account_binding_id,
             envelope.owner_binding_id,
@@ -94,7 +90,7 @@ class Pilot001IngressConfirmationService:
                 "Trusted ingress channel or configured binding does not match",
                 "accept_evidence",
             )
-        payload = envelope.model_dump_json()
+        payload = envelope_wire
         await self._repository.store_trusted_ingress_evidence(
             evidence_id=envelope.evidence_id,
             payload=payload,
@@ -175,8 +171,8 @@ class Pilot001IngressConfirmationService:
                 "Fresh trusted ingress evidence and challenge are required",
                 "confirm",
             )
-        envelope = TrustedIngressEvidenceEnvelopeV1.model_validate_json(record["payload"])
         try:
+            envelope = parse_envelope_json(str(record["payload"]))
             self._keys.verify(envelope)
         except Exception as exc:
             raise self._failure(
@@ -185,15 +181,11 @@ class Pilot001IngressConfirmationService:
                 "confirm",
             ) from exc
         now = datetime.now(UTC)
-        received_at = envelope.received_at.astimezone(UTC)
+        received_at = parse_timestamp(envelope.received_at)
         accepted_at = datetime.fromisoformat(str(record["accepted_at"])).astimezone(UTC)
         challenge_created = datetime.fromisoformat(str(challenge["created_at"])).astimezone(UTC)
         challenge_expires = datetime.fromisoformat(str(challenge["expires_at"])).astimezone(UTC)
-        expected_bindings = self._keys.expected_bindings(
-            raw_account_id=self._authority.raw_account_id,
-            raw_owner_id=self._authority.raw_owner_id,
-            raw_conversation_id=self._authority.raw_conversation_id,
-        )
+        expected_bindings = self._keys.bindings.tuple()
         actual_bindings = (
             envelope.channel_account_binding_id,
             envelope.owner_binding_id,
@@ -209,7 +201,7 @@ class Pilot001IngressConfirmationService:
             received_at > preview.created_at,
             accepted_at > preview.created_at,
             challenge_created > preview.created_at,
-            now < envelope.expires_at.astimezone(UTC),
+            now < parse_timestamp(envelope.expires_at),
             now < challenge_expires,
             int(challenge["preview_revision"]) == preview.preview_revision,
             int(challenge["interaction_revision"]) == expected_revision,

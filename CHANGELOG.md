@@ -2,6 +2,18 @@
 
 ### PILOT-001-P1A 内部可信入站确认 Pilot
 
+- R1 按 Adopted V1 contract 拆分 `PilotIngressIssuerKeys` 与
+  `PilotIngressVerifierKeys`：MCP/confirmation verifier 不加载 signing private key 或 event
+  identity key，也不提供 mint API；account/Owner/conversation binding 改为 operator-provisioned
+  random opaque ID。
+- R1 固定 canonical wire value、拒绝 duplicate/unknown/missing/noncanonical input，新增以
+  `evidence_id` 为 key 的 durable issuance journal，并把 Hermes-native actual model namespace
+  resolution 接入正式 Gateway startup gate。
+- 既有真实 WeCom 正向结果保留为
+  `PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`；因 R1 影响实际 Hermes startup/tool
+  profile 与 Evidence wire compatibility，追加一次真实内部 Message A/B 复验。strict V1
+  Evidence 为 `VERIFIED / CONSUMED`，Interaction 仅到 `AUTHORIZED / NOT_STARTED`，UserTask
+  保持 `3 → 3`，AI-Lab Real Provider 为 0。
 - 在 `PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE` 下新增 Pilot-only Ed25519/JCS
   Evidence、Preview challenge、单次消费与 canonical Confirmation 边界。
 - Hermes 模型工具面被限定为四个 AI-Lab MCP tool，默认 live WeCom override

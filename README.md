@@ -1,6 +1,11 @@
 # AI-Lab OS 中文使用说明
 
-> PILOT-001-P1A 已在独立 Draft PR 中完成一次真实 WeCom Owner 内部确认闭环：
+> PILOT-001-P1A 已在独立 Draft PR 中保留
+> `PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`，并完成一次 R1 真实内部复验。
+> R1 已拆分 issuer/verifier key、
+> 收紧 V1 canonical wire contract、增加 restart-safe issuance journal，并把 Hermes actual
+> four-tool namespace resolution 接入正式 Gateway startup fail-closed 路径；实际 WeCom
+> Gateway 只在 exact namespace 通过后连接，strict V1 Evidence 已验证并消费：
 > Fresh Evidence 与 one-time challenge 被原子消费，Interaction 仅推进到 `AUTHORIZED`，
 > UserTask 与 Execution 均为零增量。该结论仅适用于本机可信 host；同 UID process
 > isolation 仍未解决，Phase 1 Full、Phase 2 与真实业务 mutation 均未授权。

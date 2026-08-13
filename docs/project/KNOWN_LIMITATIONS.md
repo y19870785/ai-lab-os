@@ -7,6 +7,9 @@ Current Product SP、Governance Task 与工作均为 None。P0-R 已实现并通
 ACC-021 最终验收与治理对账，并已封存。
 IB-IMP-A Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence baseline 已批准；尚未测试任何 isolation mitigation。
 P1A 仅证明本机可信 host 且模型无任意进程能力时的内部 Fresh Confirmation；真实
+原始正向结果属于 `PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`。R1 的 strict V1
+wire、key split、issuance journal 与 runtime startup gate 已由自动化和一次新的真实内部
+Message A/B 复验覆盖；
 WeCom 验收停在 `AUTHORIZED / NOT_STARTED`，未创建 UserTask。它不改变上述生产部署
 `UNSUPPORTED`、process isolation unresolved 与通用 Fresh Owner Evidence unsupported。
 该 Alpha Pre-release 仍不是 production-ready、enterprise-ready、stable release 或

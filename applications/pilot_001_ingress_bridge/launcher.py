@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -14,6 +17,9 @@ EXPECTED_MODEL_TOOL_SUFFIXES = (
     "ai_lab_interaction_status",
     "ai_lab_interaction_view",
     "ai_lab_interaction_confirm",
+)
+EXPECTED_MODEL_TOOL_NAMES = tuple(
+    f"mcp__ai_lab_p1a__{name}" for name in EXPECTED_MODEL_TOOL_SUFFIXES
 )
 FORBIDDEN_MODEL_TOOL_TOKENS = (
     "terminal", "process", "shell", "powershell", "python", "computer",
@@ -36,12 +42,82 @@ def build_gateway_command(hermes_python: str) -> list[str]:
 def enforce_model_tool_profile(tool_names: list[str]) -> None:
     """Fail closed unless the Hermes-visible namespace is exactly four tools."""
 
-    suffixes = tuple(name.rsplit("__", 1)[-1] for name in tool_names)
-    if set(suffixes) != set(EXPECTED_MODEL_TOOL_SUFFIXES) or len(tool_names) != 4:
-        raise RuntimeError("INTERNAL_PILOT_TOOL_ISOLATION_UNPROVEN")
+    if set(tool_names) != set(EXPECTED_MODEL_TOOL_NAMES) or len(tool_names) != 4:
+        raise RuntimeError(
+            "INTERNAL_PILOT_TOOL_ISOLATION_UNPROVEN: "
+            + json.dumps(sorted(tool_names), separators=(",", ":"))
+        )
     lowered = [name.casefold() for name in tool_names]
     if any(token in name for token in FORBIDDEN_MODEL_TOOL_TOKENS for name in lowered):
+        raise RuntimeError(
+            "INTERNAL_PILOT_TOOL_ISOLATION_UNPROVEN: forbidden token in namespace"
+        )
+
+
+def resolve_hermes_model_tools(
+    hermes_python: str, *, project: Path, environ: dict[str, str]
+) -> list[str]:
+    """Ask the installed Hermes runtime for its actual WeCom model namespace."""
+
+    probe = Path(__file__).with_name("hermes_tool_probe.py")
+    completed = subprocess.run(
+        [hermes_python, str(probe)],
+        cwd=project,
+        env=environ,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    try:
+        names = json.loads(completed.stdout.strip().splitlines()[-1])
+    except (IndexError, json.JSONDecodeError) as exc:
+        raise RuntimeError("INTERNAL_PILOT_TOOL_ISOLATION_UNPROVEN") from exc
+    if not isinstance(names, list) or not all(isinstance(name, str) for name in names):
         raise RuntimeError("INTERNAL_PILOT_TOOL_ISOLATION_UNPROVEN")
+    if not names:
+        diagnostic = completed.stderr.strip()[-2000:]
+        mcp_log = project / ".hermes-home" / "logs" / "mcp-stderr.log"
+        if mcp_log.is_file():
+            diagnostic += "\nMCP stderr:\n" + mcp_log.read_text(
+                encoding="utf-8", errors="replace"
+            )[-4000:]
+        raise RuntimeError(
+            "INTERNAL_PILOT_TOOL_ISOLATION_UNPROVEN: empty Hermes namespace; "
+            + diagnostic
+        )
+    return names
+
+
+def run_pilot_gateway(
+    *, source_hermes_home: Path, hermes_python: str, mcp_command: list[str],
+) -> None:
+    """Prepare, resolve, gate, then and only then start the Pilot gateway."""
+
+    project = prepare_temporary_project(
+        source_hermes_home=source_hermes_home,
+        mcp_command=mcp_command,
+    )
+    environ = os.environ.copy()
+    environ.update(
+        {
+            "HERMES_HOME": str(project / ".hermes-home"),
+            "HERMES_ENABLE_PROJECT_PLUGINS": "1",
+        }
+    )
+    try:
+        names = resolve_hermes_model_tools(
+            hermes_python, project=project, environ=environ
+        )
+        enforce_model_tool_profile(names)
+        print("INTERNAL_PILOT_TOOL_ALLOWLIST_EXACT", flush=True)
+        subprocess.run(
+            build_gateway_command(hermes_python),
+            cwd=project,
+            env=environ,
+            check=True,
+        )
+    finally:
+        cleanup_temporary_project(project)
 
 
 def prepare_temporary_project(
@@ -114,11 +190,28 @@ def cleanup_temporary_project(project: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("verify-tools",))
-    parser.add_argument("tools", nargs="*")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    verify = subparsers.add_parser("verify-tools")
+    verify.add_argument("tools", nargs="*")
+    start = subparsers.add_parser("start-gateway")
+    start.add_argument("--source-hermes-home", type=Path, required=True)
+    start.add_argument("--hermes-python", required=True)
+    start.add_argument("mcp_command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
-    enforce_model_tool_profile(args.tools)
-    print("INTERNAL_PILOT_TOOL_ALLOWLIST_EXACT")
+    if args.command == "verify-tools":
+        enforce_model_tool_profile(args.tools)
+        print("INTERNAL_PILOT_TOOL_ALLOWLIST_EXACT")
+    else:
+        mcp_command = list(args.mcp_command)
+        if mcp_command[:1] == ["--"]:
+            mcp_command.pop(0)
+        if not mcp_command:
+            parser.error("start-gateway requires MCP argv after --")
+        run_pilot_gateway(
+            source_hermes_home=args.source_hermes_home,
+            hermes_python=args.hermes_python,
+            mcp_command=mcp_command,
+        )
 
 
 if __name__ == "__main__":

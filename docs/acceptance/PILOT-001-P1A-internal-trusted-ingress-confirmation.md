@@ -21,9 +21,15 @@ same-UID process 排除在内部测试威胁模型之外。
 - 默认 `.hermes/plugins/platforms/wecom/` 必须不存在。
 - Pilot plugin 只投影到临时 Hermes project，停止后删除。
 - WeCom event authority 只接受 `body.msgid`，缺失时不签发 Evidence。
-- issuer 独立持有 Ed25519 private key、event identity key 与 content binding
-  key；Hermes/LLM 只得到 opaque `evidence_id`。
+- issuer 独立持有 Ed25519 private key、event identity key、public key 与 content
+  binding key；MCP/AI-Lab verifier 只加载 public key、content binding key、可信
+  `issuer_key_id` 与 operator-provisioned opaque binding config，不具备 `issue()`。
 - `TrustedIngressEvidenceEnvelopeV1` 使用 RFC 8785/JCS 签名，字段集合固定。
+- V1 wire value contract 固定为 `trusted-ingress-evidence/v1`、毫秒精度 UTC `Z`
+  时间、`hmac-sha256:<lowercase hex>` 摘要与 `ed25519:<base64url-no-pad>` 签名；
+  duplicate/unknown/missing field 与非 canonical value 均 fail closed。
+- issuer 以 `evidence_id` 为 key 保存最小 durable issuance journal；同一 event 重投和
+  issuer restart 均返回首次 envelope，不刷新时间、不重签，冲突 payload fail closed。
 - Preview commit 后由 AI-Lab CSPRNG 生成一次性 challenge。
 - Evidence consume、challenge consume、Confirmation fact 与 Interaction CAS
   在同一 SQLite transaction 中完成。
@@ -43,7 +49,10 @@ mcp__ai_lab_p1a__ai_lab_interaction_view
 mcp__ai_lab_p1a__ai_lab_interaction_confirm
 ```
 
-底层 MCP contract 名仍精确为任务书规定的四个 `ai_lab_interaction_*` 名称。
+正式 `start-gateway` 路径先创建临时 profile，再调用已安装 Hermes 自身的 MCP discovery、
+WeCom platform toolset resolution 与 model schema resolver。只有 actual namespace 通过
+exact four-tool assertion 后才执行 `python -m gateway.run`。底层 MCP contract 名仍精确为
+任务书规定的四个 `ai_lab_interaction_*` 名称。
 任何 `terminal`、`process`、文件写入、browser、generic code execution、
 `tool_search/tool_call` 或额外 AI-Lab tool 出现时，必须停止为
 `INTERNAL_PILOT_TOOL_ISOLATION_UNPROVEN`。
@@ -65,11 +74,21 @@ mcp__ai_lab_p1a__ai_lab_interaction_confirm
 | P1A-K | consumption 持久化，不依赖进程内 cache |
 | P1A-L | UserTask mutation 为 0 |
 | P1A-M | real Provider call 为 0 |
+| P1A-N | verifier 不加载 issuer private/identity key 且不能 mint Evidence |
+| P1A-O | 同一 event redelivery 返回首次 exact envelope，冲突 payload 拒绝 |
+| P1A-P | issuance journal 跨 issuer restart 返回首次 exact envelope |
+
+R1 还覆盖 exact schema 对 unknown、missing、duplicate JSON field、wrong version、非 canonical
+timestamp、错误 digest 与 signature encoding 的拒绝。opaque binding 由 operator 执行 key
+bootstrap 时随机 provision，不从 raw account/Owner/conversation ID 派生。
 
 ## 5. 真实 WeCom 验收状态
 
-2026-08-13 在全部自动测试与 Hermes 四工具闸门通过后，执行了真实单 Owner WeCom
-内部验收。脱敏结果如下：
+第一次 2026-08-13 单 Owner WeCom 结果属于
+`PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`。它证明真实 Message A/B、
+Preview/challenge/Confirmation/atomic consume 与零业务 mutation 链路，但发生在 R1 strict
+wire contract、key split、issuance journal 与正式 startup gate 合入前；不得作为 R1 wire
+compatibility 的真实实测声明。脱敏历史结果如下：
 
 ```text
 Security profile: PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE
@@ -92,6 +111,39 @@ UserTask: 3 -> 3
 AI-Lab Real Provider: 0
 ```
 
+R1 修改会影响实际 Hermes startup/tool profile 与 Evidence wire compatibility，因此按任务书
+执行了一次新的内部 Message A/B 复验，但仍未创建 UserTask 或进入 Execution。脱敏结果如下：
+
+```text
+R1 Real Revalidation: PASSED
+Hermes actual model namespace: EXACT FOUR TOOLS
+WeCom Pilot gateway after gate: CONNECTED
+Message A: PASS
+Interaction: int_c979c1675b824dcc81ff42b59650f9a3
+Preview: prv_6cd1b1da98de4cd29bed8b4814efb552 / revision 1
+Canonical due_at: 2026-08-14T07:00:00+00:00
+Owner local presentation: 2026-08-14 15:00 Asia/Shanghai
+
+Message B: PASS
+Evidence version: trusted-ingress-evidence/v1
+Timestamp wire: UTC / millisecond precision / Z
+Opaque bindings: acct_ / owner_ / conv_
+Content digest: hmac-sha256:<lowercase hex>
+Signature: ed25519:<base64url without padding>
+Evidence verification: VERIFIED
+Evidence consumption: CONSUMED
+Confirmation: cnf_1948eb2a1198445cb0f3318022b9ce7b
+Interaction final state: AUTHORIZED / revision 3
+Canonical object: null
+Execution: NOT_STARTED
+UserTask: 3 -> 3
+AI-Lab Real Provider: 0
+```
+
+R1 现场启动还验证了默认 Hermes 在临时 Pilot 结束后恢复为 `active`，其
+`WorkingDirectory` 与 `HERMES_HOME` 均保持 `/home/hechao/.hermes`。临时 project 与临时
+进程已经移除；默认 live `.hermes/plugins/platforms/wecom` 仍不得存在。
+
 第一次预验收启动曾遗漏 nested project plugin 的显式 opt-in，canonical evidence 数为
 `0`，因此该轮被判为无效并停止；未创建 Confirmation 或 UserTask。修订后临时 profile
 显式启用 `platforms/wecom`，现场注册模块为
@@ -105,7 +157,9 @@ CLI 路径，临时 Pilot 不再改写默认 service。
 `trusted_confirmation.validation_denied`，Evidence 保持 `UNUSED`。随后 AI-Lab 轮换新
 challenge；拼错文本再次被拒且 Evidence 未消费。最终精确的新 Owner 消息在 Preview
 之后到达，Evidence、challenge、Confirmation 与 Interaction CAS 在同一事务中消费并
-提交。该结果只升级为 `INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN`，等待独立审查。
+提交。该历史结果只升级为 `INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN`。R1 进一步通过
+自动化与一次新的真实内部复验关闭 canonical contract、authority boundary、actual startup
+namespace 与 wire compatibility 证据，等待独立复审。
 
 ## 6. 长期禁止结论
 

@@ -74,6 +74,12 @@ validation suite 意外执行真实 Provider，因而被 QUALITY-004 阻断；�
 isolation unresolved。Phase 0 停止并等待隔离方案另行授权，Phase 1、Phase 2 与真实业务 mutation 未授权。
 IB-IMP-A Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence baseline 已批准；未测试 mitigation。
 PILOT-001-P1A 已在本机可信 host profile 下完成真实 WeCom Message A/Message B 内部验收：
+原现场结果标记为 `PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`。R1 已按 Adopted
+V1 contract 拆分 issuer/verifier authority、改用 operator-provisioned opaque bindings、增加
+restart-safe issuance journal，并把 Hermes actual four-tool namespace resolution 接入正式
+Gateway startup fail-closed 路径。由于修改影响实际 startup/tool profile 与 Evidence wire，已追加
+一次真实内部 Message A/B 复验：exact four-tool gate 先于 WeCom connection，strict V1 Evidence
+为 `VERIFIED / CONSUMED`；未启动 Execution/UserTask。
 Evidence 与 one-time challenge 原子单次消费，Interaction 仅到 `AUTHORIZED / NOT_STARTED`，
 UserTask 保持 `3 → 3`。该结论不解决同 UID process isolation，也不支持 Phase 1 Full。
 REL-036 未启动，版本、Tag 和 Release 未改变。

@@ -8,7 +8,7 @@ import json
 import os
 from pathlib import Path
 
-from applications.pilot_001_ingress_bridge.crypto import PilotIngressKeys
+from applications.pilot_001_ingress_bridge.crypto import PilotIngressIssuerKeys
 from applications.pilot_001_ingress_bridge.mcp_server import build_p1a_service
 from core.errors import FailureException
 from core.system import create_system, load_system_settings
@@ -23,6 +23,9 @@ async def _run_issuer(
     system = await create_system(settings)
     await system.start()
     pilot = build_p1a_service(system)
+    keys = PilotIngressIssuerKeys(
+        Path(os.environ["AI_LAB_DATA_DIR"]) / "pilot-001" / "trusted-ingress"
+    )
 
     async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         try:
@@ -33,14 +36,18 @@ async def _run_issuer(
             msgid = frame.get("body_msgid")
             if not isinstance(msgid, str) or not msgid.strip():
                 raise ValueError("trusted_ingress.channel_event_id_unavailable")
-            envelope = pilot._keys.issue(
-                raw_account_id=str(frame["account_id"]),
-                raw_owner_id=str(frame["owner_id"]),
-                raw_conversation_id=str(frame["conversation_id"]),
+            if (
+                str(frame["account_id"]) != pilot._authority.raw_account_id
+                or str(frame["owner_id"]) != pilot._authority.raw_owner_id
+                or str(frame["conversation_id"])
+                != pilot._authority.raw_conversation_id
+            ):
+                raise ValueError("trusted ingress raw authority mismatch")
+            envelope = keys.issue(
                 raw_wecom_msgid=msgid,
                 text=str(frame["text"]),
             )
-            evidence_id = await pilot.accept_evidence(envelope)
+            evidence_id = await pilot.accept_evidence(envelope.model_dump_json())
             response = {"accepted": True, "evidence_id": evidence_id}
         except (FailureException, KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
             response = {"accepted": False, "code": "trusted_ingress.denied"}
@@ -78,7 +85,7 @@ def main() -> None:
     args = parser.parse_args()
     data_dir = Path(os.environ["AI_LAB_DATA_DIR"])
     if args.command == "init-pilot-ingress-keys":
-        keys = PilotIngressKeys.bootstrap(data_dir)
+        keys = PilotIngressIssuerKeys.bootstrap(data_dir)
         print(f"Pilot ingress keys initialized: {keys.issuer_key_id}")
         return
     if args.socket is None and args.port <= 0:

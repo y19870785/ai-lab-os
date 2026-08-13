@@ -9,7 +9,7 @@ from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
-from applications.pilot_001_ingress_bridge.crypto import PilotIngressKeys
+from applications.pilot_001_ingress_bridge.crypto import PilotIngressVerifierKeys
 from applications.pilot_001_ingress_bridge.service import (
     Pilot001IngressConfirmationService,
     PilotIngressAuthority,
@@ -105,7 +105,9 @@ def build_p1a_service(system, environ: dict[str, str] | None = None):
     }
     if any(not value.strip() for value in required.values()):
         raise RuntimeError("P1A account, Owner, and conversation bindings are required")
-    keys = PilotIngressKeys(Path(source["AI_LAB_DATA_DIR"]) / "pilot-001" / "trusted-ingress")
+    keys = PilotIngressVerifierKeys(
+        Path(source["AI_LAB_DATA_DIR"]) / "pilot-001" / "trusted-ingress"
+    )
     return Pilot001IngressConfirmationService(
         adapter=adapter,
         interactions=system.interaction_service,
