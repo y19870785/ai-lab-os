@@ -1,7 +1,8 @@
 # AI-Lab OS 中文使用说明
 
-> PILOT-001-P1A 已在独立 Draft PR 中保留
-> `PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`，并完成一次 R1 真实内部复验。
+> PILOT-001-P1A 已通过最终独立审查、PR #77 Squash Merge、main Quality Gate
+> `31719553362 / SUCCESS` 与独立 Post-Merge Verification；当前治理对账以 self-closing Draft PR
+> 收口，合并后即正式 `RECONCILED / ARCHIVED`，不再创建递归 reconciliation。
 > R1/REV1 已建立 issuer-only root 与独立 verifier-only projection root、
 > 收紧 V1 canonical wire contract、增加 restart-safe issuance journal，并把 Hermes actual
 > four-tool namespace resolution 接入正式 Gateway startup fail-closed 路径；实际 WeCom

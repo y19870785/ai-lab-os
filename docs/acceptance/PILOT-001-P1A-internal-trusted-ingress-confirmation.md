@@ -200,9 +200,63 @@ challenge；拼错文本再次被拒且 Evidence 未消费。最终精确的新 
 之后到达，Evidence、challenge、Confirmation 与 Interaction CAS 在同一事务中消费并
 提交。该历史结果只升级为 `INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN`。R1 进一步通过
 自动化与一次新的真实内部复验关闭 canonical contract、authority boundary、actual startup
-namespace 与 wire compatibility 证据，等待独立复审。
+namespace 与 wire compatibility 证据。最终独立审查、PR #77 Squash Merge、main Quality Gate
+`31719553362 / SUCCESS` 与独立 Post-Merge Verification 均已通过；最终合并提交为
+`1daf52ee500d5dc79ba1fc632f240ddf756bb93b`，唯一父提交为
+`89aaab92320f1541cabd36d5ef8d7b69b0f450e4`。P1A 进入 self-closing 治理对账，合并后归档。
 
-## 6. 长期禁止结论
+## 6. 合并后治理对账
+
+- 对账任务：`PILOT-001-P1A-POST-MERGE-RECONCILIATION`
+- 类型：`DOCUMENTATION / GOVERNANCE ONLY`
+- Canonical Base：`1daf52ee500d5dc79ba1fc632f240ddf756bb93b`
+- Feature PR：`#77 / MERGED`
+- Approved Head：`4a59e65b80bc98b1032a051c176ad8d50c343879`
+- Squash Merge Commit：`1daf52ee500d5dc79ba1fc632f240ddf756bb93b`
+- Unique Parent：`89aaab92320f1541cabd36d5ef8d7b69b0f450e4`
+- Main Quality Gate：`31719553362 / SUCCESS`
+- Independent Post-Merge Verification：`PASSED`
+- 生效规则：本 Draft PR 经独立治理审查、Owner 授权并合并进入 `main` 后，本记录自动成为
+  PILOT-001-P1A 最终权威对账与封存记录。
+- 递归规则：`SELF_CLOSING / NO_RECURSIVE_RECONCILIATION`。
+
+```text
+PILOT-001-P1A:
+APPROVED /
+MERGED /
+MAIN_QUALITY_GATE_PASSED /
+FINAL_INDEPENDENT_REVIEW_PASSED /
+POST_MERGE_VERIFIED /
+RECONCILED /
+ARCHIVED
+
+SIGNING_ORACLE_ISOLATION:
+FAILED_FOR_TESTED_TOPOLOGY
+
+PROCESS_ISOLATION:
+UNRESOLVED
+
+BRIDGE_IMPLEMENTATION:
+NOT_AUTHORIZED
+
+PHASE_1_FULL:
+NOT_AUTHORIZED
+
+PHASE_2:
+NOT_AUTHORIZED
+
+REAL_BUSINESS_MUTATION:
+NOT_AUTHORIZED
+
+Execution:
+NOT_STARTED
+```
+
+该对账不修改产品代码、测试实现、Schema、Migration、dependency、Version、Tag 或 Release，
+也不自动创建或授权 PILOT-001 的下一阶段。`current_sp`、`current_governance_task` 与
+`current_work` 保持 `null`。
+
+## 7. 长期禁止结论
 
 本 Pilot 不得写成 `PRODUCTION_READY`、`ENTERPRISE_READY`、
 `GENERAL_TRUSTED_INGRESS_SUPPORTED` 或 `PROCESS_ISOLATION_RESOLVED`。
