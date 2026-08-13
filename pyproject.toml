@@ -8,9 +8,11 @@ requires-python = ">=3.11"
 license = "MIT"
 
 dependencies = [
+    "cryptography>=42.0",
     "pydantic>=2.0",
     "pyyaml>=6.0",
     "python-dotenv>=1.0",
+    "rfc8785>=0.1.4",
     "tzdata>=2024.1; platform_system == 'Windows'",
 ]
 

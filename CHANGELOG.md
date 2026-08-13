@@ -1,5 +1,17 @@
 # AI-Lab OS 更新日志
 
+### PILOT-001-P1A 内部可信入站确认 Pilot
+
+- 在 `PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE` 下新增 Pilot-only Ed25519/JCS
+  Evidence、Preview challenge、单次消费与 canonical Confirmation 边界。
+- Hermes 模型工具面被限定为四个 AI-Lab MCP tool，默认 live WeCom override
+  仍不存在；IB-IMP-A 的同 UID process-isolation 负面结论保持不变。
+- 成功终点只到 `AUTHORIZED`，不执行 UserTask、Execution、Verification 或
+  canonical business commit；该能力不是生产安全结论。
+- 真实 WeCom Owner 验收已证明合法新入站 evidence 与 AI-Lab challenge 可原子单次消费；
+  过期 challenge 与拼错文本均 fail closed。最终 UserTask 保持 `3 → 3`，Execution
+  保持 `NOT_STARTED`，AI-Lab Real Provider 调用为 `0`。
+
 ## [Unreleased] 未发布
 
 ### PILOT-001 IB-IMP-A Hermes Capability 安全 Spike

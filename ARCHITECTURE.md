@@ -1,5 +1,14 @@
 # AI-Lab 架构文档
 
+> PILOT-001-P1A 增加的 Trusted Ingress Evidence 仅运行于
+> `PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE`。临时 WeCom plugin 在 Agent 前把
+> `body.msgid` 与原始 Message B 文本送入独立 issuer，AI-Lab 验签、持久化并
+> 原子消费 Evidence；LLM 只接触 opaque `evidence_id`。该边界不解决 hostile
+> same-UID process，IB-IMP-A 的 `INGRESS_PROCESS_ISOLATION_UNRESOLVED` 保持有效。
+> 2026-08-13 的真实内部链路已证明 Preview-before-event、内容绑定、过期/拼错
+> challenge fail-closed，以及 Evidence/challenge/Confirmation/CAS 原子提交；最终状态仅为
+> `AUTHORIZED / NOT_STARTED`，不构成生产或通用可信入站支持。
+
 > 当前工作：None。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
 > PILOT-001-IBD 设计已通过最终独立规划审查；Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。
 > PILOT-001-IB-IMP-A 已验证普通 child 不继承匿名 capability，但当前 WSL2/same-UID topology 下进程可经 `pidfd_getfd` 复制并调用 endpoint；因此当前 Pilot 部署的 signing-oracle isolation 失败。Option D、RFC-033 与 ADR-073 设计基线保留，process isolation unresolved，Bridge 实现未授权；失败 plugin 已从 live discovery path 移入惰性 test fixture。

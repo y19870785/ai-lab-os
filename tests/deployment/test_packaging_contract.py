@@ -22,9 +22,11 @@ def test_dependency_extras_match_runtime_boundaries():
     extras = config["optional-dependencies"]
 
     assert _names(config["dependencies"]) == {
+        "cryptography",
         "pydantic",
         "pyyaml",
         "python-dotenv",
+        "rfc8785",
         "tzdata",
     }
     assert any(

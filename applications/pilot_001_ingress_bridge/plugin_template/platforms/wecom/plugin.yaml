@@ -1,0 +1,6 @@
+name: wecom-platform
+label: WeCom PILOT-001 Internal Trusted Ingress
+kind: platform
+version: 0.1.0-pilot
+description: Temporary local trusted-host Pilot projection; not production security.
+author: AI-Lab PILOT-001
