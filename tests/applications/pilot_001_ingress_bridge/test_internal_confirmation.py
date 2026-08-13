@@ -154,12 +154,15 @@ async def test_p1a_c_temporary_nested_plugin_is_explicitly_enabled(tmp_path):
 
 
 async def test_p1a_c_temporary_gateway_bypasses_service_refresh():
-    assert build_gateway_command("/opt/hermes/venv/bin/python") == [
-        "/opt/hermes/venv/bin/python",
-        "-m",
-        "gateway.run",
-    ]
-    assert "hermes" not in build_gateway_command("/opt/hermes/venv/bin/python")[1:]
+    # P1B: the final Hermes Python process must harden itself via the
+    # bootstrap module and only then enter gateway.run (no parent-only
+    # hardening that would be reset across an exec boundary).
+    command = build_gateway_command("/opt/hermes/venv/bin/python")
+    assert command[0] == "/opt/hermes/venv/bin/python"
+    assert command[1].endswith("process_isolation.py")
+    assert command[2:] == ["--module", "gateway.run"]
+    # The temporary gateway must still bypass the installed service unit path.
+    assert "hermes" not in command[1:]
 
 
 async def test_p1a_d_body_msgid_only_and_stable_identity(tmp_path):
@@ -483,6 +486,14 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
             return subprocess.CompletedProcess(
                 command, 0, stdout=json.dumps(EXPECTED_MODEL_TOOL_NAMES) + "\n"
             )
+        if "--check" in command and any(
+            part.endswith("process_isolation.py") for part in command
+        ):
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout="PILOT_PROCESS_ISOLATION_EFFECTIVE PR_GET_DUMPABLE=0\n",
+            )
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(subprocess, "run", fake_run)
@@ -493,7 +504,12 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
         mcp_command=["python", "-m", "pilot_mcp"],
     )
     assert calls[0][-1].endswith("hermes_tool_probe.py")
-    assert calls[1] == ["/opt/hermes/python", "-m", "gateway.run"]
+    # P1B startup order: tool resolution -> exact-four gate -> hardening
+    # link self-check -> hardened bootstrap gateway (final process hardens
+    # itself before entering gateway.run; no parent-only hardening).
+    assert "--check" in calls[1]
+    assert any(part.endswith("process_isolation.py") for part in calls[1])
+    assert calls[2][-1] == "gateway.run"
 
 
 async def test_p1a_runtime_startup_denies_namespace_drift(tmp_path, monkeypatch):

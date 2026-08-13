@@ -29,14 +29,22 @@ FORBIDDEN_MODEL_TOOL_TOKENS = (
 
 
 def build_gateway_command(hermes_python: str) -> list[str]:
-    """Start the temporary gateway without touching the installed service unit."""
+    """Start the temporary gateway without touching the installed service unit.
+
+    P1B: the final Hermes Python process must harden itself (PR_SET_DUMPABLE=0)
+    and only then enter the gateway runtime.  Hardening the launcher and then
+    exec-ing Hermes would be reset by the exec boundary, so the bootstrap
+    module is the actual Python entry point and enters gateway.run via runpy
+    inside the same final process (no further exec).
+    """
 
     executable = hermes_python.strip()
     if not executable:
         raise ValueError("Hermes Python executable is required")
     # `hermes gateway run` refreshes the installed systemd unit on startup.
     # A temporary HERMES_HOME must bypass that CLI self-heal path.
-    return [executable, "-m", "gateway.run"]
+    bootstrap = Path(__file__).with_name("process_isolation.py")
+    return [executable, str(bootstrap), "--module", "gateway.run"]
 
 
 def enforce_model_tool_profile(tool_names: list[str]) -> None:
@@ -110,6 +118,8 @@ def run_pilot_gateway(
         )
         enforce_model_tool_profile(names)
         print("INTERNAL_PILOT_TOOL_ALLOWLIST_EXACT", flush=True)
+        verify_pilot_process_isolation(hermes_python, project=project, environ=environ)
+        print("PILOT_PROCESS_ISOLATION_LINK_VERIFIED", flush=True)
         subprocess.run(
             build_gateway_command(hermes_python),
             cwd=project,
@@ -118,6 +128,39 @@ def run_pilot_gateway(
         )
     finally:
         cleanup_temporary_project(project)
+
+
+def verify_pilot_process_isolation(
+    hermes_python: str, *, project: Path, environ: dict[str, str]
+) -> None:
+    """Fail closed unless the final-process hardening link is effective.
+
+    Runs the same bootstrap the gateway will use in --check mode: it must
+    apply PR_SET_DUMPABLE=0 and prove PR_GET_DUMPABLE==0 in a real Python
+    process before the gateway is allowed to start.
+    """
+
+    bootstrap = Path(__file__).with_name("process_isolation.py")
+    # check=False is deliberate: the return code is validated below and a
+    # non-zero self-check must produce PILOT_PROCESS_ISOLATION_UNPROVEN, not
+    # a bare CalledProcessError, so the gateway fails closed with evidence.
+    completed = subprocess.run(
+        [hermes_python, str(bootstrap), "--check"],
+        cwd=project,
+        env=environ,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0 or (
+        "PILOT_PROCESS_ISOLATION_EFFECTIVE PR_GET_DUMPABLE=0"
+        not in completed.stdout
+    ):
+        diagnostic = (completed.stdout + "\n" + completed.stderr).strip()[-2000:]
+        raise RuntimeError(
+            "PILOT_PROCESS_ISOLATION_UNPROVEN: "
+            + (diagnostic or "hardening self-check failed")
+        )
 
 
 def prepare_temporary_project(

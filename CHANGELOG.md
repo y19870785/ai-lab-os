@@ -1,5 +1,13 @@
 # AI-Lab OS 更新日志
 
+### PILOT-001-P1B 进程隔离缓解与受支持 Pilot 部署 Profile
+
+- 在真实 Ubuntu 24.04.4 / WSL2（Kernel 5.15.167.4-microsoft-standard-WSL2、Hermes v0.20.0、Python 3.11.15、UID 1001、Yama absent）下验证进程本地 Non-Dumpable mitigation：最终 Hermes Python 进程内 `prctl(PR_SET_DUMPABLE, 0)` + 运行时 `PR_GET_DUMPABLE == 0` 验证，启动顺序 fail closed，不修改 Hermes source、不 patch site-packages。
+- same-UID `pidfd_getfd` capability 复制与 issuer 调用均被拒绝：`duplicated=false / invoked=false / errno=1 (EPERM)`，`/proc/<pid>/fd` 复制被拒 `errno=13 (EACCES)`；holder 三阶段 dumpable 状态 startup/capability-acquired/post-child 均为 0。
+- restart 语义验证通过：连续两次启动均重新 harden，旧 capability 不复用，攻击仍失败。
+- Hermes actual model namespace 保持 exact four tools（`ai_lab_interaction_preview/status/view/confirm`），P1A 相关测试无回归；UserTask mutation 与 AI-Lab Real Provider 均为 0。
+- 历史负面证据 `SIGNING_ORACLE_ISOLATION_FAILED_FOR_TESTED_TOPOLOGY` 与 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 保持不变；该结果仅证明 tested Pilot profile（`PILOT_GRADE_LOCAL_PROCESS_ISOLATED_PROFILE_V1`），不是 production/enterprise secure 或 general process isolation resolved。治理状态为 IMPLEMENTED / EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW。
+
 ### PILOT-001-P1A 内部可信入站确认 Pilot
 
 - R1-REV1 将 MCP/AI-Lab runtime 从 issuer secret root 移到独立 verifier projection root；
