@@ -1,5 +1,35 @@
 # AI-Lab OS 更新日志
 
+### PILOT-001-P1A 内部可信入站确认 Pilot
+
+- R1-REV1 将 MCP/AI-Lab runtime 从 issuer secret root 移到独立 verifier projection root；
+  projection 只包含 retained public keys、content binding key、trusted issuer allowlist 与 opaque
+  bindings，不包含 signing private key、event identity key、issuance journal 或 issuer root path。
+- 完成 RFC-033 signing-key rotation replay：event identity/content/bindings/journal 跨 rotation
+  稳定；旧 event 返回原 key 签发的 exact envelope，旧 public key 保留用于验证，新 event 使用新
+  active key。该 closure 不改变 `FAILED_FOR_TESTED_TOPOLOGY / PROCESS_ISOLATION_UNRESOLVED`。
+- R1 按 Adopted V1 contract 拆分 `PilotIngressIssuerKeys` 与
+  `PilotIngressVerifierKeys`：MCP/confirmation verifier 不加载 signing private key 或 event
+  identity key，也不提供 mint API；account/Owner/conversation binding 改为 operator-provisioned
+  random opaque ID。
+- R1 固定 canonical wire value、拒绝 duplicate/unknown/missing/noncanonical input，新增以
+  `evidence_id` 为 key 的 durable issuance journal，并把 Hermes-native actual model namespace
+  resolution 接入正式 Gateway startup gate。
+- 既有真实 WeCom 正向结果保留为
+  `PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`；因 R1 影响实际 Hermes startup/tool
+  profile 与 Evidence wire compatibility，追加一次真实内部 Message A/B 复验。strict V1
+  Evidence 为 `VERIFIED / CONSUMED`，Interaction 仅到 `AUTHORIZED / NOT_STARTED`，UserTask
+  保持 `3 → 3`，AI-Lab Real Provider 为 0。
+- 在 `PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE` 下新增 Pilot-only Ed25519/JCS
+  Evidence、Preview challenge、单次消费与 canonical Confirmation 边界。
+- Hermes 模型工具面被限定为四个 AI-Lab MCP tool，默认 live WeCom override
+  仍不存在；IB-IMP-A 的同 UID process-isolation 负面结论保持不变。
+- 成功终点只到 `AUTHORIZED`，不执行 UserTask、Execution、Verification 或
+  canonical business commit；该能力不是生产安全结论。
+- 真实 WeCom Owner 验收已证明合法新入站 evidence 与 AI-Lab challenge 可原子单次消费；
+  过期 challenge 与拼错文本均 fail closed。最终 UserTask 保持 `3 → 3`，Execution
+  保持 `NOT_STARTED`，AI-Lab Real Provider 调用为 `0`。
+
 ## [Unreleased] 未发布
 
 ### PILOT-001 IB-IMP-A Hermes Capability 安全 Spike

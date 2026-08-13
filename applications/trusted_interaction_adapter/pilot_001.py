@@ -23,6 +23,7 @@ from core.user_tasks.models import UserTask, UserTaskPriority
 from core.workspace.models import WorkspaceKey
 
 PILOT_MODE = "phase0_preview_only"
+P1A_PILOT_MODE = "internal_trusted_ingress_confirmation"
 EXPECTED_CHANNEL = "wecom"
 BINDING_TYPE = "PILOT_GRADE_LOCAL_SINGLE_OWNER_BINDING"
 ALLOWED_OPERATION = "user_task.create"
@@ -101,11 +102,11 @@ class Pilot001AuthorityConfig:
                 message="Pilot binding configuration is incomplete: "
                 + ", ".join(missing),
             )
-        if values["mode"] != PILOT_MODE:
+        if values["mode"] not in {PILOT_MODE, P1A_PILOT_MODE}:
             _fail(
                 code="pilot_001.mode_denied",
                 operation="load_binding_config",
-                message="Pilot mode is not authorized for Phase-0 preview-only use",
+                message="Pilot mode is not authorized for a bounded PILOT-001 composition",
             )
         if values["expected_channel"].casefold() != EXPECTED_CHANNEL:
             _fail(

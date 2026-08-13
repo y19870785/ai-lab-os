@@ -89,6 +89,32 @@ class SQLiteInteractionRepository:
                     );
                     CREATE INDEX IF NOT EXISTS idx_interaction_audit
                     ON interaction_audit(interaction_id, revision, occurred_at, audit_id);
+                    CREATE TABLE IF NOT EXISTS trusted_ingress_evidence (
+                        evidence_id TEXT PRIMARY KEY,
+                        payload TEXT NOT NULL,
+                        payload_digest TEXT NOT NULL,
+                        accepted_at TEXT NOT NULL,
+                        verification_key_id TEXT NOT NULL,
+                        verification_status TEXT NOT NULL,
+                        consumption_status TEXT NOT NULL,
+                        revision INTEGER NOT NULL,
+                        consumed_at TEXT,
+                        consumed_interaction_id TEXT,
+                        consumed_preview_id TEXT,
+                        consumed_preview_revision INTEGER
+                    );
+                    CREATE TABLE IF NOT EXISTS interaction_confirmation_challenges (
+                        challenge_id TEXT PRIMARY KEY,
+                        interaction_id TEXT NOT NULL,
+                        preview_id TEXT NOT NULL,
+                        preview_revision INTEGER NOT NULL,
+                        interaction_revision INTEGER NOT NULL,
+                        challenge_digest TEXT NOT NULL,
+                        created_at TEXT NOT NULL,
+                        expires_at TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        consumed_at TEXT
+                    );
                     """
                 )
 
@@ -158,11 +184,46 @@ class SQLiteInteractionRepository:
         operation: str,
         idempotency_key: str,
         payload_digest: str,
+        trusted_evidence_consumption: dict[str, object] | None = None,
     ) -> None:
         with (
             self._manager.lease(self.LOGICAL_NAME, self._path) as conn,
             transaction(conn),
         ):
+                if trusted_evidence_consumption is not None:
+                    evidence_cursor = conn.execute(
+                        """UPDATE trusted_ingress_evidence
+                        SET consumption_status='CONSUMED', revision=revision+1,
+                            consumed_at=?, consumed_interaction_id=?,
+                            consumed_preview_id=?, consumed_preview_revision=?
+                        WHERE evidence_id=? AND consumption_status='UNUSED'
+                        AND revision=?""",
+                        (
+                            trusted_evidence_consumption["consumed_at"],
+                            interaction.interaction_id,
+                            trusted_evidence_consumption["preview_id"],
+                            trusted_evidence_consumption["preview_revision"],
+                            trusted_evidence_consumption["evidence_id"],
+                            trusted_evidence_consumption["evidence_revision"],
+                        ),
+                    )
+                    challenge_cursor = conn.execute(
+                        """UPDATE interaction_confirmation_challenges
+                        SET status='CONSUMED', consumed_at=?
+                        WHERE challenge_id=? AND interaction_id=? AND preview_id=?
+                        AND preview_revision=? AND interaction_revision=?
+                        AND status='ACTIVE'""",
+                        (
+                            trusted_evidence_consumption["consumed_at"],
+                            trusted_evidence_consumption["challenge_id"],
+                            interaction.interaction_id,
+                            trusted_evidence_consumption["preview_id"],
+                            trusted_evidence_consumption["preview_revision"],
+                            expected_revision,
+                        ),
+                    )
+                    if evidence_cursor.rowcount != 1 or challenge_cursor.rowcount != 1:
+                        raise ValueError("trusted evidence consumption conflict")
                 cursor = conn.execute(
                     """UPDATE interaction_records SET revision=?, lifecycle_state=?, payload=?
                     WHERE interaction_id=? AND tenant_id=? AND workspace_id=? AND namespace=?
@@ -192,6 +253,71 @@ class SQLiteInteractionRepository:
                 self._insert_idempotency(
                     conn, interaction, operation, idempotency_key, payload_digest
                 )
+
+    async def store_trusted_ingress_evidence(
+        self, *, evidence_id: str, payload: str, payload_digest: str,
+        accepted_at: str, verification_key_id: str,
+    ) -> None:
+        """Persist one verified immutable envelope; duplicate identity is idempotent."""
+
+        with (
+            self._manager.lease(self.LOGICAL_NAME, self._path) as conn,
+            transaction(conn),
+        ):
+            cursor = conn.execute(
+                """INSERT INTO trusted_ingress_evidence
+                (evidence_id,payload,payload_digest,accepted_at,verification_key_id,
+                 verification_status,consumption_status,revision)
+                VALUES(?,?,?,?,?,'VERIFIED','UNUSED',1)
+                ON CONFLICT(evidence_id) DO NOTHING""",
+                (evidence_id, payload, payload_digest, accepted_at, verification_key_id),
+            )
+            if cursor.rowcount == 0:
+                row = conn.execute(
+                    """SELECT payload_digest FROM trusted_ingress_evidence
+                    WHERE evidence_id=?""",
+                    (evidence_id,),
+                ).fetchone()
+                if row is None or row["payload_digest"] != payload_digest:
+                    raise ValueError("trusted evidence identity conflict")
+
+    async def trusted_ingress_evidence(self, evidence_id: str) -> dict[str, object] | None:
+        with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
+            row = conn.execute(
+                "SELECT * FROM trusted_ingress_evidence WHERE evidence_id=?",
+                (evidence_id,),
+            ).fetchone()
+        return None if row is None else dict(row)
+
+    async def store_confirmation_challenge(
+        self, *, challenge_id: str, interaction_id: str, preview_id: str,
+        preview_revision: int, interaction_revision: int, challenge_digest: str,
+        created_at: str, expires_at: str,
+    ) -> None:
+        with (
+            self._manager.lease(self.LOGICAL_NAME, self._path) as conn,
+            transaction(conn),
+        ):
+            conn.execute(
+                """INSERT INTO interaction_confirmation_challenges
+                (challenge_id,interaction_id,preview_id,preview_revision,
+                 interaction_revision,challenge_digest,created_at,expires_at,status)
+                VALUES(?,?,?,?,?,?,?,?,'ACTIVE')""",
+                (challenge_id, interaction_id, preview_id, preview_revision,
+                 interaction_revision, challenge_digest, created_at, expires_at),
+            )
+
+    async def confirmation_challenge(
+        self, interaction_id: str, preview_id: str,
+    ) -> dict[str, object] | None:
+        with self._manager.lease(self.LOGICAL_NAME, self._path) as conn:
+            row = conn.execute(
+                """SELECT * FROM interaction_confirmation_challenges
+                WHERE interaction_id=? AND preview_id=?
+                ORDER BY created_at DESC LIMIT 1""",
+                (interaction_id, preview_id),
+            ).fetchone()
+        return None if row is None else dict(row)
 
     def _insert_idempotency(self, conn, interaction, operation, key, digest) -> None:
         cursor = conn.execute(

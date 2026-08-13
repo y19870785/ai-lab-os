@@ -1,5 +1,22 @@
 # AI-Lab 架构文档
 
+> PILOT-001-P1A 增加的 Trusted Ingress Evidence 仅运行于
+> `PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE`。临时 WeCom plugin 在 Agent 前把
+> `body.msgid` 与原始 Message B 文本送入独立 issuer，AI-Lab 验签、持久化并
+> 原子消费 Evidence；LLM 只接触 opaque `evidence_id`。该边界不解决 hostile
+> same-UID process，IB-IMP-A 的 `INGRESS_PROCESS_ISOLATION_UNRESOLVED` 保持有效。
+> 2026-08-13 的真实内部链路已证明 Preview-before-event、内容绑定、过期/拼错
+> challenge fail-closed，以及 Evidence/challenge/Confirmation/CAS 原子提交；最终状态仅为
+> `AUTHORIZED / NOT_STARTED`。原结果保留为 `PRE_R1_REAL_EVIDENCE`；R1/REV1 将 issuer root 与
+> MCP verifier deployment projection 分离：MCP 只配置 verifier root，不能获得 issuer root
+> path；binding 改为 operator-provisioned opaque ID，
+> 以 durable journal 固定首次 envelope，并在 Gateway 启动前调用 Hermes 自身 resolver
+> 验证 exact four-tool namespace。由于 R1 影响实际 startup 与 wire compatibility，已追加一次
+> 真实内部 Message A/B 复验：strict V1 Evidence 为 `VERIFIED / CONSUMED`，Interaction 仍只到
+> `AUTHORIZED / NOT_STARTED`，UserTask 零增量。它仍不构成生产或通用可信入站支持。
+> active signing key 轮换时，event identity/content binding/opaque binding/journal 保持稳定；
+> retained old public keys 继续验证未过期旧 envelope，journal 不以新 key 重签旧 event。
+
 > 当前工作：None。INT-001 已封存；P0-R 已实现并通过最终独立审查，Pilot Preview authority 已在独立 composition 中建立。
 > PILOT-001-IBD 设计已通过最终独立规划审查；Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 未实现且未授权，Phase 1 未授权。
 > PILOT-001-IB-IMP-A 已验证普通 child 不继承匿名 capability，但当前 WSL2/same-UID topology 下进程可经 `pidfd_getfd` 复制并调用 endpoint；因此当前 Pilot 部署的 signing-oracle isolation 失败。Option D、RFC-033 与 ADR-073 设计基线保留，process isolation unresolved，Bridge 实现未授权；失败 plugin 已从 live discovery path 移入惰性 test fixture。

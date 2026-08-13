@@ -8,6 +8,26 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "project_state.json"
+PILOT_001_STATUS = (
+    "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
+    "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
+    "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
+    "PREVIEW_AUTHORITY_ESTABLISHED / FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
+    "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
+    "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
+    "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
+    "RFC_033_ADOPTED / ADR_073_ACCEPTED / PILOT_001_IB_IMP_A_AUTHORIZED / "
+    "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
+    "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
+    "PILOT_001_IB_IMP_A_FINAL_INDEPENDENT_SECURITY_REVIEW_PASSED / "
+    "PILOT_001_IB_IMP_A_NEGATIVE_EVIDENCE_BASELINE_APPROVED / "
+    "INGRESS_PROCESS_ISOLATION_UNRESOLVED / BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
+    "PHASE_1_NOT_AUTHORIZED / PILOT_001_P1A_INTERNAL_CONFIRMATION_AUTHORIZED / "
+    "PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE / "
+    "INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN / "
+    "PRODUCTION_PROCESS_ISOLATION_UNRESOLVED / PHASE_1_FULL_NOT_AUTHORIZED / "
+    "PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
+)
 
 
 def _load_state() -> dict[str, object]:
@@ -2287,9 +2307,9 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 208
-    assert "- Git 跟踪 Markdown：208" in inventory
-    assert "- 仓库自有且纳入范围：208" in inventory
+    assert len(tracked_markdown) == 209
+    assert "- Git 跟踪 Markdown：209" in inventory
+    assert "- 仓库自有且纳入范围：209" in inventory
     assert "- 新增中文治理文档：33" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
@@ -2512,27 +2532,7 @@ def test_arch001_post_merge_reconciliation_is_consistent() -> None:
             "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / "
             "POST_MERGE_RECONCILED / ARCHIVED"
         ),
-        "PILOT-001": (
-            "PLANNING_BASELINE_APPROVED / "
-            "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-            "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-            "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
-            "PREVIEW_AUTHORITY_ESTABLISHED / "
-            "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
-        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
-        "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
-        "PILOT_001_IB_IMP_A_AUTHORIZED / "
-        "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
-        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
-        "PILOT_001_IB_IMP_A_FINAL_INDEPENDENT_SECURITY_REVIEW_PASSED / "
-        "PILOT_001_IB_IMP_A_NEGATIVE_EVIDENCE_BASELINE_APPROVED / "
-        "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
-        "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
-            "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-            "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
-        ),
+        "PILOT-001": PILOT_001_STATUS,
         "REL-036": "NOT_STARTED / NOT_APPROVED",
     }
     assert arch["quality_003"] == (
@@ -2675,27 +2675,7 @@ def test_sp021_post_merge_reconciliation_state_is_consistent() -> None:
             "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / "
             "POST_MERGE_RECONCILED / ARCHIVED"
         ),
-        "PILOT-001": (
-            "PLANNING_BASELINE_APPROVED / "
-            "FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-            "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-            "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
-            "PREVIEW_AUTHORITY_ESTABLISHED / "
-            "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-        "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-        "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
-        "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
-        "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
-        "PILOT_001_IB_IMP_A_AUTHORIZED / "
-        "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
-        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
-        "PILOT_001_IB_IMP_A_FINAL_INDEPENDENT_SECURITY_REVIEW_PASSED / "
-        "PILOT_001_IB_IMP_A_NEGATIVE_EVIDENCE_BASELINE_APPROVED / "
-        "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
-        "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
-            "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-            "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
-        ),
+        "PILOT-001": PILOT_001_STATUS,
         "REL-036": "NOT_STARTED / NOT_APPROVED",
     }
     assert acc021["status"] == "PASSED / FINAL"
@@ -2778,26 +2758,7 @@ def test_int001_post_merge_reconciliation_is_consistent() -> None:
         "APPROVED / MERGED / MAIN_QUALITY_GATE_PASSED / "
         "POST_MERGE_RECONCILED / ARCHIVED"
     )
-    pilot_status = (
-        "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-        "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-        "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
-        "PREVIEW_AUTHORITY_ESTABLISHED / "
-        "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-            "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
-            "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
-            "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
-            "PILOT_001_IB_IMP_A_AUTHORIZED / "
-            "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
-        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
-        "PILOT_001_IB_IMP_A_FINAL_INDEPENDENT_SECURITY_REVIEW_PASSED / "
-        "PILOT_001_IB_IMP_A_NEGATIVE_EVIDENCE_BASELINE_APPROVED / "
-        "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
-            "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
-        "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-        "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
-    )
+    pilot_status = PILOT_001_STATUS
 
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
@@ -2933,26 +2894,7 @@ def test_pilot001_planning_baseline_is_scoped_and_implementation_is_not_authoriz
     state = _load_state()
     arch = state["governance_tasks"]["ARCH-001"]
     sp021 = state["sp_records"]["SP-021"]
-    pilot_status = (
-        "PLANNING_BASELINE_APPROVED / FINAL_INDEPENDENT_PLANNING_REVIEW_PASSED / "
-        "P0_E_ENVIRONMENT_READY / P0_R_IMPLEMENTATION_AUTHORIZED / "
-        "P0_R_IMPLEMENTED / P0_R_FINAL_INDEPENDENT_REVIEW_PASSED / "
-        "PREVIEW_AUTHORITY_ESTABLISHED / "
-        "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED / "
-            "PHASE_0_STOPPED_PENDING_INGRESS_BRIDGE_DESIGN / "
-            "INGRESS_EVIDENCE_BRIDGE_DESIGN_APPROVED / "
-            "INGRESS_EVIDENCE_BRIDGE_FINAL_INDEPENDENT_REVIEW_PASSED / "
-            "RFC_033_ADOPTED / ADR_073_ACCEPTED / "
-            "PILOT_001_IB_IMP_A_AUTHORIZED / "
-            "PILOT_001_IB_IMP_A_STOPPED_SIGNING_ORACLE_ISOLATION_FAILED / "
-        "PILOT_001_IB_IMP_A_FINAL_CLASSIFICATION_UNSUPPORTED / "
-        "PILOT_001_IB_IMP_A_FINAL_INDEPENDENT_SECURITY_REVIEW_PASSED / "
-        "PILOT_001_IB_IMP_A_NEGATIVE_EVIDENCE_BASELINE_APPROVED / "
-        "INGRESS_PROCESS_ISOLATION_UNRESOLVED / "
-            "BRIDGE_IMPLEMENTATION_NOT_AUTHORIZED / "
-        "PHASE_1_NOT_AUTHORIZED / PHASE_2_NOT_AUTHORIZED / "
-        "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
-    )
+    pilot_status = PILOT_001_STATUS
 
     assert state["schema_version"] == 1
     assert state["current_version"] == "0.35.0"
@@ -3217,6 +3159,55 @@ def test_pilot001_p0r_preview_and_fresh_ingress_stop_state_are_durable() -> None
         assert marker in evidence
     assert "Owner raw WeCom ID" in evidence
     assert "QUALITY-003、REL-036" in evidence
+
+
+def test_pilot001_p1a_internal_confirmation_evidence_is_durable() -> None:
+    state = _load_state()
+    pilot_status = state["governance_tasks"]["ARCH-001"]["follow_up_tasks"][
+        "PILOT-001"
+    ]
+    acceptance_path = (
+        ROOT
+        / "docs/acceptance/PILOT-001-P1A-internal-trusted-ingress-confirmation.md"
+    )
+    acceptance = acceptance_path.read_text(encoding="utf-8-sig")
+
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
+    for marker in (
+        "PILOT_001_P1A_INTERNAL_CONFIRMATION_AUTHORIZED",
+        "PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE",
+        "INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN",
+        "PRODUCTION_PROCESS_ISOLATION_UNRESOLVED",
+        "FRESH_OWNER_INGRESS_EVIDENCE_UNSUPPORTED",
+        "PHASE_1_FULL_NOT_AUTHORIZED",
+        "PHASE_2_NOT_AUTHORIZED",
+        "REAL_BUSINESS_MUTATION_NOT_AUTHORIZED",
+    ):
+        assert marker in pilot_status
+    for marker in (
+        "Message A: PASS",
+        "Fresh Message B: PASS",
+        "Interaction final state: AUTHORIZED / revision 3",
+        "Execution: NOT_STARTED",
+        "UserTask: 3 -> 3",
+        "AI-Lab Real Provider: 0",
+        "trusted_confirmation.validation_denied",
+        "INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN",
+        "PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED",
+        "P1A-N",
+        "P1A-O",
+        "P1A-P",
+        "P1A-Q",
+        "operator-provisioned opaque",
+        "durable issuance journal",
+        "verifier projection root",
+        "signing-key rotation",
+        "正式 `start-gateway` 路径",
+    ):
+        assert marker in acceptance
+    assert not (ROOT / ".hermes/plugins/platforms/wecom").exists()
 
 
 def test_pilot001_ibd_approved_design_state_is_durable() -> None:

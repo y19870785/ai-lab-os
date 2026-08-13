@@ -370,6 +370,7 @@ class InteractionService:
         self, *, workspace: WorkspaceKey, actor_id: str, interaction_id: str,
         preview_id: str, preview_revision: int, expected_revision: int,
         idempotency_key: str, expires_in: timedelta = timedelta(minutes=15),
+        trusted_evidence_consumption: dict[str, object] | None = None,
     ) -> Confirmation:
         scope = self._scope(workspace, actor_id)
         digest = self._digest({
@@ -433,7 +434,8 @@ class InteractionService:
                             references={"preview_id": preview_id,
                                         "confirmation_id": confirmation.confirmation_id})
         await self._transition(updated, current.revision, [updated_preview, confirmation],
-                               [audit], "confirm", idempotency_key, digest)
+                               [audit], "confirm", idempotency_key, digest,
+                               trusted_evidence_consumption=trusted_evidence_consumption)
         return confirmation
 
     async def approve(
@@ -1187,11 +1189,13 @@ class InteractionService:
         self, interaction: Interaction, expected_revision: int, facts: list[Any],
         audits: list[AuditEvidence], operation: str, idempotency_key: str,
         digest: str,
+        trusted_evidence_consumption: dict[str, object] | None = None,
     ) -> None:
         try:
             await self._repository.transition(
                 interaction, expected_revision, facts, audits, operation=operation,
                 idempotency_key=idempotency_key, payload_digest=digest,
+                trusted_evidence_consumption=trusted_evidence_consumption,
             )
         except ValueError as exc:
             self._fail("interaction.revision_conflict", ErrorCategory.CONFLICT,
