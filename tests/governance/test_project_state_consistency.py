@@ -26,7 +26,11 @@ PILOT_001_STATUS = (
     "PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE / "
     "INTERNAL_PILOT_TRUSTED_CONFIRMATION_PROVEN / "
     "PRODUCTION_PROCESS_ISOLATION_UNRESOLVED / PHASE_1_FULL_NOT_AUTHORIZED / "
-    "PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED"
+    "PHASE_2_NOT_AUTHORIZED / REAL_BUSINESS_MUTATION_NOT_AUTHORIZED / "
+    "PILOT_001_P1A_MERGED / PILOT_001_P1A_MAIN_QUALITY_GATE_PASSED / "
+    "PILOT_001_P1A_FINAL_INDEPENDENT_REVIEW_PASSED / "
+    "PILOT_001_P1A_POST_MERGE_VERIFIED / PILOT_001_P1A_RECONCILED / "
+    "PILOT_001_P1A_ARCHIVED"
 )
 
 
@@ -1400,7 +1404,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
-    assert state["updated_at"] == "2026-08-12"
+    assert state["updated_at"] == "2026-08-14"
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
