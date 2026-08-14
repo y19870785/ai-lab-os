@@ -82,18 +82,16 @@ def test_p1b_r1_wait_for_runtime_evidence_accepts_matching_pid(tmp_path):
 
 @pytest.mark.skipif(
     os.name != "posix" or os.environ.get("PILOT001_RUN_REAL_CAPABILITY_ATTACK") != "1",
-    reason="authoritative P1B-R1 actual runtime link requires explicit Linux run",
+    reason="CONTROLLED_RUNTIME_LINK_VALIDATION (stub gateway) requires explicit Linux run",
 )
-def test_p1b_r1_actual_gateway_link_on_wsl2(tmp_path, monkeypatch):
-    """Real launcher runtime path: actual process enters the gateway module.
+def test_p1b_r1_controlled_stub_runtime_link_on_wsl2(tmp_path, monkeypatch):
+    """CONTROLLED_RUNTIME_LINK_VALIDATION (stub gateway, NOT actual Hermes).
 
-    Exercises run_actual_gateway() (the launcher's real gateway-spawn path,
-    used by run_pilot_gateway after the tool-profile gate) end-to-end on
-    Linux/WSL2 with the stub gateway as the module.  The bootstrap applies
-    hardening in the final Python process, writes evidence naming its own
-    pid, then enters the stub via runpy inside the same process.  The
-    launcher verifies evidence.pid == spawned pid and observes
-    /proc/<pid>/status Dumpable: 0 from the kernel.
+    R2 classification: this test enters a repository-controlled stub module
+    (tests.applications...stub_gateway_runtime), NOT gateway.run.  It proves
+    the bootstrap wiring, PID linkage, evidence mechanism, runpy identity
+    preservation and kernel observation mechanism work; it does NOT prove
+    actual Hermes gateway runtime entry (see test_p1b_r2_actual_hermes_*).
     """
 
     called: dict[str, object] = {}

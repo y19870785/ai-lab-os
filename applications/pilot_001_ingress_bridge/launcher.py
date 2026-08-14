@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import shutil
@@ -108,6 +109,7 @@ def run_pilot_gateway(
     hermes_python: str,
     mcp_command: list[str],
     gateway_module: str = "gateway.run",
+    runtime_entry_only: bool = False,
 ) -> None:
     """Prepare, resolve, gate, then and only then start the Pilot gateway."""
 
@@ -136,6 +138,7 @@ def run_pilot_gateway(
             hermes_python, project=project, environ=environ,
             evidence_file=evidence_file,
             gateway_module=gateway_module,
+            runtime_entry_only=runtime_entry_only,
         )
     finally:
         cleanup_temporary_project(project)
@@ -148,15 +151,27 @@ def run_actual_gateway(
     environ: dict[str, str],
     evidence_file: Path,
     gateway_module: str = "gateway.run",
+    runtime_entry_only: bool = False,
 ) -> None:
     """Start the real hardened gateway and verify actual runtime evidence.
 
     The launcher spawns the final Hermes Python process (bootstrap) and waits
     for the bootstrap to record its process identity in the evidence file.
     The recorded PID must equal the spawned gateway PID, proving the process
-    that applied the isolation is the same process that enters gateway.run.
-    The actual kernel dumpable state is then read from /proc/<pid>/status so
-    the observation does not depend on the bootstrap's own printing.
+    that applied the isolation is the same process that enters the gateway
+    module.  The evidence module field must equal the requested module so a
+    stub can never be mistaken for gateway.run.  The kernel-enforced
+    isolation is then observed from this (different) process: opening
+    /proc/<pid>/mem must fail with an expected denial errno.
+
+    The evidence stage must be 'entering' (the bootstrap wrote it right
+    before runpy entered the module) and the process must still be alive
+    at that point: that is the runtime-entry proof.  The launcher itself
+    verifies all of these, not just the PID.
+
+    With runtime_entry_only=True the gateway is terminated right after the
+    runtime-entry evidence is verified, so a long-lived Hermes gateway can
+    be acceptance-tested without waiting for its full service lifecycle.
     """
 
     command = build_gateway_command(hermes_python, module=gateway_module)
@@ -174,6 +189,7 @@ def run_actual_gateway(
         recorded_pid = evidence.get("pid")
         recorded_dumpable = evidence.get("dumpable")
         recorded_stage = evidence.get("stage")
+        recorded_module = evidence.get("module")
         if recorded_pid != gateway.pid:
             raise RuntimeError(
                 "PILOT_ACTUAL_RUNTIME_PID_MISMATCH: evidence pid="
@@ -181,10 +197,27 @@ def run_actual_gateway(
                 + " gateway pid="
                 + str(gateway.pid)
             )
+        if recorded_module != gateway_module:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_MODULE_MISMATCH: evidence module="
+                + str(recorded_module)
+                + " expected="
+                + gateway_module
+            )
         if recorded_dumpable != 0:
             raise RuntimeError(
                 "PILOT_ACTUAL_RUNTIME_NOT_ISOLATED: dumpable="
                 + str(recorded_dumpable)
+            )
+        if recorded_stage != "entering":
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_WRONG_STAGE: stage="
+                + str(recorded_stage)
+            )
+        if gateway.poll() is not None:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_EXITED_EARLY: returncode="
+                + str(gateway.returncode)
             )
         kernel_dumpable = observe_kernel_dumpable(gateway.pid)
         if kernel_dumpable != 0:
@@ -195,6 +228,8 @@ def run_actual_gateway(
         print(
             "PILOT_ACTUAL_RUNTIME_EVIDENCE pid="
             + str(gateway.pid)
+            + " module="
+            + gateway_module
             + " stage="
             + str(recorded_stage)
             + " dumpable=0 kernel_dumpable=0"
@@ -202,6 +237,8 @@ def run_actual_gateway(
             + str(gateway.pid),
             flush=True,
         )
+        if runtime_entry_only:
+            return
         returncode = gateway.wait()
         if returncode != 0:
             raise RuntimeError(
@@ -249,15 +286,23 @@ def wait_for_runtime_evidence(
     )
 
 
+# errno values that are the expected kernel denial for a non-dumpable
+# /proc/<pid>/mem cross-process open under the tested profile.
+KERNEL_DENIAL_ERRNOS = (errno.EACCES, errno.EPERM)
+
+
 def observe_kernel_dumpable(pid: int) -> int:
     """Observe the kernel-enforced isolation of a live process.
 
     Independent of the bootstrap's own prctl introspection: opens
     /proc/<pid>/mem from this (different, same-UID) process.  When the
-    target is non-dumpable the kernel refuses the access (EACCES/EPERM);
-    when dumpable=1 the open succeeds.  This is the actual defensive
-    semantics the mitigation relies on: an untrusted same-UID process
-    must not be able to read the gateway holder's memory.
+    target is non-dumpable the kernel refuses the access with an expected
+    denial errno (EACCES or EPERM); when dumpable=1 the open succeeds.
+
+    The observation is strict: only the expected denial errnos prove
+    KERNEL_ACCESS_DENIED_AS_EXPECTED.  Any other OSError (process gone,
+    path missing, I/O failure, unsupported proc state) fails closed with
+    a diagnostic; a successful open fails as not isolated.
     """
 
     if os.name != "posix" or not Path(f"/proc/{pid}/mem").is_file():
@@ -267,9 +312,13 @@ def observe_kernel_dumpable(pid: int) -> int:
         )
     try:
         fd = os.open(f"/proc/{pid}/mem", os.O_RDONLY)
-    except OSError:
-        # Denied: exactly what the non-dumpable profile must enforce.
-        return 0
+    except OSError as exc:
+        if exc.errno in KERNEL_DENIAL_ERRNOS:
+            return 0
+        raise RuntimeError(
+            "PILOT_ACTUAL_RUNTIME_KERNEL_OBSERVATION_UNEXPECTED: "
+            + f"errno={exc.errno} ({exc.strerror}) pid={pid}"
+        ) from exc
     os.close(fd)
     raise RuntimeError(
         "PILOT_ACTUAL_RUNTIME_KERNEL_MEM_ACCESSIBLE: "
