@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import yaml
@@ -26,9 +27,10 @@ FORBIDDEN_MODEL_TOOL_TOKENS = (
     "browser", "write_file", "patch", "install", "execute", "verify",
     "recover", "approve", "tool_search", "tool_call", "tool_describe",
 )
+RUNTIME_EVIDENCE_ENV = "PILOT001_RUNTIME_EVIDENCE_FILE"
 
 
-def build_gateway_command(hermes_python: str) -> list[str]:
+def build_gateway_command(hermes_python: str, *, module: str = "gateway.run") -> list[str]:
     """Start the temporary gateway without touching the installed service unit.
 
     P1B: the final Hermes Python process must harden itself (PR_SET_DUMPABLE=0)
@@ -36,6 +38,10 @@ def build_gateway_command(hermes_python: str) -> list[str]:
     exec-ing Hermes would be reset by the exec boundary, so the bootstrap
     module is the actual Python entry point and enters gateway.run via runpy
     inside the same final process (no further exec).
+
+    module is the runtime module to enter after hardening; the default is
+    Hermes gateway.run.  Pilot tests may pass a local stub module so the
+    same launch path can be exercised end-to-end without touching Hermes.
     """
 
     executable = hermes_python.strip()
@@ -44,7 +50,7 @@ def build_gateway_command(hermes_python: str) -> list[str]:
     # `hermes gateway run` refreshes the installed systemd unit on startup.
     # A temporary HERMES_HOME must bypass that CLI self-heal path.
     bootstrap = Path(__file__).with_name("process_isolation.py")
-    return [executable, str(bootstrap), "--module", "gateway.run"]
+    return [executable, str(bootstrap), "--module", module]
 
 
 def enforce_model_tool_profile(tool_names: list[str]) -> None:
@@ -97,7 +103,11 @@ def resolve_hermes_model_tools(
 
 
 def run_pilot_gateway(
-    *, source_hermes_home: Path, hermes_python: str, mcp_command: list[str],
+    *,
+    source_hermes_home: Path,
+    hermes_python: str,
+    mcp_command: list[str],
+    gateway_module: str = "gateway.run",
 ) -> None:
     """Prepare, resolve, gate, then and only then start the Pilot gateway."""
 
@@ -112,6 +122,8 @@ def run_pilot_gateway(
             "HERMES_ENABLE_PROJECT_PLUGINS": "1",
         }
     )
+    evidence_file = project / ".pilot001-runtime-evidence.json"
+    environ[RUNTIME_EVIDENCE_ENV] = str(evidence_file)
     try:
         names = resolve_hermes_model_tools(
             hermes_python, project=project, environ=environ
@@ -120,14 +132,149 @@ def run_pilot_gateway(
         print("INTERNAL_PILOT_TOOL_ALLOWLIST_EXACT", flush=True)
         verify_pilot_process_isolation(hermes_python, project=project, environ=environ)
         print("PILOT_PROCESS_ISOLATION_LINK_VERIFIED", flush=True)
-        subprocess.run(
-            build_gateway_command(hermes_python),
-            cwd=project,
-            env=environ,
-            check=True,
+        run_actual_gateway(
+            hermes_python, project=project, environ=environ,
+            evidence_file=evidence_file,
+            gateway_module=gateway_module,
         )
     finally:
         cleanup_temporary_project(project)
+
+
+def run_actual_gateway(
+    hermes_python: str,
+    *,
+    project: Path,
+    environ: dict[str, str],
+    evidence_file: Path,
+    gateway_module: str = "gateway.run",
+) -> None:
+    """Start the real hardened gateway and verify actual runtime evidence.
+
+    The launcher spawns the final Hermes Python process (bootstrap) and waits
+    for the bootstrap to record its process identity in the evidence file.
+    The recorded PID must equal the spawned gateway PID, proving the process
+    that applied the isolation is the same process that enters gateway.run.
+    The actual kernel dumpable state is then read from /proc/<pid>/status so
+    the observation does not depend on the bootstrap's own printing.
+    """
+
+    command = build_gateway_command(hermes_python, module=gateway_module)
+    gateway = subprocess.Popen(
+        command,
+        cwd=project,
+        env=environ,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    try:
+        evidence = wait_for_runtime_evidence(
+            evidence_file, gateway_pid=gateway.pid,
+        )
+        recorded_pid = evidence.get("pid")
+        recorded_dumpable = evidence.get("dumpable")
+        recorded_stage = evidence.get("stage")
+        if recorded_pid != gateway.pid:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_PID_MISMATCH: evidence pid="
+                + str(recorded_pid)
+                + " gateway pid="
+                + str(gateway.pid)
+            )
+        if recorded_dumpable != 0:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_NOT_ISOLATED: dumpable="
+                + str(recorded_dumpable)
+            )
+        kernel_dumpable = observe_kernel_dumpable(gateway.pid)
+        if kernel_dumpable != 0:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_KERNEL_NOT_ISOLATED: /proc dumpable="
+                + str(kernel_dumpable)
+            )
+        print(
+            "PILOT_ACTUAL_RUNTIME_EVIDENCE pid="
+            + str(gateway.pid)
+            + " stage="
+            + str(recorded_stage)
+            + " dumpable=0 kernel_dumpable=0"
+            + " proc_status="
+            + str(gateway.pid),
+            flush=True,
+        )
+        returncode = gateway.wait()
+        if returncode != 0:
+            raise RuntimeError(
+                "PILOT_GATEWAY_EXITED_NONZERO: returncode=" + str(returncode)
+            )
+    finally:
+        if gateway.poll() is None:
+            gateway.terminate()
+            try:
+                gateway.wait(timeout=5.0)
+            except subprocess.TimeoutExpired:
+                gateway.kill()
+                gateway.wait(timeout=2.0)
+
+
+def wait_for_runtime_evidence(
+    evidence_file: Path, *, gateway_pid: int, timeout: float = 30.0,
+) -> dict[str, object]:
+    """Wait for the bootstrap to record process identity evidence.
+
+    The evidence file must appear (written by the same final process after
+    hardening is applied) and must name the spawned gateway PID.  This is
+    the process identity linkage: the process that applied the isolation
+    is the process that entered the gateway runtime.
+    """
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            raw = evidence_file.read_text(encoding="utf-8")
+        except OSError:
+            time.sleep(0.05)
+            continue
+        try:
+            evidence = json.loads(raw)
+        except json.JSONDecodeError:
+            time.sleep(0.05)
+            continue
+        if isinstance(evidence, dict) and evidence.get("pid") == gateway_pid:
+            return evidence
+        time.sleep(0.05)
+    raise RuntimeError(
+        "PILOT_ACTUAL_RUNTIME_EVIDENCE_MISSING: no evidence from pid="
+        + str(gateway_pid)
+    )
+
+
+def observe_kernel_dumpable(pid: int) -> int:
+    """Observe the kernel-enforced isolation of a live process.
+
+    Independent of the bootstrap's own prctl introspection: opens
+    /proc/<pid>/mem from this (different, same-UID) process.  When the
+    target is non-dumpable the kernel refuses the access (EACCES/EPERM);
+    when dumpable=1 the open succeeds.  This is the actual defensive
+    semantics the mitigation relies on: an untrusted same-UID process
+    must not be able to read the gateway holder's memory.
+    """
+
+    if os.name != "posix" or not Path(f"/proc/{pid}/mem").is_file():
+        raise RuntimeError(
+            "PILOT_ACTUAL_RUNTIME_KERNEL_OBSERVATION_UNSUPPORTED: "
+            + "linux /proc required"
+        )
+    try:
+        fd = os.open(f"/proc/{pid}/mem", os.O_RDONLY)
+    except OSError:
+        # Denied: exactly what the non-dumpable profile must enforce.
+        return 0
+    os.close(fd)
+    raise RuntimeError(
+        "PILOT_ACTUAL_RUNTIME_KERNEL_MEM_ACCESSIBLE: "
+        + f"gateway process is dumpable (open /proc/{pid}/mem succeeded)"
+    )
 
 
 def verify_pilot_process_isolation(

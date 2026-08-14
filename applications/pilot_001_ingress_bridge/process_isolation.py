@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import json
 import os
 import platform
 import runpy
@@ -68,20 +69,57 @@ def apply_process_isolation() -> int:
     return assert_process_isolated("startup")
 
 
+RUNTIME_EVIDENCE_ENV = "PILOT001_RUNTIME_EVIDENCE_FILE"
+
+
+def _write_runtime_evidence(stage: str, module: str) -> None:
+    """Write the minimal, non-secret process identity evidence (Pilot-only).
+
+    Only active when the launcher explicitly points PILOT001_RUNTIME_EVIDENCE_FILE
+    at a path; outside the Pilot launch path this is a no-op so the module stays
+    harmless in normal imports. The payload contains only pid, dumpable and
+    stage — never capability material, tokens, FD contents or business data.
+    """
+    path = os.environ.get(RUNTIME_EVIDENCE_ENV)
+    if not path:
+        return
+    evidence = {
+        "pid": os.getpid(),
+        "dumpable": get_dumpable(),
+        "stage": stage,
+        "module": module,
+    }
+    try:
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(evidence, handle, sort_keys=True)
+    except OSError:
+        # Evidence is best-effort and non-fatal; fail-closed behavior comes
+        # from the launcher verifying the file exists with the right PID.
+        return
+
+
 def run_hardened_module(module: str, passthrough: list[str]) -> int:
     """Apply hardening in the current (final) Python process, then enter the
     target module without any further exec boundary.
 
     sys.argv is rebuilt before runpy so the target module never sees the
     bootstrap arguments; the target's own arguments follow a separator.
+
+    A runtime evidence file (when the launcher requested one) records that
+    this exact process applied the isolation before entering the target
+    module, and again when the module returns, so an observer can verify
+    the process identity that ran the gateway runtime is the same process
+    that applied the hardening.
     """
 
     apply_process_isolation()
+    _write_runtime_evidence("entering", module)
     print("PILOT_PROCESS_ISOLATION_EFFECTIVE PR_GET_DUMPABLE=0", flush=True)
     if passthrough and passthrough[0] == "--":
         passthrough = passthrough[1:]
     sys.argv = [module + ".py"] + passthrough
     runpy.run_module(module, run_name="__main__")
+    _write_runtime_evidence("returned", module)
     return 0
 
 

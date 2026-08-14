@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -15,6 +16,7 @@ from applications.pilot_001_ingress_bridge.crypto import (
 )
 from applications.pilot_001_ingress_bridge.launcher import (
     EXPECTED_MODEL_TOOL_NAMES,
+    RUNTIME_EVIDENCE_ENV,
     build_gateway_command,
     enforce_model_tool_profile,
     prepare_temporary_project,
@@ -479,6 +481,40 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
         "platforms:\n  wecom:\n    enabled: true\n", encoding="utf-8"
     )
     calls: list[list[str]] = []
+    gateway_pid = 4242
+
+    class FakePopen:
+        def __init__(self, command, **kwargs):
+            self.command = list(command)
+            self.pid = gateway_pid
+            self.returncode = 0
+            self._terminated = False
+            calls.append(self.command)
+            # Simulate the bootstrap writing its runtime evidence before
+            # entering the gateway runtime (same process identity).
+            evidence_path = kwargs.get("env", {}).get(RUNTIME_EVIDENCE_ENV)
+            if evidence_path:
+                evidence = {
+                    "pid": gateway_pid,
+                    "dumpable": 0,
+                    "stage": "entering",
+                    "module": "gateway.run",
+                }
+                Path(evidence_path).write_text(
+                    json.dumps(evidence, sort_keys=True), encoding="utf-8"
+                )
+
+        def wait(self, timeout=None):
+            return self.returncode
+
+        def poll(self):
+            return None if not self._terminated else 0
+
+        def terminate(self):
+            self._terminated = True
+
+        def kill(self):
+            self._terminated = True
 
     def fake_run(command, **kwargs):
         calls.append(list(command))
@@ -497,6 +533,11 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(subprocess, "Popen", FakePopen)
+    monkeypatch.setattr(
+        "applications.pilot_001_ingress_bridge.launcher.observe_kernel_dumpable",
+        lambda pid: 0,
+    )
     monkeypatch.setattr("tempfile.tempdir", str(tmp_path))
     run_pilot_gateway(
         source_hermes_home=source_home,
@@ -509,7 +550,10 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
     # itself before entering gateway.run; no parent-only hardening).
     assert "--check" in calls[1]
     assert any(part.endswith("process_isolation.py") for part in calls[1])
+    # Actual runtime evidence: the final gateway command enters gateway.run
+    # through the bootstrap, and the recorded PID matches the spawned one.
     assert calls[2][-1] == "gateway.run"
+    assert calls[2][0] == "/opt/hermes/python"
 
 
 async def test_p1a_runtime_startup_denies_namespace_drift(tmp_path, monkeypatch):

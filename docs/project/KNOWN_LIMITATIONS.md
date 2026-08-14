@@ -5,7 +5,7 @@
 `v0.35.0` 的发布不改变以下产品限制；REL-035 与 STRAT-001 均已最终对账并封存，当前
 Current Product SP、Governance Task 与工作均为 None。P0-R 已实现并通过最终独立审查，Preview authority 已建立；PILOT-001-IBD 设计已通过最终独立规划审查，RFC-033 已 Adopted，ADR-073 已 Accepted。IB-IMP-A 在已测试的 WSL2 同 UID topology 下因 `pidfd_getfd` 可复制 issuer capability 而停止；当前 Pilot 部署为 `UNSUPPORTED`。Option D 设计基线保留，process isolation unresolved，完整实现未授权。Fresh Owner Ingress Evidence 仍为 `UNSUPPORTED`，Bridge 尚未实现且未授权。SP-021 已通过最终独立审查、合并、main Quality Gate、
 ACC-021 最终验收与治理对账，并已封存。
-IB-IMP-A Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence baseline 已批准。PILOT-001-P1B 已在真实 WSL2 下测试进程本地 Non-Dumpable mitigation（`PR_SET_DUMPABLE=0` 运行时验证），same-UID `pidfd_getfd` 复制与 issuer 调用被拒绝（errno=1 EPERM），restart 后仍成立；该结果仅覆盖 tested Pilot profile，不改变 `SIGNING_ORACLE_ISOLATION_FAILED_FOR_TESTED_TOPOLOGY` 历史负面证据，也不把 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 变成 resolved。
+IB-IMP-A Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，negative evidence baseline 已批准。PILOT-001-P1B 已在真实 WSL2 下测试进程本地 Non-Dumpable mitigation（`PR_SET_DUMPABLE=0` 运行时验证），same-UID `pidfd_getfd` 复制与 issuer 调用被拒绝（errno=1 EPERM），restart 后仍成立；P1B-R1 已从 launcher 实际链路证明同一 process identity（evidence PID 匹配 + 内核拒绝跨进程 `/proc/<pid>/mem` 访问）。该结果仅覆盖 tested Pilot profile，不改变 `SIGNING_ORACLE_ISOLATION_FAILED_FOR_TESTED_TOPOLOGY` 历史负面证据，也不把 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 变成 resolved。
 P1A 仅证明本机可信 host 且模型无任意进程能力时的内部 Fresh Confirmation；真实
 原始正向结果属于 `PRE_R1_REAL_EVIDENCE / CONTRACT_IMPLEMENTATION_REVISED`。R1 的 strict V1
 wire、key split、issuance journal 与 runtime startup gate 已由自动化和一次新的真实内部

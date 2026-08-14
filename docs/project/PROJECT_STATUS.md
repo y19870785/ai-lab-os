@@ -99,7 +99,11 @@ Python 进程内 `PR_SET_DUMPABLE=0` + 运行时 verify 0，same-UID `pidfd_getf
 hardening 重新应用且攻击仍失败，Hermes exact four-tool profile 无回归。该结果仅证明
 tested Pilot profile（`PILOT_GRADE_LOCAL_PROCESS_ISOLATED_PROFILE_V1`）；
 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED`、Phase 1 Full、Phase 2 与真实业务 mutation
-均保持不变。P1B 状态为 IMPLEMENTED / EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW。
+均保持不变。P1B-R1 已从 launcher 实际启动链路补齐运行时证据：bootstrap 在最终进程内
+写入 evidence（pid/dumpable/stage），launcher 校验 evidence.pid == Popen.pid 并跨进程
+观察内核拒绝 `/proc/<pid>/mem` 访问，证明应用隔离的进程与进入 `gateway.run` 的进程为
+同一 process identity；`--check` 仅作为 prerequisite self-test。P1B-R1 状态为
+IMPLEMENTED / ACTUAL_RUNTIME_EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW。
 REL-036 未启动，版本、Tag 和 Release 未改变。
 STRAT-001 已通过最终独立审查、合并和 main Quality Gate，并完成 post-merge reconciliation
 与封存。ARCH-001 已通过独立审查、PR #66 Squash Merge、main Quality Gate 和 post-merge

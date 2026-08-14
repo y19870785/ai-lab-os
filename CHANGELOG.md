@@ -7,6 +7,7 @@
 - restart 语义验证通过：连续两次启动均重新 harden，旧 capability 不复用，攻击仍失败。
 - Hermes actual model namespace 保持 exact four tools（`ai_lab_interaction_preview/status/view/confirm`），P1A 相关测试无回归；UserTask mutation 与 AI-Lab Real Provider 均为 0。
 - 历史负面证据 `SIGNING_ORACLE_ISOLATION_FAILED_FOR_TESTED_TOPOLOGY` 与 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 保持不变；该结果仅证明 tested Pilot profile（`PILOT_GRADE_LOCAL_PROCESS_ISOLATED_PROFILE_V1`），不是 production/enterprise secure 或 general process isolation resolved。治理状态为 IMPLEMENTED / EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW。
+- P1B-R1（实际运行时证据闭环）：launcher 改为 Popen 启动实际 gateway 并校验 bootstrap 写入的 evidence 文件（`pid`/`dumpable`/`stage`），证明应用隔离的最终进程与进入 `gateway.run` 的进程是同一 process identity；同时从 launcher 跨进程 `open("/proc/<pid>/mem")` 观察内核拒绝访问（dumpable=0 的防御语义），并在 gateway runtime 返回后确认同一 pid 仍可写 `returned` 阶段。`--check` 保留为 prerequisite self-test，不再等同于 runtime proof。受控 fixture（`gateway_probe.py`）三阶段证据与 actual runtime 证据在验收文档中明确区分。
 
 ### PILOT-001-P1A 内部可信入站确认 Pilot
 

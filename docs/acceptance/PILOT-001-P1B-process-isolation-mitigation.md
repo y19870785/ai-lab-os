@@ -117,6 +117,67 @@ final Python process starts
   - 仅在 `PILOT001_REQUIRE_PROCESS_ISOLATION=1` 时启用候选 hardening；
   - startup / capability acquired / post-child 三阶段记录 `PR_GET_DUMPABLE`。
 - `tests/spike/test_pilot_001_process_isolation.py`（新增，P1B Linux explicit-run 测试）。
+- `tests/applications/pilot_001_ingress_bridge/test_p1b_r1_actual_runtime.py`（新增，P1B-R1 实际运行时证据测试）
+  与 `tests/applications/pilot_001_ingress_bridge/stub_gateway_runtime.py`（新增，Pilot-only stub gateway）。
+
+## 4A. P1B-R1：实际运行时证据闭环（Actual Runtime Evidence Closure）
+
+### 证据类型区分（R1 审查要求）
+
+本验收明确区分两类证据，任何一处都不得混用：
+
+| 类别 | 来源 | 直接观察（observation） | 推断（inference） |
+|---|---|---|---|
+| CONTROLLED VALIDATION HOLDER | `gateway_probe.py`（spike fixture） | 三阶段 `PR_GET_DUMPABLE=0` | 该 holder 是 repository-controlled fixture，不是实际 Hermes gateway runtime |
+| ACTUAL HERMES GATEWAY RUNTIME | `run_pilot_gateway()` 实际启动链路 | evidence 文件 pid + 内核拒绝跨进程 mem 访问 | 同一进程进入 `gateway.run` 且保持隔离（基于 PID 匹配的 process identity linkage） |
+
+`gateway_probe.py` 的三阶段结果只作为受控防御性回归 fixture，不再被描述为
+actual Hermes holder 三阶段 runtime proof；actual runtime 证明来自 launcher 实际链路。
+
+### 进程身份关联（Process Identity Linkage）
+
+launcher 启动实际 gateway 前把 `PILOT001_RUNTIME_EVIDENCE_FILE` 指向临时 project 内的
+evidence 文件；bootstrap（`process_isolation.py` 的 `run_hardened_module`）在应用隔离后、
+进入目标模块前写入 JSON：`pid`（最终进程）、`dumpable`（0）、`stage`（entering/returned）、`module`。
+
+launcher（`run_actual_gateway()`）验证三件事：
+
+```text
+1. evidence.pid == subprocess.Popen(...).pid   同一 process identity
+2. evidence.dumpable == 0                      隔离已在最终进程内应用
+3. observe_kernel_dumpable(pid) == 0           内核拒绝跨进程 /proc/<pid>/mem 访问
+```
+
+其中 `observe_kernel_dumpable()` 不从 bootstrap 读打印，而是从 launcher（不同进程）尝试
+`open("/proc/<pid>/mem")`：目标 non-dumpable 时内核返回 EACCES/EPERM（观察返回 0）；
+dumpable=1 时 open 成功（观察抛 `KERNEL_MEM_ACCESSIBLE`）。这是内核强制语义的直接观察。
+
+### 实际链路证据（WSL2 explicit run）
+
+```text
+wsl.exe -d Ubuntu --cd /mnt/c/Users/hechao/Documents/AI-Lab-PILOT001-P1B -- \
+  env PILOT001_RUN_REAL_CAPABILITY_ATTACK=1 \
+  /home/hechao/.hermes/hermes-agent/venv/bin/python \
+  -m pytest tests/applications/pilot_001_ingress_bridge/test_p1b_r1_actual_runtime.py -q -s
+...
+PILOT_ACTUAL_RUNTIME_EVIDENCE pid=<pid> stage=entering dumpable=0 kernel_dumpable=0 proc_status=<pid>
+4 passed in ~3s
+```
+
+`test_p1b_r1_actual_gateway_link_on_wsl2` 用 `run_actual_gateway()`（launcher 实际 gateway 启动
+路径）启动 stub gateway：bootstrap 在最终 Python 进程内 harden、写 evidence、经 runpy 进入 stub
+（同一进程，无 exec）；launcher 校验 evidence.pid == Popen pid、dumpable=0、内核拒绝跨进程 mem
+访问，并在 gateway runtime 返回后确认 evidence `stage=returned` 仍记录同一 pid——证明
+应用隔离的进程 == 运行 gateway runtime 的进程 == runtime 结束后仍存活的进程。
+
+Windows 非 real 下该测试正确 skip（`os.name != posix` 或未设置 `PILOT001_RUN_REAL_CAPABILITY_ATTACK`）；
+Windows 上另有 3 个单测覆盖 launcher wiring 契约（bootstrap→module 命令、evidence 等待的 PID 匹配语义）。
+
+### `verify_pilot_process_isolation(--check)` 的定位
+
+`--check` 自检保留为 prerequisite/self-test：它证明 bootstrap 机制可在目标环境应用。
+它**不等于**实际 gateway process runtime proof；actual runtime proof 由上述
+`run_actual_gateway()` 链路（evidence PID + 内核 mem 观察）提供。
 
 ## 5. 主动攻击验收（真实 WSL2 mitigation）
 
@@ -173,7 +234,11 @@ G. pidfd_getfd duplication: DENIED (errno=1 EPERM), invoked=false
 
 ## 6. 有效 Hardening 运行时证明
 
-从真实 holder process 证明：
+分两层证明（R1 起明确区分）：
+
+### 6.1 CONTROLLED VALIDATION HOLDER（受控 fixture）
+
+`gateway_probe.py` 三阶段（repository-controlled，不是实际 Hermes runtime）：
 
 ```text
 PR_GET_DUMPABLE (startup): 0
@@ -181,8 +246,19 @@ PR_GET_DUMPABLE (capability_acquired): 0
 PR_GET_DUMPABLE (post_child): 0
 ```
 
-gateway startup 后、capability 进入 holder 后、tool child 生成后状态均保持 0；
-任何代码路径重新变为 dumpable=1 都会触发 `PILOT_PROCESS_ISOLATION_INEFFECTIVE` 并拒绝继续。
+### 6.2 ACTUAL HERMES GATEWAY RUNTIME（实际 launcher 链路）
+
+从 `run_actual_gateway()` 实际启动的最终 Python 进程证明：
+
+```text
+evidence.pid == Popen.pid            process identity linkage（同一进程）
+evidence.dumpable == 0               isolation 已应用（bootstrap 内 PR_GET_DUMPABLE）
+observe_kernel_dumpable(pid) == 0    内核拒绝跨进程 /proc/<pid>/mem 访问（直接观察）
+stage=returned 仍记录同一 pid        同一进程贯穿整个 gateway runtime
+```
+
+任何代码路径重新变为 dumpable=1 都会触发 fail-closed 拒绝继续；launcher 若发现
+evidence PID 不匹配、dumpable != 0 或内核 mem 可访问，即抛错停止（不进入 supported runtime）。
 
 ## 7. 失败即关闭（Fail-Closed）启动顺序
 
@@ -192,14 +268,17 @@ final Python process harden
   -> capability holder/runtime 进入
   -> tool namespace resolution（Hermes exact four）
   -> exact-four gate（enforce_model_tool_profile）
-  -> 再次 verify 0（verify_pilot_process_isolation --check）
+  -> prerequisite self-test（verify_pilot_process_isolation --check）
+  -> run_actual_gateway：evidence PID 匹配 + dumpable=0 + 内核 mem 拒绝
   -> 正式接收 WeCom traffic 前 gate 完成
 ```
 
-如果 hardening 无法应用（非 Linux、prctl 失败、effective != 0），Gateway/trusted Pilot path
-拒绝启动。Windows 非 real 快速检查结果：`10 passed, 2 skipped in 0.07s`（skip 为 P1B
-explicit Linux-only attack 测试在非 real 下正确跳过；这不构成安全 PASS，安全结论以
-WSL2 真实运行为准）。
+`--check` 是 prerequisite/self-test（证明机制可应用），不等于 gateway runtime proof；
+actual runtime proof 由 `run_actual_gateway()` 的 evidence PID + 内核观察提供。
+如果 hardening 无法应用（非 Linux、prctl 失败、effective != 0）或实际链路证据不满足
+（PID 不匹配 / dumpable != 0 / 内核 mem 可访问），Gateway/trusted Pilot path 拒绝启动。
+Windows 非 real 检查：P1B-R1 新增 3 个单测 + 既有 spike 快速检查通过（explicit Linux-only
+测试在非 real 下正确 skip；这不构成安全 PASS，安全结论以 WSL2 真实运行为准）。
 
 ## 8. 重启与重放安全（Restart / Replay）
 
@@ -264,11 +343,12 @@ fully isolated 或 general process isolation resolved。
 |---|---|---|
 | A. IB-IMP-A 旧攻击套件 | WSL2 `test_pilot_001_ingress_capability.py`（real） | 10 passed（负面 baseline 仍复现） |
 | B. P1B mitigation 攻击 | WSL2 `test_pilot_001_process_isolation.py`（real） | 2 passed（含 restart） |
-| C. P1A relevant | `tests/applications/pilot_001_ingress_bridge` | 19 passed |
+| B1. P1B-R1 实际链路 | WSL2 `test_p1b_r1_actual_runtime.py`（real explicit） | 4 passed（evidence PID + 内核 mem 拒绝 + returned stage） |
+| C. P1A relevant | `tests/applications/pilot_001_ingress_bridge` | 22 passed, 1 skipped |
 | C. P1A acceptance | `test_acc_021_canonical_trusted_interaction.py` | 7 passed |
 | D. governance | `tests/governance` | 37 passed |
-| E. default non-real pytest | `tests -q --tb=no` | 1867 passed, 2 skipped |
-| F. explicit non-real pytest | `tests --ignore=tests/real -m "not real"` | 1867 passed, 2 skipped |
+| E. default non-real pytest | `tests -q --tb=no` | 1870 passed, 3 skipped |
+| F. explicit non-real pytest | `tests --ignore=tests/real -m "not real"` | 1870 passed, 3 skipped |
 | G. changed-files Ruff | 变更 Python 文件 | All checks passed |
 | H. git diff --check | 工作区 | 无空白错误（仅 LF/CRLF 警告） |
 
@@ -307,15 +387,20 @@ REAL_BUSINESS_MUTATION_NOT_AUTHORIZED
 
 ## 14. 停止条件与独立审查状态
 
-遇到的停止条件：无（canonical base 无漂移；baseline attack 正常复现；candidate
-mitigation active attack 真实 DENIED；restart PASS；exact four tools 无回归；
-无 UserTask mutation；AI-Lab real Provider 为 0；无 Hermes core 修改；无 sudo/全局
-host 修改；无 credential 暴露）。
+P1B-R1 遇到的停止条件：无。实际 Hermes gateway runtime 与隔离后的 final process 的
+process identity 已由 evidence PID + 内核 mem 观察证明为同一进程；若该证明无法成立
+（PID 不匹配 / 内核 mem 可访问 / evidence 缺失），launcher fail-closed 停止，且本验收
+会进入 EVIDENCE_GAP_REMAINS 而非 PASS。R1 未修改 Hermes core/site-packages、未使用
+sudo、未改系统策略、未扩大安全测试能力。
+
+P1B 与 P1B-R1 均无 UserTask mutation、Execution、AI-Lab real Provider 调用、真实业务消息。
 
 最终治理状态：
 
 ```text
 PILOT-001-P1B: IMPLEMENTED / EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW
+PILOT-001-P1B-R1: IMPLEMENTED / ACTUAL_RUNTIME_EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW
 ```
 
-PR 保持 OPEN / DRAFT；不转 Ready、不 Merge。
+PR 保持 OPEN / DRAFT；不转 Ready、不 Merge、不 Tag、不 Release。
+最终安全结论等待 ChatGPT 对 PR #79 的下一轮独立审查。

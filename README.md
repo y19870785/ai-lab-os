@@ -10,7 +10,9 @@
 > Fresh Evidence 与 one-time challenge 被原子消费，Interaction 仅推进到 `AUTHORIZED`，
 > UserTask 与 Execution 均为零增量。PILOT-001-P1B 已在真实 WSL2 下验证进程本地
 > Non-Dumpable mitigation（`PR_SET_DUMPABLE=0` 运行时验证），same-UID `pidfd_getfd`
-> capability 复制与 issuer 调用均被拒绝（errno=1 EPERM），restart 后仍成立；该结果仅
+> capability 复制与 issuer 调用均被拒绝（errno=1 EPERM），restart 后仍成立；P1B-R1
+> 已从 launcher 实际启动链路证明最终进程与进入 gateway runtime 的进程为同一 process
+> identity（evidence PID 匹配 + 内核拒绝跨进程 `/proc/<pid>/mem` 访问）。该结果仅
 > 覆盖 tested Pilot profile，`PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 与历史负面证据
 > 保持不变，Phase 1 Full、Phase 2 与真实业务 mutation 均未授权。
 
@@ -78,8 +80,10 @@ callback，但同 UID 独立进程能通过 `pidfd_getfd` 复制并调用 anonym
 `SIGNING_ORACLE_ISOLATION_FAILED` 判定为 `UNSUPPORTED`；Option D 设计基线仍保留，但 process isolation unresolved，
 完整实现未授权。失败 plugin 已移出 live `.hermes/plugins/`，仅保留于惰性测试 fixture；没有继续真实 callback、Bridge 或业务实现。
 PILOT-001-P1B 已测试进程本地 Non-Dumpable mitigation 并证明 tested Pilot profile 下
-`pidfd_getfd` 复制被拒（errno=1 EPERM）；`SIGNING_ORACLE_ISOLATION_FAILED` 历史负面证据
-与 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 保持不变。
+`pidfd_getfd` 复制被拒（errno=1 EPERM）；P1B-R1 进一步从 launcher 实际链路证明最终进程
+与进入 gateway runtime 的进程为同一 process identity，且内核拒绝跨进程 `/proc/<pid>/mem`
+访问；`SIGNING_ORACLE_ISOLATION_FAILED` 历史负面证据与 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED`
+保持不变。
 Approved Evidence Head `a50fc8719158c07a4eee716c3513e9698c8571ff` 已通过最终独立安全审查，负面证据基线已批准；该治理结论不代表 mitigation 已测试。
 
 QUALITY-004 在默认递归 pytest collection 边界排除 `tests/real`；显式 real file/node 可导入无副作用的
