@@ -101,9 +101,15 @@ def test_p1b_r2_kernel_observation_success_fails_closed(monkeypatch):
         pytest.skip("kernel observation requires Linux /proc")
 
     def fake_open(path, flags):
-        return 7
+        # A fake but valid fd (dup of stdin); os.close is also mocked so
+        # the launcher never touches a real descriptor number.
+        return os.dup(0)
+
+    def fake_close(fd):
+        return None
 
     monkeypatch.setattr(os, "open", fake_open)
+    monkeypatch.setattr(os, "close", fake_close)
     with pytest.raises(RuntimeError, match="KERNEL_MEM_ACCESSIBLE"):
         observe_kernel_dumpable(os.getpid())
 
