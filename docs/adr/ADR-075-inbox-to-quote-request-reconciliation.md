@@ -20,8 +20,8 @@ Inbox 与 Quote Request 属于独立持久化边界，不能假设跨数据库�
 CLAIMED -> TARGET_CREATED -> TARGET_VERIFIED -> TARGET_LINKED -> COMPLETED
 ```
 
-1. **claim**：以 Inbox item ID、WorkspaceKey、resolution type=`QUOTE_REQUEST` 和 idempotency key 建立唯一 durable claim。
-2. **target create**：调用 Quote create，传递稳定的 workspace-scoped idempotency key；不直接写 Quote 数据库。
+1. **claim**：先验证 command/envelope WorkspaceKey 与已认证请求上下文一致，再以 Inbox item ID、完整 WorkspaceKey、resolution type=`QUOTE_REQUEST` 和 idempotency key 建立唯一 durable claim；mismatch 在 claim/idempotency lookup 前返回 `quote.workspace_mismatch / permission_denied`。
+2. **target create**：调用 Quote create，传递固定 namespace `full WorkspaceKey + operation + idempotency_key`；不直接写 Quote 数据库。同 workspace 不同 operation 或不同 workspace 的相同 key 字符串相互独立。
 3. **canonical verification**：按相同 WorkspaceKey read-back Quote，验证 ID、revision、state 与 idempotency result。
 4. **target linkage**：在 claim 中 CAS 保存 Quote ID、verified revision 与 audit correlation；重复 linkage 返回原结果。
 5. **completion**：仅在 linkage durable 后将 Inbox resolution 标为 COMPLETED，并再次读取确认终态。
@@ -36,7 +36,7 @@ CLAIMED -> TARGET_CREATED -> TARGET_VERIFIED -> TARGET_LINKED -> COMPLETED
 | Quote 已创建，Inbox 未完成 | canonical read-back，补写 linkage，再完成 | 删除已验证 Quote 或盲目重建 |
 | TARGET_CREATED 但 verification 未记录 | read-back 并校验 workspace/revision | 仅凭 create response 宣称成功 |
 | TARGET_LINKED，completion 未提交 | CAS 重试 completion | 重复 target create |
-| 重复 Inbox 事件/请求 | 返回原 claim 和原 Quote result | 新建 claim 或重复 Audit |
+| 重复 Inbox 事件/请求 | 同 namespace 同 payload 返回原 claim 和 QuoteMutationResult | 新建 claim 或重复 QuoteAuditRecord |
 | persistence outcome unknown | 保持 pending，按原 key reconcile | 标记成功或静默丢弃 |
 | projection failure | Quote 保持成功，记录 repair cursor | 回滚 canonical Quote |
 
@@ -44,8 +44,9 @@ CLAIMED -> TARGET_CREATED -> TARGET_VERIFIED -> TARGET_LINKED -> COMPLETED
 
 - scanner 只读取未完成或 outcome unknown 的 claims，按稳定分页与 WorkspaceKey 隔离处理。
 - 每条 repair 先查询 claim，再查询 canonical Quote；所有推进使用 claim revision/CAS。
-- Quote 存在且验证匹配时补 linkage/completion；Quote 不存在时用原 key重试 create。
-- workspace mismatch、idempotency payload conflict 或 canonical 数据不一致时 fail closed，记录不可自动恢复失败并等待人工处置。
+- Quote 存在且验证匹配时补 linkage/completion；scoped lookup 无结果时不得查询其他 workspace，只能用原 namespace 重试 create。
+- foreign Quote/Customer/Contact/Waiting-For ID 与 absent ID 对 caller 均表现为 `quote.not_found / not_found`；scanner 不得通过错误码或 fallback lookup 泄露存在性。
+- envelope workspace mismatch 在 repository/idempotency lookup 前返回 `quote.workspace_mismatch / permission_denied`；同 namespace 的 payload conflict 返回 `quote.idempotency_conflict / conflict`，canonical 数据不一致时 fail closed 并等待人工处置。
 - repair 可重复运行；同一 claim 最多关联一个 Quote，同一 idempotency result 不重复产生 Audit 或 projection event。
 
 ## 最终状态与证据

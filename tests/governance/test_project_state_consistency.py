@@ -6,6 +6,8 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+from core.errors.codes import ErrorCategory
+
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "project_state.json"
 PILOT_001_STATUS = (
@@ -3432,7 +3434,7 @@ def test_sp022_planning_contract_is_complete_and_not_authorized() -> None:
     assert "PROPOSED / NOT_ACCEPTED" in documents["ownership"]
     assert "PROPOSED / NOT_ACCEPTED" in documents["reconciliation"]
     assert "PLANNING_BASELINE / 0_EXECUTED / NOT_PASSED" in documents["acceptance"]
-    assert documents["acceptance"].count("PLANNED / NOT_EXECUTED") >= 28
+    assert documents["acceptance"].count("PLANNED / NOT_EXECUTED") >= 36
 
     for marker in (
         "quote_request_id",
@@ -3454,6 +3456,48 @@ def test_sp022_planning_contract_is_complete_and_not_authorized() -> None:
     assert "不依赖跨数据库原子事务" in documents["reconciliation"]
     assert "SEPARATE_AUTHORIZATION_REQUIRED" in documents["plan"]
     assert "NOT_PART_OF_INITIAL_IMPLEMENTATION_AUTHORIZATION" in documents["plan"]
+
+    failure_categories = {
+        "quote.workspace_mismatch": ErrorCategory.PERMISSION_DENIED,
+        "quote.not_found": ErrorCategory.NOT_FOUND,
+        "quote.revision_conflict": ErrorCategory.CONFLICT,
+        "quote.idempotency_conflict": ErrorCategory.CONFLICT,
+        "quote.invalid_transition": ErrorCategory.VALIDATION,
+        "quote.validation_failed": ErrorCategory.VALIDATION,
+        "quote.persistence_failed": ErrorCategory.PERSISTENCE_FAILURE,
+        "quote.projection_failed": ErrorCategory.DEPENDENCY_FAILURE,
+    }
+    for code, category in failure_categories.items():
+        assert f"`{code}` | {category.value} |" in documents["rfc"]
+
+    for marker in (
+        "foreign ID 与 absent ID",
+        "禁止跨 workspace fallback lookup",
+        "零存在性泄露",
+        "full WorkspaceKey + operation + idempotency_key",
+        "不同 operation、同 key 按 operation namespace 相互独立",
+        "不同 workspace 使用相同 key 字符串也相互独立",
+        "QuoteMutationResult",
+        "QuoteAuditRecord",
+        "同一个 `quotes.db` transaction",
+        "真实 Interaction/Execution identity",
+        "禁止 placeholder ID",
+        "cus_<32 lowercase hex>",
+        "con_<32 lowercase hex>",
+        "不支持 hard delete",
+    ):
+        assert marker in documents["rfc"] + documents["ownership"]
+
+    for marker in (
+        "absent ID 与 foreign-workspace ID",
+        "无跨 workspace fallback lookup",
+        "同 workspace 不同 operation",
+        "不同 workspace 的相同 key",
+        "Customer create/read/update",
+        "Contact create/read/update",
+        "hard delete 不受支持",
+    ):
+        assert marker in documents["acceptance"]
 
     state = _load_state()
     assert state["current_sp"] is None

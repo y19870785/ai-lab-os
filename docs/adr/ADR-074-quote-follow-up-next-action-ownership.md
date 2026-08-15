@@ -16,13 +16,15 @@ SP-022 需要 Customer、Contact、Follow-up 与 Next Action，但仓库已有 W
 
 ### 客户与联系人
 
-Customer 与 Contact 是 Quote bounded context 内的 canonical entity，不引用仓库中另一套同名 canonical domain，因为当前 canonical main 没有受支持的 Customer/Contact owner。它们使用独立稳定 ID、完整 WorkspaceKey 与 revision；Contact 必须引用同 workspace Customer。未来若建立企业级 Customer master，迁移需要独立 ADR 和显式 ID mapping，不能并行保留两个 owner。
+Customer 与 Contact 是 Quote bounded context 内的 canonical entity，不引用仓库中另一套同名 canonical domain，因为当前 canonical main 没有受支持的 Customer/Contact owner。`customer_id` 使用 `cus_<32 lowercase hex>`，`contact_id` 使用 `con_<32 lowercase hex>`；两者均永久稳定、不可回收复用，持有完整 WorkspaceKey，revision 从 `1` 开始。create/update 使用 `full WorkspaceKey + operation + idempotency_key` namespace，update 必须携带 `expected_revision` 并执行 CAS。
+
+Contact 必须通过当前 WorkspaceKey scoped lookup 引用 Customer；foreign 与 absent Customer ID 都返回 `quote.not_found / not_found`，不得跨 workspace fallback lookup。Customer/Contact 不支持 hard delete；被 Quote 引用后不得静默替换 identity。merge/dedup、企业级 Customer master 与跨 workspace 共享不属于 Slice A，未来迁移需要独立 ADR 和显式 ID mapping，不能并行保留两个 owner。
 
 ### 跟进事实
 
 选择：`Waiting-For canonical reference/projection`。
 
-Quote Request 只保存可选 `waiting_for_id` 及 linkage audit，不复制 Waiting-For 的责任人、状态、截止日期、follow-up history 或 reopen/cancel 生命周期。需要跟进时由获准的 Slice B 通过幂等命令创建或链接同 workspace Waiting-For；读取时以 Waiting-For canonical fact 为准。这样保留既有客户/外部依赖语义，避免第二套 Follow-up 状态机。
+Quote Request 只保存可选 `waiting_for_id` 及 linkage audit，不复制 Waiting-For 的责任人、状态、截止日期、follow-up history 或 reopen/cancel 生命周期。需要跟进时由获准的 Slice B 通过幂等命令、当前 WorkspaceKey scoped lookup 创建或链接 Waiting-For；foreign 与 absent ID 均返回不可区分的 `quote.not_found / not_found`。读取时以 Waiting-For canonical fact 为准。这样保留既有客户/外部依赖语义，避免第二套 Follow-up 状态机。
 
 ### 下一行动
 
@@ -35,6 +37,12 @@ Next Action 是 Quote Request aggregate 拥有的 child value：
 - Waiting-For 可作为 Next Action 的外部依赖引用，但不拥有 Next Action；
 - Daily Review 只消费 canonical read model，不创建、拥有或修改 Quote/Next Action；
 - Action Hint 只是确定性展示/preview，不是 canonical fact、授权或执行结果。
+
+### 写入证据所有权
+
+Slice A 的 mutation proof 归 Quote bounded context：`QuoteAuditRecord` 与 Quote mutation 在同一 `quotes.db` transaction 中提交，`QuoteMutationResult` 是 commit 后 scoped read-back 验证得到的确定性 service result，不是独立业务事实。直接 CLI/API mutation 不得伪造 `interaction_id` 或 `execution_id` 来构造 `core.interaction.VerifiedResult`/`AuditEvidence`。
+
+只有 Slice D 获得独立授权后，Interaction adapter 才能使用真实 Interaction/Execution identity 把 QuoteMutationResult 投影为现有 Interaction evidence。transport success 与 LLM 文本都不属于 Quote canonical mutation proof。
 
 ## 后果
 
