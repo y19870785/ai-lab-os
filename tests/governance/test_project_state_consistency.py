@@ -6,6 +6,8 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+from core.errors.codes import ErrorCategory
+
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "project_state.json"
 PILOT_001_STATUS = (
@@ -2311,10 +2313,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 209
-    assert "- Git 跟踪 Markdown：209" in inventory
-    assert "- 仓库自有且纳入范围：209" in inventory
-    assert "- 新增中文治理文档：33" in inventory
+    assert len(tracked_markdown) == 214
+    assert "- Git 跟踪 Markdown：214" in inventory
+    assert "- 仓库自有且纳入范围：214" in inventory
+    assert "- 新增中文治理文档：38" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -3406,3 +3408,115 @@ def test_pilot001_ib_imp_a_stopped_security_spike_is_durable() -> None:
         "PHASE_2:\nNOT_AUTHORIZED",
     ):
         assert marker in evidence
+
+
+def test_sp022_planning_contract_is_complete_and_not_authorized() -> None:
+    paths = {
+        "plan": ROOT / "docs/project/SP-022-V037-QUOTE-REQUEST-PLANNING.md",
+        "rfc": ROOT / "docs/rfc/034-quote-request-trusted-write-contract.md",
+        "ownership": ROOT
+        / "docs/adr/ADR-074-quote-follow-up-next-action-ownership.md",
+        "reconciliation": ROOT
+        / "docs/adr/ADR-075-inbox-to-quote-request-reconciliation.md",
+        "acceptance": ROOT / "docs/acceptance/SP-022-quote-request.md",
+    }
+    documents = {
+        name: path.read_text(encoding="utf-8-sig")
+        for name, path in paths.items()
+    }
+
+    assert (
+        "PLANNING_BASELINE_PROPOSED / PENDING_INDEPENDENT_PLANNING_REVIEW / "
+        "IMPLEMENTATION_NOT_AUTHORIZED / ACC_022_NOT_EXECUTED"
+        in documents["plan"]
+    )
+    assert "DRAFT / NOT_ADOPTED" in documents["rfc"]
+    assert "PROPOSED / NOT_ACCEPTED" in documents["ownership"]
+    assert "PROPOSED / NOT_ACCEPTED" in documents["reconciliation"]
+    assert "PLANNING_BASELINE / 0_EXECUTED / NOT_PASSED" in documents["acceptance"]
+    assert documents["acceptance"].count("PLANNED / NOT_EXECUTED") >= 36
+
+    for marker in (
+        "quote_request_id",
+        "WorkspaceKey",
+        "expected_revision",
+        "quote.revision_conflict",
+        "quote.idempotency_conflict",
+        "quote.invalid_transition",
+        "quote.persistence_failed",
+        "quote.projection_failed",
+        "Quote canonical mutation proof",
+        "canonical read-back",
+    ):
+        assert marker in documents["rfc"]
+
+    assert "Waiting-For canonical reference/projection" in documents["ownership"]
+    assert "Daily Review 只消费 canonical read model" in documents["ownership"]
+    assert "CLAIMED -> TARGET_CREATED -> TARGET_VERIFIED -> TARGET_LINKED -> COMPLETED" in documents["reconciliation"]
+    assert "不依赖跨数据库原子事务" in documents["reconciliation"]
+    assert "SEPARATE_AUTHORIZATION_REQUIRED" in documents["plan"]
+    assert "NOT_PART_OF_INITIAL_IMPLEMENTATION_AUTHORIZATION" in documents["plan"]
+
+    failure_categories = {
+        "quote.workspace_mismatch": ErrorCategory.PERMISSION_DENIED,
+        "quote.not_found": ErrorCategory.NOT_FOUND,
+        "quote.revision_conflict": ErrorCategory.CONFLICT,
+        "quote.idempotency_conflict": ErrorCategory.CONFLICT,
+        "quote.invalid_transition": ErrorCategory.VALIDATION,
+        "quote.validation_failed": ErrorCategory.VALIDATION,
+        "quote.persistence_failed": ErrorCategory.PERSISTENCE_FAILURE,
+        "quote.projection_failed": ErrorCategory.DEPENDENCY_FAILURE,
+    }
+    for code, category in failure_categories.items():
+        assert f"`{code}` | {category.value} |" in documents["rfc"]
+
+    assert "同 key 异 payload/operation" not in documents["rfc"]
+    assert (
+        "同一完整 WorkspaceKey、同 operation、同 idempotency key、不同 normalized payload"
+        in documents["rfc"]
+    )
+    assert "跨 workspace linkage 一律返回 `quote.workspace_mismatch`" not in documents["ownership"]
+    assert (
+        "foreign ID 与 absent ID 一律返回不可区分的 `quote.not_found / not_found`"
+        in documents["ownership"]
+    )
+    assert "不重复 Audit" not in documents["acceptance"]
+    assert "不重复 QuoteAuditRecord" in documents["acceptance"]
+    assert "Audit correlation 与 Verified Result" not in documents["reconciliation"]
+    assert "匹配的 QuoteAuditRecord" in documents["reconciliation"]
+    assert "QuoteMutationResult" in documents["reconciliation"]
+    assert "Slice B 不构造 Interaction VerifiedResult/AuditEvidence" in documents["reconciliation"]
+
+    for marker in (
+        "foreign ID 与 absent ID",
+        "禁止跨 workspace fallback lookup",
+        "零存在性泄露",
+        "full WorkspaceKey + operation + idempotency_key",
+        "不同 operation、同 key 按 operation namespace 相互独立",
+        "不同 workspace 使用相同 key 字符串也相互独立",
+        "QuoteMutationResult",
+        "QuoteAuditRecord",
+        "同一个 `quotes.db` transaction",
+        "真实 Interaction/Execution identity",
+        "禁止 placeholder ID",
+        "cus_<32 lowercase hex>",
+        "con_<32 lowercase hex>",
+        "不支持 hard delete",
+    ):
+        assert marker in documents["rfc"] + documents["ownership"]
+
+    for marker in (
+        "absent ID 与 foreign-workspace ID",
+        "无跨 workspace fallback lookup",
+        "同 workspace 不同 operation",
+        "不同 workspace 的相同 key",
+        "Customer create/read/update",
+        "Contact create/read/update",
+        "hard delete 不受支持",
+    ):
+        assert marker in documents["acceptance"]
+
+    state = _load_state()
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
