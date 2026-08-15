@@ -1,4 +1,4 @@
-"""Static release-contract checks; wheel construction remains a release gate."""
+"""Release packaging contract checks, including real wheel/sdist builds."""
 
 import ast
 import json
@@ -47,7 +47,7 @@ def test_dependency_extras_match_runtime_boundaries():
     assert _names(extras["knowledge"]) == {"chromadb", "sentence-transformers"}
     assert _names(extras["integration"]) == {"mcp"}
     assert {"pytest", "pytest-asyncio", "httpx"} <= _names(extras["test"])
-    assert {"build", "twine"} <= _names(extras["build"])
+    assert {"build", "setuptools", "twine"} <= _names(extras["build"])
     assert {"ruff", "mypy"} <= _names(extras["dev"])
     assert _names(
         extras["api"]
