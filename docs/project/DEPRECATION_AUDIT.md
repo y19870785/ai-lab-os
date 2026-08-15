@@ -49,6 +49,21 @@
 - 相关文档已同步：ARCHITECTURE.md 模块树、PROJECT_CONTEXT.md、ADR-005 链接、CAPABILITY_OWNERSHIP.md 状态行。
 - 原提交记录全量回归 1868 通过、零失败；本重建分支的结果以本轮独立验证为准。
 
+## 正式文档一致性扫描（2026-08-15）
+
+对当前非归档 Markdown 中的 `agents/`、`knowledge/`、`core/agent/`、`workflows/`、`prompts/` 与 `knowledge/storage/protocol.py` 声明逐项分类：
+
+| 命中 | 分类 | 处理 |
+|---|---|---|
+| ADR-006 的 `knowledge/storage/protocol.py` Accepted 路径 | CURRENT_CONFLICT | 已在原 ADR 顶部追加可审计 amendment；当前路径固定为 `core/knowledge/protocol.py`、`sqlite_store.py`、`manager.py`，原正文保留为历史 |
+| VERSIONING_POLICY 的顶层 `prompts/` 目录树与 v0.33 当前基线 | CURRENT_CONFLICT | 已标记 `REMOVED / NOT_CURRENT_REPOSITORY_STRUCTURE`，目录树改为 FUTURE_PROPOSAL，当前版本对账为 v0.35.0 Alpha |
+| RFC-003 顶层 `agents/`、RFC-004 顶层 `knowledge/` | HISTORICAL_CONTEXT / FUTURE_PROPOSAL | RFC 历史正文不批量改写；不作为当前结构或实现证明 |
+| ADR-005 的 `core/agent/` 与顶层 `agents` | HISTORICAL_CONTEXT | 已有显著说明：历史类型与当前 `core/agents` 无一对一映射 |
+| TECHNICAL_DEBT、CAPABILITY_OWNERSHIP、PROJECT_CONTEXT、REPOSITORY_MAP 中的删除说明 | REMOVAL_RECORD | 保留；这些命中明确描述历史/删除事实或当前 canonical 路径 |
+| ARCHITECTURE、PROJECT_STRUCTURE、PUBLIC_API_INVENTORY、TEST_MATRIX 的 `core/agents`/`core/knowledge` | 当前 canonical 路径 | 无冲突，不修改 |
+
+本扫描关闭的是仓库当前正式文档冲突，不声称所有未知外部文档、历史分支或外部消费者不存在；外部兼容性证据边界继续遵循前述三层结论。
+
 ## 相关文档
 
 - [能力所有权](CAPABILITY_OWNERSHIP.md)

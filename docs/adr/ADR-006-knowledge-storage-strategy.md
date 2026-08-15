@@ -6,12 +6,24 @@
 | ------------ | ------------------------------------ |
 | **ADR 编号** | 006                                  |
 | **标题**     | Knowledge 存储策略                     |
-| **状态**     | 已接受                                |
+| **状态**     | 已接受；路径与实现范围部分已修订                     |
 | **作者**     | Lin Yuyan                            |
 | **创建日期** | 2026-07-12                           |
-| **更新日期** | 2026-07-12                           |
+| **更新日期** | 2026-08-15                           |
 | **关联 RFC** | RFC-004                              |
 | **取代**     | —                                    |
+
+## 2026-08-15 修订：存储路径与实现范围
+
+原始 Accepted 决策正文作为 2026-07-12 的历史设计保留，不改写。其将 `knowledge/storage/protocol.py` 描述为正式抽象路径的部分已由当前 canonical 实现取代：
+
+- 协议：`core/knowledge/protocol.py`
+- SQLite 存储：`core/knowledge/sqlite_store.py`
+- 管理入口：`core/knowledge/manager.py`
+
+修订原因是重复顶层 `knowledge/` 已按 Owner 授权的技术债收口删除，当前公共 API 清单与运行时消费者均指向 `core/knowledge`。本修订只 supersede 路径和当前实现范围，不撤销 ADR-006 的历史 Accepted 状态。
+
+当前实现提供 canonical Knowledge protocol、SQLite store 与 manager，但**不包含**原正文规划的独立完整 `VectorStore`/`GraphStore` 体系，也不证明完整 Knowledge 产品主链路已经完成。原正文中的 Phase 1 后端图、表结构与未来步骤均属于历史设计上下文，不得当作当前能力声明；任何完整 Vector/Graph 体系仍需独立规划、授权和验收。
 
 ## 1. 背景
 

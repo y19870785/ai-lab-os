@@ -74,6 +74,38 @@ def test_setuptools_discovers_product_packages_only():
     assert (PROJECT_ROOT / "core" / "waiting_for" / "__init__.py").is_file()
 
 
+def test_removed_package_governance_docs_are_reconciled():
+    adr006 = (
+        PROJECT_ROOT / "docs/adr/ADR-006-knowledge-storage-strategy.md"
+    ).read_text(encoding="utf-8-sig")
+    versioning = (
+        PROJECT_ROOT / "docs/governance/VERSIONING_POLICY.md"
+    ).read_text(encoding="utf-8-sig")
+    audit = (PROJECT_ROOT / "docs/project/DEPRECATION_AUDIT.md").read_text(
+        encoding="utf-8-sig"
+    )
+
+    for marker in (
+        "原始 Accepted 决策正文",
+        "core/knowledge/protocol.py",
+        "core/knowledge/sqlite_store.py",
+        "core/knowledge/manager.py",
+        "不包含",
+        "VectorStore`/`GraphStore",
+    ):
+        assert marker in adr006
+    assert "top-level prompts/ package: REMOVED / NOT_CURRENT_REPOSITORY_STRUCTURE" in versioning
+    assert "v0.35.0 Alpha" in versioning
+    assert "FUTURE_PROPOSAL: prompts/config.yaml" in versioning
+    for classification in (
+        "CURRENT_CONFLICT",
+        "HISTORICAL_CONTEXT",
+        "FUTURE_PROPOSAL",
+        "REMOVAL_RECORD",
+    ):
+        assert classification in audit
+
+
 def test_requirements_is_only_a_local_extra_compatibility_entrypoint():
     lines = [
         line.strip()
