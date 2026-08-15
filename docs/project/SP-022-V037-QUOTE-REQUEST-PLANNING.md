@@ -1,58 +1,62 @@
-# SP-022 v0.37 报价需求与客户跟进闭环规划基线
+# SP-022 — v0.37 Quote Request 规划基线
 
-> 日期：2026-08-14
-> 重建来源：`a8b3392` 规划语义
 > 状态：PLANNING_BASELINE_PROPOSED / PENDING_INDEPENDENT_PLANNING_REVIEW / IMPLEMENTATION_NOT_AUTHORIZED / ACC_022_NOT_EXECUTED
-> 目标版本：v0.37
+> 日期：2026-08-15
+> Canonical Base：`f01a8c74ab280af25b1d15453daf0a2216f05c6a`
 
-## 背景与目标
+## 目标与边界
 
-- 背景：当前 Product SP 为 None，产品处于空窗期；PILOT-001 受进程隔离阻塞，v0.36 的 WeCom Pilot 路线无法短期提供产品增量。
-- 目标：建立报价需求与客户跟进闭环，让真实客户请求可从入口进入 AI-Lab，形成可追踪业务对象并闭环到下一行动。
-- 优势：纯本地业务闭环，不依赖 process isolation；可复用 Waiting-For、Inbox、Daily Review 边界与 Composition Root。
+SP-022 只规划客户报价需求的可信写入闭环，不实现报价计算、ERP/CRM 集成、自动外发、身份/RBAC 或跨 workspace 共享。当前仓库版本仍为 v0.35.0 Alpha，`project_state.json` 的 Current Product SP 仍为 None；本规划不改变任何机器治理状态。
 
-## 范围
+本规划包由 [RFC-034](../rfc/034-quote-request-trusted-write-contract.md)、[ADR-074](../adr/ADR-074-quote-follow-up-next-action-ownership.md)、[ADR-075](../adr/ADR-075-inbox-to-quote-request-reconciliation.md) 与 [ACC-022](../acceptance/SP-022-quote-request.md) 共同组成。它们均为待独立审查的规划合同，不构成产品实现授权。
 
-| 项目 | 内容 |
-| --- | --- |
-| 纳入 | Quote Request、Customer、Contact、Follow-up、Next Action、Audit |
-| 不纳入 | 自动价格计算（v0.39 候选）、报价版本与审批（v0.39 候选）、ERP 集成（v0.40 候选）、通用 CRM 平台扩张 |
-| 先做 | 需求收集、责任归属、状态推进、人工确认与审计事实 |
+## Canonical 对象与所有权摘要
 
-## 领域模型草案
+| 对象 | 唯一 owner | SP-022 关系 |
+|---|---|---|
+| Quote Request | Quote bounded context | 新 canonical aggregate；持有状态、revision 与审计关联 |
+| Customer / Contact | Quote bounded context 内的 canonical entity | 仅在本边界内建模；不得同时引用第二套同名 canonical store |
+| Follow-up | Waiting-For canonical domain | Quote 只保存 Waiting-For ID 引用；不得复制责任人、状态或到期事实 |
+| Next Action | Quote Request child value | 由 Quote 状态转换产生；Daily Review 只读投影，Action Hint 只展示 |
+| Audit | AI-Lab Audit/Verified Result boundary | 记录 mutation、失败与 read-back 证据，不由 LLM 文本代替 |
 
-| 对象 | 关键字段（草案） | 语义 |
-| --- | --- | --- |
-| Quote Request | 客户、来源、需求描述、状态、优先级 | 报价需求事实 |
-| Customer | 名称、联系方式、workspace | 客户主数据 |
-| Contact | 姓名、角色、联系方式、客户 | 联系人事实 |
-| Follow-up | 目标、到期、状态、责任 | 复用 Waiting-For 语义 |
-| Next Action | 动作、归属、截止 | 闭环到下一行动 |
-| Audit | 操作记录、trace、证据 | 审计事实 |
+所有 create/read/list/transition 必须带完整 `WorkspaceKey`，并在 repository 查询和写入条件内强制隔离。跨 workspace 引用、存在性探测与写入均 fail closed。
 
-## 交互与边界
+## 可信写入合同摘要
 
-- 确定性入口：Inbox capture 到 Quote Request 转换，复用 Unified Inbox 的 CLAIMED 到 TARGET_CREATED 到 COMPLETED 路径。
-- LLM 不参与写入判断、字段补猜或成功证明，沿用 SP-017 原则。
-- Follow-up 复用 Waiting-For canonical domain；Next Action 显式关联 Quote Request。
-- Workspace 逻辑隔离沿用 WorkspaceKey；不引入用户身份与 RBAC。
+- Quote Request ID 一次生成、全局稳定且永不复用；Customer/Contact/Follow-up 引用必须与 Quote Request 属于同一 workspace。
+- revision 从 `1` 开始；每个 mutation 使用 expected revision/CAS，成功后递增 1，stale revision 不得覆盖。
+- create 与 transition 使用 workspace-scoped idempotency key；同 key 同 payload 返回同一 canonical result，同 key 异 payload返回稳定冲突。
+- 最小状态机为 `DRAFT -> QUALIFIED -> READY_FOR_QUOTE -> CLOSED_WON/CLOSED_LOST/CANCELLED`，仅 `CANCELLED` 可经人工确认 reopen 为 `DRAFT`；非法跃迁 fail closed。
+- command accepted、HTTP 2xx 或 CLI exit 0 本身不是业务成功。只有持久化后的 canonical read-back 与匹配 revision/audit evidence 才能形成 Verified Result。
+- 错误必须映射稳定 `code/category/component/operation/retryable`，覆盖 workspace mismatch、not found、revision/idempotency conflict、invalid transition、validation、persistence 与 downstream projection failure。
 
-## 验收与治理计划
+完整合同见 RFC-034；本文件不替代其字段与失败语义。
 
-| 阶段 | 内容 | 授权要求 |
-| --- | --- | --- |
-| 规划 | 本规划基线、RFC-034 草案与 ADR-074 至 ADR-075 草案 | Owner 批准规划 |
-| 实现 | canonical domain、持久化、API 与 CLI 入口、正式验收 | 单独实现授权 |
-| 验收 | ACC-022 场景全通过 | 独立证据复核 |
-| 发布 | v0.37 版本、Tag 与 Release | 单独发布授权 |
+## 交付切片
 
-## 成功标准
+| 切片 | 内容 | 授权边界 |
+|---|---|---|
+| A — Canonical Core | domain、repository、persistence、state machine、audit、CLI/API | 需要单独实现授权；不得夹带其他 Slice |
+| B — Capture Integration | Inbox -> Quote Request、idempotency、reconciliation | 需要 Slice A 完成后单独授权 |
+| C — Read Projection | Daily Review projection、Next Action presentation | 只读消费 canonical read model；不得反向写 Quote |
+| D — Conversational Entry | CEO Assistant intent mapping | `SEPARATE_AUTHORIZATION_REQUIRED / NOT_PART_OF_INITIAL_IMPLEMENTATION_AUTHORIZATION` |
 
-- 一个真实客户请求可以从 CLI、API 或 CEO Assistant 入口进入 AI-Lab，形成 Quote Request，并可在 Daily Review 中看到下一行动。
-- 全过程可审计、可恢复；任何写操作都经过确定性确认。
-- 全量回归零新增失败；真实 Provider 不参与写入路径。
+CEO Assistant 当前为 `FREEZE`。Daily Review 与 CEO Assistant 均不得暗中进入首个 core implementation slice。
 
-## 相关文档
+## 治理交付与成功标准
 
-- [路线图](ROADMAP.md)
-- [能力所有权](CAPABILITY_OWNERSHIP.md)
+| 阶段 | 交付物 | 当前状态 |
+|---|---|---|
+| 规划 | 本文件、RFC-034、ADR-074、ADR-075、ACC-022 | 待独立 planning review |
+| 实现 | Slice A；其余 Slice 分别授权 | NOT_AUTHORIZED |
+| 验收 | ACC-022 场景逐项执行并保留证据 | 0_EXECUTED / NOT_PASSED |
+
+未来实现只有在 CLI/API 获得 canonical read-back、匹配 revision、Audit 与 Verified Result 后才能声明业务成功。Inbox reconciliation、Daily Review projection 与 CEO Assistant 分别按 Slice B/C/D 验证；真实 Provider 不参与写入正确性证明。
+
+## 非目标与禁止事项
+
+- 不修改 `project_state.json`，不把 v0.37 标为 Current Product SP。
+- 不创建 Quote domain、API、CLI、container、factory、数据库或产品测试实现。
+- 不把 RFC 标为 Adopted、ADR 标为 Accepted、ACC 标为 Passed。
+- 不授权 Ready、Merge、Tag、Release 或任何后续实现。

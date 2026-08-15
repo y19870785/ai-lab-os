@@ -2311,10 +2311,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 210
-    assert "- Git 跟踪 Markdown：210" in inventory
-    assert "- 仓库自有且纳入范围：210" in inventory
-    assert "- 新增中文治理文档：34" in inventory
+    assert len(tracked_markdown) == 214
+    assert "- Git 跟踪 Markdown：214" in inventory
+    assert "- 仓库自有且纳入范围：214" in inventory
+    assert "- 新增中文治理文档：38" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
@@ -3406,3 +3406,56 @@ def test_pilot001_ib_imp_a_stopped_security_spike_is_durable() -> None:
         "PHASE_2:\nNOT_AUTHORIZED",
     ):
         assert marker in evidence
+
+
+def test_sp022_planning_contract_is_complete_and_not_authorized() -> None:
+    paths = {
+        "plan": ROOT / "docs/project/SP-022-V037-QUOTE-REQUEST-PLANNING.md",
+        "rfc": ROOT / "docs/rfc/034-quote-request-trusted-write-contract.md",
+        "ownership": ROOT
+        / "docs/adr/ADR-074-quote-follow-up-next-action-ownership.md",
+        "reconciliation": ROOT
+        / "docs/adr/ADR-075-inbox-to-quote-request-reconciliation.md",
+        "acceptance": ROOT / "docs/acceptance/SP-022-quote-request.md",
+    }
+    documents = {
+        name: path.read_text(encoding="utf-8-sig")
+        for name, path in paths.items()
+    }
+
+    assert (
+        "PLANNING_BASELINE_PROPOSED / PENDING_INDEPENDENT_PLANNING_REVIEW / "
+        "IMPLEMENTATION_NOT_AUTHORIZED / ACC_022_NOT_EXECUTED"
+        in documents["plan"]
+    )
+    assert "DRAFT / NOT_ADOPTED" in documents["rfc"]
+    assert "PROPOSED / NOT_ACCEPTED" in documents["ownership"]
+    assert "PROPOSED / NOT_ACCEPTED" in documents["reconciliation"]
+    assert "PLANNING_BASELINE / 0_EXECUTED / NOT_PASSED" in documents["acceptance"]
+    assert documents["acceptance"].count("PLANNED / NOT_EXECUTED") >= 28
+
+    for marker in (
+        "quote_request_id",
+        "WorkspaceKey",
+        "expected_revision",
+        "quote.revision_conflict",
+        "quote.idempotency_conflict",
+        "quote.invalid_transition",
+        "quote.persistence_failed",
+        "quote.projection_failed",
+        "Verified Result",
+        "canonical read-back",
+    ):
+        assert marker in documents["rfc"]
+
+    assert "Waiting-For canonical reference/projection" in documents["ownership"]
+    assert "Daily Review 只消费 canonical read model" in documents["ownership"]
+    assert "CLAIMED -> TARGET_CREATED -> TARGET_VERIFIED -> TARGET_LINKED -> COMPLETED" in documents["reconciliation"]
+    assert "不依赖跨数据库原子事务" in documents["reconciliation"]
+    assert "SEPARATE_AUTHORIZATION_REQUIRED" in documents["plan"]
+    assert "NOT_PART_OF_INITIAL_IMPLEMENTATION_AUTHORIZATION" in documents["plan"]
+
+    state = _load_state()
+    assert state["current_sp"] is None
+    assert state["current_governance_task"] is None
+    assert state["current_work"] is None
