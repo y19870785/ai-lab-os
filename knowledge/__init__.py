@@ -18,6 +18,16 @@ AI-Lab 的外部知识系统层，负责接入、管理、检索所有外部知�
     result = await km.search(query="行业分析报告")
 """
 
+import warnings
+
 from core import __version__
+
+warnings.warn(
+    "The 'knowledge' namespace is deprecated; canonical runtime code lives under "
+    "'core.knowledge'. The legacy namespace is retained for compatibility through "
+    "at least v0.36 and will not be removed before v0.37.0.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 __all__ = ["__version__"]

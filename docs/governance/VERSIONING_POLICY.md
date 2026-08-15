@@ -31,7 +31,7 @@ v1.2.3
 
 ### 当前目标基线
 
-**v0.33.0** — 当前唯一产品版本。该发布基线汇总 SP-001 至 SP-003 的 Composition Root、失败语义与 DatabaseManager 连接所有权稳定化成果；SP-004 Canonical UserTask 已随后合并到 `main`，但没有提升产品版本，也没有创建 v0.34.0 Tag 或 GitHub Release。v0.34.0 仅为后续目标里程碑。
+**v0.35.0 Alpha** — 当前唯一产品版本，已作为 GitHub Pre-release 发布；`pyproject.toml` 仍是运行时版本唯一来源。本政策对账当前事实，不启动新版本、Tag 或 Release。历史 v0.33.0/v0.34.0 基线与发布事实由 CHANGELOG 和对应 release/reconciliation 文档保留。
 
 ### SP 工作包
 
@@ -154,7 +154,11 @@ agent_spec.version = "1.2.3"
 
 ### Prompt 定义
 
-Prompt 是 AI-Lab 的一等公民，与代码分离管理：
+状态：`top-level prompts/ namespace: DEPRECATED_SOURCE_ONLY / NOT_CANONICAL / NOT_PACKAGED`。
+
+当前没有 canonical 顶层 Prompt registry/package。base 源码中的 `prompts/` 只是空 `__init__.py` 桩且从未进入 wheel/sdist；本技术债任务仅为保持 source import compatibility 而暂时保留该桩并发出 `DeprecationWarning`，不把它加入 package discovery。它至少保留至 v0.36，最早 v0.37.0 才可另行授权删除。以下目录树与配置示例只保留为**未来提案**，不是当前已实现能力，也不得据此扩建 `prompts/`。
+
+未来若引入 Prompt registry、模板目录或版本化 prompt artifacts，必须先取得独立 RFC/ADR、ownership 与 packaging 决定。届时 Prompt 可按下列版本治理思想与代码分离管理：
 
 ```
 prompts/
@@ -178,10 +182,10 @@ prompts/
 | 回滚 | 保留历史版本文件，回滚只需修改 config.yaml |
 | 测试 | Prompt 变更需要记录效果对比（A/B 测试或人工评估） |
 
-### Prompt 与 Agent 的绑定
+### Prompt 与 Agent 的未来绑定提案
 
 ```yaml
-# prompts/config.yaml
+# FUTURE_PROPOSAL: prompts/config.yaml
 prompts:
   agent_defaults:
     analyst:

@@ -57,8 +57,8 @@ AI-Lab 不只是一个项目，而是一个平台：让个人可以拥有、控�
 | 包 | 说明 |
 | --- | --- |
 | `core/` | 基础设施层：配置、日志、消息总线、数据访问、Agent 运行时、身份管理、记忆系统 |
-| `agents/` | Agent 层：身份模型、工具系统、角色模板、生命周期管理、Agent 间通信协议 |
-| `knowledge/` | 知识层：五种知识类型数据模型、切割策略、Embedding 接口、检索引擎骨架 |
+| `core/agents/` | canonical Agent 运行时；顶层 `agents/` 与 `core/agent/` 仅为 deprecated compatibility namespace |
+| `core/knowledge/` | canonical 知识系统；顶层 `knowledge/` 仅为 deprecated compatibility namespace |
 | `applications/` | 应用层占位（待 Phase 2 实现） |
 
 ## 当前任务

@@ -27,6 +27,16 @@ AI-Lab 的智能 Agent 层，承载所有 Agent 的定义、编排和执行。
     await lifecycle.activate(agent_id)
 """
 
+import warnings
+
 from core import __version__
+
+warnings.warn(
+    "The 'agents' namespace is deprecated; canonical runtime code lives under "
+    "'core.agents'. The legacy namespace is retained for compatibility through "
+    "at least v0.36 and will not be removed before v0.37.0.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 __all__ = ["__version__"]

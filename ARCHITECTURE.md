@@ -152,7 +152,7 @@ SP-004 的 Windows 本地最终验证记录为 `847 passed, 27 warnings in 38.81
 
 `pyproject.toml` 是产品版本、运行依赖、可选能力和 setuptools 包发现的唯一权威来源。最小 Core 安装仅包含 Pydantic、PyYAML 与 python-dotenv；API、Real Provider、Knowledge、Test、Build、Dev 通过独立 extras 声明，`local` 提供不含大型 Knowledge 依赖的完整本地验收组合。`requirements.txt` 只代理 `.[local]`，不维护第二套依赖版本。
 
-正式 wheel 包含 `core`、`agents`、`knowledge`、`applications`、`workflows`、`api` 与 `cli`；排除 tests、data、logs、runtime、Chroma 数据和构建缓存。Windows `.bat` 仍定位为源码 checkout 启动入口，不作为 Python package data 发布。
+正式 wheel 的 canonical implementation packages 为 `core`、`applications`、`api` 与 `cli`；`core/agents` 和 `core/knowledge` 是各自唯一 canonical 实现。为遵守同一 Major 内至少一个 Minor 的弃用期，wheel/sdist 暂时保留 deprecated compatibility packages `agents`、`knowledge`、`core.agent` 与 `workflows`，导入时发出 `DeprecationWarning`，最早删除版本为 v0.37.0。`prompts` 仅保留与 base 一致的 source-only deprecated 空桩，不进入 wheel/sdist；`database` 仍只是供仓库隔离守卫使用且不打包的 compatibility marker。tests、data、logs、runtime、Chroma 数据和构建缓存同样排除。Windows `.bat` 仍定位为源码 checkout 启动入口，不作为 Python package data 发布。
 
 ## 项目状态与发布治理契约
 
