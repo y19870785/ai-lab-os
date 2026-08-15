@@ -1,5 +1,16 @@
 # AI-Lab OS 更新日志
 
+### PILOT-001-P1B 进程隔离缓解与受支持 Pilot 部署 Profile
+
+- 在真实 Ubuntu 24.04.4 / WSL2（Kernel 5.15.167.4-microsoft-standard-WSL2、Hermes v0.20.0、Python 3.11.15、UID 1001、Yama absent）下验证进程本地 Non-Dumpable mitigation：最终 Hermes Python 进程内 `prctl(PR_SET_DUMPABLE, 0)` + 运行时 `PR_GET_DUMPABLE == 0` 验证，启动顺序 fail closed，不修改 Hermes source、不 patch site-packages。
+- same-UID `pidfd_getfd` capability 复制与 issuer 调用均被拒绝：`duplicated=false / invoked=false / errno=1 (EPERM)`，`/proc/<pid>/fd` 复制被拒 `errno=13 (EACCES)`；holder 三阶段 dumpable 状态 startup/capability-acquired/post-child 均为 0。
+- restart 语义验证通过：连续两次启动均重新 harden，旧 capability 不复用，攻击仍失败。
+- Hermes actual model namespace 保持 exact four tools（`ai_lab_interaction_preview/status/view/confirm`），P1A 相关测试无回归；UserTask mutation 与 AI-Lab Real Provider 均为 0。
+- 历史负面证据 `SIGNING_ORACLE_ISOLATION_FAILED_FOR_TESTED_TOPOLOGY` 与 `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 保持不变；该结果仅证明 tested Pilot profile（`PILOT_GRADE_LOCAL_PROCESS_ISOLATED_PROFILE_V1`），不是 production/enterprise secure 或 general process isolation resolved。治理状态为 IMPLEMENTED / EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW。
+- P1B-R1（实际运行时证据闭环）：launcher 改为 Popen 启动实际 gateway 并校验 bootstrap 写入的 evidence 文件（`pid`/`dumpable`/`stage`），证明应用隔离的最终进程与进入 `gateway.run` 的进程是同一 process identity；同时从 launcher 跨进程 `open("/proc/<pid>/mem")` 观察内核拒绝访问（dumpable=0 的防御语义），并在 gateway runtime 返回后确认同一 pid 仍可写 `returned` 阶段。`--check` 保留为 prerequisite self-test，不再等同于 runtime proof。受控 fixture（`gateway_probe.py`）三阶段证据与 actual runtime 证据在验收文档中明确区分。
+- P1B-R2（证据精度闭环）：① 把 R1 的 stub 测试重新分类为 CONTROLLED_RUNTIME_LINK_VALIDATION，明确其进入的是 repository-controlled stub 而非 actual Hermes runtime；② 新增 actual Hermes `gateway.run` runtime-entry 验证；③ `observe_kernel_dumpable()` 收紧为仅 EACCES/EPERM 判为预期拒绝，其他 errno（进程不存在/路径缺失/I/O/unsupported）与成功 open 均 fail closed；④ 正式 launcher 由自身强制验证 evidence 字段。R2 当时使用的 pre-call `stage=entering` 不足以单独证明 runtime entry，已由下述 R6 修正。
+- GOV-RECOVERY-001-R6（P1B 最终证据边界修正）：pre-call evidence 政名为 `dispatching` 且明确不得作为完成证据；bootstrap 通过实际目标文件的首个执行 frame 写入 `module_started`，包含 spawned PID、requested module、resolved filename 与 `PR_GET_DUMPABLE=0`。launcher 仅在 `module_started` 的 PID/module/实际 Hermes `gateway/run.py` 路径/dumpable/稳定存活/内核拒绝全部验证后允许 `runtime_entry_only=True` 终止；wrong PID/module、dispatching-only、导入失败、提前退出、超时与路径冒充均 fail closed。真实 Ubuntu 24.04.4 / WSL2、Hermes Python 3.11.15 explicit suite 为 17 passed，并单独观察到 actual Hermes checkpoint。`PILOT_001_P1B_ACTUAL_HERMES_RUNTIME_ENTRY_PROVEN` 因真实目标模块内部证据成立而保留。
+
 ### PILOT-001-P1A 内部可信入站确认 Pilot
 
 - R1-REV1 将 MCP/AI-Lab runtime 从 issuer secret root 移到独立 verifier projection root；

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -15,6 +16,7 @@ from applications.pilot_001_ingress_bridge.crypto import (
 )
 from applications.pilot_001_ingress_bridge.launcher import (
     EXPECTED_MODEL_TOOL_NAMES,
+    RUNTIME_EVIDENCE_ENV,
     build_gateway_command,
     enforce_model_tool_profile,
     prepare_temporary_project,
@@ -154,12 +156,15 @@ async def test_p1a_c_temporary_nested_plugin_is_explicitly_enabled(tmp_path):
 
 
 async def test_p1a_c_temporary_gateway_bypasses_service_refresh():
-    assert build_gateway_command("/opt/hermes/venv/bin/python") == [
-        "/opt/hermes/venv/bin/python",
-        "-m",
-        "gateway.run",
-    ]
-    assert "hermes" not in build_gateway_command("/opt/hermes/venv/bin/python")[1:]
+    # P1B: the final Hermes Python process must harden itself via the
+    # bootstrap module and only then enter gateway.run (no parent-only
+    # hardening that would be reset across an exec boundary).
+    command = build_gateway_command("/opt/hermes/venv/bin/python")
+    assert command[0] == "/opt/hermes/venv/bin/python"
+    assert command[1].endswith("process_isolation.py")
+    assert command[2:] == ["--module", "gateway.run"]
+    # The temporary gateway must still bypass the installed service unit path.
+    assert "hermes" not in command[1:]
 
 
 async def test_p1a_d_body_msgid_only_and_stable_identity(tmp_path):
@@ -476,6 +481,41 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
         "platforms:\n  wecom:\n    enabled: true\n", encoding="utf-8"
     )
     calls: list[list[str]] = []
+    gateway_pid = 4242
+
+    class FakePopen:
+        def __init__(self, command, **kwargs):
+            self.command = list(command)
+            self.pid = gateway_pid
+            self.returncode = 0
+            self._terminated = False
+            calls.append(self.command)
+            # Simulate evidence from the first target-module frame.
+            evidence_path = kwargs.get("env", {}).get(RUNTIME_EVIDENCE_ENV)
+            if evidence_path:
+                evidence = {
+                    "pid": gateway_pid,
+                    "dumpable": 0,
+                    "pr_get_dumpable": 0,
+                    "stage": "module_started",
+                    "module": "gateway.run",
+                    "filename": str(tmp_path / "gateway" / "run.py"),
+                }
+                Path(evidence_path).write_text(
+                    json.dumps(evidence, sort_keys=True), encoding="utf-8"
+                )
+
+        def wait(self, timeout=None):
+            return self.returncode
+
+        def poll(self):
+            return None if not self._terminated else 0
+
+        def terminate(self):
+            self._terminated = True
+
+        def kill(self):
+            self._terminated = True
 
     def fake_run(command, **kwargs):
         calls.append(list(command))
@@ -483,9 +523,26 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
             return subprocess.CompletedProcess(
                 command, 0, stdout=json.dumps(EXPECTED_MODEL_TOOL_NAMES) + "\n"
             )
+        if "--check" in command and any(
+            part.endswith("process_isolation.py") for part in command
+        ):
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout="PILOT_PROCESS_ISOLATION_EFFECTIVE PR_GET_DUMPABLE=0\n",
+            )
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(subprocess, "Popen", FakePopen)
+    monkeypatch.setattr(
+        "applications.pilot_001_ingress_bridge.launcher.observe_kernel_dumpable",
+        lambda pid: 0,
+    )
+    monkeypatch.setattr(
+        "applications.pilot_001_ingress_bridge.launcher.validate_runtime_module_filename",
+        lambda *args, **kwargs: tmp_path / "gateway" / "run.py",
+    )
     monkeypatch.setattr("tempfile.tempdir", str(tmp_path))
     run_pilot_gateway(
         source_hermes_home=source_home,
@@ -493,7 +550,15 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
         mcp_command=["python", "-m", "pilot_mcp"],
     )
     assert calls[0][-1].endswith("hermes_tool_probe.py")
-    assert calls[1] == ["/opt/hermes/python", "-m", "gateway.run"]
+    # P1B startup order: tool resolution -> exact-four gate -> hardening
+    # link self-check -> hardened bootstrap gateway (final process hardens
+    # itself before entering gateway.run; no parent-only hardening).
+    assert "--check" in calls[1]
+    assert any(part.endswith("process_isolation.py") for part in calls[1])
+    # Actual runtime evidence: the final gateway command enters gateway.run
+    # through the bootstrap, and the recorded PID matches the spawned one.
+    assert calls[2][-1] == "gateway.run"
+    assert calls[2][0] == "/opt/hermes/python"
 
 
 async def test_p1a_runtime_startup_denies_namespace_drift(tmp_path, monkeypatch):
