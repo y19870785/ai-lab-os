@@ -1,6 +1,6 @@
 ﻿# AI-Lab Repository Map —— 仓库导航索引
 
-> 冻结版本：v0.32.4 | 日期：2026-07-14
+> 当前结构核对：v0.35.0 Alpha | 日期：2026-08-15
 
 ---
 
@@ -17,16 +17,12 @@
 | `docs/` | RFC、ADR、架构文档、项目状态 | `docs/project/PROJECT_BRAIN.md` |
 | `config/` | YAML 配置 + .env 模板 | `config/default.yaml` |
 | `product/` | 产品需求文档 | `product/VISION.md` |
-| `prompts/` | Prompt 模板 | — |
 | `examples/` | 可运行 Demo | `examples/enterprise_assistant/` |
 | `benchmarks/` | 性能基准 | `benchmarks/benchmark_memory.py` |
 | `deploy/` | Docker 部署 | `deploy/docker-compose.yml` |
 | `data/` | 持久化数据（SQLite + Chroma） | `data/sqlite/`, `data/chroma/` |
 | `logs/` | 运行日志 | — |
-| `knowledge/` | 知识库独立模块 | `knowledge/manager.py` |
-| `agents/` | Agent 角色/工具配置 | `agents/roles/` |
-| `workflows/` | Workflow 定义 | — |
-| `database/` | 数据库入口（遗留，已迁移到 core/database） | `database/__init__.py` |
+| `database/` | 不打包的 repository compatibility marker；只满足 PILOT isolation guard 的目录存在性要求，不是数据库实现或公共入口 | `database/__init__.py` |
 
 ---
 
@@ -47,6 +43,8 @@
 | Application | `applications/runtime.py` | `applications/models.py` | `applications/registry.py` |
 | EventBus | `core/bus/bus.py` | `core/bus/event.py` | — |
 | Database | `core/database/manager.py` | — | — |
+
+`core/agents` 与 `core/knowledge` 是当前唯一 canonical 实现。历史顶层 `agents/`、`knowledge/`、`core/agent/`、`workflows/` 与 `prompts/` 已按 `DEPRECATION_AUDIT.md` 收口删除，不属于当前仓库结构或 setuptools package discovery。
 
 ---
 

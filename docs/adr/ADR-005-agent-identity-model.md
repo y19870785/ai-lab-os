@@ -65,6 +65,8 @@ Agent 声明"我会 web_search"，但不提供实现。实现由 ToolRegistry �
 
 ### 2.3 与 Core AgentSpec 的关系
 
+以下图示是历史设计背景，不是当前类型映射。历史 `core/agent.AgentSpec`、`AgentInstance` 与顶层 `agents.AgentIdentity` 已收口，和当前模型**没有一对一映射**。当前 `core/agents/models.py` 按职责拆分：`AgentInfo` 只部分承接 identity/info（稳定 ID、能力、权限与状态）；`AgentRequest` 表达一次运行请求，并不是 `AgentInstance` 的对应物；`AgentContext`、`AgentResponse` 和 runtime/registry 分别承担上下文、结果与生命周期。阅读下列历史关系时必须按职责解释，不能机械改名。
+
 ```
 core.agent.AgentSpec           agents.AgentIdentity
 ─────────────────              ───────────────────
@@ -130,5 +132,5 @@ Phase 3: 运行时能力学习 → Agent 在运行中习得新能力
 ## 5. 相关链接
 
 - [RFC-003 §3.1-3.3](docs/rfc/003-agent-architecture.md#31-整体思路)
-- `core/agents/models.py` — AgentSpec / AgentInstance 对应物（AgentInfo / AgentRequest；`core/agent/` 已收口删除，2026-08-14）
+- `core/agents/models.py` — 当前 canonical info、request、context 与 response 模型；历史 AgentSpec/AgentInstance 无一对一映射（`core/agent/` 已收口删除，2026-08-14）
 - [RFC-001 §3.3 模块 5](docs/rfc/001-core-layer-architecture.md#模块-5agent-runtime新增)

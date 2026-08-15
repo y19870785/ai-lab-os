@@ -35,7 +35,7 @@
 
 1. 在独立任务与 Owner 授权后，将 `agents*`、`knowledge*`、`workflows*` 移出 pyproject include。
 2. 以 `core/agents`、`core/knowledge` 为唯一实现，删除顶层 `agents/`、`knowledge/`、`core/agent/` 与不受现行守卫要求的空桩目录。
-3. 删除前先确认无历史分支或外部消费者依赖顶层包名；若存在兼容需求，保留顶层 `__init__.py` 转发桩一段时间。
+3. 删除前核对仓库内消费者、公共 API 清单、发布说明与 package exports；若存在受支持的顶层 import 兼容合同，保留转发桩并交由 Owner 决定迁移周期。
 4. 按 [Git 工作流](../governance/GIT_WORKFLOW.md) 不在 `main` 上直接清理，需独立分支、审查与授权。
 
 ## 收口执行结果（2026-08-14，Owner 授权）
@@ -44,6 +44,8 @@
 - `database/` 不在打包范围且无运行时引用，但既有 PILOT 隔离守卫要求该目录存在；clean checkout 不保留空目录，因此保留最小 `database/__init__.py` 兼容标记，不恢复任何数据库实现。
 - `pyproject.toml` include 已移除 `agents*`、`knowledge*`、`workflows*`，仅保留 `api*`、`applications*`、`cli*`、`core*`。
 - 删除前已复核：无测试、无治理门禁、无核心代码引用这些路径；全部引用均为包内自引用。
+- 兼容性决定已按当前仓库证据关闭：`docs/project/PUBLIC_API_INVENTORY.md` 只把 `core/agents`、`core/knowledge` 列为公共 runtime/manager 入口；v0.34/v0.35 Alpha 发布说明只承诺 CLI、API、CEO Assistant 与 `core` canonical 入口，v0.35 未发布 wheel/sdist 附件；顶层包的 `__init__.py` 也只导出 `__version__`，没有稳定 API export 集。因此记录 `NO_SUPPORTED_PUBLIC_IMPORT_CONTRACT_FOR_REMOVED_PACKAGES`。
+- 上述结论严格区分三层证据：`no supported in-repository consumer`；`no documented supported public import contract`；`cannot prove absence of every unknown external consumer`。曾被 setuptools 自动发现和源码 docstring 中存在示例，不等于获得长期 import 兼容承诺；若未来出现未知外部消费者，由 Owner 另行决定迁移或 shim，不在本清理 PR 中自行恢复。
 - 相关文档已同步：ARCHITECTURE.md 模块树、PROJECT_CONTEXT.md、ADR-005 链接、CAPABILITY_OWNERSHIP.md 状态行。
 - 原提交记录全量回归 1868 通过、零失败；本重建分支的结果以本轮独立验证为准。
 
