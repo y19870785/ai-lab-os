@@ -19,7 +19,7 @@
   "next_planned_governance_item": null,
   "development_status": "pilot_001_phase0_stopped_pending_ingress_process_isolation_resolution",
   "current_work": null,
-  "updated_at": "2026-08-14",
+  "updated_at": "2026-08-15",
   "governance_tasks": {
     "ARCH-001": {
       "name": "Trusted Interaction Architecture Baseline",

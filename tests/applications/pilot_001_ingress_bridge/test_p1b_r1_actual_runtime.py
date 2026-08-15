@@ -63,22 +63,32 @@ def test_p1b_r1_bootstrap_enters_stub_gateway_and_records_identity(tmp_path):
 def test_p1b_r1_wait_for_runtime_evidence_requires_matching_pid(tmp_path):
     evidence = tmp_path / "evidence.json"
     evidence.write_text(
-        json.dumps({"pid": 999, "dumpable": 0, "stage": "entering"}),
+        json.dumps({"pid": 999, "dumpable": 0, "stage": "module_started"}),
         encoding="utf-8",
     )
-    with pytest.raises(RuntimeError, match="EVIDENCE_MISSING"):
+    with pytest.raises(RuntimeError, match="PID_MISMATCH"):
         wait_for_runtime_evidence(evidence, gateway_pid=1234, timeout=0.2)
 
 
 def test_p1b_r1_wait_for_runtime_evidence_accepts_matching_pid(tmp_path):
     evidence = tmp_path / "evidence.json"
     evidence.write_text(
-        json.dumps({"pid": 1234, "dumpable": 0, "stage": "entering"}),
+        json.dumps({"pid": 1234, "dumpable": 0, "stage": "module_started"}),
         encoding="utf-8",
     )
     result = wait_for_runtime_evidence(evidence, gateway_pid=1234, timeout=1.0)
     assert result["pid"] == 1234
     assert result["dumpable"] == 0
+
+
+def test_p1b_r1_wait_for_runtime_evidence_rejects_dispatching_only(tmp_path):
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(
+        json.dumps({"pid": 1234, "dumpable": 0, "stage": "dispatching"}),
+        encoding="utf-8",
+    )
+    with pytest.raises(RuntimeError, match="EVIDENCE_MISSING"):
+        wait_for_runtime_evidence(evidence, gateway_pid=1234, timeout=0.2)
 
 @pytest.mark.skipif(
     os.name != "posix" or os.environ.get("PILOT001_RUN_REAL_CAPABILITY_ATTACK") != "1",

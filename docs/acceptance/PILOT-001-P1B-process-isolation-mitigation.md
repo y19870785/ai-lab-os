@@ -137,8 +137,11 @@ actual Hermes holder 三阶段 runtime proof；actual runtime 证明来自 launc
 ### 进程身份关联（Process Identity Linkage）
 
 launcher 启动实际 gateway 前把 `PILOT001_RUNTIME_EVIDENCE_FILE` 指向临时 project 内的
-evidence 文件；bootstrap（`process_isolation.py` 的 `run_hardened_module`）在应用隔离后、
-进入目标模块前写入 JSON：`pid`（最终进程）、`dumpable`（0）、`stage`（entering/returned）、`module`。
+evidence 文件；bootstrap（`process_isolation.py` 的 `run_hardened_module`）在应用隔离后先写
+`stage=dispatching`，它仅表示调用前准备状态，不构成完成证据。`runpy.run_module()` 开始后，
+目标模块 resolved source file 的首个实际执行 frame 写入 `stage=module_started`。JSON 包含
+`pid`（最终进程）、`dumpable`（0）、`pr_get_dumpable`（0）、`stage`、`module` 与 `filename`；受控模块正常返回后才写
+`stage=returned`。
 
 launcher（`run_actual_gateway()`）验证三件事：
 
@@ -160,8 +163,8 @@ wsl.exe -d Ubuntu --cd /mnt/c/Users/hechao/Documents/AI-Lab-PILOT001-P1B -- \
   /home/hechao/.hermes/hermes-agent/venv/bin/python \
   -m pytest tests/applications/pilot_001_ingress_bridge/test_p1b_r1_actual_runtime.py -q -s
 ...
-PILOT_ACTUAL_RUNTIME_EVIDENCE pid=<pid> stage=entering dumpable=0 kernel_dumpable=0 proc_status=<pid>
-4 passed in ~3s
+PILOT_ACTUAL_RUNTIME_EVIDENCE pid=<pid> module=<stub> stage=module_started filename=<stub.py> dumpable=0 kernel_dumpable=0 proc_status=<pid>
+5 passed
 ```
 
 `test_p1b_r1_actual_gateway_link_on_wsl2` 用 `run_actual_gateway()`（launcher 实际 gateway 启动
@@ -200,12 +203,12 @@ CONTROLLED_RUNTIME_LINK_VALIDATION
 
 使用真实 Hermes Python（`/home/hechao/.hermes/hermes-agent/venv/bin/python`）与默认
 `gateway_module="gateway.run"`（不传 stub），经现有临时 Pilot project / launcher 链路
-实际启动 Hermes gateway，并在其进入 runtime（`stage=entering` evidence）后由 runner
+实际启动 Hermes gateway，并在其目标文件内部首个 frame 产生 `stage=module_started` 后由 runner
 受控结束（`runtime_entry_only=True`）。WSL2 explicit 实测：
 
 ```text
-PILOT_ACTUAL_RUNTIME_EVIDENCE pid=<pid> module=gateway.run stage=entering dumpable=0 kernel_dumpable=0 proc_status=<pid>
-8 passed（R2 文件，含 errno 严格性单测）
+PILOT_ACTUAL_RUNTIME_EVIDENCE pid=2327561 module=gateway.run stage=module_started filename=/home/hechao/.hermes/hermes-agent/gateway/run.py PR_GET_DUMPABLE=0 dumpable=0 kernel_dumpable=0 proc_status=2327561
+12 passed（R2 文件）；R1 + R2 explicit suite 共 17 passed
 ```
 
 直接观察项：
@@ -216,15 +219,17 @@ requested module == gateway.run                 ✓
 evidence.module == gateway.run                  ✓
 evidence.pid == spawned Popen.pid               ✓
 evidence.dumpable == 0                          ✓
-evidence.stage == entering                      ✓
+evidence.pr_get_dumpable == 0                   ✓
+evidence.stage == module_started                ✓
+evidence.filename == actual Hermes gateway/run.py ✓
 kernel mem observation == 预期拒绝（EACCES）     ✓
 gateway 进程在 evidence 建立后仍存活            ✓
 ```
 
 本证明为 **RUNTIME_ENTRY_PROVEN**，不等同于 FULL_GATEWAY_SERVICE_LIFECYCLE_PROVEN：
 不要求 Hermes gateway 完成完整业务生命周期，不发送真实 WeCom 业务消息，不产生
-UserTask / Execution / AI-Lab real provider 调用。若 gateway 因 Pilot 配置缺少外部
-条件而在加载期间有预期停止，则只记录 runtime-entry 已建立，不视为失败。
+UserTask / Execution / AI-Lab real provider 调用。目标模块导入失败、在 checkpoint 前退出，
+或在 checkpoint 后稳定存活观察窗口内提前退出，均 fail closed。
 
 ### C. Kernel Observation 严格 errno 检查
 
@@ -248,8 +253,10 @@ ENOENT/EIO/ENOTDIR fail-closed、成功 open fail-closed。
 evidence.pid == Popen.pid                     PID 匹配（不匹配即 fail）
 evidence.module == gateway_module             module 匹配（stub 不能冒充 gateway.run）
 evidence.dumpable == 0                        isolation 已应用
-evidence.stage == entering                    正确阶段（wrong stage 即 fail）
-gateway.poll() is None                        进程在 evidence 后仍存活（提前退出即 fail）
+evidence.pr_get_dumpable == 0                 PR_GET_DUMPABLE checkpoint 已验证
+evidence.stage == module_started              目标文件内部 frame（dispatching 不通过）
+evidence.filename == resolved target file     路径匹配；gateway.run 必须属于 Hermes 安装
+gateway.poll() is None                        稳定窗口后仍存活（提前退出即 fail）
 observe_kernel_dumpable(pid) == 0             内核预期拒绝
 ```
 
@@ -259,8 +266,9 @@ observe_kernel_dumpable(pid) == 0             内核预期拒绝
 
 ### Evidence Schema 加强
 
-runtime evidence 至少包含 `pid` / `dumpable` / `stage` / `module` 四字段；launcher 对
-actual Hermes path 全部检查，不只检查 PID。evidence 不含 secret、capability content、
+runtime evidence 至少包含 `pid` / `dumpable` / `pr_get_dumpable` / `stage` / `module` / `filename` 六字段；launcher 对
+actual Hermes path 全部检查，不只检查 PID。wrong module、只有 dispatching、目标模块无法解析或
+导入、提前退出、超时、错误 PID 与 filename 路径冒充均 fail closed。evidence 不含 secret、capability content、
 FD content、token 或 business payload。
 
 ## 5. 主动攻击验收（真实 WSL2 mitigation）
@@ -427,8 +435,8 @@ fully isolated 或 general process isolation resolved。
 |---|---|---|
 | A. IB-IMP-A 旧攻击套件 | WSL2 `test_pilot_001_ingress_capability.py`（real） | 10 passed（负面 baseline 仍复现） |
 | B. P1B mitigation 攻击 | WSL2 `test_pilot_001_process_isolation.py`（real） | 2 passed（含 restart） |
-| B1. P1B-R1 controlled stub link | WSL2 `test_p1b_r1_actual_runtime.py`（real explicit） | 4 passed（CONTROLLED_RUNTIME_LINK_VALIDATION） |
-| B2. P1B-R2 actual Hermes runtime-entry | WSL2 `test_p1b_r2_actual_hermes_runtime.py`（real explicit） | 8 passed（module=gateway.run + errno 严格性） |
+| B1. P1B-R1 controlled stub link | WSL2 `test_p1b_r1_actual_runtime.py`（real explicit） | 5 passed（CONTROLLED_RUNTIME_LINK_VALIDATION） |
+| B2. P1B-R2/R6 actual Hermes runtime-entry | WSL2 `test_p1b_r2_actual_hermes_runtime.py`（real explicit） | 12 passed（module_started + filename + fail-closed negatives） |
 | C. P1A relevant | `tests/applications/pilot_001_ingress_bridge` | 23 passed, 8 skipped |
 | C. P1A acceptance | `test_acc_021_canonical_trusted_interaction.py` | 7 passed |
 | D. governance | `tests/governance` | 37 passed |
@@ -483,13 +491,14 @@ GENERAL_PROCESS_ISOLATION_RESOLVED。
 
 P1B-R1 的 `ACTUAL_RUNTIME_EVIDENCE_COMPLETE` 表述已被 R2 修正：R1 实际进入的是 stub
 模块，只能证明 controlled runtime link（CONTROLLED_RUNTIME_LINK_VALIDATION），不能证明
-actual Hermes runtime。R2 使用真实 Hermes Python + `gateway.run` 补上 actual Hermes
-runtime-entry 证明（RUNTIME_ENTRY_PROVEN），并收紧 kernel errno 检查（仅 EACCES/EPERM
-为预期拒绝，其他 errno fail closed）、由 launcher 自身验证全部 evidence 字段
-（pid/module/dumpable/stage/存活）。
+actual Hermes runtime。R2 使用真实 Hermes Python + `gateway.run` 建立 actual Hermes
+runtime-entry 路径；R6 进一步把 pre-call `entering` 修正为非完成性的 `dispatching`，并以
+实际 Hermes `gateway/run.py` 文件内首个执行 frame 产生的 `module_started` 作为完成证据
+（RUNTIME_ENTRY_PROVEN）。kernel errno 仍仅 EACCES/EPERM 为预期拒绝，launcher 自身验证
+pid/module/dumpable/stage/resolved filename/稳定存活；全部负向条件 fail closed。
 
-R2 遇到的停止条件：无。actual Hermes `gateway.run` 在现有授权范围内可执行到
-runtime-entry evidence；未修改 Hermes core/site-packages、未使用 sudo、未改系统策略、
+R6 遇到的停止条件：无。actual Hermes `gateway.run` 在现有授权范围内可执行到
+`module_started` evidence；未修改 Hermes core/site-packages、未使用 sudo、未改系统策略、
 未扩大安全测试能力、未发送真实业务消息。
 
 P1B / P1B-R1 / P1B-R2 均无 UserTask mutation、Execution、AI-Lab real Provider 调用、真实业务消息。

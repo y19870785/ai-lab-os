@@ -1406,7 +1406,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
-    assert state["updated_at"] == "2026-08-14"
+    assert state["updated_at"] == "2026-08-15"
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None

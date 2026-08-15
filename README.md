@@ -12,8 +12,11 @@
 > Non-Dumpable mitigation（`PR_SET_DUMPABLE=0` 运行时验证），same-UID `pidfd_getfd`
 > capability 复制与 issuer 调用均被拒绝（errno=1 EPERM），restart 后仍成立；P1B-R2
 > 已用真实 Hermes Python 与 `gateway.run` 经 launcher 实际链路证明 actual Hermes
-> runtime-entry（`module=gateway.run`、`stage=entering`、`evidence.pid == Popen.pid`、
-> `dumpable=0`、进程存活、内核拒绝跨进程 `/proc/<pid>/mem` 访问），并收紧内核观察为
+> runtime-entry（`module=gateway.run`、目标文件内首个执行 frame 产生
+> `stage=module_started`、resolved filename 为实际 Hermes `gateway/run.py`、
+> `evidence.pid == Popen.pid`、`dumpable=0`、进程存活、内核拒绝跨进程
+> `/proc/<pid>/mem` 访问）。调用前的 `stage=dispatching` 仅表示准备派发，不构成完成证据；
+> `runtime_entry_only=True` 只在 `module_started` 全字段验证后终止进程。内核观察收紧为
 > 仅 EACCES/EPERM 判为预期拒绝（其他 errno fail closed）；R1 的 stub 测试明确分类为
 > CONTROLLED_RUNTIME_LINK_VALIDATION。该结果仅覆盖 tested Pilot profile，
 > `PRODUCTION_PROCESS_ISOLATION_UNRESOLVED` 与历史负面证据保持不变，Phase 1 Full、

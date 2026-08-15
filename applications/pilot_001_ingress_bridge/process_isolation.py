@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import importlib.util
 import json
 import os
 import platform
@@ -72,7 +73,7 @@ def apply_process_isolation() -> int:
 RUNTIME_EVIDENCE_ENV = "PILOT001_RUNTIME_EVIDENCE_FILE"
 
 
-def _write_runtime_evidence(stage: str, module: str) -> None:
+def _write_runtime_evidence(stage: str, module: str, filename: str) -> None:
     """Write the minimal, non-secret process identity evidence (Pilot-only).
 
     Only active when the launcher explicitly points PILOT001_RUNTIME_EVIDENCE_FILE
@@ -83,19 +84,43 @@ def _write_runtime_evidence(stage: str, module: str) -> None:
     path = os.environ.get(RUNTIME_EVIDENCE_ENV)
     if not path:
         return
+    effective_dumpable = get_dumpable()
     evidence = {
         "pid": os.getpid(),
-        "dumpable": get_dumpable(),
+        "dumpable": effective_dumpable,
+        "pr_get_dumpable": effective_dumpable,
         "stage": stage,
         "module": module,
+        "filename": filename,
     }
     try:
-        with open(path, "w", encoding="utf-8") as handle:
+        temporary_path = path + ".tmp." + str(os.getpid())
+        with open(temporary_path, "w", encoding="utf-8") as handle:
             json.dump(evidence, handle, sort_keys=True)
+        os.replace(temporary_path, path)
     except OSError:
         # Evidence is best-effort and non-fatal; fail-closed behavior comes
         # from the launcher verifying the file exists with the right PID.
         return
+
+
+def _resolve_module_filename(module: str) -> str:
+    """Resolve the exact source file that runpy will execute."""
+
+    spec = importlib.util.find_spec(module)
+    if spec is None or not spec.origin:
+        raise ProcessIsolationUnavailable(
+            "PILOT_RUNTIME_MODULE_UNRESOLVED: module=" + module
+        )
+    filename = os.path.realpath(spec.origin)
+    if not os.path.isfile(filename):
+        raise ProcessIsolationUnavailable(
+            "PILOT_RUNTIME_MODULE_FILE_UNAVAILABLE: module="
+            + module
+            + " filename="
+            + filename
+        )
+    return filename
 
 
 def run_hardened_module(module: str, passthrough: list[str]) -> int:
@@ -105,21 +130,49 @@ def run_hardened_module(module: str, passthrough: list[str]) -> int:
     sys.argv is rebuilt before runpy so the target module never sees the
     bootstrap arguments; the target's own arguments follow a separator.
 
-    A runtime evidence file (when the launcher requested one) records that
-    this exact process applied the isolation before entering the target
-    module, and again when the module returns, so an observer can verify
-    the process identity that ran the gateway runtime is the same process
-    that applied the hardening.
+    A ``dispatching`` record describes the pre-call state only.  It is not
+    completion evidence.  ``module_started`` is emitted from the first trace
+    event whose frame is the resolved target module file and whose module
+    spec matches the requested module.  That is the first observable frame
+    inside the file runpy actually executes.
     """
 
     apply_process_isolation()
-    _write_runtime_evidence("entering", module)
+    target_filename = _resolve_module_filename(module)
+    _write_runtime_evidence("dispatching", module, target_filename)
     print("PILOT_PROCESS_ISOLATION_EFFECTIVE PR_GET_DUMPABLE=0", flush=True)
     if passthrough and passthrough[0] == "--":
         passthrough = passthrough[1:]
     sys.argv = [module + ".py"] + passthrough
-    runpy.run_module(module, run_name="__main__")
-    _write_runtime_evidence("returned", module)
+    module_started = False
+
+    def observe_target_frame(frame, event, arg):
+        nonlocal module_started
+        del event, arg
+        frame_spec = frame.f_globals.get("__spec__")
+        frame_module = getattr(frame_spec, "name", None)
+        frame_filename = os.path.realpath(frame.f_code.co_filename)
+        if (
+            not module_started
+            and frame_filename == target_filename
+            and frame_module == module
+        ):
+            assert_process_isolated("module_started")
+            _write_runtime_evidence("module_started", module, frame_filename)
+            module_started = True
+            sys.settrace(None)
+        return observe_target_frame
+
+    sys.settrace(observe_target_frame)
+    try:
+        runpy.run_module(module, run_name="__main__")
+    finally:
+        sys.settrace(None)
+    if not module_started:
+        raise ProcessIsolationUnavailable(
+            "PILOT_RUNTIME_MODULE_START_UNOBSERVED: module=" + module
+        )
+    _write_runtime_evidence("returned", module, target_filename)
     return 0
 
 

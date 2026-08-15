@@ -490,15 +490,16 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
             self.returncode = 0
             self._terminated = False
             calls.append(self.command)
-            # Simulate the bootstrap writing its runtime evidence before
-            # entering the gateway runtime (same process identity).
+            # Simulate evidence from the first target-module frame.
             evidence_path = kwargs.get("env", {}).get(RUNTIME_EVIDENCE_ENV)
             if evidence_path:
                 evidence = {
                     "pid": gateway_pid,
                     "dumpable": 0,
-                    "stage": "entering",
+                    "pr_get_dumpable": 0,
+                    "stage": "module_started",
                     "module": "gateway.run",
+                    "filename": str(tmp_path / "gateway" / "run.py"),
                 }
                 Path(evidence_path).write_text(
                     json.dumps(evidence, sort_keys=True), encoding="utf-8"
@@ -537,6 +538,10 @@ async def test_p1a_runtime_startup_resolves_then_gates_before_gateway(
     monkeypatch.setattr(
         "applications.pilot_001_ingress_bridge.launcher.observe_kernel_dumpable",
         lambda pid: 0,
+    )
+    monkeypatch.setattr(
+        "applications.pilot_001_ingress_bridge.launcher.validate_runtime_module_filename",
+        lambda *args, **kwargs: tmp_path / "gateway" / "run.py",
     )
     monkeypatch.setattr("tempfile.tempdir", str(tmp_path))
     run_pilot_gateway(

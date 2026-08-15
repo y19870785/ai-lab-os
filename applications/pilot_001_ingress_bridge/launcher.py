@@ -156,7 +156,8 @@ def run_actual_gateway(
     """Start the real hardened gateway and verify actual runtime evidence.
 
     The launcher spawns the final Hermes Python process (bootstrap) and waits
-    for the bootstrap to record its process identity in the evidence file.
+    for the target module's first execution frame to record its process
+    identity and resolved filename in the evidence file.
     The recorded PID must equal the spawned gateway PID, proving the process
     that applied the isolation is the same process that enters the gateway
     module.  The evidence module field must equal the requested module so a
@@ -164,10 +165,10 @@ def run_actual_gateway(
     isolation is then observed from this (different) process: opening
     /proc/<pid>/mem must fail with an expected denial errno.
 
-    The evidence stage must be 'entering' (the bootstrap wrote it right
-    before runpy entered the module) and the process must still be alive
-    at that point: that is the runtime-entry proof.  The launcher itself
-    verifies all of these, not just the PID.
+    A pre-call ``dispatching`` event is never accepted.  The evidence stage
+    must be ``module_started``, the resolved source must match the requested
+    module (and, for gateway.run, belong to the Hermes installation), and the
+    process must remain alive: that is the runtime-entry proof.
 
     With runtime_entry_only=True the gateway is terminated right after the
     runtime-entry evidence is verified, so a long-lived Hermes gateway can
@@ -184,12 +185,14 @@ def run_actual_gateway(
     )
     try:
         evidence = wait_for_runtime_evidence(
-            evidence_file, gateway_pid=gateway.pid,
+            evidence_file, gateway_pid=gateway.pid, gateway=gateway,
         )
         recorded_pid = evidence.get("pid")
         recorded_dumpable = evidence.get("dumpable")
+        recorded_pr_get_dumpable = evidence.get("pr_get_dumpable")
         recorded_stage = evidence.get("stage")
         recorded_module = evidence.get("module")
+        recorded_filename = evidence.get("filename")
         if recorded_pid != gateway.pid:
             raise RuntimeError(
                 "PILOT_ACTUAL_RUNTIME_PID_MISMATCH: evidence pid="
@@ -209,11 +212,29 @@ def run_actual_gateway(
                 "PILOT_ACTUAL_RUNTIME_NOT_ISOLATED: dumpable="
                 + str(recorded_dumpable)
             )
-        if recorded_stage != "entering":
+        if recorded_pr_get_dumpable != 0:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_PR_GET_DUMPABLE_INVALID: value="
+                + str(recorded_pr_get_dumpable)
+            )
+        if recorded_stage != "module_started":
             raise RuntimeError(
                 "PILOT_ACTUAL_RUNTIME_WRONG_STAGE: stage="
                 + str(recorded_stage)
             )
+        validate_runtime_module_filename(
+            recorded_filename,
+            module=gateway_module,
+            hermes_python=hermes_python,
+        )
+        if gateway.poll() is not None:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_EXITED_EARLY: returncode="
+                + str(gateway.returncode)
+            )
+        # Do not let a target that exits immediately after emitting its first
+        # frame race the parent-side liveness check.
+        time.sleep(0.1)
         if gateway.poll() is not None:
             raise RuntimeError(
                 "PILOT_ACTUAL_RUNTIME_EXITED_EARLY: returncode="
@@ -232,7 +253,9 @@ def run_actual_gateway(
             + gateway_module
             + " stage="
             + str(recorded_stage)
-            + " dumpable=0 kernel_dumpable=0"
+            + " filename="
+            + str(recorded_filename)
+            + " PR_GET_DUMPABLE=0 dumpable=0 kernel_dumpable=0"
             + " proc_status="
             + str(gateway.pid),
             flush=True,
@@ -255,7 +278,11 @@ def run_actual_gateway(
 
 
 def wait_for_runtime_evidence(
-    evidence_file: Path, *, gateway_pid: int, timeout: float = 30.0,
+    evidence_file: Path,
+    *,
+    gateway_pid: int,
+    gateway: subprocess.Popen | None = None,
+    timeout: float = 30.0,
 ) -> dict[str, object]:
     """Wait for the bootstrap to record process identity evidence.
 
@@ -270,20 +297,86 @@ def wait_for_runtime_evidence(
         try:
             raw = evidence_file.read_text(encoding="utf-8")
         except OSError:
+            if gateway is not None and gateway.poll() is not None:
+                raise RuntimeError(
+                    "PILOT_ACTUAL_RUNTIME_EXITED_BEFORE_MODULE_START: returncode="
+                    + str(gateway.returncode)
+                    + " last_stage=missing"
+                )
             time.sleep(0.05)
             continue
         try:
             evidence = json.loads(raw)
         except json.JSONDecodeError:
+            if gateway is not None and gateway.poll() is not None:
+                raise RuntimeError(
+                    "PILOT_ACTUAL_RUNTIME_EXITED_BEFORE_MODULE_START: returncode="
+                    + str(gateway.returncode)
+                    + " last_stage=invalid"
+                )
             time.sleep(0.05)
             continue
-        if isinstance(evidence, dict) and evidence.get("pid") == gateway_pid:
+        if not isinstance(evidence, dict):
+            raise TypeError("PILOT_ACTUAL_RUNTIME_EVIDENCE_INVALID")
+        if evidence.get("pid") != gateway_pid:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_PID_MISMATCH: evidence pid="
+                + str(evidence.get("pid"))
+                + " gateway pid="
+                + str(gateway_pid)
+            )
+        if evidence.get("stage") == "module_started":
             return evidence
+        if gateway is not None and gateway.poll() is not None:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_EXITED_BEFORE_MODULE_START: returncode="
+                + str(gateway.returncode)
+                + " last_stage="
+                + str(evidence.get("stage"))
+            )
         time.sleep(0.05)
     raise RuntimeError(
         "PILOT_ACTUAL_RUNTIME_EVIDENCE_MISSING: no evidence from pid="
         + str(gateway_pid)
     )
+
+
+def validate_runtime_module_filename(
+    filename: object, *, module: str, hermes_python: str
+) -> Path:
+    """Fail closed unless evidence names the requested module's real file."""
+
+    if not isinstance(filename, str) or not filename:
+        raise RuntimeError("PILOT_ACTUAL_RUNTIME_FILENAME_MISSING")
+    resolved = Path(filename).resolve()
+    module_parts = module.split(".")
+    expected_tail = tuple(module_parts[:-1]) + (module_parts[-1] + ".py",)
+    if (
+        tuple(resolved.parts[-len(expected_tail):]) != expected_tail
+        or not resolved.is_file()
+    ):
+        raise RuntimeError(
+            "PILOT_ACTUAL_RUNTIME_FILENAME_MISMATCH: filename="
+            + str(resolved)
+            + " module="
+            + module
+        )
+    if module == "gateway.run":
+        # Keep the invoked Hermes path rather than resolving its Python
+        # symlink into .hermes-runtime generations.  The stable installation
+        # root is the parent of <hermes-agent>/venv.
+        hermes_venv = Path(hermes_python).absolute().parent.parent
+        hermes_install = hermes_venv.parent
+        try:
+            resolved.relative_to(hermes_install)
+        except ValueError as exc:
+            raise RuntimeError(
+                "PILOT_ACTUAL_RUNTIME_NOT_HERMES_GATEWAY: filename="
+                + str(resolved)
+                + " hermes_install="
+                + str(hermes_install)
+            ) from exc
+    return resolved
 
 
 # errno values that are the expected kernel denial for a non-dumpable

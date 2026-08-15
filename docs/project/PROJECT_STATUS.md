@@ -102,10 +102,13 @@ tested Pilot profile（`PILOT_GRADE_LOCAL_PROCESS_ISOLATED_PROFILE_V1`）；
 均保持不变。P1B-R1 的 stub 测试被 R2 重新分类为 CONTROLLED_RUNTIME_LINK_VALIDATION
 （证明 bootstrap wiring / PID linkage / evidence 机制，不冒充 actual Hermes runtime）。
 P1B-R2 已用真实 Hermes Python 与 `gateway.run` 经 launcher 实际链路证明 actual Hermes
-runtime-entry：`module=gateway.run`、`stage=entering`、`evidence.pid == Popen.pid`、
-`dumpable=0`、进程存活、内核拒绝跨进程 `/proc/<pid>/mem` 访问（RUNTIME_ENTRY_PROVEN，
+runtime-entry：`module=gateway.run`、实际 Hermes `gateway/run.py` 文件内首个执行 frame
+产生 `stage=module_started`、`evidence.pid == Popen.pid`、`dumpable=0`、进程稳定存活、
+内核拒绝跨进程 `/proc/<pid>/mem` 访问（RUNTIME_ENTRY_PROVEN，
 非完整服务生命周期）。`observe_kernel_dumpable()` 收紧为仅 EACCES/EPERM 判为预期拒绝，
-其他 errno 与成功 open 均 fail closed；正式 launcher 由自身验证 evidence 全部字段。
+其他 errno 与成功 open 均 fail closed；pre-call `dispatching` 不构成完成证据，正式 launcher
+由自身验证 evidence 全部字段及 resolved filename。真实 WSL2/Hermes explicit suite 17 passed；
+wrong PID/module、dispatching-only、导入失败、提前退出、超时与路径冒充均 fail closed。
 `--check` 仅作为 prerequisite self-test。P1B-R2 状态为
 IMPLEMENTED / ACTUAL_HERMES_RUNTIME_ENTRY_EVIDENCE_COMPLETE / PENDING_INDEPENDENT_REVIEW。
 REL-036 未启动，版本、Tag 和 Release 未改变。

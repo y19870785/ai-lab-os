@@ -11,7 +11,9 @@ through the launcher path and requires runtime-entry evidence:
   evidence.module        = gateway.run
   evidence.pid           = spawned Popen pid
   evidence.dumpable      = 0
-  evidence.stage         = entering
+  evidence.pr_get_dumpable = 0
+  evidence.stage         = module_started
+  evidence.filename      = resolved Hermes gateway/run.py
   kernel mem observation = expected denial (EACCES/EPERM)
   process alive after evidence established
 
@@ -28,6 +30,7 @@ import json
 import os
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -36,6 +39,8 @@ from applications.pilot_001_ingress_bridge.launcher import (
     build_gateway_command,
     observe_kernel_dumpable,
     run_actual_gateway,
+    validate_runtime_module_filename,
+    wait_for_runtime_evidence,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -114,6 +119,96 @@ def test_p1b_r2_kernel_observation_success_fails_closed(monkeypatch):
         observe_kernel_dumpable(os.getpid())
 
 
+def test_p1b_r2_wrong_module_evidence_fails_closed(tmp_path, monkeypatch):
+    evidence_file = tmp_path / "evidence.json"
+
+    class FakePopen:
+        def __init__(self, command, **kwargs):
+            self.pid = 4242
+            self.returncode = None
+            self._alive = True
+            evidence_file.write_text(
+                json.dumps(
+                    {
+                        "pid": self.pid,
+                        "module": "gateway.wrong",
+                        "stage": "module_started",
+                        "dumpable": 0,
+                        "pr_get_dumpable": 0,
+                        "filename": str(tmp_path / "gateway" / "wrong.py"),
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+        def poll(self):
+            return None if self._alive else 0
+
+        def terminate(self):
+            self._alive = False
+
+        def wait(self, timeout=None):
+            self.returncode = 0
+            return 0
+
+        def kill(self):
+            self._alive = False
+
+    monkeypatch.setattr(subprocess, "Popen", FakePopen)
+    with pytest.raises(RuntimeError, match="MODULE_MISMATCH"):
+        run_actual_gateway(
+            "/opt/hermes/venv/bin/python",
+            project=tmp_path,
+            environ=os.environ.copy(),
+            evidence_file=evidence_file,
+            gateway_module="gateway.run",
+            runtime_entry_only=True,
+        )
+
+
+def test_p1b_r2_process_exit_before_module_started_fails_closed(tmp_path):
+    gateway = SimpleNamespace(poll=lambda: 1, returncode=1)
+    with pytest.raises(RuntimeError, match="EXITED_BEFORE_MODULE_START"):
+        wait_for_runtime_evidence(
+            tmp_path / "missing.json",
+            gateway_pid=4242,
+            gateway=gateway,
+            timeout=0.2,
+        )
+
+
+def test_p1b_r2_non_hermes_gateway_filename_fails_closed(tmp_path):
+    fake_gateway = tmp_path / "outside" / "gateway" / "run.py"
+    fake_gateway.parent.mkdir(parents=True)
+    fake_gateway.write_text("pass\n", encoding="utf-8")
+    hermes_python = tmp_path / "hermes" / "venv" / "bin" / "python"
+    with pytest.raises(RuntimeError, match="NOT_HERMES_GATEWAY"):
+        validate_runtime_module_filename(
+            str(fake_gateway),
+            module="gateway.run",
+            hermes_python=str(hermes_python),
+        )
+
+
+@pytest.mark.skipif(
+    os.name != "posix" or os.environ.get("PILOT001_RUN_REAL_CAPABILITY_ATTACK") != "1",
+    reason="module import failure requires explicit Linux run",
+)
+def test_p1b_r2_missing_module_fails_closed_on_wsl2(tmp_path):
+    evidence_file = tmp_path / "missing-module-evidence.json"
+    environ = os.environ.copy()
+    environ[RUNTIME_EVIDENCE_ENV] = str(evidence_file)
+    with pytest.raises(RuntimeError, match="EXITED_BEFORE_MODULE_START"):
+        run_actual_gateway(
+            ACTUAL_HERMES_PY,
+            project=tmp_path,
+            environ=environ,
+            evidence_file=evidence_file,
+            gateway_module="gateway.pilot_001_missing",
+            runtime_entry_only=True,
+        )
+
+
 @pytest.mark.skipif(
     os.name != "posix" or os.environ.get("PILOT001_RUN_REAL_CAPABILITY_ATTACK") != "1",
     reason="authoritative P1B-R2 actual Hermes runtime entry requires explicit Linux run",
@@ -131,7 +226,9 @@ def test_p1b_r2_actual_hermes_gateway_run_runtime_entry_on_wsl2(
       - evidence.module == gateway.run
       - evidence.pid == spawned pid
       - evidence.dumpable == 0
-      - evidence.stage == entering
+      - evidence.pr_get_dumpable == 0
+      - evidence.stage == module_started
+      - evidence.filename belongs to the Hermes installation gateway/run.py
       - kernel mem observation is the expected denial
       - the process is still alive after the evidence was established
 
@@ -190,6 +287,14 @@ def test_p1b_r2_actual_hermes_gateway_run_runtime_entry_on_wsl2(
         assert recorded["pid"] == pid
         assert recorded["module"] == "gateway.run"
         assert recorded["dumpable"] == 0
-        assert recorded["stage"] == "entering"
+        assert recorded["pr_get_dumpable"] == 0
+        assert recorded["stage"] == "module_started"
+        resolved = validate_runtime_module_filename(
+            recorded["filename"],
+            module="gateway.run",
+            hermes_python=ACTUAL_HERMES_PY,
+        )
+        assert resolved.name == "run.py"
+        assert resolved.parent.name == "gateway"
     finally:
         cleanup_temporary_project(project)
