@@ -123,8 +123,8 @@ Shell 可以把自然语言映射为 View 或 Preview 请求，也可以呈现 C
 | Agent Runtime / Agent Loop | EXTERNALIZE | 通用自主循环 | 交给 Hermes 等成熟 Shell | 保持 Adapter 可替换 |
 | Channels / Skills / Browser / Computer Use | EXTERNALIZE | 成熟外部生态 | Shell 优先提供 | 高风险动作仍受 AI-Lab 控制 |
 | Coordination / 通用 Multi-Agent | EXTERNALIZE | 实验性协作骨架 | 更后续由 Shell 编排、AI-Lab 管业务事实 | 不得共享数据库捷径 |
-| `core/agent`、`core/agents` 与顶层 `agents` 重叠 | DEPRECATION_CANDIDATE | 历史兼容 | 后续独立任务评估，STRAT-001 不删除 | 需先清点 import 与公共 API |
-| 重复 Knowledge 实现 | DEPRECATION_CANDIDATE | 各自验证过局部能力 | v0.38 前决定 canonical 边界 | 数据迁移与引用兼容风险 |
+| `core/agent`、`core/agents` 与顶层 `agents` 重叠 | REMOVED / CONSOLIDATED | 顶层 `agents/`、`core/agent/` 已按 DEPRECATION_AUDIT 收口删除（2026-08-14，Owner 授权） | 以 `core/agents` 为唯一实现 | 完成 |
+| 重复 Knowledge 实现 | REMOVED / CONSOLIDATED | 顶层 `knowledge/` 已按 DEPRECATION_AUDIT 收口删除（2026-08-14，Owner 授权） | 以 `core/knowledge` 为唯一实现 | 完成 |
 | Alpha Assistant 与 CEO Assistant 重叠 | DEPRECATION_CANDIDATE | 历史入口 | 在 Shell Adapter 稳定后评估 | 不得提前移除用户入口 |
 
 ## 长期能力覆盖矩阵

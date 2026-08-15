@@ -215,27 +215,21 @@ Retrieval Engine（分层检索）
 ### 模块结构
 
 ```
-knowledge/
+core/knowledge/
 ├── __init__.py          # 包入口
-├── manager.py          # KnowledgeManager 统一入口
-├── ingestion.py        # IngestionPipeline
-├── retrieval.py        # RetrievalEngine
-├── permission.py       # 知识权限模型
-├── config.py           # Knowledge Layer 配置
-├── models/             # 五种知识数据模型
-│   ├── document.py     # DocumentKnowledge / Chunk
-│   ├── entity.py       # EntityKnowledge / RelationKnowledge
-│   └── experience.py   # ExperientialKnowledge / DecisionKnowledge
-├── chunking/           # 切割策略
-│   ├── protocol.py     # ChunkStrategy 抽象
-│   ├── recursive.py    # 递归分割
-│   ├── fixed_size.py   # 固定大小
-│   └── markdown.py     # Markdown 结构
-├── embedding/          # Embedding 接口
-│   ├── protocol.py     # EmbeddingProvider 抽象
-│   └── provider_none.py# 降级实现
-└── storage/            # 存储层抽象
-    └── protocol.py     # KnowledgeStore / VectorStore / GraphStore
+├── models.py            # KnowledgeItem / Chunk / Query
+├── protocol.py          # KnowledgeStore 抽象
+├── manager.py           # KnowledgeManager 统一入口
+├── ingestion.py         # 摄入管道
+├── chunking.py          # 分块策略
+├── retrieval.py         # 混合检索
+├── ranking.py           # 混合排序
+├── metadata.py          # 元数据
+├── filters.py           # 过滤
+├── cache.py             # 缓存
+├── config.py            # 配置
+├── exceptions.py        # 异常
+└── sqlite_store.py      # SQLite 存储
 ```
 
 详见 [RFC-004: Knowledge Layer Architecture](docs/rfc/004-knowledge-layer-architecture.md)。
@@ -265,22 +259,19 @@ Agent = AgentIdentity + [Tools] + [MemoryProfile] + [AgentPermission]
 ### 模块结构
 
 ```
-agents/
-├── __init__.py          # Agent Layer 入口
-├── identity.py          # AgentIdentity / AgentRole / CapabilityDecl
-├── permission.py        # AgentPermission / AuditLevel
-├── memory.py            # MemoryProfile
+core/agents/
+├── __init__.py          # 包入口
+├── models.py            # AgentInfo / Request / Response
+├── protocol.py          # AgentRuntime 抽象
+├── runtime.py           # DefaultAgentRuntime
+├── executor.py          # AgentExecutor
 ├── lifecycle.py         # AgentLifecycleManager + 状态机
-├── protocol.py          # AgentMessage / Agent Protocol
-├── context.py           # AgentTask / AgentResult
-├── config.py            # Agent Layer 配置
-├── tools/               # 工具系统
-│   ├── __init__.py
-│   ├── protocol.py      # Tool / ToolCall / ToolHandler
-│   └── registry.py      # ToolRegistry
-└── roles/               # 角色模板
-    ├── __init__.py
-    └── registry.py      # RoleRegistry + 预定义模板
+├── context.py           # ContextBuilder
+├── session.py           # AgentSession
+├── registry.py          # AgentRegistry
+├── config.py            # 配置
+├── events.py            # 事件
+└── exceptions.py        # 异常
 ```
 
 ### 核心业务流程

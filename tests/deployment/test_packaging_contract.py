@@ -56,7 +56,11 @@ def test_setuptools_discovers_product_packages_only():
     includes = set(package_config["include"])
     excludes = set(package_config["exclude"])
 
-    assert {"core*", "agents*", "knowledge*", "applications*", "api*", "cli*"} <= includes
+    # 2026-08-14 DEPRECATION_AUDIT 收口：顶层 agents/knowledge/workflows 已删除，不再打包
+    assert {"core*", "applications*", "api*", "cli*"} <= includes
+    assert "agents*" not in includes
+    assert "knowledge*" not in includes
+    assert "workflows*" not in includes
     assert "tests*" in excludes
     assert "data*" in excludes
     assert "logs*" in excludes

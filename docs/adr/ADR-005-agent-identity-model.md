@@ -130,5 +130,5 @@ Phase 3: 运行时能力学习 → Agent 在运行中习得新能力
 ## 5. 相关链接
 
 - [RFC-003 §3.1-3.3](docs/rfc/003-agent-architecture.md#31-整体思路)
-- [core/agent/models.py](core/agent/models.py) — AgentSpec / AgentInstance
+- `core/agents/models.py` — AgentSpec / AgentInstance 对应物（AgentInfo / AgentRequest；`core/agent/` 已收口删除，2026-08-14）
 - [RFC-001 §3.3 模块 5](docs/rfc/001-core-layer-architecture.md#模块-5agent-runtime新增)
