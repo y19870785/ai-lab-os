@@ -11,7 +11,7 @@
 
 ## 摘要
 
-本 RFC 规划 Quote Request 的 canonical identity、workspace 隔离、revision/CAS、idempotency、状态机、稳定失败合同以及 Verified Result。它不创建代码、Schema 或运行时入口；任何实现均需要独立授权。
+本 RFC 规划 Quote Request 的 canonical identity、workspace 隔离、revision/CAS、idempotency、状态机、稳定失败合同以及 Quote canonical mutation proof。它不创建代码、Schema 或运行时入口；任何实现均需要独立授权。
 
 ## Canonical identity 与引用
 
@@ -74,7 +74,7 @@
 | command/envelope authority mismatch | `quote.workspace_mismatch` | permission_denied | false |
 | scoped lookup 无结果（absent 或 foreign ID） | `quote.not_found` | not_found | false |
 | stale expected revision | `quote.revision_conflict` | conflict | true |
-| 同 key 异 payload/operation | `quote.idempotency_conflict` | conflict | false |
+| 同一完整 WorkspaceKey、同 operation、同 idempotency key、不同 normalized payload | `quote.idempotency_conflict` | conflict | false |
 | 非法状态跃迁 | `quote.invalid_transition` | validation | false |
 | 字段或引用校验失败 | `quote.validation_failed` | validation | false |
 | canonical persistence 失败 | `quote.persistence_failed` | persistence_failure | true |

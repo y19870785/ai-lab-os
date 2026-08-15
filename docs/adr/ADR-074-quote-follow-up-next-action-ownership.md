@@ -49,7 +49,7 @@ Slice A 的 mutation proof 归 Quote bounded context：`QuoteAuditRecord` 与 Qu
 - Quote bounded context 是 Customer、Contact、Quote Request 和 Next Action 的唯一 owner。
 - Waiting-For 是 Follow-up 事实的唯一 owner。
 - Daily Review 与 Action Hint 均为单向消费者，不反向写入 Quote。
-- 跨 workspace linkage 一律返回 `quote.workspace_mismatch`，不得建立引用。
+- command/envelope authority mismatch 在任何 repository 查询前返回 `quote.workspace_mismatch / permission_denied`；linkage 的当前 WorkspaceKey scoped lookup 无结果时，foreign ID 与 absent ID 一律返回不可区分的 `quote.not_found / not_found`，不得跨 workspace fallback lookup 或建立引用。
 - Slice C 可以独立实现 read projection，而不会把展示层混入 Slice A 的写入所有权。
 
 ## 未选择方案

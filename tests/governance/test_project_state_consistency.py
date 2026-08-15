@@ -3445,7 +3445,7 @@ def test_sp022_planning_contract_is_complete_and_not_authorized() -> None:
         "quote.invalid_transition",
         "quote.persistence_failed",
         "quote.projection_failed",
-        "Verified Result",
+        "Quote canonical mutation proof",
         "canonical read-back",
     ):
         assert marker in documents["rfc"]
@@ -3469,6 +3469,23 @@ def test_sp022_planning_contract_is_complete_and_not_authorized() -> None:
     }
     for code, category in failure_categories.items():
         assert f"`{code}` | {category.value} |" in documents["rfc"]
+
+    assert "同 key 异 payload/operation" not in documents["rfc"]
+    assert (
+        "同一完整 WorkspaceKey、同 operation、同 idempotency key、不同 normalized payload"
+        in documents["rfc"]
+    )
+    assert "跨 workspace linkage 一律返回 `quote.workspace_mismatch`" not in documents["ownership"]
+    assert (
+        "foreign ID 与 absent ID 一律返回不可区分的 `quote.not_found / not_found`"
+        in documents["ownership"]
+    )
+    assert "不重复 Audit" not in documents["acceptance"]
+    assert "不重复 QuoteAuditRecord" in documents["acceptance"]
+    assert "Audit correlation 与 Verified Result" not in documents["reconciliation"]
+    assert "匹配的 QuoteAuditRecord" in documents["reconciliation"]
+    assert "QuoteMutationResult" in documents["reconciliation"]
+    assert "Slice B 不构造 Interaction VerifiedResult/AuditEvidence" in documents["reconciliation"]
 
     for marker in (
         "foreign ID 与 absent ID",

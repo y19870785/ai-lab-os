@@ -32,7 +32,7 @@
 | ACC-022-Q | A | CLI/API 将稳定 FailureInfo 映射为非零退出码/非 2xx，并保留 machine code | PLANNED / NOT_EXECUTED |
 | ACC-022-R | A | Quote mutation 与 QuoteAuditRecord 在同一 `quotes.db` transaction 成败一致；commit 后 scoped read-back 匹配才返回 QuoteMutationResult | PLANNED / NOT_EXECUTED |
 | ACC-022-S | B | Inbox 在 claim 后崩溃，原 key 重试只创建一个 Quote | PLANNED / NOT_EXECUTED |
-| ACC-022-T | B | Quote 已创建但 Inbox 未完成，reconciliation 补 linkage/completion且不重复 Audit | PLANNED / NOT_EXECUTED |
+| ACC-022-T | B | Quote 已创建但 Inbox 未完成，reconciliation 补 linkage/completion 且不重复 QuoteAuditRecord | PLANNED / NOT_EXECUTED |
 | ACC-022-U | B | 重复 Inbox 事件返回原 claim/Quote；payload conflict fail closed | PLANNED / NOT_EXECUTED |
 | ACC-022-V | B | reconciliation scan/repair 可重复、稳定分页并保留最终失败证据 | PLANNED / NOT_EXECUTED |
 | ACC-022-W | A/B | Follow-up 只引用 Waiting-For；owner/status/due/history 不在 Quote 中复制 | PLANNED / NOT_EXECUTED |
@@ -53,6 +53,6 @@
 ## 通过门槛
 
 - 当前执行数必须保持 `0`，通过数必须保持 `0`。
-- 每个场景需要可复现输入、canonical before/after、Audit/FailureInfo、unexpected writes 与 Provider call 计数。
+- 每个场景需要可复现输入、canonical before/after、QuoteAuditRecord/FailureInfo、unexpected writes 与 Provider call 计数。
 - A、B、C、D 分别按独立授权执行；某一 Slice 通过不得自动授权另一 Slice。
 - ACC-022 只有在所有获准场景完成独立证据复核后才可能标记 Passed；本规划不作该声明。
