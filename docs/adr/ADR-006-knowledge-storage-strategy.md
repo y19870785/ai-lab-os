@@ -21,7 +21,7 @@
 - SQLite 存储：`core/knowledge/sqlite_store.py`
 - 管理入口：`core/knowledge/manager.py`
 
-修订原因是重复顶层 `knowledge/` 已按 Owner 授权的技术债收口删除，当前公共 API 清单与运行时消费者均指向 `core/knowledge`。本修订只 supersede 路径和当前实现范围，不撤销 ADR-006 的历史 Accepted 状态。
+修订原因是当前公共 API 清单与运行时消费者均指向 `core/knowledge`，它已取得 canonical ownership。顶层 `knowledge/` 在 base wheel/sdist 中可导入，且其旧类型与当前 canonical 模型没有经过验证的一一等价映射，因此本技术债任务保留原模块作为 deprecated compatibility package 至至少 v0.36，最早 v0.37.0 才可另行授权删除。本修订只 supersede canonical 路径和当前实现范围，不撤销 ADR-006 的历史 Accepted 状态，也不把兼容包重新定义为 canonical owner。
 
 当前实现提供 canonical Knowledge protocol、SQLite store 与 manager，但**不包含**原正文规划的独立完整 `VectorStore`/`GraphStore` 体系，也不证明完整 Knowledge 产品主链路已经完成。原正文中的 Phase 1 后端图、表结构与未来步骤均属于历史设计上下文，不得当作当前能力声明；任何完整 Vector/Graph 体系仍需独立规划、授权和验收。
 

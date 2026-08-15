@@ -148,7 +148,7 @@ python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
 python -m pip install -e .
 ```
 
-`pyproject.toml` 是版本、依赖和 package discovery 的唯一运行时来源；`requirements.txt` 仅兼容代理 `.[local]`。
+`pyproject.toml` 是版本、依赖和 package discovery 的唯一运行时来源；`requirements.txt` 仅兼容代理 `.[local]`。正式实现以 `core`、`applications`、`api`、`cli` 为 canonical packages；base 构建产物中的 `agents`、`knowledge`、`core.agent`、`workflows` import surface 在 v0.36 继续作为 deprecated compatibility packages 保留，最早可在另行授权的 v0.37.0 删除。`prompts` 保持 source-only、not-packaged 的历史边界。
 
 ## 运行 Profile
 

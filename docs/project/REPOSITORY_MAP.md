@@ -23,6 +23,9 @@
 | `data/` | 持久化数据（SQLite + Chroma） | `data/sqlite/`, `data/chroma/` |
 | `logs/` | 运行日志 | — |
 | `database/` | 不打包的 repository compatibility marker；只满足 PILOT isolation guard 的目录存在性要求，不是数据库实现或公共入口 | `database/__init__.py` |
+| `agents/`、`knowledge/`、`workflows/` | deprecated compatibility packages；保留 base import 语义并发出 `DeprecationWarning`，canonical ownership 仍在 `core/` | 各目录 `__init__.py` |
+| `core/agent/` | 无一对一 forwarding 语义的 deprecated compatibility package；保留原类型合同 | `core/agent/__init__.py` |
+| `prompts/` | 与 base 一致的 source-only deprecated 空桩，不在 wheel/sdist 中 | `prompts/__init__.py` |
 
 ---
 
@@ -44,7 +47,7 @@
 | EventBus | `core/bus/bus.py` | `core/bus/event.py` | — |
 | Database | `core/database/manager.py` | — | — |
 
-`core/agents` 与 `core/knowledge` 是当前唯一 canonical 实现。历史顶层 `agents/`、`knowledge/`、`core/agent/`、`workflows/` 与 `prompts/` 已按 `DEPRECATION_AUDIT.md` 收口删除，不属于当前仓库结构或 setuptools package discovery。
+`core/agents` 与 `core/knowledge` 是当前唯一 canonical 实现。旧 namespace 不再拥有 canonical implementation，但为满足 VERSIONING_POLICY 的兼容期而暂时保留；`agents*`、`knowledge*`、`workflows*` 和随 `core*` 发现的 `core.agent` 仍进入安装产物，`prompts/` 只在源码树保留。最终 namespace 删除推迟到至少经过 v0.36，且不得早于 v0.37.0。
 
 ---
 

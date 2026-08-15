@@ -132,5 +132,5 @@ Phase 3: 运行时能力学习 → Agent 在运行中习得新能力
 ## 5. 相关链接
 
 - [RFC-003 §3.1-3.3](docs/rfc/003-agent-architecture.md#31-整体思路)
-- `core/agents/models.py` — 当前 canonical info、request、context 与 response 模型；历史 AgentSpec/AgentInstance 无一对一映射（`core/agent/` 已收口删除，2026-08-14）
+- `core/agents/models.py` — 当前 canonical info、request、context 与 response 模型；deprecated `core/agent/` 的 AgentSpec/AgentInstance 无一对一映射，因此保留原语义兼容层至至少 v0.36，最早 v0.37.0 才可另行授权删除
 - [RFC-001 §3.3 模块 5](docs/rfc/001-core-layer-architecture.md#模块-5agent-runtime新增)

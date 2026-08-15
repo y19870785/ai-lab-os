@@ -60,10 +60,13 @@ local = [
 
 [tool.setuptools.packages.find]
 include = [
+    "agents*",
     "api*",
     "applications*",
     "cli*",
     "core*",
+    "knowledge*",
+    "workflows*",
 ]
 exclude = ["tests*", "data*", "logs*", "runtime*", "chroma*"]
 

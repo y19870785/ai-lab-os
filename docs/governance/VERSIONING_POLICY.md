@@ -154,9 +154,9 @@ agent_spec.version = "1.2.3"
 
 ### Prompt 定义
 
-状态：`top-level prompts/ package: REMOVED / NOT_CURRENT_REPOSITORY_STRUCTURE`。
+状态：`top-level prompts/ namespace: DEPRECATED_SOURCE_ONLY / NOT_CANONICAL / NOT_PACKAGED`。
 
-当前没有 canonical 顶层 Prompt registry/package。历史 `prompts/` 只是空 `__init__.py` 桩，已在受授权的重复实现技术债任务中删除；以下目录树与配置示例只保留为**未来提案**，不是当前仓库结构、package discovery 或已实现能力，也不得据此重新创建 `prompts/`。
+当前没有 canonical 顶层 Prompt registry/package。base 源码中的 `prompts/` 只是空 `__init__.py` 桩且从未进入 wheel/sdist；本技术债任务仅为保持 source import compatibility 而暂时保留该桩并发出 `DeprecationWarning`，不把它加入 package discovery。它至少保留至 v0.36，最早 v0.37.0 才可另行授权删除。以下目录树与配置示例只保留为**未来提案**，不是当前已实现能力，也不得据此扩建 `prompts/`。
 
 未来若引入 Prompt registry、模板目录或版本化 prompt artifacts，必须先取得独立 RFC/ADR、ownership 与 packaging 决定。届时 Prompt 可按下列版本治理思想与代码分离管理：
 

@@ -232,6 +232,8 @@ core/knowledge/
 └── sqlite_store.py      # SQLite 存储
 ```
 
+顶层 `knowledge` 仍作为 deprecated compatibility package 保留原语义，不是第二个 canonical 实现；至少保留整个 v0.36 Minor，最早在另行授权的 v0.37.0 删除。
+
 详见 [RFC-004: Knowledge Layer Architecture](docs/rfc/004-knowledge-layer-architecture.md)。
 
 
@@ -273,6 +275,8 @@ core/agents/
 ├── events.py            # 事件
 └── exceptions.py        # 异常
 ```
+
+顶层 `agents` 与 `core.agent` 仍作为 deprecated compatibility packages 保留原语义，不是第二个 canonical 实现；至少保留整个 v0.36 Minor，最早在另行授权的 v0.37.0 删除。
 
 ### 核心业务流程
 
