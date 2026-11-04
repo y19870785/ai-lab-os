@@ -3,15 +3,28 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import time
+
+from applications.pilot_001_ingress_bridge.process_isolation import (
+    apply_process_isolation,
+    assert_process_isolated,
+)
 
 from .protocol import FRAME_VERSION, CapabilityClient
 
 
 def main() -> int:
+    hardening: dict[str, int] = {}
+    if os.environ.get("PILOT001_REQUIRE_PROCESS_ISOLATION") == "1":
+        hardening["startup"] = apply_process_isolation()
     client = CapabilityClient.from_inherited_fd()
+    if hardening:
+        hardening["capability_acquired"] = assert_process_isolated(
+            "capability_acquired"
+        )
     receipt = client.request(
         {
             "frame_version": FRAME_VERSION,
@@ -27,11 +40,14 @@ def main() -> int:
         text=True,
         close_fds=False,
     )
+    if hardening:
+        hardening["post_child"] = assert_process_isolated("post_child")
     print(
         json.dumps(
             {
                 "receipt_accepted": receipt.get("accepted") is True,
                 "child": json.loads(child.stdout),
+                "hardening": hardening,
             },
             sort_keys=True,
         ),
