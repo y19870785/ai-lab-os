@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import re
@@ -32,7 +32,9 @@ PILOT_001_STATUS = (
     "PILOT_001_P1A_MERGED / PILOT_001_P1A_MAIN_QUALITY_GATE_PASSED / "
     "PILOT_001_P1A_FINAL_INDEPENDENT_REVIEW_PASSED / "
     "PILOT_001_P1A_POST_MERGE_VERIFIED / PILOT_001_P1A_RECONCILED / "
-    "PILOT_001_P1A_ARCHIVED"
+    "PILOT_001_P1A_ARCHIVED / PILOT_001_P1B_PROCESS_ISOLATION_MITIGATION_PROVEN / "
+    "PILOT_GRADE_LOCAL_PROCESS_ISOLATED_PROFILE_V1 / "
+    "PILOT_PROCESS_ISOLATION_PROVEN_FOR_SUPPORTED_PROFILE / PILOT_001_P1B_ACTUAL_HERMES_RUNTIME_ENTRY_PROVEN"
 )
 
 
@@ -1406,7 +1408,7 @@ def test_sp020_is_merged_reconciled_and_archived() -> None:
     sp020 = state["sp_records"]["SP-020"]
     acc020 = state["acceptance_records"]["ACC-020"]
 
-    assert state["updated_at"] == "2026-08-14"
+    assert state["updated_at"] == "2026-08-15"
     assert state["latest_merged_sp"] == "SP-021"
     assert state["latest_completed_sp"] == "SP-021"
     assert state["current_sp"] is None
@@ -2313,10 +2315,10 @@ def test_rel035_final_publication_reconciliation_is_locked() -> None:
     inventory = (ROOT / "docs/project/MARKDOWN_INVENTORY.md").read_text(
         encoding="utf-8-sig"
     )
-    assert len(tracked_markdown) == 214
-    assert "- Git 跟踪 Markdown：214" in inventory
-    assert "- 仓库自有且纳入范围：214" in inventory
-    assert "- 新增中文治理文档：38" in inventory
+    assert len(tracked_markdown) == 215
+    assert "- Git 跟踪 Markdown：215" in inventory
+    assert "- 仓库自有且纳入范围：215" in inventory
+    assert "- 新增中文治理文档：39" in inventory
     assert "docs/project/REL-035-FINAL-RECONCILIATION.md" in inventory
 
     limitations = (ROOT / "docs/project/KNOWN_LIMITATIONS.md").read_text(
