@@ -14,6 +14,41 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
+# Audited at main 82aa2da; never derive this baseline from the artifact under test.
+COMPATIBILITY_MODULES = frozenset({
+    "agents", "agents.config", "agents.context", "agents.identity",
+    "agents.lifecycle", "agents.memory", "agents.permission", "agents.protocol",
+    "agents.roles", "agents.roles.registry", "agents.tools",
+    "agents.tools.protocol", "agents.tools.registry",
+    "core.agent", "core.agent.models", "core.agent.protocol",
+    "knowledge", "knowledge.chunking", "knowledge.chunking.fixed_size",
+    "knowledge.chunking.markdown", "knowledge.chunking.protocol",
+    "knowledge.chunking.recursive", "knowledge.config", "knowledge.embedding",
+    "knowledge.embedding.protocol", "knowledge.embedding.provider_none",
+    "knowledge.ingestion", "knowledge.manager", "knowledge.models",
+    "knowledge.models.document", "knowledge.models.entity",
+    "knowledge.models.experience", "knowledge.permission", "knowledge.retrieval",
+    "knowledge.storage", "knowledge.storage.protocol", "workflows",
+})
+
+
+def _assert_compatibility_modules(archive_names):
+    modules = set()
+    for name in archive_names:
+        if name.endswith(".py"):
+            module = name.removesuffix(".py").replace("/", ".")
+            modules.add(module.removesuffix(".__init__"))
+    missing = COMPATIBILITY_MODULES - modules
+    assert not missing, f"Missing baseline compatibility modules: {sorted(missing)}"
+
+
+@pytest.mark.parametrize("missing_module", sorted(COMPATIBILITY_MODULES))
+def test_compatibility_manifest_rejects_each_missing_module(missing_module):
+    names = [name.replace(".", "/") + ".py" for name in COMPATIBILITY_MODULES]
+    names.remove(missing_module.replace(".", "/") + ".py")
+    with pytest.raises(AssertionError, match="Missing baseline compatibility modules"):
+        _assert_compatibility_modules(names)
+
 
 def _project_config() -> dict:
     return tomllib.loads(
@@ -137,6 +172,9 @@ def test_wheel_and_sdist_retain_deprecated_compatibility_packages(
     with tarfile.open(sdist, "r:gz") as archive:
         sdist_names = [name.split("/", 1)[1] for name in archive.getnames() if "/" in name]
 
+    _assert_compatibility_modules(wheel_names)
+    _assert_compatibility_modules(sdist_names)
+
     for prefix in required:
         assert any(name.startswith(prefix) for name in wheel_names)
         assert any(name.startswith(prefix) for name in sdist_names)
@@ -160,6 +198,7 @@ def test_clean_target_install_imports_deprecated_namespaces_with_warnings(
                 module = module.removesuffix(".__init__")
             compatibility_modules.append(module)
     compatibility_modules.sort()
+    assert COMPATIBILITY_MODULES <= set(compatibility_modules)
     target = root / "installed"
     subprocess.run(
         [
@@ -298,6 +337,7 @@ def test_removed_package_governance_docs_are_reconciled():
         in versioning
     )
     assert "v0.35.0 Alpha" in versioning
+    assert audit.count("UNKNOWN；未观察到仓库内消费者") == 5
     assert "FUTURE_PROPOSAL: prompts/config.yaml" in versioning
     for classification in (
         "CURRENT_CONFLICT",

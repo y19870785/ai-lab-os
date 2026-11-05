@@ -1,5 +1,7 @@
 # AI-Lab 架构文档
 
+兼容制品守卫：以固定的 37 个历史模块清单分别校验 wheel 与 sdist，避免从待测制品自身推导兼容基线；未知外部消费者始终按 UNKNOWN 记录，不改变 canonical ownership。
+
 > PILOT-001-P1A 增加的 Trusted Ingress Evidence 仅运行于
 > `PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE`。临时 WeCom plugin 在 Agent 前把
 > `body.msgid` 与原始 Message B 文本送入独立 issuer，AI-Lab 验签、持久化并
