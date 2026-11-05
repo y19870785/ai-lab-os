@@ -1,5 +1,10 @@
 # AI-Lab OS 更新日志
 
+### 兼容制品基线加固（2026-11-05）
+
+- 固定 37 个历史兼容模块的回归基线，同时检查 wheel/sdist 内容与安装导入清单，并为逐项缺失增加负向测试。
+- 修正弃用审计矩阵：未知外部消费者为 UNKNOWN，不用仓库内无引用推断外部不存在；本轮不变更运行时或公共 API。
+
 ### TECH-DEBT 重复命名空间兼容收口修正
 
 - 根据固定 Base 的源码、wheel/sdist 与 clean install importability matrix，恢复 `agents`、`knowledge`、`core.agent`、`workflows` 的 deprecated compatibility surface；canonical ownership 仍归 `core/agents` 与 `core/knowledge`。

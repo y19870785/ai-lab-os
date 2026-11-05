@@ -39,11 +39,11 @@ R4/R5 曾建议把 `agents*`、`knowledge*`、`workflows*` 移出 package discov
 
 | 命名空间 | Base 源码 import | Base 构建制品 wheel/sdist | 公开源码示例/正式文档 | 仓库外部消费者 | Canonical 替代路径 | Forwarding 判定 |
 |---|---|---|---|---|---|---|
-| `agents` / `agents.*` | 13 个模块中 11 个成功；`agents.memory`、`agents.permission` 因 base 的旧 `MemoryType` import 失败 | 包含；clean install 保持相同 11 成功 / 2 个既有失败 | `agents/__init__.py` 有 `from agents...` 示例；RFC-003 为历史设计 | 无，仅包内自引用 | `core/agents` | 类型与 lifecycle 无完整一一映射；保留原模块，不把既有失败误报为兼容成功 |
-| `knowledge` / `knowledge.*` | 20/20 成功 | 包含；clean install 20/20 成功 | `knowledge/__init__.py` 有 `from knowledge...` 示例；ADR-006/RFC-004 为历史设计 | 无，仅包内自引用 | `core/knowledge` | 模型、storage protocol 无完整一一映射；保留原模块 |
-| `core.agent` | 3/3 成功 | 随 `core*` 包含；clean install 3/3 成功 | ADR-005、RFC-003 与 package docstring | 无，仅包内自引用 | `core.agents` | ADR-005 已证明无一对一映射；保留原模块 |
-| `workflows` | 1/1 成功 | 包含；clean install 1/1 成功 | REPOSITORY_MAP 曾列为 Workflow 定义 | 无；空桩 | `core.workflow` | 薄 namespace 可提示 replacement，但继续保留空桩 |
-| `prompts` | 1/1 成功 | base wheel/sdist 不包含，clean install import 失败 | VERSIONING_POLICY 仅含未来提案 | 无；空桩 | 无 canonical registry | 保持 base artifact 行为；源码空桩暂留且不打包 |
+| `agents` / `agents.*` | 13 个模块中 11 个成功；`agents.memory`、`agents.permission` 因 base 的旧 `MemoryType` import 失败 | 包含；clean install 保持相同 11 成功 / 2 个既有失败 | `agents/__init__.py` 有 `from agents...` 示例；RFC-003 为历史设计 | UNKNOWN；未观察到仓库内消费者 | `core/agents` | 类型与 lifecycle 无完整一一映射；保留原模块，不把既有失败误报为兼容成功 |
+| `knowledge` / `knowledge.*` | 20/20 成功 | 包含；clean install 20/20 成功 | `knowledge/__init__.py` 有 `from knowledge...` 示例；ADR-006/RFC-004 为历史设计 | UNKNOWN；未观察到仓库内消费者 | `core/knowledge` | 模型、storage protocol 无完整一一映射；保留原模块 |
+| `core.agent` | 3/3 成功 | 随 `core*` 包含；clean install 3/3 成功 | ADR-005、RFC-003 与 package docstring | UNKNOWN；未观察到仓库内消费者 | `core.agents` | ADR-005 已证明无一对一映射；保留原模块 |
+| `workflows` | 1/1 成功 | 包含；clean install 1/1 成功 | REPOSITORY_MAP 曾列为 Workflow 定义 | UNKNOWN；未观察到仓库内消费者 | `core.workflow` | 薄 namespace 可提示 replacement，但继续保留空桩 |
+| `prompts` | 1/1 成功 | base wheel/sdist 不包含，clean install import 失败 | VERSIONING_POLICY 仅含未来提案 | UNKNOWN；未观察到仓库内消费者 | 无 canonical registry | 保持 base artifact 行为；源码空桩暂留且不打包 |
 
 矩阵直接来自 clean detached `origin/main` build 与 clean target install，对 37 个 packaged compatibility 模块逐个 import，不以 `__all__` 推断。35 个成功与 2 个既有失败在修订制品中保持一致；source-only `prompts` 另行验证。它能证明 base artifact 的 import surface，却不能证明所有未知外部消费者不存在。
 

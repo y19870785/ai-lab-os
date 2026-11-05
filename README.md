@@ -1,5 +1,7 @@
 # AI-Lab OS 中文使用说明
 
+兼容性回归使用固定的 37 个历史模块基线校验 wheel/sdist，并逐项验证误删可被拒绝；这不证明未知外部消费者不存在，也不承诺任意符号级兼容。
+
 > PILOT-001-P1A 已通过最终独立审查、PR #77 Squash Merge、main Quality Gate
 > `31719553362 / SUCCESS` 与独立 Post-Merge Verification；当前治理对账以 self-closing Draft PR
 > 收口，合并后即正式 `RECONCILED / ARCHIVED`，不再创建递归 reconciliation。
