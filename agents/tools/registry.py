@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
 
-from agents.tools.protocol import Tool, ToolCall, ToolCallResult, ToolFilter, ToolHandler
+from agents.tools.protocol import (
+    Tool,
+    ToolCall,
+    ToolCallResult,
+    ToolFilter,
+    ToolHandler,
+)
 
 
 class ToolRegistry(ABC):

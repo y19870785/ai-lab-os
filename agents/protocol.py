@@ -60,7 +60,7 @@ class AgentProtocol(ABC):
         ...
 
     @abstractmethod
-    async def delegate(self, target_id: str, task: "agents.context.AgentTask") -> str:  # noqa: F821
+    async def delegate(self, target_id: str, task: agents.context.AgentTask) -> str:  # noqa: F821
         """委托一个任务给另一个 Agent。返回 conversation_id。"""
         ...
 

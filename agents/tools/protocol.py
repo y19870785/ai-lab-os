@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
-from typing import Any, AsyncIterator, Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 

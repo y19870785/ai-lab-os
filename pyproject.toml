@@ -38,6 +38,7 @@ test = [
 ]
 build = [
     "build>=1.2",
+    "setuptools>=77.0",
     "twine>=5.0",
 ]
 dev = [
@@ -54,6 +55,7 @@ local = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "ruff>=0.3",
+    "setuptools>=77.0",
     "twine>=5.0",
     "uvicorn>=0.29",
 ]

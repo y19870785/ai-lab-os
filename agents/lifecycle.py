@@ -9,8 +9,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
 
-from pydantic import BaseModel
-
 
 class AgentLifecycleState(str, Enum):
     """Agent 业务生命周期状态。"""
@@ -39,14 +37,13 @@ TRANSITIONS: dict[AgentLifecycleState, list[AgentLifecycleState]] = {
 
 class InvalidTransitionError(ValueError):
     """非法的状态转换。"""
-    pass
 
 
 class AgentLifecycleManager(ABC):
     """Agent 生命周期管理器。管理 Agent 的完整业务生命周期。"""
 
     @abstractmethod
-    async def define(self, identity: "agents.identity.AgentIdentity") -> str:  # noqa: F821
+    async def define(self, identity: agents.identity.AgentIdentity) -> str:  # noqa: F821
         """注册一个新的 Agent 身份。返回 agent_id。"""
         ...
 
@@ -61,7 +58,7 @@ class AgentLifecycleManager(ABC):
         ...
 
     @abstractmethod
-    async def run(self, agent_id: str, task: "agents.context.AgentTask") -> "agents.context.AgentResult":  # noqa: F821
+    async def run(self, agent_id: str, task: agents.context.AgentTask) -> agents.context.AgentResult:  # noqa: F821
         """执行一个任务。"""
         ...
 

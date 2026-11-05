@@ -1,5 +1,11 @@
 # AI-Lab OS 更新日志
 
+### TECH-DEBT 重复命名空间兼容收口修正
+
+- 根据固定 Base 的源码、wheel/sdist 与 clean install importability matrix，恢复 `agents`、`knowledge`、`core.agent`、`workflows` 的 deprecated compatibility surface；canonical ownership 仍归 `core/agents` 与 `core/knowledge`。
+- 兼容命名空间至少保留整个 v0.36 Minor，最早删除版本为 v0.37.0，且需另行授权；`prompts` 继续保持 source-only/not-packaged，不使用 Alpha 阶段例外绕过版本政策。
+- 新增真实制品内容、干净安装导入、`DeprecationWarning` 与 packaging category 回归测试。
+
 ### PILOT-001-P1B 进程隔离缓解与受支持 Pilot 部署 Profile
 
 - 在真实 Ubuntu 24.04.4 / WSL2（Kernel 5.15.167.4-microsoft-standard-WSL2、Hermes v0.20.0、Python 3.11.15、UID 1001、Yama absent）下验证进程本地 Non-Dumpable mitigation：最终 Hermes Python 进程内 `prctl(PR_SET_DUMPABLE, 0)` + 运行时 `PR_GET_DUMPABLE == 0` 验证，启动顺序 fail closed，不修改 Hermes source、不 patch site-packages。

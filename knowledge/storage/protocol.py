@@ -8,7 +8,6 @@ from typing import Any
 from pydantic import BaseModel
 
 from knowledge.models import KnowledgeType
-from knowledge.models.document import Chunk
 
 
 class KnowledgeQuery(BaseModel):
