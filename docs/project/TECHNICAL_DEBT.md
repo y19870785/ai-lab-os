@@ -1,6 +1,6 @@
 # 技术债清单
 
-> 当前源码版本：v0.34.0 Alpha | 更新日期：2026-07-22
+> 当前源码版本：v0.35.0 Alpha | 更新日期：2026-11-08
 
 ## 开放
 
@@ -11,6 +11,10 @@
 | DEPLOY-001 | Docker build/run、持久化卷、关闭和恢复缺正式验收。 | OPEN |
 | SECURITY-001 | 静态 Bearer Token 无身份、RBAC 和热轮换。 | OPEN |
 | KNOWLEDGE-001 | Knowledge reindex、chunk persistence、citation 及真实产品主链路未完成。 | OPEN |
+
+### SCHEDULER-001 部分进展（仍 OPEN）
+
+SCHEDULER-001 部分进展：已补充注入时钟一致性、UTC Cron 子集合同及 60 秒真实后台循环回归基线。后者仅覆盖同一进程内两个实例/独立 SQLite 连接、阶段间优雅关闭与实例重建；跨进程、异常退出恢复、长时负载与生产验收仍未完成，因此该项继续列为 OPEN，而非已解决。
 
 ## 已解决
 

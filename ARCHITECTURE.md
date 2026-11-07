@@ -1,5 +1,7 @@
 # AI-Lab 架构文档
 
+Scheduler 持续性证据边界：默认回归运行真实 tick loop 两阶段各 30 秒，不手动驱动 tick 或加速 Clock。两个实例使用独立 SQLite 连接和真实 WorkAdmissionGate，合成 handler 持续时间超过 claim TTL；阶段间优雅关闭并重建实例，最终将 handler 观察记录与持久化 JobRun/attempt/run_count 对账。仅验证同一进程中实例重建和有界运行，不将其表述为分布式调度、崩溃恢复或外部副作用 exactly-once 证明。
+
 Cron 子集合同：同一解析器同时供 validate/compute_next 使用，分钟仅 `*`/`*/1..60`，小时仅 `*`/`*/1..24`，日期/月份/星期仅 `*`，拒绝前导零及未实现语法。按 UTC 有序枚举当天/次日允许的小时与分钟，返回严格未来的最早匹配；每天 00:00 都匹配，因此搜索有界。不依赖步长整除 60/24，也不提供本地时区/DST 或完整 Cron 支持。
 
 创建、resume 和 tick 均验证合同；tick 在全部活动/重试任务通过校验后才允许派发。遗留无效任务将导致 tick 失败并阻止该 tick 的所有派发；不自动迁移旧任务，不更改 claim/CAS、持久化结构或安全准入。无时区时间及 datetime 上界无未来可表示结果时 compute_next 返回 None。持续运行验收仍未完成。
