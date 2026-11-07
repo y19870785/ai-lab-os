@@ -1,5 +1,7 @@
 # AI-Lab 架构文档
 
+续租时钟边界：Runtime 每轮采样一次 Clock，将该 now 显式传入 persistence.renew_claim，并由同一采样计算 expiry。持久层 owner token、running 状态及未过期 SQL 条件不变；不改变 TTL、重试、handler 取消或外部副作用 fencing 语义。注入时钟缺陷与 PR #87 历史失租分开归因，后者仍 UNKNOWN。
+
 Cron 子集合同：同一解析器同时供 validate/compute_next 使用，分钟仅 `*`/`*/1..60`，小时仅 `*`/`*/1..24`，日期/月份/星期仅 `*`，拒绝前导零及未实现语法。按 UTC 有序枚举当天/次日允许的小时与分钟，返回严格未来的最早匹配；每天 00:00 都匹配，因此搜索有界。不依赖步长整除 60/24，也不提供本地时区/DST 或完整 Cron 支持。
 
 创建、resume 和 tick 均验证合同；tick 在全部活动/重试任务通过校验后才允许派发。遗留无效任务将导致 tick 失败并阻止该 tick 的所有派发；不自动迁移旧任务，不更改 claim/CAS、持久化结构或安全准入。无时区时间及 datetime 上界无未来可表示结果时 compute_next 返回 None。持续运行验收仍未完成。
