@@ -1,5 +1,18 @@
 # AI-Lab OS 更新日志
 
+### Scheduler 失租诊断时间线（2026-11-08）
+
+- 在测试层记录 claim/renew/release/finalize 与 handler/循环采样时间线，透传原行为，不增加运行中数据库查询；临时 JSON 有界保存并记录丢失数，不含 claim token 或异常正文。
+- 增加观测透传、异常身份、脱敏和容量回归；独立的显式循环阻塞注入可复现 claim_expired 与最终 CAS 拒绝，不改变默认 60 秒基线的 TTL 或断言。
+- 未注入复跑通过不构成历史根因解释；原始失租原因仍 UNKNOWN，PR 持续性验收保持 CHANGES_REQUIRED。
+
+### Scheduler 60 秒持续性回归基线（2026-11-08）
+
+- 新增真实后台循环的双实例/独立 SQLite 连接竞争检查，运行两阶段各 30 秒，期间执行超过 claim TTL 的合成 handler，并在阶段间重建实例。
+- 核对 interval 持续进展、一次性任务不重放、健康状态、无观察到的同 Job 重叠、持久化记录及关闭清理；不修改运行时，不使用外部 Provider 或生产数据。
+- SCHEDULER-001 仍 OPEN：本基线不是跨进程、异常退出恢复、长期负载或生产 exactly-once 验收。
+- 独立复跑暴露短租约失租后的重叠执行和 claim_expired/JobClaimLostError；时序根因 UNKNOWN，候选为 CHANGES_REQUIRED，未验收通过。另修复测试停转假通过问题：增加 5 秒 tick 新鲜度和 10 秒 interval 执行进展窗口；不删除重叠断言、不调大 TTL 掩盖失败。
+
 ### Cron 支持子集与最早匹配合同（2026-11-07）
 
 - 修复组合步进、非整除步长跨字段时跳过更早合法时间的问题；按 UTC 在当天/次日有界求最早严格未来匹配。

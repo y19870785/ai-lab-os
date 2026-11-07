@@ -1,5 +1,11 @@
 # AI-Lab 架构文档
 
+Scheduler 持续性证据边界：默认回归运行真实 tick loop 两阶段各 30 秒，不手动驱动 tick 或加速 Clock。两个实例使用独立 SQLite 连接和真实 WorkAdmissionGate，合成 handler 持续时间超过 claim TTL；阶段间优雅关闭并重建实例，最终将 handler 观察记录与持久化 JobRun/attempt/run_count 对账。仅验证同一进程中实例重建和有界运行，不将其表述为分布式调度、崩溃恢复或外部副作用 exactly-once 证明。
+
+该候选当前为 CHANGES_REQUIRED：独立复跑中出现 claim_expired、旧 handler 重叠及最终 claim CAS 拒绝，失租原因未确认。续租失败只结束续租循环，旧 handler 不会被立即停止；最终 CAS 防止旧持久化写入，不提供外部副作用 fencing。持续性测试需同时检查 5 秒内 tick 时间继续更新和 10 秒内 interval 完成记录继续增长，不以历史健康值或阶段末最低计数替代持续进展证据。
+
+仅测试层的 TimelinePersistence 包装原 claim/renew/release/finalize 调用，透传参数、返回值和异常；运行中不增加数据库查询。时间线在内存有界保存，并在 fixture teardown 写临时 JSON，不写仓库/生产库，不保存 token/异常正文。handler 起止和循环采样均带单调时钟；日期时钟与请求 expiry 另列，避免混淆。显式 1 秒循环阻塞注入与未注入的 60 秒基线分开执行；前者捕获失租边界，后者即使通过也不能抹除历史失败。
+
 Cron 子集合同：同一解析器同时供 validate/compute_next 使用，分钟仅 `*`/`*/1..60`，小时仅 `*`/`*/1..24`，日期/月份/星期仅 `*`，拒绝前导零及未实现语法。按 UTC 有序枚举当天/次日允许的小时与分钟，返回严格未来的最早匹配；每天 00:00 都匹配，因此搜索有界。不依赖步长整除 60/24，也不提供本地时区/DST 或完整 Cron 支持。
 
 创建、resume 和 tick 均验证合同；tick 在全部活动/重试任务通过校验后才允许派发。遗留无效任务将导致 tick 失败并阻止该 tick 的所有派发；不自动迁移旧任务，不更改 claim/CAS、持久化结构或安全准入。无时区时间及 datetime 上界无未来可表示结果时 compute_next 返回 None。持续运行验收仍未完成。
