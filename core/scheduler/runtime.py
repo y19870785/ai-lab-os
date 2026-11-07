@@ -34,6 +34,7 @@ from core.scheduler.exceptions import (
     JobAlreadyExistsError,
     JobNotFoundError,
     JobStateError,
+    TriggerError,
 )
 from core.scheduler.jobs import JobExecutor
 from core.scheduler.models import (
@@ -144,7 +145,6 @@ class SchedulerRuntime(SchedulerProtocol):
 
         # 验证 Trigger
         if not TriggerEngine.validate(request.trigger):
-            from core.scheduler.exceptions import TriggerError
             raise TriggerError(f"Invalid trigger: {request.trigger.trigger_type}")
 
         # 计算首次触发时间
@@ -208,6 +208,8 @@ class SchedulerRuntime(SchedulerProtocol):
             return False
         if job.status != JobStatus.PAUSED:
             raise JobStateError("Only paused Job can be resumed")
+        if not TriggerEngine.validate(job.trigger):
+            raise TriggerError(f"Invalid trigger: {job.trigger.trigger_type}")
         next_run_at = job.trigger.next_run_at
         if job.trigger.trigger_type != TriggerType.MANUAL:
             next_run_at = TriggerEngine.compute_next(job.trigger, self._clock.now())
@@ -401,6 +403,11 @@ class SchedulerRuntime(SchedulerProtocol):
             job for job in self._registry.list()
             if job.status in (JobStatus.ACTIVE, JobStatus.RETRYING)
         ]
+
+        # Validate the complete set before any dispatch, including recovered jobs.
+        for job in active_jobs:
+            if not TriggerEngine.validate(job.trigger):
+                raise TriggerError(f"Invalid trigger: {job.trigger.trigger_type}")
 
         for job in active_jobs:
             if not TriggerEngine.should_fire(job.trigger, now):

@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime, timedelta
 
 from core.scheduler.models import Trigger, TriggerType
@@ -41,41 +42,51 @@ class TriggerEngine:
         return None
 
     @staticmethod
+    def _cron_steps(expression: str) -> tuple[int, int] | None:
+        """Parse only the documented UTC minute/hour step subset."""
+        parts = expression.split()
+        if len(parts) != 5 or parts[2:] != ["*", "*", "*"]:
+            return None
+        steps = []
+        for field, maximum in zip(parts[:2], (60, 24), strict=True):
+            if field == "*":
+                steps.append(1)
+                continue
+            match = re.fullmatch(r"\*/([1-9][0-9]?)", field)
+            if match is None or int(match[1]) > maximum:
+                return None
+            steps.append(int(match[1]))
+        return steps[0], steps[1]
+
+    @staticmethod
     def _next_cron(expression: str, now: datetime) -> datetime | None:
-        """简易 Cron 解析 —— 支持 5 字段格式: minute hour day month weekday"""
-        if not expression or expression.count(" ") != 4:
+        """Return the earliest strictly future match in the bounded UTC subset."""
+        steps = TriggerEngine._cron_steps(expression)
+        if steps is None or now.tzinfo is None or now.utcoffset() is None:
             return None
-
+        minute_step, hour_step = steps
         try:
-            parts = expression.strip().split()
-            minute, hour, _day, _month, _weekday = parts
-
-            # 简易实现：仅支持 "*/N" 和 "*" 格式
-            next_dt = now + timedelta(minutes=1)
-            next_dt = next_dt.replace(second=0, microsecond=0)
-
-            if minute.startswith("*/"):
-                interval = int(minute[2:])
-                current_minute = next_dt.minute
-                # next_dt is already strictly future; keep aligned candidates.
-                minutes_to_add = (-current_minute) % interval
-                next_dt += timedelta(minutes=minutes_to_add)
-
-            if hour.startswith("*/"):
-                interval = int(hour[2:])
-                current_hour = next_dt.hour
-                hours_to_add = (-current_hour) % interval
-                next_dt += timedelta(hours=hours_to_add)
-
-            return next_dt
-        except (ValueError, IndexError):
+            now = now.astimezone(UTC)
+            midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            # Every supported expression matches midnight, so two days suffice.
+            for day in (0, 1):
+                date = midnight + timedelta(days=day)
+                for hour in range(0, 24, hour_step):
+                    if day == 0 and hour < now.hour:
+                        continue
+                    for minute in range(0, 60, minute_step):
+                        candidate = date.replace(hour=hour, minute=minute)
+                        if candidate > now:
+                            return candidate
+        except OverflowError:
             return None
+        return None
 
     @staticmethod
     def validate(trigger: Trigger) -> bool:
         """验证 Trigger 配置是否合法"""
         if trigger.trigger_type == TriggerType.CRON:
-            return bool(trigger.cron_expression and trigger.cron_expression.count(" ") == 4)
+            return TriggerEngine._cron_steps(trigger.cron_expression) is not None
         elif trigger.trigger_type == TriggerType.INTERVAL:
             return trigger.interval_seconds > 0
         elif trigger.trigger_type == TriggerType.ONE_SHOT:
