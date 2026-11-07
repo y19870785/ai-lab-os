@@ -183,10 +183,12 @@ def test_wheel_and_sdist_retain_deprecated_compatibility_packages(
         assert not any(name.startswith(prefix) for name in sdist_names)
 
 
+@pytest.mark.parametrize("artifact_kind", ["wheel", "sdist"])
 def test_clean_target_install_imports_deprecated_namespaces_with_warnings(
-    built_distribution_artifacts,
+    built_distribution_artifacts, artifact_kind,
 ):
-    root, wheel, _ = built_distribution_artifacts
+    root, wheel, sdist = built_distribution_artifacts
+    artifact = wheel if artifact_kind == "wheel" else sdist
     compatibility_prefixes = ("agents/", "knowledge/", "core/agent/", "workflows/")
     with zipfile.ZipFile(wheel) as archive:
         compatibility_modules = []
@@ -199,7 +201,7 @@ def test_clean_target_install_imports_deprecated_namespaces_with_warnings(
             compatibility_modules.append(module)
     compatibility_modules.sort()
     assert COMPATIBILITY_MODULES <= set(compatibility_modules)
-    target = root / "installed"
+    target = root / f"installed-{artifact_kind}"
     subprocess.run(
         [
             sys.executable,
@@ -207,9 +209,12 @@ def test_clean_target_install_imports_deprecated_namespaces_with_warnings(
             "pip",
             "install",
             "--no-deps",
+            "--no-build-isolation",
+            "--no-index",
+            "--no-cache-dir",
             "--target",
             str(target),
-            str(wheel),
+            str(artifact),
         ],
         cwd=root,
         check=True,
@@ -222,12 +227,14 @@ import importlib
 import json
 import sys
 import warnings
+from pathlib import Path
 
 sys.path.insert(0, sys.argv[1])
 names = json.loads(sys.argv[2])
 canonical_names = ["core.agents", "core.knowledge", "core.workflow"]
 imports = []
 failures = {}
+module_files = {}
 with warnings.catch_warnings(record=True) as caught:
     warnings.simplefilter("always", DeprecationWarning)
     for name in names:
@@ -237,13 +244,16 @@ with warnings.catch_warnings(record=True) as caught:
             failures[name] = {"type": type(exc).__name__, "message": str(exc)}
         else:
             imports.append(name)
+            module_files[name] = str(Path(sys.modules[name].__file__).resolve())
     for name in canonical_names:
         importlib.import_module(name)
+        module_files[name] = str(Path(sys.modules[name].__file__).resolve())
 result = {
     "imports": imports,
     "failures": failures,
     "canonical_imports": canonical_names,
     "warnings": [str(item.message) for item in caught],
+    "module_files": module_files,
 }
 try:
     importlib.import_module("prompts")
@@ -272,6 +282,11 @@ print(json.dumps(result))
     expected_base_failures = {"agents.memory", "agents.permission"}
     assert set(result["imports"]) == set(compatibility_modules) - expected_base_failures
     assert set(result["failures"]) == expected_base_failures
+    assert set(result["module_files"]) == set(result["imports"]) | set(
+        result["canonical_imports"]
+    )
+    for filename in result["module_files"].values():
+        assert Path(filename).is_relative_to(target.resolve()), filename
     for failure in result["failures"].values():
         assert failure["type"] == "ImportError"
         assert "MemoryType" in failure["message"]

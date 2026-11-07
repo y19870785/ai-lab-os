@@ -57,6 +57,7 @@ R4/R5 曾建议把 `agents*`、`knowledge*`、`workflows*` 移出 package discov
 - `pyproject.toml` 明确区分 canonical implementation packages（`api*`、`applications*`、`cli*`、`core*`）与 deprecated compatibility packages（`agents*`、`knowledge*`、`workflows*`）。本阶段没有能够安全剥离的 `excluded obsolete implementation packages`；`prompts*`、`database*` 是 source-only/guard marker 而非实现包，仍不打包。
 - 证据分类为：`no supported in-repository consumer`；`documented and packaged base import surface exists`；`cannot prove absence of every unknown external consumer`；换言之，`unknown external consumers cannot be disproven`。因此不再记录 `NO_SUPPORTED_PUBLIC_IMPORT_CONTRACT_FOR_REMOVED_PACKAGES`，也不使用“Alpha 所以兼容政策不适用”的例外。
 - wheel/sdist 与 clean target install 测试锁定兼容包存在、真实 import 成功、`DeprecationWarning` 和 source-only `prompts` 边界。
+- 2026-11-07 增补：wheel 与 sdist 分别直接安装到独立空 target，检查成功导入模块的文件来源；禁用索引、缓存、依赖安装和构建隔离，复用现有依赖，因此不声称全新空白虚拟环境或依赖闭包验证通过。
 - 相关文档已同步：ARCHITECTURE.md 模块树、PROJECT_CONTEXT.md、ADR-005 链接、CAPABILITY_OWNERSHIP.md 状态行。
 - 原提交记录全量回归 1868 通过、零失败；本重建分支的结果以本轮独立验证为准。
 

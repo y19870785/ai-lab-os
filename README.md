@@ -2,6 +2,8 @@
 
 兼容性回归使用固定的 37 个历史模块基线校验 wheel/sdist，并逐项验证误删可被拒绝；这不证明未知外部消费者不存在，也不承诺任意符号级兼容。
 
+wheel 与 sdist 还会分别直接安装到不同的空 target，验证兼容模块及 canonical 模块确实来自对应安装目录。测试禁用索引、缓存和依赖安装，使用现有构建/运行依赖；不等同于全新虚拟环境的依赖解析验收。
+
 > PILOT-001-P1A 已通过最终独立审查、PR #77 Squash Merge、main Quality Gate
 > `31719553362 / SUCCESS` 与独立 Post-Merge Verification；当前治理对账以 self-closing Draft PR
 > 收口，合并后即正式 `RECONCILED / ARCHIVED`，不再创建递归 reconciliation。

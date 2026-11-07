@@ -2,6 +2,8 @@
 
 兼容制品守卫：以固定的 37 个历史模块清单分别校验 wheel 与 sdist，避免从待测制品自身推导兼容基线；未知外部消费者始终按 UNKNOWN 记录，不改变 canonical ownership。
 
+安装证据分离：wheel/sdist 各自直接经 pip 安装到独立空 target，再检查模块文件来源；禁用索引、缓存、构建隔离和依赖安装，复用已提供的依赖环境。该守卫不证明空白环境的依赖闭包，不修改产品运行时。
+
 > PILOT-001-P1A 增加的 Trusted Ingress Evidence 仅运行于
 > `PILOT_GRADE_LOCAL_TRUSTED_HOST_PROFILE`。临时 WeCom plugin 在 Agent 前把
 > `body.msgid` 与原始 Message B 文本送入独立 issuer，AI-Lab 验签、持久化并
