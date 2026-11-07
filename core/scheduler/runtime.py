@@ -574,12 +574,14 @@ class SchedulerRuntime(SchedulerProtocol):
         interval = max(self._config.claim_ttl_seconds / 3, 0.05)
         while True:
             await asyncio.sleep(interval)
+            now = self._clock.now()
             renewed = await self._persistence.renew_claim(
                 job_id,
                 claim_token,
-                self._clock.now() + timedelta(
+                now + timedelta(
                     seconds=self._config.claim_ttl_seconds
                 ),
+                now=now,
             )
             if not renewed:
                 return
