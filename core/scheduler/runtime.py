@@ -12,6 +12,7 @@ Scheduler 不直接执行业务，只能通过 Workflow Runtime。
 """
 
 from __future__ import annotations
+
 import asyncio
 import inspect
 import logging
@@ -19,28 +20,36 @@ import uuid
 from datetime import datetime, timedelta
 
 from core.clock import Clock, SystemClock
-from core.scheduler.models import (
-    Job, JobInfo, JobRun, JobRunStatus, JobStatus, TriggerType, ScheduleRequest,
-)
-from core.scheduler.protocol import SchedulerProtocol
-from core.scheduler.registry import SchedulerRegistry
-from core.scheduler.triggers import TriggerEngine
-from core.scheduler.jobs import JobExecutor
-from core.scheduler.persistence import SchedulerPersistence
-from core.scheduler.config import SchedulerConfig
-from core.scheduler.events import publish_scheduler_event, SchedulerEventTypes
-from core.scheduler.exceptions import (
-    JobNotFoundError, JobAlreadyExistsError, JobStateError,
-)
 from core.errors import (
-    ErrorCategory, FailureException,
+    ErrorCategory,
+    FailureException,
     FailureInfo,
     RuntimeStatus,
     failure_event_payload,
     failure_from_exception,
 )
+from core.scheduler.config import SchedulerConfig
+from core.scheduler.events import SchedulerEventTypes, publish_scheduler_event
+from core.scheduler.exceptions import (
+    JobAlreadyExistsError,
+    JobNotFoundError,
+    JobStateError,
+)
+from core.scheduler.jobs import JobExecutor
+from core.scheduler.models import (
+    Job,
+    JobInfo,
+    JobRun,
+    JobRunStatus,
+    JobStatus,
+    ScheduleRequest,
+    TriggerType,
+)
+from core.scheduler.persistence import SchedulerPersistence
+from core.scheduler.protocol import SchedulerProtocol
+from core.scheduler.registry import SchedulerRegistry
+from core.scheduler.triggers import TriggerEngine
 from core.system.admission import WorkAdmission
-
 
 logger = logging.getLogger("ai-lab.scheduler.runtime")
 
@@ -115,7 +124,7 @@ class SchedulerRuntime(SchedulerProtocol):
                     asyncio.gather(*tasks, return_exceptions=True),
                     timeout=self._config.shutdown_timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 for task in tasks:
                     task.cancel()
                 await asyncio.gather(*tasks, return_exceptions=True)
@@ -141,7 +150,7 @@ class SchedulerRuntime(SchedulerProtocol):
         # 计算首次触发时间
         trigger = request.trigger
         if trigger.trigger_type != TriggerType.MANUAL:
-            trigger.next_run_at = TriggerEngine.compute_next(trigger)
+            trigger.next_run_at = TriggerEngine.compute_next(trigger, self._clock.now())
 
         job = Job(
             info=JobInfo(name=request.job_name, tags=request.metadata.get("tags", [])),
@@ -201,7 +210,7 @@ class SchedulerRuntime(SchedulerProtocol):
             raise JobStateError("Only paused Job can be resumed")
         next_run_at = job.trigger.next_run_at
         if job.trigger.trigger_type != TriggerType.MANUAL:
-            next_run_at = TriggerEngine.compute_next(job.trigger)
+            next_run_at = TriggerEngine.compute_next(job.trigger, self._clock.now())
         if self._persistence and self._config.persistence_enabled:
             changed = await self._persistence.resume_job(
                 job_id,
@@ -600,7 +609,7 @@ class SchedulerRuntime(SchedulerProtocol):
                 self._bus, event_type, job_id, job_name, extra
             )
             self._observability_error = None
-        except Exception:
+        except Exception:  # noqa: BLE001 -- observability must not fail job mutations
             self._observability_error = "event_publish_failed"
             logger.warning(
                 "scheduler.event.publish_failed",
