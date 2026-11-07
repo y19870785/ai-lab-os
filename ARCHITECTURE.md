@@ -1,6 +1,8 @@
 # AI-Lab 架构文档
 
-Scheduler 时钟边界：首次 schedule、resume 和 tick 均通过 Runtime 注入的 Clock 计算触发时间；本轮不更改 Cron 解析、JobExecutor 完成时间、claim/CAS、安全准入或单进程架构。长期持续运行证据仍待单独验收。
+Cron 对齐边界修复：未来分钟候选已匹配分钟/小时步进时，保留零偏移而非再次跳步。仅修复这一局部算术缺陷，不扩展既有简易解析器的支持范围，也不宣称完整 Cron 兼容或长期调度验收完成。
+
+Scheduler 时钟边界：首次 schedule、resume 和 tick 均通过 Runtime 注入的 Clock 计算触发时间；该时钟修复不更改 Cron 解析、JobExecutor 完成时间、claim/CAS、安全准入或单进程架构。长期持续运行证据仍待单独验收。
 
 兼容制品守卫：以固定的 37 个历史模块清单分别校验 wheel 与 sdist，避免从待测制品自身推导兼容基线；未知外部消费者始终按 UNKNOWN 记录，不改变 canonical ownership。
 
