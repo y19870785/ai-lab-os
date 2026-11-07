@@ -1,5 +1,10 @@
 # AI-Lab OS 更新日志
 
+### Scheduler 触发时钟一致性修复（2026-11-07）
+
+- 首次排期及暂停后恢复把注入 Clock 显式传给 TriggerEngine，避免固定时钟环境与实际系统时间混用；默认 SystemClock 行为不变。
+- 新增 Interval/Cron、schedule/resume、内存/SQLite 的 8 项确定性回归，实际旧实现均因时间不匹配失败，修复后通过。不关闭 SCHEDULER-001 长期运行验收债务。
+
 ### sdist 直接安装兼容验证（2026-11-07）
 
 - 分别直接安装 wheel 与 sdist 到不同的空 target；在禁用索引、缓存、依赖安装及构建隔离的环境下执行安装，使用既有依赖。
