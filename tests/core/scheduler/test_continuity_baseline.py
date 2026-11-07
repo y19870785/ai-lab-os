@@ -95,6 +95,9 @@ async def test_sixty_second_competing_loops_survive_instance_restart(tmp_path):
             for runtime in runtimes:
                 await runtime.start()
             deadline = loop.time() + 30
+            tick_updates = {runtime: (None, loop.time()) for runtime in runtimes}
+            completions = before
+            progress_at = loop.time()
             samples = 0
             while loop.time() < deadline:
                 await asyncio.sleep(0.1)
@@ -102,6 +105,15 @@ async def test_sixty_second_competing_loops_survive_instance_restart(tmp_path):
                     health = await runtime.health()
                     assert health["status"] == RuntimeStatus.OK.value, health
                     assert health["last_error"] is None
+                    last_value, updated_at = tick_updates[runtime]
+                    if health["last_successful_tick_at"] != last_value:
+                        updated_at = loop.time()
+                        tick_updates[runtime] = (health["last_successful_tick_at"], updated_at)
+                    assert loop.time() - updated_at < 5, "Scheduler tick stopped progressing"
+                current = sum(item[0] == interval_id for item in ledger.finished)
+                if current != completions:
+                    completions, progress_at = current, loop.time()
+                assert loop.time() - progress_at < 10, "Interval job stopped progressing"
                 assert not ledger.overlaps
                 samples += 1
             assert samples >= 10

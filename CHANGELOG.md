@@ -5,6 +5,7 @@
 - 新增真实后台循环的双实例/独立 SQLite 连接竞争检查，运行两阶段各 30 秒，期间执行超过 claim TTL 的合成 handler，并在阶段间重建实例。
 - 核对 interval 持续进展、一次性任务不重放、健康状态、无观察到的同 Job 重叠、持久化记录及关闭清理；不修改运行时，不使用外部 Provider 或生产数据。
 - SCHEDULER-001 仍 OPEN：本基线不是跨进程、异常退出恢复、长期负载或生产 exactly-once 验收。
+- 独立复跑暴露短租约失租后的重叠执行和 claim_expired/JobClaimLostError；时序根因 UNKNOWN，候选为 CHANGES_REQUIRED，未验收通过。另修复测试停转假通过问题：增加 5 秒 tick 新鲜度和 10 秒 interval 执行进展窗口；不删除重叠断言、不调大 TTL 掩盖失败。
 
 ### Cron 支持子集与最早匹配合同（2026-11-07）
 
