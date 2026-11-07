@@ -4,7 +4,9 @@
 """
 
 from __future__ import annotations
-from datetime import datetime, timezone, timedelta
+
+from datetime import UTC, datetime, timedelta
+
 from core.scheduler.models import Trigger, TriggerType
 
 
@@ -14,7 +16,7 @@ class TriggerEngine:
     @staticmethod
     def should_fire(trigger: Trigger, now: datetime | None = None) -> bool:
         """判断 Trigger 是否应该触发"""
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         if trigger.next_run_at is None:
             return False
         return now >= trigger.next_run_at
@@ -22,7 +24,7 @@ class TriggerEngine:
     @staticmethod
     def compute_next(trigger: Trigger, now: datetime | None = None) -> datetime | None:
         """计算下次触发时间"""
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
 
         if trigger.trigger_type == TriggerType.ONE_SHOT:
             return trigger.run_at
@@ -46,7 +48,7 @@ class TriggerEngine:
 
         try:
             parts = expression.strip().split()
-            minute, hour, day, month, weekday = parts
+            minute, hour, _day, _month, _weekday = parts
 
             # 简易实现：仅支持 "*/N" 和 "*" 格式
             next_dt = now + timedelta(minutes=1)
@@ -55,17 +57,14 @@ class TriggerEngine:
             if minute.startswith("*/"):
                 interval = int(minute[2:])
                 current_minute = next_dt.minute
-                minutes_to_add = interval - (current_minute % interval)
-                if minutes_to_add == 0:
-                    minutes_to_add = interval
+                # next_dt is already strictly future; keep aligned candidates.
+                minutes_to_add = (-current_minute) % interval
                 next_dt += timedelta(minutes=minutes_to_add)
 
             if hour.startswith("*/"):
                 interval = int(hour[2:])
                 current_hour = next_dt.hour
-                hours_to_add = interval - (current_hour % interval)
-                if hours_to_add == 0:
-                    hours_to_add = interval
+                hours_to_add = (-current_hour) % interval
                 next_dt += timedelta(hours=hours_to_add)
 
             return next_dt
