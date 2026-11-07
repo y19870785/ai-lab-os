@@ -1,7 +1,7 @@
 """Executable contract for the bounded UTC Cron subset."""
 
 import sqlite3
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
@@ -127,6 +127,8 @@ async def test_tick_rejects_legacy_cron_before_any_dispatch(tmp_path, persistent
 @pytest.mark.parametrize("now", [
     datetime(2000, 1, 1, tzinfo=UTC).replace(tzinfo=None),
     datetime.max.replace(tzinfo=UTC),
+    datetime.max.replace(tzinfo=timezone(-timedelta(hours=1))),
+    datetime.min.replace(tzinfo=timezone(timedelta(hours=1))),
 ])
 def test_cron_without_representable_future_match_returns_none(now):
     trigger = Trigger(trigger_type=TriggerType.CRON, cron_expression="* * * * *")

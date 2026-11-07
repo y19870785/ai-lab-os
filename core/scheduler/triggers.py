@@ -65,9 +65,9 @@ class TriggerEngine:
         if steps is None or now.tzinfo is None or now.utcoffset() is None:
             return None
         minute_step, hour_step = steps
-        now = now.astimezone(UTC)
-        midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
         try:
+            now = now.astimezone(UTC)
+            midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
             # Every supported expression matches midnight, so two days suffice.
             for day in (0, 1):
                 date = midnight + timedelta(days=day)
